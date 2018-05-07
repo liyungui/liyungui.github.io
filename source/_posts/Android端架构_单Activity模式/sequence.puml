@@ -1,0 +1,19 @@
+@startuml
+
+View -> Screen: Hand Button Onclick Message
+Screen -> UiManager: Hand button onclick message
+UiManager -> Controller: Hand button onclick message
+Controller -> State: Hand button onclick message
+State --> Controller: Receiver load net data command
+Controller -> BusinessManager: Load net data
+BusinessManager -> NetService: Load net data
+NetService --> BusinessManager: Notify Data is ready
+BusinessManager -> StoreService: Save data
+BusinessManager --> Controller: Notify data is ready
+Controller -> State: Hand data is ready message
+State --> Controller: Receiver update display command
+Controller --> UiManager: Receiver update display command
+UiManager --> Screen: Receiver update display command
+Screen --> View: Update display
+
+@enduml
