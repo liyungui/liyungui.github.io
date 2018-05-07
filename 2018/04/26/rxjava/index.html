@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="rxjava," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="RxJava是什么一个词：异步 GitHub主页上的自我介绍是 “a library for composing asynchronous and event-based programs using observable sequences for the Java VM”（一个在 Java VM 上使用可观测的序列来组成异步的、基于事件的程序的库） RxJava 好在哪一个词：逻辑简洁。不是代">
+<meta name="keywords" content="rxjava">
+<meta property="og:type" content="article">
+<meta property="og:title" content="rxjava">
+<meta property="og:url" content="http://yoursite.com/2018/04/26/rxjava/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="RxJava是什么一个词：异步 GitHub主页上的自我介绍是 “a library for composing asynchronous and event-based programs using observable sequences for the Java VM”（一个在 Java VM 上使用可观测的序列来组成异步的、基于事件的程序的库） RxJava 好在哪一个词：逻辑简洁。不是代">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/04/26/rxjava/rxjava.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/04/26/rxjava/subscriber.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/04/26/rxjava/subscribeOn.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/04/26/rxjava/observeOn.jpg">
+<meta property="og:image" content="http://yoursite.com/2018/04/26/rxjava/lift.jpg">
+<meta property="og:updated_time" content="2018-05-07T03:16:19.562Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="rxjava">
+<meta name="twitter:description" content="RxJava是什么一个词：异步 GitHub主页上的自我介绍是 “a library for composing asynchronous and event-based programs using observable sequences for the Java VM”（一个在 Java VM 上使用可观测的序列来组成异步的、基于事件的程序的库） RxJava 好在哪一个词：逻辑简洁。不是代">
+<meta name="twitter:image" content="http://yoursite.com/2018/04/26/rxjava/rxjava.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/04/26/rxjava/"/>
+
+
+
+
+
+  <title>rxjava | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/26/rxjava/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">rxjava</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-26T14:12:33+08:00">
+                2018-04-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="RxJava是什么"><a href="#RxJava是什么" class="headerlink" title="RxJava是什么"></a>RxJava是什么</h1><p>一个词：<strong>异步</strong></p>
+<p><a href="https://github.com/ReactiveX/RxJava" target="_blank" rel="noopener">GitHub主页</a>上的自我介绍是 “a library for composing asynchronous and event-based programs using observable sequences for the Java VM”（一个在 Java VM 上使用可观测的序列来组成异步的、基于事件的程序的库）</p>
+<h1 id="RxJava-好在哪"><a href="#RxJava-好在哪" class="headerlink" title="RxJava 好在哪"></a>RxJava 好在哪</h1><p>一个词：<strong>逻辑简洁</strong>。不是代码简洁(代码量少)</p>
+<p>比 <code>AsyncTask</code> 和 <code>Handler</code> 都更加简洁</p>
+<p>链式调用，没有任何嵌套。把任何复杂逻辑都能穿成一条线的简洁</p>
+<h1 id="引入依赖"><a href="#引入依赖" class="headerlink" title="引入依赖"></a>引入依赖</h1><pre><code>compile &quot;io.reactivex:rxjava:1.3.8&quot;
+</code></pre><h1 id="原理简析"><a href="#原理简析" class="headerlink" title="原理简析"></a>原理简析</h1><h2 id="观察者模式–四个基本概念"><a href="#观察者模式–四个基本概念" class="headerlink" title="观察者模式–四个基本概念"></a>观察者模式–四个基本概念</h2><p><strong>生产消费者模型</strong> </p>
+<h3 id="被观察者-可观察者-Observable"><a href="#被观察者-可观察者-Observable" class="headerlink" title="被观察者/可观察者(Observable)"></a>被观察者/可观察者(<code>Observable</code>)</h3><p><code>View</code> 是<strong>被观察者/可观察者</strong>(<code>Observable</code>)</p>
+<p><strong>产生事件</strong>：决定什么时候触发事件以及触发怎样的事件</p>
+<h3 id="观察者-Observer"><a href="#观察者-Observer" class="headerlink" title="观察者(Observer)"></a>观察者(<code>Observer</code>)</h3><p><code>OnClickListener</code> 是<strong>观察者</strong>(<code>Observer</code>)</p>
+<p><strong>消费事件</strong>：决定事件触发的时候将有怎样的行为</p>
+<h3 id="订阅-Subscribe"><a href="#订阅-Subscribe" class="headerlink" title="订阅(Subscribe)"></a>订阅(<code>Subscribe</code>)</h3><p>二者通过 <code>setOnClickListener()</code> 方法达成<strong>注册</strong>(Register)或者称为<strong>订阅</strong>(<code>Subscribe</code>)关系，从而 Observable 可以在需要的时候发出事件来通知 Observer。</p>
+<h3 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h3><p>订阅 <code>onClick() 事件</code></p>
+<h2 id="RxJava–扩展的观察者模式"><a href="#RxJava–扩展的观察者模式" class="headerlink" title="RxJava–扩展的观察者模式"></a>RxJava–扩展的观察者模式</h2><p>RxJava 作为一个工具库，使用的就是<strong>通用形式的观察者模式</strong></p>
+<p>与传统观察者模式不同，RxJava 的事件回调方法除了普通事件 <code>onNext()</code> (相当于 <code>onClick() / onEvent()</code>)之外，还定义了两个特殊的事件：<code>onCompleted()</code> 和 <code>onError()</code>。</p>
+<img src="/2018/04/26/rxjava/rxjava.jpg">
+<h3 id="onCompleted"><a href="#onCompleted" class="headerlink" title="onCompleted()"></a>onCompleted()</h3><p>事件队列完结。</p>
+<p>RxJava 不仅把每个事件单独处理，还会把它们看做一个队列。</p>
+<p>RxJava 规定，当不会再有新的事件发出时，需要触发 onCompleted() 方法作为标志。</p>
+<h3 id="onError"><a href="#onError" class="headerlink" title="onError()"></a>onError()</h3><p>事件队列异常。</p>
+<p>在事件处理过程中出异常时，onError() 会被触发，同时队列自动终止，不允许再有事件发出。</p>
+<p>在一个正确运行的事件序列中, onCompleted() 和 onError() 有且只有一个，并且是事件序列中的最后一个。</p>
+<p>需要注意的是，onCompleted() 和 onError() 二者也是互斥的，即在队列中调用了其中一个，就不应该再调用另一个。</p>
+<h1 id="基本实现API"><a href="#基本实现API" class="headerlink" title="基本实现API"></a>基本实现API</h1><h2 id="创建-Observer"><a href="#创建-Observer" class="headerlink" title="创建 Observer"></a>创建 Observer</h2><h3 id="interface-Observer-lt-T-gt"><a href="#interface-Observer-lt-T-gt" class="headerlink" title="interface Observer&lt;T&gt;"></a>interface <code>Observer&lt;T&gt;</code></h3><pre><code>public interface Observer&lt;T&gt;{
+    void onNext(T t);
+    void onCompleted();
+    void onError(Throwable e);
+}
+</code></pre><p><code>Observer</code> 总是会先被转换成一个 <code>Subscriber</code> 再使用</p>
+<h3 id="abstract-class-Subscriber-lt-T-gt"><a href="#abstract-class-Subscriber-lt-T-gt" class="headerlink" title="abstract class Subscriber&lt;T&gt;"></a>abstract class <code>Subscriber&lt;T&gt;</code></h3><pre><code>public abstract class Subscriber&lt;T&gt; implements Observer&lt;T&gt;, Subscription{
+    public void onStart() {
+        // do nothing by default
+    }
+    public final void unsubscribe() {
+        subscriptions.unsubscribe();
+    }
+}
+public interface Subscription {
+    void unsubscribe();
+    boolean isUnsubscribed();
+}
+</code></pre><h4 id="onStart"><a href="#onStart" class="headerlink" title="onStart()"></a>onStart()</h4><ul>
+<li>subscribe()后立即执行(还未发送事件)，可以用于做一些准备工作</li>
+<li>总是在 subscribe() 所发生的线程被调用，而不能指定线程</li>
+<li>要在指定的线程来做准备工作，可以使用 <code>doOnSubscribe()</code></li>
+</ul>
+<h4 id="unsubscribe"><a href="#unsubscribe" class="headerlink" title="unsubscribe()"></a>unsubscribe()</h4><ul>
+<li>用于取消订阅</li>
+<li>调用这个方法前，可以先使用 <code>isUnsubscribed()</code> 判断一下状态</li>
+<li><strong>很重要</strong>。 解除 <code>Observable</code> 对 <code>Subscriber</code> 的引用关系，避免内存泄露</li>
+</ul>
+<h2 id="创建-Observable"><a href="#创建-Observable" class="headerlink" title="创建 Observable"></a>创建 Observable</h2><h3 id="create"><a href="#create" class="headerlink" title="create()"></a><code>create()</code></h3><ul>
+<li><p>最基本的创造Observable的方法</p>
+<pre><code>Observable observable = Observable.create(new Observable.OnSubscribe&lt;String&gt;() {
+    @Override
+    public void call(Subscriber&lt;? super String&gt; subscriber) {
+        subscriber.onNext(&quot;Hello&quot;);
+        subscriber.onNext(&quot;Hi&quot;);
+        subscriber.onNext(&quot;Aloha&quot;);
+        subscriber.onCompleted();
+    }
+});
+</code></pre></li>
+</ul>
+<p><code>OnSubscribe</code> 会被存储在返回的 <code>Observable</code> 对象中</p>
+<p><code>OnSubscribe.call(subscriber)</code>方法 命名有意思：</p>
+<p>当 <code>Observable</code> 被 订阅<code>subscribe()</code>的时候，该方法会被调用</p>
+<h3 id="just-T"><a href="#just-T" class="headerlink" title="just(T...)"></a><code>just(T...)</code></h3><ul>
+<li><p>将传入的参数依次发送出来</p>
+<pre><code>Observable observable = Observable.just(&quot;Hello&quot;, &quot;Hi&quot;, &quot;Aloha&quot;);
+</code></pre></li>
+</ul>
+<h3 id="from-T-from-Iterable-lt-extends-T-gt"><a href="#from-T-from-Iterable-lt-extends-T-gt" class="headerlink" title="from(T[]) / from(Iterable&lt;? extends T&gt;)"></a><code>from(T[]) / from(Iterable&lt;? extends T&gt;)</code></h3><ul>
+<li><p>将传入的数组或 Iterable 拆分成具体对象后，依次发送出来。 </p>
+<pre><code>tring[] words = {&quot;Hello&quot;, &quot;Hi&quot;, &quot;Aloha&quot;};
+Observable observable = Observable.from(words);
+</code></pre></li>
+</ul>
+<h2 id="订阅-observable-subscribe-observer"><a href="#订阅-observable-subscribe-observer" class="headerlink" title="订阅 observable.subscribe(observer)"></a>订阅 observable.subscribe(observer)</h2><p>subscribe() 这个方法有点怪：它看起来是 <code>observalbe</code> 订阅了 <code>observer / subscriber</code>，看起来就像 『杂志订阅了读者』 一样颠倒了对象关系</p>
+<p>这是为了 流式 API 的设计</p>
+<pre><code>// 注意：这是 subscribe() 的核心代码，将与性能、兼容性、扩展性有关的代码剔除了。
+public Subscription subscribe(Subscriber subscriber) {
+    subscriber.onStart();
+    onSubscribe.call(subscriber);
+    return subscriber;
+}
+</code></pre><ul>
+<li>将传入的 Subscriber 作为 Subscription 返回。这是为了方便 unsubscribe().</li>
+</ul>
+<img src="/2018/04/26/rxjava/subscriber.jpg">
+<p>RxJava 的默认规则中，遵循的是<strong>线程不变原则</strong>。即不指定线程的情况下，事件的发出和消费都是在同一个线程的</p>
+<p>所以，以上实现的只是一个同步的观察者模式</p>
+<p><strong>观察者模式本身的目的就是『后台处理，前台回调』的异步机制</strong></p>
+<p>而要实现异步，则需要用到 RxJava 的另一个概念： Scheduler </p>
+<h2 id="线程控制-Scheduler"><a href="#线程控制-Scheduler" class="headerlink" title="线程控制 Scheduler"></a>线程控制 Scheduler</h2><h3 id="内置Scheduler"><a href="#内置Scheduler" class="headerlink" title="内置Scheduler"></a>内置Scheduler</h3><ul>
+<li><code>Schedulers.immediate()</code>:直接在当前线程运行，相当于不指定线程。这是默认的 Scheduler。</li>
+<li><code>Schedulers.newThread()</code>: 总是启用新线程，并在新线程执行操作。</li>
+<li><code>Schedulers.io()</code>: I/O 操作（读写文件、读写数据库、网络信息交互等）所使用的 Scheduler。行为模式和 newThread() 差不多，区别在于 io() 的内部实现是是用一个无数量上限的线程池，可以重用空闲的线程，因此多数情况下 io() 比 newThread() 更有效率。不要把计算工作放在 io() 中，可以避免创建不必要的线程。</li>
+<li><code>Schedulers.computation()</code>: 计算所使用的 Scheduler。这个计算指的是 CPU 密集型计算，即不会被 I/O 等操作限制性能的操作，例如图形的计算。这个 Scheduler 使用的固定的线程池，大小为 CPU 核数。不要把 I/O 操作放在 computation() 中，否则 I/O 操作的等待时间会浪费 CPU。</li>
+<li><code>AndroidSchedulers.mainThread()</code>: 在 Android 主线程运行。Android专用的</li>
+</ul>
+<h3 id="线程控制"><a href="#线程控制" class="headerlink" title="线程控制"></a>线程控制</h3><p><code>subscribeOn()</code>  指定被观察者<code>Observable</code>的线程/事件产生的线程</p>
+<p><code>observeOn()</code>  指定观察者<code>Subscriber</code>的线程/事件消费的线程</p>
+<h3 id="Scheduler原理"><a href="#Scheduler原理" class="headerlink" title="Scheduler原理"></a>Scheduler原理</h3><p><code>subscribeOn()</code> 和 <code>observeOn()</code> 的内部实现，也是用的 <code>lift()</code></p>
+<p>具体看图（不同颜色的箭头表示不同的线程）：</p>
+<img src="/2018/04/26/rxjava/subscribeOn.jpg">
+<img src="/2018/04/26/rxjava/observeOn.jpg">
+<h1 id="变换"><a href="#变换" class="headerlink" title="变换"></a>变换</h1><p><strong>将事件序列中的对象或整个序列，转换成不同的事件或事件序列</strong></p>
+<h2 id="API"><a href="#API" class="headerlink" title="API"></a>API</h2><h3 id="map"><a href="#map" class="headerlink" title="map()"></a>map()</h3><p><strong>一对一的转化</strong></p>
+<p>打印出一组学生的名字。每个学生只有一个名字</p>
+<pre><code>Student[] students = ...;
+Observable.from(students)
+    .map(new Func1&lt;Student, String&gt;() {
+        @Override
+        public String call(Student student) {
+            return student.getName();
+        }
+    })
+    .subscribe(new Subscriber&lt;String&gt;() {
+        @Override
+        public void onNext(String name) {
+            Log.d(tag, name);
+        }
+        ...
+    });
+</code></pre><p><code>map()</code> 方法将参数中的 <code>Student</code> 对象转换成一个 <code>String</code> 对象后返回，而在经过 map() 方法后，事件的参数类型也由 Student 转为了 String</p>
+<h3 id="flatMap"><a href="#flatMap" class="headerlink" title="flatMap()"></a>flatMap()</h3><p><strong>一对多的转化</strong></p>
+<p><strong>flatMap() 返回的是 Observable 对象</strong></p>
+<p>打印出一组学生所修的所有课程的名称。每个学生有多个课程，把一个 Student 转化成多个 Course</p>
+<pre><code>Student[] students = ...;
+Observable.from(students)
+    .flatMap(new Func1&lt;Student, Observable&lt;Course&gt;&gt;() {
+        @Override
+        public Observable&lt;Course&gt; call(Student student) {
+            return Observable.from(student.getCourses());
+        }
+    })
+    .subscribe(new Subscriber&lt;Course&gt;() {
+        @Override
+        public void onNext(Course course) {
+            Log.d(tag, course.getName());
+        }
+        ...
+    });
+</code></pre><p><strong>flatMap() 的原理：</strong></p>
+<ol>
+<li>使用传入的事件对象创建一个 Observable 对象；</li>
+<li>并不发送这个 Observable, 而是将它激活，于是它开始发送事件；</li>
+<li>每一个创建出来的 Observable 发送的事件，都被汇入同一个 Observable ，而这个 Observable 负责将这些事件统一交给 Subscriber 的回调方法。</li>
+</ol>
+<p>把事件拆成了两级，通过一组新创建的 Observable 将初始的对象『铺平』之后通过统一路径分发了下去。</p>
+<h3 id="throttleFirst"><a href="#throttleFirst" class="headerlink" title="throttleFirst()"></a>throttleFirst()</h3><p>在每次事件触发后的一定时间间隔内丢弃新的事件。常用作去抖动过滤，例如按钮的点击监听器，再也不怕用户手抖点开两个重复的界面啦。</p>
+<pre><code>RxView.clickEvents(button) .throttleFirst(500, TimeUnit.MILLISECONDS).subscribe(subscriber);
+</code></pre><h2 id="变换的原理：lift"><a href="#变换的原理：lift" class="headerlink" title="变换的原理：lift()"></a>变换的原理：lift()</h2><p><strong>实质：对事件序列的处理和再发送</strong></p>
+<pre><code>// 核心代码。
+public &lt;R&gt; Observable&lt;R&gt; lift(Operator&lt;? extends R, ? super T&gt; operator) {
+    return Observable.create(new OnSubscribe&lt;R&gt;() {
+        @Override
+        public void call(Subscriber subscriber) {
+            Subscriber newSubscriber = operator.call(subscriber);
+            newSubscriber.onStart();
+            onSubscribe.call(newSubscriber);
+        }
+    });
+}
+</code></pre><p>生成一个新的 Observable 并返回</p>
+<img src="/2018/04/26/rxjava/lift.jpg">
+<p>举一个具体的 Operator 的实现。下面这是一个将事件中的 Integer 对象转换成 String 的例子</p>
+<pre><code>observable.lift(new Observable.Operator&lt;String, Integer&gt;() {
+    @Override
+    public Subscriber&lt;? super Integer&gt; call(final Subscriber&lt;? super String&gt; subscriber) {
+        // 将事件序列中的 Integer 对象转换为 String 对象
+        return new Subscriber&lt;Integer&gt;() {
+            @Override
+            public void onNext(Integer integer) {
+                subscriber.onNext(&quot;&quot; + integer);
+            }
+        };
+    }
+});
+</code></pre><p>RxJava不建议开发者自定义 Operator 来直接使用 lift()，而是建议尽量使用已有的 lift() 包装方法（如 map() flatMap() 等）进行组合来实现需求，因为直接使用 lift() 非常容易发生一些难以发现的错误</p>
+<h2 id="compose-对-Observable-整体的变换"><a href="#compose-对-Observable-整体的变换" class="headerlink" title="compose:对 Observable 整体的变换"></a>compose:对 Observable 整体的变换</h2><p><strong>lift() 是针对事件项和事件序列的，而 compose() 是针对 Observable 自身进行变换</strong></p>
+<p>假设在程序中有多个 Observable ，并且他们都需要应用一组相同的 lift() 变换。</p>
+<pre><code>public class LiftAllTransformer implements Observable.Transformer&lt;Integer, String&gt; {
+    @Override
+    public Observable&lt;String&gt; call(Observable&lt;Integer&gt; observable) {
+        return observable
+            .lift1()
+            .lift2()
+            .lift3()
+            .lift4();
+    }
+}
+...
+Transformer liftAll = new LiftAllTransformer();
+observable1.compose(liftAll).subscribe(subscriber1);
+observable2.compose(liftAll).subscribe(subscriber2);
+observable3.compose(liftAll).subscribe(subscriber3);
+</code></pre><p>使用 <code>compose()</code> 方法，<code>Observable</code> 可以利用传入的 <code>Transformer</code> 对象的 <code>call()</code> 方法直接对自身进行处理</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/rxjava/" rel="tag"><i class="fa fa-tag"></i> rxjava</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/07/Android系统架构图-五层框架/" rel="prev" title="Android系统架构图(五层框架)">
+                Android系统架构图(五层框架) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RxJava是什么"><span class="nav-number">1.</span> <span class="nav-text">RxJava是什么</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RxJava-好在哪"><span class="nav-number">2.</span> <span class="nav-text">RxJava 好在哪</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#引入依赖"><span class="nav-number">3.</span> <span class="nav-text">引入依赖</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#原理简析"><span class="nav-number">4.</span> <span class="nav-text">原理简析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#观察者模式–四个基本概念"><span class="nav-number">4.1.</span> <span class="nav-text">观察者模式–四个基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#被观察者-可观察者-Observable"><span class="nav-number">4.1.1.</span> <span class="nav-text">被观察者/可观察者(Observable)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#观察者-Observer"><span class="nav-number">4.1.2.</span> <span class="nav-text">观察者(Observer)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#订阅-Subscribe"><span class="nav-number">4.1.3.</span> <span class="nav-text">订阅(Subscribe)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件"><span class="nav-number">4.1.4.</span> <span class="nav-text">事件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RxJava–扩展的观察者模式"><span class="nav-number">4.2.</span> <span class="nav-text">RxJava–扩展的观察者模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#onCompleted"><span class="nav-number">4.2.1.</span> <span class="nav-text">onCompleted()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#onError"><span class="nav-number">4.2.2.</span> <span class="nav-text">onError()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基本实现API"><span class="nav-number">5.</span> <span class="nav-text">基本实现API</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建-Observer"><span class="nav-number">5.1.</span> <span class="nav-text">创建 Observer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#interface-Observer-lt-T-gt"><span class="nav-number">5.1.1.</span> <span class="nav-text">interface Observer&lt;T&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#abstract-class-Subscriber-lt-T-gt"><span class="nav-number">5.1.2.</span> <span class="nav-text">abstract class Subscriber&lt;T&gt;</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#onStart"><span class="nav-number">5.1.2.1.</span> <span class="nav-text">onStart()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#unsubscribe"><span class="nav-number">5.1.2.2.</span> <span class="nav-text">unsubscribe()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建-Observable"><span class="nav-number">5.2.</span> <span class="nav-text">创建 Observable</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#create"><span class="nav-number">5.2.1.</span> <span class="nav-text">create()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#just-T"><span class="nav-number">5.2.2.</span> <span class="nav-text">just(T...)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#from-T-from-Iterable-lt-extends-T-gt"><span class="nav-number">5.2.3.</span> <span class="nav-text">from(T[]) / from(Iterable&lt;? extends T&gt;)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#订阅-observable-subscribe-observer"><span class="nav-number">5.3.</span> <span class="nav-text">订阅 observable.subscribe(observer)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程控制-Scheduler"><span class="nav-number">5.4.</span> <span class="nav-text">线程控制 Scheduler</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内置Scheduler"><span class="nav-number">5.4.1.</span> <span class="nav-text">内置Scheduler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程控制"><span class="nav-number">5.4.2.</span> <span class="nav-text">线程控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Scheduler原理"><span class="nav-number">5.4.3.</span> <span class="nav-text">Scheduler原理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#变换"><span class="nav-number">6.</span> <span class="nav-text">变换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#API"><span class="nav-number">6.1.</span> <span class="nav-text">API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#map"><span class="nav-number">6.1.1.</span> <span class="nav-text">map()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flatMap"><span class="nav-number">6.1.2.</span> <span class="nav-text">flatMap()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#throttleFirst"><span class="nav-number">6.1.3.</span> <span class="nav-text">throttleFirst()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变换的原理：lift"><span class="nav-number">6.2.</span> <span class="nav-text">变换的原理：lift()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#compose-对-Observable-整体的变换"><span class="nav-number">6.3.</span> <span class="nav-text">compose:对 Observable 整体的变换</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
