@@ -35,6 +35,7 @@ tags: 架构
 - **状态机**： 
 	- 当前状态只关心与当前状态有关的消息，然后做出适合当前状态操作。 
 	- 场景的分离，状态机让每个特定的场景的业务逻辑内聚，只关心自己的业务
+	- **State 绑定/决定唤起展示 Screen**
 - **纵向分层：Controller&Manager&Service**： 
 	- 纵向分层，屏蔽底部实现 
 		- Service提供基础的服务，比如存储服务，网络服务等。 
@@ -56,11 +57,326 @@ tags: 架构
 
 核心类BaseController，以它为中心所控制的各种Manager（UiManager、StateManager、UserManager、PersonManager），Manager也许会靠一些Service（NetService、StorageService、StatisticsService）支撑它。
 
+## Screen是如何添加到屏幕中的 ##
+
+	MainActivity.onCreate() --> MainController.onCreate() --> BaseStateManager.inTurnBackAllAndSetTopState()
+	--> BaseState.handleForwardEnter() --> StateMain.forwardEnter() --> StateMain.showScreen()
+	--> MainController.receiveCommand() --> MainUiManager.receiveCommand() --> BaseFrameView.pushScreen() 调用 BaseFrameView.this.addView(screen);
+
+
+MainController
+
+	private void confirmState() {
+        mStateManager.inTurnBackAllAndSetTopState(StateMain.getInstance(), null, null);
+    }
+
+BaseStateManager
+
+	public void inTurnBackAllAndSetTopState(S topState, IContainer params, IContainer result) {
+        while (mStackState.size() != 0) {
+            goBack(params, result);
+        }
+
+        setCurrentState(topState, params, result);
+    }
+	public void setCurrentState(S state, IContainer params, IContainer result) {
+        mStackState.clear();
+        mStackState.push(state);
+        state.handleForwardEnter(mController, this, null, params, result);
+    }
+
+BaseState
+
+	void handleForwardEnter(ICommandReceiver commandReceiver, M stateManager, S lastState,
+                            IContainer params, IContainer result) {
+        mCommandReceiver = commandReceiver;
+        mStateManager = stateManager;
+        mLastState = lastState;
+        forwardEnter(commandReceiver, stateManager, lastState, params, result);
+    }
+
+StateMain
+
+	 protected void forwardEnter(ICommandReceiver commandReceiver, StateManager stateManager, State lastState, IContainer params, IContainer result) {
+        showScreen(ScreenMain.class);
+    }
+	protected void showScreen(@NonNull Class baseScreen, @Nullable IContainer params, boolean pool) {
+        if (params == null) {
+            params = Cargo.obtain();
+        }
+        params.put(BaseCargoId.Clazz, baseScreen);
+        params.put(BaseCargoId.Pool, pool);
+        if (mCommandReceiver != null) {
+            mCommandReceiver.receiveCommand(BaseCommandId.Command_Common_Show_Screen, params, null);
+        }
+        params.release();
+    }
+
+MainController
+
+	@Override
+    public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+        boolean isReceive = receiveCommandBeforeScreen(commandId, params, result);
+        if (!isReceive && mUiManager != null) {
+            isReceive = mUiManager.receiveCommand(commandId, params, result);
+        }
+        return isReceive;
+    }
+
+MainUiManager
+
+	public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+        boolean isReceive = false;
+        switch (commandId) {
+            case BaseCommandId.Command_Common_Show_Screen: {
+                if (params != null) {
+                    if (params.contains(BaseCargoId.Clazz)) {
+                        Class<Screen> clazz = (Class<Screen>) params.get(BaseCargoId.Clazz);
+                        boolean pool = (boolean) params.get(BaseCargoId.Pool);
+                        Screen screen = mMainViewFactory.getScreen(clazz, pool);
+                        mFrameView.pushScreen(screen);
+                        screen.receiveCommand(commandId, params, result);
+                    }
+                }
+                isReceive = true;
+            }
+            break;
+			...
+		}
+	}
+	
+BaseUiManager -- mFrameView
+
+	public void initUiFrame() {
+	    mRootView = createRootView();
+	    mActivity.setContentView(mRootView);
+	    mFrameView = createFrameView();
+	    mRootView.addView(mFrameView);
+	}
+
+BaseFrameView
+
+	public void pushScreen(final S screen) {
+        screen.onBeforePush();
+        KeyBoardUtil.hideKeyboard(this);
+
+        S lastScreen = getTopScreen();
+        if (lastScreen != null) {
+            lastScreen.onStop();
+        }
+
+        screen.setVisibility(View.VISIBLE);
+        mScreenStack.push(screen);
+        screen.onStart();
+
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                BaseFrameView.this.addView(screen);
+                screen.onAfterPush();
+                screen.resetDrag();
+            }
+        });
+
+    }
+
 ## 点击一次按键后发生了什么？ ##
 
 {% asset_img sequence.png %}
 
 控件只能向上汇报自己被点击的Message，具体如何操作只能由能够做决定的层来处理这条Message(一般在当前State)，当前State明白意图后告诉Controller去执行具体的逻辑。Controller命令Manager去做具体模块的事务。Manager需要指挥多个Service来完成一次事务的处理，指挥NetService拉去网络数据，拉去成功后然后指挥StorageService将其保存到储存中。完成这些操作后，Controller接到Manager的完成通知会发出一个message，当前state收到消息会去告诉Controller更新相关界面。
+
+### 实例：直播间点击弹出金币榜单 ###
+
+ScreenLiveRoom
+
+	mObserver.handleMessage(MainMessageId.LiveRoom.Get_Ranking_List,cargo,null);
+
+	@Override
+    public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+        return mContentView.receiveCommand(commandId, params, result);
+    }
+
+	private class ContentView extends LiveAreaWidget implements SszViewContract, ICommandReceiver {
+		@Override
+        public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+            boolean isReceived = false;
+            switch (commandId) {
+				case MainCommandId.Live.Update_Ranking_List: {
+                    if (params != null && params.contains(MainCargoId.Ranking_List)) {
+                        mLiveRoomRankingListView.updateRankingList(((List<LiveRoomRankingBean>) params.get(MainCargoId.Ranking_List)));
+                    }
+                    isReceived = true;
+                }
+                break;
+            }
+            return isReceived;
+        }
+    }   
+
+BaseUiManager
+
+	@Override
+    public boolean handleMessage(int messageId, IContainer params, IContainer result) {
+        return mController.handleMessage(messageId, params, result);
+    }
+
+	@Override
+    public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+        boolean isReceive = false;
+        switch (commandId) {
+			default: {
+                if (mFrameView != null && mFrameView.getTopScreen() != null) {
+                    isReceive = mFrameView.getTopScreen().receiveCommand(commandId, params, result);
+                }
+            }
+            break;
+        }
+        return isReceive;
+    }
+
+MainController
+
+	@Override
+    public boolean handleMessage(int messageId, IContainer params, IContainer result) {
+        boolean isHandled = handleMessageBeforeState(messageId, params, result);
+        if (!isHandled && mStateManager.getCurrentState() != null) {
+            if (mStateManager.getCurrentState() != null) {
+                isHandled = mStateManager.getCurrentState().handleMessage(this, mStateManager, messageId, params, result);
+            }
+        }
+        return isHandled;
+    }
+
+	@Override
+    public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+        boolean isReceive = receiveCommandBeforeScreen(commandId, params, result);
+        if (!isReceive && mUiManager != null) {
+            isReceive = mUiManager.receiveCommand(commandId, params, result);
+        }
+        return isReceive;
+    }
+
+StateLiveRoom
+
+	@Override
+    public boolean handleMessage(ICommandReceiver commandReceiver, StateManager stateManager, int messageId, IContainer params, IContainer result) {
+        boolean isHandled = false;
+        switch (messageId) {
+			case MainMessageId.LiveRoom.Get_Ranking_List: {
+                if (params != null && params.contains(MainCargoId.Type)) {
+                    getRankingList(((int) params.get(MainCargoId.Type)));
+                }
+                isHandled = true;
+            }
+            break;
+		}
+        return isHandled || super.handleMessage(commandReceiver, stateManager, messageId, params, result);
+    }
+
+	mCommandReceiver.receiveCommand(MainCommandId.Live.Update_Ranking_List, cargo, null);
+
+## Controller UiManager State Screen 如何交互 Message 和 Command ##
+
+State -- Controller -- UiManager -- Screen
+
+public abstract class BaseController implements IObserver, ICommandReceiver {}
+
+### State 获取 ICommandReceiver/Controller ###
+
+Controller 中，BaseStateManager 把State设为Top State时，调用State.handleForwardEnter(),把 Controller 转为 ICommandReceiver 传入 State
+
+	state.handleForwardEnter(mController, this, null, params, result);
+
+	void handleForwardEnter(ICommandReceiver commandReceiver, M stateManager, S lastState, IContainer params, IContainer result) {
+		mCommandReceiver = commandReceiver;
+	}
+
+### State 发送 Command 到 Screen ###
+
+实例： State 让 Screen 展示到屏幕
+
+State 进入时handleForwardEnter()，showScreen()，调用 ICommandReceiver 发送 展示Screen 命令
+
+	protected void showScreen(@NonNull Class baseScreen, @Nullable IContainer params, boolean pool) {
+        if (params == null) {
+            params = Cargo.obtain();
+        }
+        params.put(BaseCargoId.Clazz, baseScreen);
+        params.put(BaseCargoId.Pool, pool);
+        if (mCommandReceiver != null) {
+            mCommandReceiver.receiveCommand(BaseCommandId.Command_Common_Show_Screen, params, null);
+        }
+        params.release();
+    }
+
+State中的 ICommandReceiver 其实就是 Controller
+
+	@Override
+    public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+        boolean isReceive = mUiManager.receiveCommand(commandId, params, result);
+        return isReceive;
+    }
+
+Controller 调用 MainUiManager，通过 ViewFactory 创建Screen，把 MainUiManager 转为 IObserver 传入 Screen
+
+
+	public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+	    boolean isReceive = false;
+	    switch (commandId) {
+	        case BaseCommandId.Command_Common_Show_Screen: {
+	            if (params != null) {
+	                if (params.contains(BaseCargoId.Clazz)) {
+	                    Class<Screen> clazz = (Class<Screen>) params.get(BaseCargoId.Clazz);
+	                    boolean pool = (boolean) params.get(BaseCargoId.Pool);
+	                    Screen screen = mMainViewFactory.getScreen(clazz, pool);
+	                    mFrameView.pushScreen(screen);
+	                    screen.receiveCommand(commandId, params, result); //调用到 screen.receiveCommand()
+	                }
+	            }
+	            isReceive = true;
+	        }
+	        break;
+	        ...
+	    }
+	}
+
+### Screen 获取 IObserver/UiManager ###
+
+Controller 调用 MainUiManager，通过 ViewFactory 创建Screen，把 MainUiManager 转为 IObserver 传入 Screen。代码如上
+
+
+ViewFactory
+
+	public Screen getScreen(@NonNull Class<T> clazz, boolean pool) {
+        return super.getScreen(clazz, pool);
+    }
+
+BaseViewFactory<U extends BaseUiManager, S extends BaseScreen, SS extends S> **构造Screen时传入 UiManager**
+
+	public S getScreen(@NonNull Class<T> clazz, boolean pool) {
+        try {
+            Constructor constructor = clazz.getDeclaredConstructor(new Class[]{Context.class, IObserver.class});
+            constructor.setAccessible(true);
+            S s = (S) constructor.newInstance(new Object[]{
+                    mContext, mUiManager
+            });
+            return s;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+BaseScreen
+
+	public BaseScreen(@NonNull Context context, @NonNull IObserver observer) {
+        super(context);
+        if (context instanceof Activity) {
+            mAttachedActivity = (Activity) context;
+        }
+        mObserver = observer;
+    }
+
 
 # 最佳实践 #
 

@@ -107,7 +107,7 @@ RxJava 规定，当不会再有新的事件发出时，需要触发 onCompleted(
 
 - subscribe()后立即执行(还未发送事件)，可以用于做一些准备工作
 - 总是在 subscribe() 所发生的线程被调用，而不能指定线程
-- 要在指定的线程来做准备工作，可以使用 `doOnSubscribe()`
+- 要在指定的线程来做准备工作，可以使用 `Observable.doOnSubscribe()`。 原理参考 `线程控制 Scheduler`部分
 
 #### unsubscribe() ####
 
@@ -135,7 +135,9 @@ RxJava 规定，当不会再有新的事件发出时，需要触发 onCompleted(
 
 `OnSubscribe.call(subscriber)`方法 命名有意思：
 
-当 `Observable` 被 订阅`subscribe()`的时候，该方法会被调用
+当 `Observable` 被 订阅`subscribe()`的时候，该方法会被调用。回调时传入 Observable 对应的 Observer
+
+注意：**一个 Observable 总是对应着 一个 OnSubscribe 和一个 Observer**
 
 ### `just(T...)` ###
 
@@ -191,15 +193,66 @@ RxJava 的默认规则中，遵循的是**线程不变原则**。即不指定线
 
 `observeOn()`  指定观察者`Subscriber`的线程/事件消费的线程
 
+	Observable.just(1, 2, 3, 4)
+	    .subscribeOn(Schedulers.io()) // 指定 subscribe() 发生在 IO 线程
+	    .observeOn(AndroidSchedulers.mainThread()) // 指定 Subscriber 的回调发生在主线程
+	    .subscribe(new Action1<Integer>() {
+	        @Override
+	        public void call(Integer number) {
+	            Log.d(tag, "number:" + number);
+	        }
+	    });
+
 ### Scheduler原理 ###
 
-`subscribeOn()` 和 `observeOn()` 的内部实现，也是用的 `lift()`
+`subscribeOn()` 和 `observeOn()` 的内部实现，是 `lift()`
 
 具体看图（不同颜色的箭头表示不同的线程）：
 
 {% asset_img subscribeOn.jpg %}
 
 {% asset_img observeOn.jpg %}
+
+subscribeOn() 和 observeOn() 都做了线程切换的工作（图中的 "schedule..." 部位）。
+
+不同的是:
+
+- subscribeOn() 的线程切换发生在 OnSubscribe 中
+	- 即在它通知上一级 OnSubscribe 时，事件还没有开始发送，因此 subscribeOn() 的线程控制可以从事件发出的开端就造成影响；
+- observeOn() 的线程切换则发生在它内建的 Subscriber 中
+	- 即发生在它即将给下一级 Subscriber 发送事件时，因此 observeOn() 控制的是它后面的线程
+
+### 多个 subscribeOn() 和 observeOn() 混合使用，线程调度 ###
+
+{% asset_img multi_schedule.jpg %}
+
+- 图中共有 5 处含有对事件的操作。
+- ①和②两处受第一个 subscribeOn() 影响，运行在红色线程；
+- ③和④处受第一个 observeOn() 的影响，运行在绿色线程；
+- ⑤处受第二个 onserveOn() 影响，运行在紫色线程；
+- 第二个 subscribeOn() ，由于在通知过程中线程就被第一个 subscribeOn() 截断，因此对整个流程并没有任何影响。**当使用多个 subscribeOn() 的时候，只有第一个 subscribeOn() 起作用**。
+
+### 延伸：doOnSubscribe() ###
+
+**超过一个的 subscribeOn() 对事件处理的流程没有影响，但在流程之前却是可以利用的**
+
+`Observable.doOnSubscribe()` 和 `Subscriber.onStart()` 同样是在 subscribe() 调用后而且在事件发送前执行，但区别在于它**可以指定线程**。
+
+- 默认情况下， doOnSubscribe() 执行在 subscribe() 发生的线程；
+- 如果在 doOnSubscribe() 之后有 subscribeOn() 的话，它将执行在离它最近的 subscribeOn() 所指定的线程
+
+		Observable.create(onSubscribe)
+		    .subscribeOn(Schedulers.io())
+		    .doOnSubscribe(new Action0() {
+		        @Override
+		        public void call() {
+		            progressBar.setVisibility(View.VISIBLE); // 需要在主线程执行
+		        }
+		    })
+		    .subscribeOn(AndroidSchedulers.mainThread()) // 指定主线程
+		    .observeOn(AndroidSchedulers.mainThread())
+		    .subscribe(subscriber);
+
 
 # 变换 #
 
@@ -280,12 +333,22 @@ RxJava 的默认规则中，遵循的是**线程不变原则**。即不指定线
 	        public void call(Subscriber subscriber) {
 	            Subscriber newSubscriber = operator.call(subscriber);
 	            newSubscriber.onStart();
-	            onSubscribe.call(newSubscriber);
+	            onSubscribe.call(newSubscriber);//onSubscribe是原始 Observable 中的原始 OnSubscribe
 	        }
 	    });
 	}
 
-生成一个新的 Observable 并返回
+- 生成一个新的 Observable 并返回。 
+
+- 一个新的 Observable 意味着着 一个新的 OnSubscribe 和一个新的 Observer
+
+- 新 Observable subscribe() 时，触发 新 onSubscribe.call(subscriber)
+	- 在这个 call() 方法里
+		- 新 OnSubscribe 利用 operator.call(subscriber) 生成了一个新的 Subscriber
+		- Operator 就是在这里，通过自己的 call() 方法将新 Subscriber 和原始 Subscriber 进行关联，并插入自己的『变换』代码以实现变换
+		- 然后利用这个新 Subscriber 向原始 Observable 进行订阅。 onSubscribe.call(newSubscriber)
+
+**有点像一种代理机制，通过事件拦截和处理实现事件序列的变换。** 新 Observable 像代理一样，负责接收原始的 Observable 发出的事件，并在处理后发送给 Subscriber
 
 {% asset_img lift.jpg %}
 
@@ -330,5 +393,114 @@ RxJava不建议开发者自定义 Operator 来直接使用 lift()，而是建议
 
 使用 `compose()` 方法，`Observable` 可以利用传入的 `Transformer` 对象的 `call()` 方法直接对自身进行处理
 
+# Do #
+
+Rxjava do系列操作符有多个，如doOnNext，doOnSubscribe，doOnUnsubscribe，doOnCompleted，doOnError，doOnTerminate和doOnEach
+
+do系列的作用是side effect, 不改变数据流。 如当onNext发生时，doOnNext会先被调用，经常用来做数据修正/转换。
+
+doOnEach操作符，他接收的是一个Observable参数，相当于doOnNext，doOnError，doOnCompleted综合体
+
+	final SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd    hh:mm:ss");
+    Observable.create(new Observable.OnSubscribe<Person>() {
+        @Override
+        public void call(Subscriber<? super Person> subscriber) {
+            String date = sDateFormat.format(new Date());
+            System.out.println(date + " call " + Thread.currentThread().getName());
+            Person person = new Person(201);
+            subscriber.onNext(person);
+        }
+    }).subscribeOn(Schedulers.io()) //指定耗时进程
+    .observeOn(Schedulers.newThread()) //指定doOnNext执行线程是新线程
+    .doOnNext(new Action1<Person>() {
+        @Override
+        public void call(Person person) {
+            String date = sDateFormat.format(new Date());
+            System.out.println(date + " call " + Thread.currentThread().getName());
+            person.age = 301;
+            try {
+                Thread.sleep(2000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }).observeOn(AndroidSchedulers.mainThread())//指定最后观察者在主线程
+    .subscribe(new Action1<Person>() {
+        @Override
+        public void call(Person person) {
+            String date = sDateFormat.format(new Date());
+            System.out.println(date + " call " + Thread.currentThread().getName());
+            Log.d(TAG, "call: " + person.age);
+        }
+    });
+
+执行结果：
+
+	03-01 14:49:29.897 23442-24145/com.example.myrxlearn I/System.out: 2016-03-01    02:49:29 call RxCachedThreadScheduler-2
+	03-01 14:49:29.907 23442-24144/com.example.myrxlearn I/System.out: 2016-03-01    02:49:29 call RxNewThreadScheduler-2
+	03-01 14:49:31.907 23442-23442/com.example.myrxlearn I/System.out: 2016-03-01    02:49:31 call main
+
+直到doOnNext里的方法在新线程执行完毕，subscribe里的call才有机会在主线程执行
+
+非阻塞I/O操作
+
+	Schedulers.io().createWorker().schedule(new Action0() {
+        @Override
+        public void call() {
+            try {
+                Thread.sleep(2000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    });
+
+不需要在用observeOn指定在新线程就可以实现
+
+执行结果：
+
+	03-01 14:55:02.307 30368-30406/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call RxCachedThreadScheduler-1
+	03-01 14:55:02.307 30368-30406/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call RxCachedThreadScheduler-1
+	03-01 14:55:02.347 30368-30368/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call main
+
+# retryWhen #
+
+实现接口错误重试机制
+
+	NetService.getInstance().doVote(voteId, choice)
+        .retryWhen(new RetryWithDelay(9, 3000))
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe()
+
+	public class RetryWithDelay implements Func1<Observable<? extends Throwable>, Observable<?>> {
+	    private final int maxRetries;
+	    private final int retryDelayMillis;
+	    private int retryCount;
+	
+	    public RetryWithDelay(int maxRetries, int retryDelayMillis) {
+	        this.maxRetries = maxRetries;
+	        this.retryDelayMillis = retryDelayMillis;
+	    }
+	
+	    @Override
+	    public Observable<?> call(Observable<? extends Throwable> attempts) {
+	        return attempts
+	                .flatMap(new Func1<Throwable, Observable<?>>() {
+	                    @Override
+	                    public Observable<?> call(Throwable throwable) {
+	                        if (++retryCount <= maxRetries) {
+	                            // When this Observable calls onNext, the original Observable will be retried (i.e. re-subscribed).
+	                            LogUtil.i("OkHttp", "get error, it will try after " + retryDelayMillis + " millisecond, retry count " + retryCount);
+	                            return Observable.timer(retryDelayMillis, TimeUnit.MILLISECONDS);
+	                        }
+	                        // Max retries hit. Just pass the error along.
+	                        return Observable.error(throwable);
+	                    }
+	                });
+	    }
+	}
+
+服务器关闭开始测试
 
 
