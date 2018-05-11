@@ -37,7 +37,10 @@ interface IUserEventProcessor{
 }
 
 abstract class State #LightGray{
-
+        # ICommandReceiver mCommandReceiver;
+        # BaseStateManager mStateManager;
+        # BaseState mLastState;
+        # CompositeSubscription mCompositeSubscription;
 
         + handleMessage(ICommandReceiver commandReceiver, StateManager stateManager,
                                     \t int messageId, IContainer params, IContainer result) : boolean;
@@ -49,6 +52,10 @@ abstract class State #LightGray{
                 IContainer params, IContainer result);
         + {abstract} backEnter(ICommandReceiver commandReceiver, State lastState,
                 IContainer params, IContainer result);
+        + showScreen(Class baseScreen, IContainer params);
+        + hideScreen(ICommandReceiver commandReceiver);
+        + showDialog(Class baseDialog, IContainer params);
+        + hideDialog(Class baseDialog);
 }
 
 abstract class BaseActivity {
@@ -60,22 +67,28 @@ abstract class BaseController #LightGray {
     # Activity mActivity;
     # BaseUiManager mUiManager;
     # StateManager mStateManager;
+    + BaseController(Activity activity);
     # {abstract} createUiManager() : BaseUiManager;
+    # {abstract} createStateManager() : BaseStateManager;
 }
 
 abstract class BaseUiManager {
     # Activity mActivity;
     # BaseController mController;
-    # RootView mRootView;
-    # FrameView mFrameView;
+    # BaseRootView mRootView;
+    # BaseFrameView mFrameView;
 
+    + BaseUiManager(Activity activity, BaseController controller);
     + initUiFrame();
+    # {abstract} createRootView() : BaseRootView;
+    # {abstract} createFrameView() : BaseFrameView;
 }
 
-class StateManager {
+abstract class BaseStateManager {
     - Stack<State> mStackState;
     - BaseController mController;
 
+    + BaseStateManager(BaseController controller)
     + getCurrentState() : State;
     + setCurrentState(State state);
     + goForward(State nextState, IContainer params, IContainer result);
@@ -84,12 +97,14 @@ class StateManager {
     + goBack(IContainer params, IContainer result);
     + goBack(State backState, IContainer params, IContainer result);
     + inTurnBackAllAndSetTopState(State topState, IContainer params,
-    /t IContainer result);
+                                   IContainer result);
 }
 
 class BaseViewFactory {
     # Context mContext;
     # BaseUiManager mUiManager;
+
+    + BaseViewFactory(Context context, BaseUiManager uiManager)
 }
 
 class FrameView {
@@ -112,12 +127,19 @@ interface ActionButtonListener {
     + onMainActionButtonClick(int actionButtonId, View actionView);
 }
 
-class Screen #LightGray{
-    - LinearLayout mFullScreenLayout;
-    - MainActionBar mMainActionBar;
+abstract class Screen #LightGray{
+    # IObserver mObserver;
+    # Activity mAttachedActivity;
+    # View mFullStateBarView; //状态栏视图
+    # MainActionBar mMainActionBar;
     - ViewGroup mLayoutContent;
-    - BottomBar mBottomBar;
+    # BottomBar mBottomBar;
 
+    # FrameLayout mRootLayout; //new
+    - LinearLayout mFullScreenLayout; //new
+    - FrameLayout mGuideLayout;
+
+    + Screen(Context context, IObserver observer)
     # {abstract} createMainActionBar() : MainActionBar;
     # {abstract} createBottomBar() : BottomBar;
     # {abstract} createContent() : ViewGroup;
@@ -179,7 +201,7 @@ ICommandReceiver <|.d. BaseUiManager
 IUserEventProcessor <|.r. State
 
 BaseController *- BaseUiManager
-BaseController *-d-- StateManager
+BaseController *-d-- BaseStateManager
 BaseController *-d- UserManager
 BaseController *-d- PersonManager
 
@@ -194,7 +216,7 @@ PersonManager *-d- StatisticsService
 BaseUiManager *-r- BaseViewFactory
 BaseUiManager *-d- FrameView
 
-StateManager o-d- State
+BaseStateManager o-d- State
 
 BaseViewFactory o-r- Screen
 
@@ -208,8 +230,6 @@ MainActionBarListener <|.r. ActionButtonListener
 Screen o-d- MainActionBar
 Screen o-d- ViewGroup
 Screen o-d- BottomBar
-
-
 
 ActionBarListener <|.. MainActionBar
 NavigationBarListener <|.. MainActionBar
