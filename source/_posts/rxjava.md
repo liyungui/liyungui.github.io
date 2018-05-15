@@ -503,4 +503,42 @@ doOnEach操作符，他接收的是一个Observable参数，相当于doOnNext，
 
 服务器关闭开始测试
 
+# interval #
 
+轮询
+
+实例：10秒一次心跳请求
+
+	mSubscription = Observable.interval(0, 10, TimeUnit.SECONDS)
+        .observeOn(Schedulers.io())
+        .doOnNext(new Action1<Long>() {
+            @Override
+            public void call(Long aLong) {
+				//网络请求
+                NetService.getInstance().getBusinessService().liveHeartBeat(mClazzPlanId)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new SszSubscriber<LiveHeartBeatResultBean>(mCommandReceiver) {
+                            @Override
+                            protected void onSuccess(@NonNull LiveHeartBeatResultBean bean) {
+                                ...
+                            }
+                        });
+            }
+        })
+        .subscribe(new Observer<Long>() {
+
+            @Override
+            public void onCompleted() {
+            }
+
+            @Override
+            public void onError(Throwable e) {
+            }
+
+            @Override
+            public void onNext(Long aLong) {
+            }
+        });
+
+	mSubscription.unsubscribe();//取消轮询
