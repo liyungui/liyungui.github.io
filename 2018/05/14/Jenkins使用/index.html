@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="Jenkins 持续集成 多服务器支持。Jenkins支持管理多台服务器 工作目录是工程根目录。http://ci.shensz.local/job/course_android_release/ws/ 对应的是 /data/ci/.jenkins/jobs/course_android_release/workspace/  多个job之间的串并联为什么不能把产品的持续集成步骤统统建立在一个jo">
+<meta name="description" content="Jenkins 持续集成 多服务器支持。Jenkins支持管理多台服务器 工作目录是工程根目录。http://ci.shensz.local/job/course_android_release/ws/ 对应的是 /data/ci/.jenkins/jobs/course_android_release/workspace/  git代码更新自动触发打包实例：每五分钟检查一次git，有更新自动打包">
 <meta name="keywords" content="Jenkins">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Jenkins使用">
 <meta property="og:url" content="http://yoursite.com/2018/05/14/Jenkins使用/index.html">
 <meta property="og:site_name" content="风">
-<meta property="og:description" content="Jenkins 持续集成 多服务器支持。Jenkins支持管理多台服务器 工作目录是工程根目录。http://ci.shensz.local/job/course_android_release/ws/ 对应的是 /data/ci/.jenkins/jobs/course_android_release/workspace/  多个job之间的串并联为什么不能把产品的持续集成步骤统统建立在一个jo">
+<meta property="og:description" content="Jenkins 持续集成 多服务器支持。Jenkins支持管理多台服务器 工作目录是工程根目录。http://ci.shensz.local/job/course_android_release/ws/ 对应的是 /data/ci/.jenkins/jobs/course_android_release/workspace/  git代码更新自动触发打包实例：每五分钟检查一次git，有更新自动打包">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-05-15T08:52:48.581Z">
+<meta property="og:updated_time" content="2018-05-17T04:51:45.440Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Jenkins使用">
-<meta name="twitter:description" content="Jenkins 持续集成 多服务器支持。Jenkins支持管理多台服务器 工作目录是工程根目录。http://ci.shensz.local/job/course_android_release/ws/ 对应的是 /data/ci/.jenkins/jobs/course_android_release/workspace/  多个job之间的串并联为什么不能把产品的持续集成步骤统统建立在一个jo">
+<meta name="twitter:description" content="Jenkins 持续集成 多服务器支持。Jenkins支持管理多台服务器 工作目录是工程根目录。http://ci.shensz.local/job/course_android_release/ws/ 对应的是 /data/ci/.jenkins/jobs/course_android_release/workspace/  git代码更新自动触发打包实例：每五分钟检查一次git，有更新自动打包">
 
 
 
@@ -335,7 +335,10 @@
 <li>多服务器支持。Jenkins支持管理多台服务器</li>
 <li>工作目录是工程根目录。<a href="http://ci.shensz.local/job/course_android_release/ws/" target="_blank" rel="noopener">http://ci.shensz.local/job/course_android_release/ws/</a> 对应的是 /data/ci/.jenkins/jobs/course_android_release/workspace/</li>
 </ul>
-<h1 id="多个job之间的串并联"><a href="#多个job之间的串并联" class="headerlink" title="多个job之间的串并联"></a>多个job之间的串并联</h1><p>为什么不能把产品的持续集成步骤统统建立在一个job上呢？</p>
+<h1 id="git代码更新自动触发打包"><a href="#git代码更新自动触发打包" class="headerlink" title="git代码更新自动触发打包"></a>git代码更新自动触发打包</h1><p>实例：每五分钟检查一次git，有更新自动打包</p>
+<p>构建触发器 – Poll SCM – 日程表    </p>
+<pre><code>输入： */5 * * * *
+</code></pre><h1 id="多个job之间的串并联"><a href="#多个job之间的串并联" class="headerlink" title="多个job之间的串并联"></a>多个job之间的串并联</h1><p>为什么不能把产品的持续集成步骤统统建立在一个job上呢？</p>
 <ul>
 <li>首先，Jenkins限制，一个job的一次构建的所有任务只能运行在一个节点上。那如果产品的编译/部署/测试需要在不同平台下（如编译必须在Linux下，而执行用例需要在Windows下）就必须建立不同的job</li>
 <li>再次，如果只有一个job必然构建时间会变长，也就是意味着产品的质量反馈变慢（必须等到所有的任务才做完才能得到反馈）</li>
@@ -382,7 +385,24 @@ $JAVA_HOME/java -jar $JIAGU_HOME/jiagu.jar -importsign $release_storeFile   $rel
 $JAVA_HOME/java -jar $JIAGU_HOME/jiagu.jar -jiagu ${PWD}/app/build/outputs/apk/*_release.apk ${PWD}/app/build/outputs/apk/ -autosign
 </code></pre></li>
 </ul>
-<h1 id="Jenkins插件-1"><a href="#Jenkins插件-1" class="headerlink" title="Jenkins插件"></a>Jenkins插件</h1><h2 id="Copy-Artifact-Plugin"><a href="#Copy-Artifact-Plugin" class="headerlink" title="Copy Artifact Plugin"></a><a href="https://wiki.jenkins-ci.org/display/JENKINS/Copy+Artifact+Plugin" target="_blank" rel="noopener">Copy Artifact Plugin</a></h2><p>把某个job的构建物(通常是WAR，JAR，TAR，apk等)拷贝到当前job的工作区</p>
+<p>实际操作发现加固成功，下载会后后，并没有自动签名</p>
+<p>加固成功文件名 release_jiagu.apk。 签名成功文件名 release_jiagu_sign.apk</p>
+<p>日志如下</p>
+<pre><code>login success
+save sign success
+上传成功
+已选增强服务：  崩溃日志分析  支持X86架构(默认选择)
+当前加固版本：V 1.3.8.1.109 （详情可点击“查看加固版本说明”）
+加固完成加固成功
+下载成功
+任务完成_已加固
+</code></pre><p>签名成功日志应该如下(手动用助手操作)：</p>
+<pre><code>下载成功
+开始签名 
+开始签名 使用V1签名
+签名完成 (release_jiagu_sign.apk)
+任务完成_已签名 
+</code></pre><h1 id="Jenkins插件-1"><a href="#Jenkins插件-1" class="headerlink" title="Jenkins插件"></a>Jenkins插件</h1><h2 id="Copy-Artifact-Plugin"><a href="#Copy-Artifact-Plugin" class="headerlink" title="Copy Artifact Plugin"></a><a href="https://wiki.jenkins-ci.org/display/JENKINS/Copy+Artifact+Plugin" target="_blank" rel="noopener">Copy Artifact Plugin</a></h2><p>把某个job的构建物(通常是WAR，JAR，TAR，apk等)拷贝到当前job的工作区</p>
 <p> 多job串并联构建原则：一定要保证上游job的构建物是被存档的</p>
 <h2 id="Join-Plugin"><a href="#Join-Plugin" class="headerlink" title="Join Plugin"></a><a href="https://wiki.jenkins-ci.org/display/JENKINS/Join+Plugin" target="_blank" rel="noopener">Join Plugin</a></h2><p>触发job的插件</p>
 <p>亮点在于它触发job的条件是等待所有当前job的下游的job都完成才会发生。当然，只有在当前job有两个及以上的下游job时才有意义。      </p>
@@ -438,6 +458,10 @@ $JAVA_HOME/java -jar $JIAGU_HOME/jiagu.jar -jiagu ${PWD}/app/build/outputs/apk/*
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/17/windows工具/" rel="prev" title="windows工具">
+                windows工具 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -518,7 +542,7 @@ $JAVA_HOME/java -jar $JIAGU_HOME/jiagu.jar -jiagu ${PWD}/app/build/outputs/apk/*
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-count">11</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -531,7 +555,7 @@ $JAVA_HOME/java -jar $JIAGU_HOME/jiagu.jar -jiagu ${PWD}/app/build/outputs/apk/*
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-count">11</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -564,7 +588,7 @@ $JAVA_HOME/java -jar $JIAGU_HOME/jiagu.jar -jiagu ${PWD}/app/build/outputs/apk/*
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Jenkins"><span class="nav-number">1.</span> <span class="nav-text">Jenkins</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多个job之间的串并联"><span class="nav-number">2.</span> <span class="nav-text">多个job之间的串并联</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Jenkins实现"><span class="nav-number">2.1.</span> <span class="nav-text">Jenkins实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Build-Triggers"><span class="nav-number">2.1.1.</span> <span class="nav-text">Build Triggers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Post-build-Actions"><span class="nav-number">2.1.2.</span> <span class="nav-text">Post-build Actions</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Jenkins插件"><span class="nav-number">2.2.</span> <span class="nav-text">Jenkins插件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#360加固"><span class="nav-number">3.</span> <span class="nav-text">360加固</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Jenkins插件-1"><span class="nav-number">4.</span> <span class="nav-text">Jenkins插件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Copy-Artifact-Plugin"><span class="nav-number">4.1.</span> <span class="nav-text">Copy Artifact Plugin</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Join-Plugin"><span class="nav-number">4.2.</span> <span class="nav-text">Join Plugin</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Parameterized-Trigger-Plugin"><span class="nav-number">4.3.</span> <span class="nav-text">Parameterized Trigger Plugin</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Build-Pipeline-Plugin"><span class="nav-number">4.4.</span> <span class="nav-text">Build Pipeline Plugin</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Multijob-Plugin"><span class="nav-number">4.5.</span> <span class="nav-text">Multijob Plugin</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Jenkins"><span class="nav-number">1.</span> <span class="nav-text">Jenkins</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#git代码更新自动触发打包"><span class="nav-number">2.</span> <span class="nav-text">git代码更新自动触发打包</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多个job之间的串并联"><span class="nav-number">3.</span> <span class="nav-text">多个job之间的串并联</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Jenkins实现"><span class="nav-number">3.1.</span> <span class="nav-text">Jenkins实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Build-Triggers"><span class="nav-number">3.1.1.</span> <span class="nav-text">Build Triggers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Post-build-Actions"><span class="nav-number">3.1.2.</span> <span class="nav-text">Post-build Actions</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Jenkins插件"><span class="nav-number">3.2.</span> <span class="nav-text">Jenkins插件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#360加固"><span class="nav-number">4.</span> <span class="nav-text">360加固</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Jenkins插件-1"><span class="nav-number">5.</span> <span class="nav-text">Jenkins插件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Copy-Artifact-Plugin"><span class="nav-number">5.1.</span> <span class="nav-text">Copy Artifact Plugin</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Join-Plugin"><span class="nav-number">5.2.</span> <span class="nav-text">Join Plugin</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Parameterized-Trigger-Plugin"><span class="nav-number">5.3.</span> <span class="nav-text">Parameterized Trigger Plugin</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Build-Pipeline-Plugin"><span class="nav-number">5.4.</span> <span class="nav-text">Build Pipeline Plugin</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Multijob-Plugin"><span class="nav-number">5.5.</span> <span class="nav-text">Multijob Plugin</span></a></li></ol></li></ol></div>
             
 
           </div>
