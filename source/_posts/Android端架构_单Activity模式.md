@@ -1,7 +1,9 @@
 ---
 title: Android端架构_单Activity模式
 date: 2018-05-07 16:53:01
-tags: 架构
+tags: 
+	- 架构
+	- Android
 ---
 
 # 架构存在的必要 #

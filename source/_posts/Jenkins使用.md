@@ -10,7 +10,14 @@ tags: Jenkins
 - 多服务器支持。Jenkins支持管理多台服务器
 - 工作目录是工程根目录。http://ci.shensz.local/job/course_android_release/ws/ 对应的是 /data/ci/.jenkins/jobs/course_android_release/workspace/
 
+# git代码更新自动触发打包 #
 
+实例：每五分钟检查一次git，有更新自动打包
+
+构建触发器 -- Poll SCM -- 日程表	
+
+	输入： */5 * * * *
+	
 # 多个job之间的串并联 #
 
 为什么不能把产品的持续集成步骤统统建立在一个job上呢？
@@ -75,6 +82,29 @@ A中配置 Post-build Actions，projects to build 选 B
 		
 		# 加固，支持通配符，apk路径根据实际修改，如果通配符匹配到两个以上的input文件，就会卡在prepare to upload 一直没有进度。
 		$JAVA_HOME/java -jar $JIAGU_HOME/jiagu.jar -jiagu ${PWD}/app/build/outputs/apk/*_release.apk ${PWD}/app/build/outputs/apk/ -autosign
+
+实际操作发现加固成功，下载会后后，并没有自动签名
+
+加固成功文件名 release_jiagu.apk。 签名成功文件名 release_jiagu_sign.apk
+
+日志如下
+
+	login success
+	save sign success
+	上传成功
+	已选增强服务：  崩溃日志分析  支持X86架构(默认选择)
+	当前加固版本：V 1.3.8.1.109 （详情可点击“查看加固版本说明”）
+	加固完成加固成功
+	下载成功
+	任务完成_已加固
+
+签名成功日志应该如下(手动用助手操作)：
+
+	下载成功
+	开始签名 
+	开始签名 使用V1签名
+	签名完成 (release_jiagu_sign.apk)
+	任务完成_已签名 
 
 # Jenkins插件 #
 
