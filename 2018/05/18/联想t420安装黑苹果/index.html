@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Mac," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="MBR和GPT分区Intel 6系列主板之后，就开始提供UEFI BIOS支持，正式支持GPT硬盘分区表，一举取代了此前的MBR分区表格式 新平台用户（Intel 6系以后/AMD 900系列以后和A系列）来说，都强烈推荐使用GPT分区表格式 Windows Vista以上已经都支持读取和使用GPT分区表。而对于Windows 8以上的用户，换用GPT后开机启动速度也可以进一步得到显著提升。 MB">
+<meta name="keywords" content="Mac">
+<meta property="og:type" content="article">
+<meta property="og:title" content="联想t420安装黑苹果">
+<meta property="og:url" content="http://yoursite.com/2018/05/18/联想t420安装黑苹果/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="MBR和GPT分区Intel 6系列主板之后，就开始提供UEFI BIOS支持，正式支持GPT硬盘分区表，一举取代了此前的MBR分区表格式 新平台用户（Intel 6系以后/AMD 900系列以后和A系列）来说，都强烈推荐使用GPT分区表格式 Windows Vista以上已经都支持读取和使用GPT分区表。而对于Windows 8以上的用户，换用GPT后开机启动速度也可以进一步得到显著提升。 MB">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/05/18/联想t420安装黑苹果/img.png">
+<meta property="og:updated_time" content="2018-05-18T07:21:33.439Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="联想t420安装黑苹果">
+<meta name="twitter:description" content="MBR和GPT分区Intel 6系列主板之后，就开始提供UEFI BIOS支持，正式支持GPT硬盘分区表，一举取代了此前的MBR分区表格式 新平台用户（Intel 6系以后/AMD 900系列以后和A系列）来说，都强烈推荐使用GPT分区表格式 Windows Vista以上已经都支持读取和使用GPT分区表。而对于Windows 8以上的用户，换用GPT后开机启动速度也可以进一步得到显著提升。 MB">
+<meta name="twitter:image" content="http://yoursite.com/2018/05/18/联想t420安装黑苹果/img.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/05/18/联想t420安装黑苹果/"/>
+
+
+
+
+
+  <title>联想t420安装黑苹果 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/联想t420安装黑苹果/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">联想t420安装黑苹果</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T13:29:46+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="MBR和GPT分区"><a href="#MBR和GPT分区" class="headerlink" title="MBR和GPT分区"></a>MBR和GPT分区</h1><p>Intel 6系列主板之后，就开始提供UEFI BIOS支持，正式支持GPT硬盘分区表，一举取代了此前的MBR分区表格式</p>
+<p>新平台用户（Intel 6系以后/AMD 900系列以后和A系列）来说，都强烈推荐使用GPT分区表格式</p>
+<p>Windows Vista以上已经都支持读取和使用GPT分区表。而对于Windows 8以上的用户，换用GPT后开机启动速度也可以进一步得到显著提升。</p>
+<h2 id="MBR"><a href="#MBR" class="headerlink" title="MBR"></a>MBR</h2><p><strong>MBR的全称是Master Boot Record（主引导记录）</strong></p>
+<p>是存在于驱动器开始部分的一个特殊的启动扇区。这个扇区包含了已安装的操作系统的启动加载器和驱动器的逻辑分区信息。</p>
+<p>主引导扇区是硬盘的第一扇区。它由三个部分组成，主引导记录MBR、硬盘分区表DPT和硬盘有效标志</p>
+<p>启动加载器，是一小段代码，用于加载驱动器上其他分区上更大的加载器。Linux系统位于MBR里的通常会是GRUB加载器。</p>
+<p>MBR最大支持2.2TB磁盘，只支持最多4个主分区(再多分区只能设为逻辑分区)</p>
+<h2 id="GPT"><a href="#GPT" class="headerlink" title="GPT"></a>GPT</h2><p><strong>GPT的全称是Globally Unique Identifier Partition Table（GUID分区表）</strong></p>
+<p>GPT首要的任务就是突破2.2T分区的限制，最大支持18EB的分区。</p>
+<p>它的推出是和UEFI BIOS相辅相成的</p>
+<h3 id="ESP"><a href="#ESP" class="headerlink" title="ESP"></a>ESP</h3><p><strong>ESP的全称是EFI system partition（EFI系统分区）</strong></p>
+<p>GPT格式的硬盘必须有一个esp分区，esp分区装的是系统引导(windows就是boot64.efi这个文件),开机启动就是从这个分区开始的</p>
+<h3 id="MSR分区"><a href="#MSR分区" class="headerlink" title="MSR分区"></a>MSR分区</h3><p><strong>MSR的全称是Microsoft Reserved Partition（Microsoft 保留分区）</strong></p>
+<p>GPT上的 Windows操作系统（windows7以上）都要求有的分区。系统组件可以将 MSR 分区的部分分配到新的分区以供它们使用。</p>
+<h1 id="UEFI-BIOS"><a href="#UEFI-BIOS" class="headerlink" title="UEFI BIOS"></a>UEFI BIOS</h1><p><strong>UEFI的全称是Unified Extensible Firmware Interface（统一可扩展固件接口）</strong></p>
+<p>Windows Vista、7系统需要手动添加UEFI支持，可以找一份Windows 8或者10安装镜像，从安装文件中提取Bootmgfw.efi文件，重命名为BOOTX64.EFI，拷贝到win7安装文件的\EFI\Boot\下，如果没有BOOT文件夹就新建一个。</p>
+<h1 id="HFS"><a href="#HFS" class="headerlink" title="HFS"></a>HFS</h1><p><strong>HFS的全称Hierarchical File System（分层文件系统）</strong></p>
+<p>一种由苹果电脑开发，并使用在Mac OS上的文件系统。</p>
+<h1 id="黑苹果神器ThinkPad-t420"><a href="#黑苹果神器ThinkPad-t420" class="headerlink" title="黑苹果神器ThinkPad t420"></a>黑苹果神器ThinkPad t420</h1><p>折腾黑苹果系统一弄就要好几天，太伤神了。</p>
+<p>黑苹果神器ThinkPad t420 基本2个小时就可以搞定</p>
+<p>原机自带的无线网卡不能使用，要更换一张。或者可以通过USB把wifi共享给电脑使用（当然也可以共享手机流量上网，但这儿只说wifi）。horndis已经支持Sierra 10.12，可到官网下载</p>
+<p>带有双显卡的话只能驱动集成显卡或独立显卡的一个，不能实现自动切换（建议买集显版本）</p>
+<p>Yosemite和Windows的时钟问题，把OSX的时区改成北京，启动到Windows在注册表里添加RealTimeIsUniversal键值为1，这样两个系统的时钟就都正常了。原因似乎是MacOSX会把CMOS时钟看做国际标准时间，而Windows默认会看作本地时间。</p>
+<p>ThinkPad T系列经过好几代的发展，设计已经很成熟。</p>
+<ul>
+<li>常用的版本带2代的i5 CPU</li>
+<li>支持最多16G的DDR3内存</li>
+<li>支持mSATA接口固态硬盘</li>
+<li>如果光驱位换成硬盘，最多支持安装3个硬盘。</li>
+<li>可以支持3G移动上网卡。</li>
+<li>接口丰富<ul>
+<li>带有DisplayPort接口。我感觉DP比HDMI接口好太多了，可以方便支持2k高清显示器，hdmi的话情况会复杂很多。</li>
+<li>4个usb 2.0，1394火线接口。</li>
+<li>最大的缺点是没有USB3.0接口</li>
+<li>好在有一个eSATA接口，速度也很快。</li>
+<li>另有一个34mm的ExpressCard接口，可以接上usb 3.0的转接器。</li>
+<li>内置读卡器、摄像头和指纹识别。</li>
+<li>另有扩展底座接口，可以连接专用的扩展底座。</li>
+</ul>
+</li>
+</ul>
+<p>最大的优势之一还在于它的通用性。因为目前使用中的T420数量非常大，所以遇到什么问题，网上很多交流文章。</p>
+<p>现在二手的T420非常便宜，价格在1500左右。购买时注意，市场上好些高配的四核i7机器据说都是换cpu的，因为听说原装没有四核机器。</p>
+<h1 id="安装黑苹果"><a href="#安装黑苹果" class="headerlink" title="安装黑苹果"></a>安装黑苹果</h1><p>参考帖子：<a href="https://bbs.feng.com/forum.php?mod=viewthread&amp;tid=8854857&amp;extra=page%3D1&amp;mobile=no" target="_blank" rel="noopener">T420 UEFI+单硬盘GPT+Yosemite/El Capitan原版+clover基本完美</a></p>
+<p>UEFI only启动，一块硬盘GPT分区，C盘装win7 oem版本系统，D盘分出来60G装了win10，最后装的Yosemite（之前下载的10.10.1安装包懒得再重新下了，装好之后直接升级为10.10.2）</p>
+<p><a href="https://my.oschina.net/y010204025/blog/1499459" target="_blank" rel="noopener">link</a></p>
+<p>(1)<a href="https://github.com/tluck/Lenovo-T420-Clover/" target="_blank" rel="noopener">下载Clover</a><br> 使用其中的EFI文件，选择适合你屏幕分辨率的config.plist文件，重命名为config.plist.</p>
+<p>(2)恢复bios默认设置，系统更改为仅UEFI引导.</p>
+<p>(3)制作USB安装盘，使用下载的EFI文件替换原有的Clover.</p>
+<p>(4)使用引导安装系统，(安装盘的ESP分区剩余容量必须大于200M，否则格式化磁盘的时候会提示空间不足，格式化失败)</p>
+<p>(5)安装完成后继续把EFI文件复制到本地硬盘的ESP，这时你的系统已经可以正常引导和运行</p>
+<p><a href="http://bbs.pcbeta.com/viewthread-1542110-1-1.html" target="_blank" rel="noopener">【授人以渔】UEFI+GPT+Clover OS X Yosemite原版单、双系统双版教程(正式版)</a></p>
+<h1 id="多系统引导解决方案"><a href="#多系统引导解决方案" class="headerlink" title="多系统引导解决方案"></a>多系统引导解决方案</h1><p>安装了4个os，分别是win10、Mac os、Ubuntu、凤凰os（android-x86）</p>
+<p>电脑是UEFI引导的，所以我选用的引导为：Clover，可以实现多系统的引导，传统方式要简单一些，直接使用easybcd编辑即可。</p>
+<p>Clover相当于是一个简单的系统了，从这个系统里面又引导其他系统，很高级，如果你足够厉害，可以自己去研究。</p>
+<p>好，进入正题，我的装系统的步骤依次是：win10-&gt;Mac os–&gt;Ubuntu-&gt;Android</p>
+<p>1、efi安装win10，引导会自动配置在esp分区。</p>
+<p>2、安装Mac os黑苹果，引导不会自动配置引导。需要手动操作：</p>
+<p>（1）将win10引导备份，esp分区内的/EFIMicrosoft文件夹，然后删除</p>
+<p>（2）将Clover引导放进esp，开机引导进入clover，选择mac进去，挂载esp分区，将win10文件夹放入/EFI文件夹</p>
+<p>（3）重启进入clover，你会发现win10和mac引导已经解决。</p>
+<p>3、安装Ubuntu，注意使用EFI引导进入安装，会自动在Efi文件夹新建Ubuntu文件夹，重启会自动进grub引导（也就是Ubuntu引导）在bios里面调节即可，将UEFI OS设置为第一项。此时可以引导3个系统。</p>
+<p>4、安装凤凰os，默认安装即可，他也会在EFI新建文件夹，但是开机引导到Clover看不到它，于是考虑使用Ubuntu的gurb引导将其添加进来。</p>
+<p>在安卓引导文件夹，找到配置文件，grub.cfg，将图片中的代码复制</p>
+<img src="/2018/05/18/联想t420安装黑苹果/img.png">
+<p>凤凰os配置文件<br>进入ububun图系统，找到menuentry的位置，将上面的代码也粘贴过去，然后保存即可，重启进入Clover接着选择ubuntu引导，会看到多了凤凰os和windows的引导</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Mac/" rel="tag"><i class="fa fa-tag"></i> Mac</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/18/科学上网/" rel="next" title="科学上网">
+                <i class="fa fa-chevron-left"></i> 科学上网
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/18/Android开发流程/" rel="prev" title="Android开发流程">
+                Android开发流程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MBR和GPT分区"><span class="nav-number">1.</span> <span class="nav-text">MBR和GPT分区</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MBR"><span class="nav-number">1.1.</span> <span class="nav-text">MBR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GPT"><span class="nav-number">1.2.</span> <span class="nav-text">GPT</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ESP"><span class="nav-number">1.2.1.</span> <span class="nav-text">ESP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MSR分区"><span class="nav-number">1.2.2.</span> <span class="nav-text">MSR分区</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#UEFI-BIOS"><span class="nav-number">2.</span> <span class="nav-text">UEFI BIOS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HFS"><span class="nav-number">3.</span> <span class="nav-text">HFS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#黑苹果神器ThinkPad-t420"><span class="nav-number">4.</span> <span class="nav-text">黑苹果神器ThinkPad t420</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装黑苹果"><span class="nav-number">5.</span> <span class="nav-text">安装黑苹果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多系统引导解决方案"><span class="nav-number">6.</span> <span class="nav-text">多系统引导解决方案</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
