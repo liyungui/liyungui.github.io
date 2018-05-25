@@ -88,7 +88,7 @@
 <meta property="og:description" content="MBR和GPT分区Intel 6系列主板之后，就开始提供UEFI BIOS支持，正式支持GPT硬盘分区表，一举取代了此前的MBR分区表格式 新平台用户（Intel 6系以后/AMD 900系列以后和A系列）来说，都强烈推荐使用GPT分区表格式 Windows Vista以上已经都支持读取和使用GPT分区表。而对于Windows 8以上的用户，换用GPT后开机启动速度也可以进一步得到显著提升。 MB">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/05/18/联想t420安装黑苹果/img.png">
-<meta property="og:updated_time" content="2018-05-18T07:21:33.439Z">
+<meta property="og:updated_time" content="2018-05-24T05:41:52.830Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="联想t420安装黑苹果">
 <meta name="twitter:description" content="MBR和GPT分区Intel 6系列主板之后，就开始提供UEFI BIOS支持，正式支持GPT硬盘分区表，一举取代了此前的MBR分区表格式 新平台用户（Intel 6系以后/AMD 900系列以后和A系列）来说，都强烈推荐使用GPT分区表格式 Windows Vista以上已经都支持读取和使用GPT分区表。而对于Windows 8以上的用户，换用GPT后开机启动速度也可以进一步得到显著提升。 MB">
@@ -379,12 +379,27 @@
 <h1 id="安装黑苹果"><a href="#安装黑苹果" class="headerlink" title="安装黑苹果"></a>安装黑苹果</h1><p>参考帖子：<a href="https://bbs.feng.com/forum.php?mod=viewthread&amp;tid=8854857&amp;extra=page%3D1&amp;mobile=no" target="_blank" rel="noopener">T420 UEFI+单硬盘GPT+Yosemite/El Capitan原版+clover基本完美</a></p>
 <p>UEFI only启动，一块硬盘GPT分区，C盘装win7 oem版本系统，D盘分出来60G装了win10，最后装的Yosemite（之前下载的10.10.1安装包懒得再重新下了，装好之后直接升级为10.10.2）</p>
 <p><a href="https://my.oschina.net/y010204025/blog/1499459" target="_blank" rel="noopener">link</a></p>
-<p>(1)<a href="https://github.com/tluck/Lenovo-T420-Clover/" target="_blank" rel="noopener">下载Clover</a><br> 使用其中的EFI文件，选择适合你屏幕分辨率的config.plist文件，重命名为config.plist.</p>
-<p>(2)恢复bios默认设置，系统更改为仅UEFI引导.</p>
-<p>(3)制作USB安装盘，使用下载的EFI文件替换原有的Clover.</p>
+<p><a href="http://bbs.pcbeta.com/viewthread-1542110-1-1.html" target="_blank" rel="noopener">【授人以渔】UEFI+GPT+Clover OS X Yosemite原版单、双系统双版教程(正式版)</a></p>
+<p><a href="http://bbs.pcbeta.com/viewthread-1599202-1-1.html" target="_blank" rel="noopener">【超级教程】黑苹果各个版本各种引导安装通用教材</a></p>
+<h2 id="BIOS设置"><a href="#BIOS设置" class="headerlink" title="BIOS设置"></a>BIOS设置</h2><p>将硬盘模式设为AHCI、EFI only引导、有独显的关闭一下。</p>
+<ul>
+<li>Recommend update to BIOS v1.46</li>
+<li>Recommend reset to defaults. Most defaults settings will work but check settings these:<ul>
+<li>Set Config / Serial ATA (SATA) / SATA = AHCI</li>
+<li>Set Security / Memory Protection / Execution Prevention = Enabled</li>
+</ul>
+</li>
+<li>Disable Discrete Nvidia/Optimus (use integrated HD 3000 only - unless you really know what you are doing!)</li>
+</ul>
+<h2 id="制作USB安装盘"><a href="#制作USB安装盘" class="headerlink" title="制作USB安装盘"></a>制作USB安装盘</h2><p>1、下载Mac OS 建议下载原版10.10X或者<a href="https://support.apple.com/kb/DL1845?locale=zh_CN" target="_blank" rel="noopener">10.11.x</a></p>
+<p>2、使用TransMac 11(试用版即可)将系统写入Ｕ盘</p>
+<pre><code>USB盘符 右键 Restore with Disk Image 选择下载好的dmg文件
+耐心等待写盘的完成
+写入完成，系统弹出将其格式化，点击取消
+cmd -- diskpart -- list disk 可以看到U盘已成GPT(GPT栏有星号)
+</code></pre><p>3、替换<a href="https://github.com/tluck/Lenovo-T420-Clover/" target="_blank" rel="noopener">EFI</a>。将EFI文件夹复制到U盘根目录，选择适合屏幕分辨率的config.plist文件，重命名为config.plist.</p>
 <p>(4)使用引导安装系统，(安装盘的ESP分区剩余容量必须大于200M，否则格式化磁盘的时候会提示空间不足，格式化失败)</p>
 <p>(5)安装完成后继续把EFI文件复制到本地硬盘的ESP，这时你的系统已经可以正常引导和运行</p>
-<p><a href="http://bbs.pcbeta.com/viewthread-1542110-1-1.html" target="_blank" rel="noopener">【授人以渔】UEFI+GPT+Clover OS X Yosemite原版单、双系统双版教程(正式版)</a></p>
 <h1 id="多系统引导解决方案"><a href="#多系统引导解决方案" class="headerlink" title="多系统引导解决方案"></a>多系统引导解决方案</h1><p>安装了4个os，分别是win10、Mac os、Ubuntu、凤凰os（android-x86）</p>
 <p>电脑是UEFI引导的，所以我选用的引导为：Clover，可以实现多系统的引导，传统方式要简单一些，直接使用easybcd编辑即可。</p>
 <p>Clover相当于是一个简单的系统了，从这个系统里面又引导其他系统，很高级，如果你足够厉害，可以自己去研究。</p>
@@ -522,7 +537,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-count">18</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -535,7 +550,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">16</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -568,7 +583,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MBR和GPT分区"><span class="nav-number">1.</span> <span class="nav-text">MBR和GPT分区</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MBR"><span class="nav-number">1.1.</span> <span class="nav-text">MBR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GPT"><span class="nav-number">1.2.</span> <span class="nav-text">GPT</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ESP"><span class="nav-number">1.2.1.</span> <span class="nav-text">ESP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MSR分区"><span class="nav-number">1.2.2.</span> <span class="nav-text">MSR分区</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#UEFI-BIOS"><span class="nav-number">2.</span> <span class="nav-text">UEFI BIOS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HFS"><span class="nav-number">3.</span> <span class="nav-text">HFS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#黑苹果神器ThinkPad-t420"><span class="nav-number">4.</span> <span class="nav-text">黑苹果神器ThinkPad t420</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装黑苹果"><span class="nav-number">5.</span> <span class="nav-text">安装黑苹果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多系统引导解决方案"><span class="nav-number">6.</span> <span class="nav-text">多系统引导解决方案</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MBR和GPT分区"><span class="nav-number">1.</span> <span class="nav-text">MBR和GPT分区</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MBR"><span class="nav-number">1.1.</span> <span class="nav-text">MBR</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GPT"><span class="nav-number">1.2.</span> <span class="nav-text">GPT</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ESP"><span class="nav-number">1.2.1.</span> <span class="nav-text">ESP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MSR分区"><span class="nav-number">1.2.2.</span> <span class="nav-text">MSR分区</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#UEFI-BIOS"><span class="nav-number">2.</span> <span class="nav-text">UEFI BIOS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#HFS"><span class="nav-number">3.</span> <span class="nav-text">HFS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#黑苹果神器ThinkPad-t420"><span class="nav-number">4.</span> <span class="nav-text">黑苹果神器ThinkPad t420</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装黑苹果"><span class="nav-number">5.</span> <span class="nav-text">安装黑苹果</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#BIOS设置"><span class="nav-number">5.1.</span> <span class="nav-text">BIOS设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#制作USB安装盘"><span class="nav-number">5.2.</span> <span class="nav-text">制作USB安装盘</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多系统引导解决方案"><span class="nav-number">6.</span> <span class="nav-text">多系统引导解决方案</span></a></li></ol></div>
             
 
           </div>
