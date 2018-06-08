@@ -2,8 +2,7 @@
 title: Android Studio 运行 Java代码
 date: 2018-05-25 11:45:08
 tags: 
-	- Android Studio
-	- Java
+	- AndroidStudio
 ---
 
 # 修改启动方式 #

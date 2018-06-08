@@ -1,7 +1,7 @@
 ---
 title: AndroidManifest合并原理
 date: 2018-05-24 18:44:53
-tags: Android
+tags: Manifest
 ---
 
 [ss](http://mouxuejie.com/blog/2016-02-05/androidmanifest-merge/)

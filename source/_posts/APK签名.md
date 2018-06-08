@@ -1,7 +1,7 @@
 ---
 title: APK签名
 date: 2018-05-17 11:27:25
-tags: Android
+tags: APK签名
 ---
 
 # 查看签名 #

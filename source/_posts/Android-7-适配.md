@@ -1,7 +1,7 @@
 ---
 title: Android 7 适配
 date: 2018-05-24 18:40:36
-tags: Android
+tags: 适配
 ---
 
 # FileProvider替代file://Uri #
