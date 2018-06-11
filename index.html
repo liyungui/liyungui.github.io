@@ -262,6 +262,369 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/11/Android图片压缩/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/11/Android图片压缩/" itemprop="url">Android图片压缩</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-11T15:03:18+08:00">
+                2018-06-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="内存大小"><a href="#内存大小" class="headerlink" title="内存大小"></a>内存大小</h1><p><strong>色彩模式</strong>是数字世界中表示颜色的一种算法，在Bitmap里用Config来表示。</p>
+<p>颜色默认是 RGB，三原色各占8位，共计24位，即3个字节</p>
+<pre><code>颜色值0-255，8位刚好能标示一种颜色
+</code></pre><p>BitmapFactory.Options 设置图像的色彩模式，共有4种取值</p>
+<pre><code>ARGB_8888，表示一个像素点的透明度以及三原色各占8位，共计32位，即4个字节
+ALPHA_8，表示一个像素点只有透明度，没有三原色，此时，一个像素点占8位，即1个字节
+ARGB_4444，表示一个像素点的透明度以及三原色各占4位，共计16位，即2个字节
+RGB_565，这种色彩模式不能表示透明度，红绿蓝三色各占5、6、6位，共计16位，即2个字节
+</code></pre><p>Bitmap的计算方式</p>
+<pre><code>memory=scaledWidth*scaledHeight*每个像素所占字节数
+
+    scaledWidth :  widthtargetDensity/density+0.5
+    scaledHeight： heighttargetDensity/density+0.5
+
+        targetDensity表示手机的像素密度,这个值一般跟手机相关,
+        density表示decodingBitmap 的 density,这个值一般跟图片放置的目录有关(hdpi/xxhdpi)
+</code></pre><p><strong>Bitmap获取内存占用大小的API</strong></p>
+<ul>
+<li>getByteCount()：API12 加入，代表存储 Bitmap 的像素需要的最少内存。</li>
+<li>getAllocationByteCount()：API19 加入，代表在内存中为 Bitmap 分配的内存大小，代替了 getByteCount() 方法。</li>
+</ul>
+<p>两者的区别:</p>
+<p>在不复用 Bitmap 时，getByteCount() 和 getAllocationByteCount 返回的结果是一样的。</p>
+<p>在通过复用 Bitmap 来解码图片时，那么 getByteCount() 表示新解码图片占用内存的大小，getAllocationByteCount() 表示被复用 Bitmap真实占用的内存大小（即 mBuffer 的长度）。</p>
+<p>早期的Android平台下,对一张图片进行多次质量压缩,会得到一张<strong>变绿</strong>的图片</p>
+<p>假设客户端需要加载一张图片，图片尺寸为3000*3000（像素）,如果客户端显示原图，按一个像素四个字节算(argb)， </p>
+<p>3000 <em> 3000 </em> 4 / 1024 / 1024 = 34 M，</p>
+<p>客户端一个应用程序的运行内存就16M,你一下显示一个30多M的图片，直接 OOM crash了。</p>
+<h1 id="图片压缩方式"><a href="#图片压缩方式" class="headerlink" title="图片压缩方式"></a>图片压缩方式</h1><h2 id="质量压缩"><a href="#质量压缩" class="headerlink" title="质量压缩"></a>质量压缩</h2><p>不会改变图像的宽高，降低图像的质量，从而降低存储大小</p>
+<pre><code>bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+
+    压缩格式,它有JPEG、PNG、WEBP三种选择，JPEG是有损压缩，PNG是无损压缩，WEBP是Google推出的图像格式(会存在兼容性的问题).一般会选择JPEG
+    quality：0~100可选，数值越大，质量越高，图像越大。
+</code></pre><h2 id="尺寸压缩"><a href="#尺寸压缩" class="headerlink" title="尺寸压缩"></a>尺寸压缩</h2><p>尺寸压缩本质上就是一个重新采样的过程，放大图像称为上采样，缩小图像称为下采样</p>
+<p>Android提供了两种图像采样方法，邻近采样和双线性采样。</p>
+<p><strong>采样效果 从低到高依次：</strong></p>
+<h3 id="邻近采样"><a href="#邻近采样" class="headerlink" title="邻近采样"></a>邻近采样</h3><p>采用邻近点插值算法，用一个像素点代替邻近的像素点</p>
+<pre><code>BitmapFactory.Options options = new BitmapFactory.Options();
+options.inSampleSize = 2
+Bitmap bitmap = BitmapFactory.decodeFile(&quot;/sdcard/test.png&quot;);
+Bitmap compress = BitmapFactory.decodeFile(&quot;/sdcard/test.png&quot;, options);
+
+options.inSampleSize = 2;一个像素点会代替原来的2个像素点
+    注意这里的2个像素点仅仅指水平方向或者竖直方向上的。
+    即原来2x2的像素,压缩后仅使用一个像素点来代替
+</code></pre><p><strong>压缩前红绿相间的图片,经过压缩后,完全变成了绿色</strong>.这时因为邻近点插值算法直接选择其中一个像素作为生成像素,另外一个像素直接抛弃,这样才会造成图片变成纯绿色的情况。</p>
+<p>邻近采样的方法有些<strong>暴力</strong>,Android平台提供了另一种尺寸压缩方案</p>
+<h3 id="双线性采样"><a href="#双线性采样" class="headerlink" title="双线性采样"></a>双线性采样</h3><p>采用双线性插值算法，相比邻近采样简单粗暴的选择一个像素点代替其他像素点，双线性采样参考源像素相应位置周围2x2个点的值，根据相对位置取对应的权重，经过计算得到目标图像。</p>
+<pre><code>Bitmap bitmap = BitmapFactory.decodeFile(&quot;/sdcard/test.png&quot;);
+Bitmap compress = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()/2, bitmap.getHeight()/2, true);
+
+或者
+Bitmap bitmap = BitmapFactory.decodeFile(&quot;/sdcard/test.png&quot;);
+Matrix matrix = new Matrix();
+matrix.setScale(0.5f, 0.5f);
+bm = Bitmap.createBitmap(bitmap, 0, 0, bit.getWidth(), bit.getHeight(), matrix, true);
+</code></pre><p>压缩后的图片不会像邻近采样那般只有纯粹的一种颜色,而是参考了像素源周围2x2个点的像素，并取其权重得到目标图像。</p>
+<p>双线性采样相比邻近采样而言,图片的保真度会高些,但压缩的速率不及前者,因为前者不需要计算直接选择了其中一个像素作为生成像素。</p>
+<h4 id="二次采样"><a href="#二次采样" class="headerlink" title="二次采样"></a>二次采样</h4><p><strong><code>二次采样</code></strong> 二次设置图片采样比率，达到减小加载图片所需内存空间</p>
+<p>步骤： </p>
+<pre><code>第一次采样：
+    第一次解码,只获取图片的尺寸(不会占用太多内存)，不进行实际的Bitmap创建。
+
+计算采样率：根据图片宽高，以及客户端希望图片加载后的尺寸
+
+第二次采样：
+
+    给BitmapFactory设置采样率，加载Bitmap到内存
+</code></pre><p><code>BitmapFactory.Options</code> 参数说明</p>
+<pre><code>In开头的：用于给解码器传递参数 
+
+    inSampleSize 
+
+Out开头的：用于从解码器获取结果
+
+    options.outMimeType; // 图片类型 &quot;image/png&quot;
+</code></pre><p>代码实例：</p>
+<pre><code>public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
+        int reqWidth, int reqHeight) {
+    final BitmapFactory.Options options = new BitmapFactory.Options();
+    options.inJustDecodeBounds = true; //是否只加载图片的边框
+    BitmapFactory.decodeResource(res, resId, options); //加载图片，此时加载只能够获取到图片的边框
+
+    // 计算inSampleSize
+    options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+    options.inJustDecodeBounds = false;
+    // 加载压缩版图片
+    return BitmapFactory.decodeResource(res, resId, options);
+}
+
+
+//google推荐算法：以对角线的方式进行缩放比率的计算
+public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    // 图片原始宽高
+    final int height = options.outHeight;
+    final int width = options.outWidth;
+    int inSampleSize = 1;
+
+    //只有当请求的宽度、高度 &gt; 0时，进行缩放。否则，图片不进行缩放
+    if(reqHeight &gt; 0 &amp;&amp; reqWidth &gt; 0){
+        if (height &gt; reqHeight || width &gt; reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            //计算一个最大的缩放比例（采样比率，2的n次幂），保证缩放后的宽高大于要求的宽高
+            while ((halfHeight / inSampleSize) &gt; reqHeight &amp;&amp; (halfWidth / inSampleSize) &gt; reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+    }
+    return inSampleSize;
+}
+</code></pre><p>特别注意：</p>
+<p>二次采样后获得的图片宽高并不是完全吻合控件宽高，还是需要设置ScaleType来适应</p>
+<p>二次采样只是为了解决图片OOM</p>
+<h3 id="双立方／双三次采样-Android原生不支持"><a href="#双立方／双三次采样-Android原生不支持" class="headerlink" title="双立方／双三次采样 (Android原生不支持)"></a>双立方／双三次采样 (Android原生不支持)</h3><p>双立方／双三次采样使用的是双立方／双三次插值算法。双立方／双三次插值算法参考了源像素某点周围 4x4 个像素。</p>
+<p>双立方/双三次插值算法经常用于图像或者视频的缩放，它能比双线性内插值算法保留更好的细节质量。</p>
+<p>双立方／双三次插值算法在平时的软件中是很常用的一种图片处理算法，但是这个算法有一个缺点就是计算量会相对比较大，是前三种算法中计算量最大的，软件 photoshop 中的图片缩放功能使用的就是这个算法。</p>
+<h3 id="Lanczos-采样-原生不支持"><a href="#Lanczos-采样-原生不支持" class="headerlink" title="Lanczos 采样 (原生不支持)"></a>Lanczos 采样 (原生不支持)</h3><p>Lanczos 采样和 Lanczos 过滤是 Lanczos 算法的两种常见应用，它可以用作低通滤波器或者用于平滑地在采样之间插入数字信号，Lanczos 采样一般用来增加数字信号的采样率，或者间隔采样来降低采样率。</p>
+<p>采样效果对比参考：腾讯音乐技术团队<a href="https://mp.weixin.qq.com/s/H9Tz1n4O2-Aawgu7p-XL5w" target="_blank" rel="noopener">Android中图片压缩分析（下）</a>。总的来说，上采样和对二值化图片(黑白)的处理表现差异特别明显</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/11/Android资源文件res/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/11/Android资源文件res/" itemprop="url">Android资源文件res</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-11T11:08:38+08:00">
+                2018-06-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="根据资源名获取资源id–getIdentifier"><a href="#根据资源名获取资源id–getIdentifier" class="headerlink" title="根据资源名获取资源id–getIdentifier()"></a>根据资源名获取资源id–getIdentifier()</h1><pre><code>int layoutId = getResources().getIdentifier(&quot;activity_main&quot;, &quot;layout&quot;, getPackageName());
+</code></pre><p>一般都是动态替换资源id时用到，可以有效避免定义资源Array。比如下例，动态展示连击1到连击9，超过9展示最佳连击</p>
+<pre><code>getResources().getIdentifier(comboNum &lt;= 9 ? &quot;combo_&quot; + comboNum : &quot;combo_best&quot;, &quot;drawable&quot;, getPackageName());
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/07/View转为Bitmap/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -508,7 +871,123 @@ private void layoutView(View v) {
       
         
           
-            
+            <p>把两张bitmap合成为一张图</p>
+<pre><code>/**
+ * 把两个位图覆盖合成为一个位图，以底层位图的长宽为基准
+ * @param backBitmap 在底部的位图
+ * @param frontBitmap 盖在上面的位图
+ * @return
+ */
+public static Bitmap mergeBitmap(Bitmap backBitmap, Bitmap frontBitmap) {
+
+    if (backBitmap == null || backBitmap.isRecycled() 
+            || frontBitmap == null || frontBitmap.isRecycled()) {
+        Log.e(TAG, &quot;backBitmap=&quot; + backBitmap + &quot;;frontBitmap=&quot; + frontBitmap);
+        return null;
+    }
+    Bitmap bitmap = backBitmap.copy(Config.ARGB_8888, true);
+    Canvas canvas = new Canvas(bitmap);
+    Rect baseRect  = new Rect(0, 0, backBitmap.getWidth(), backBitmap.getHeight());
+    Rect frontRect = new Rect(0, 0, frontBitmap.getWidth(), frontBitmap.getHeight());
+    canvas.drawBitmap(frontBitmap, frontRect, baseRect, null);
+    return bitmap;
+}
+
+/**
+ * 把两个位图覆盖合成为一个位图，左右拼接
+ * @param leftBitmap 
+ * @param rightBitmap 
+ * @param isBaseMax 是否以宽度大的位图为准，true则小图等比拉伸，false则大图等比压缩
+ * @return
+ */
+public static Bitmap mergeBitmap_LR(Bitmap leftBitmap, Bitmap rightBitmap, boolean isBaseMax) {
+
+    if (leftBitmap == null || leftBitmap.isRecycled() 
+            || rightBitmap == null || rightBitmap.isRecycled()) {
+        JDLog.logError(TAG, &quot;leftBitmap=&quot; + leftBitmap + &quot;;rightBitmap=&quot; + rightBitmap);
+        return null;
+    }
+    int height = 0; // 拼接后的高度，按照参数取大或取小
+    if (isBaseMax) {
+        height = leftBitmap.getHeight() &gt; rightBitmap.getHeight() ? leftBitmap.getHeight() : rightBitmap.getHeight();
+    } else {
+        height = leftBitmap.getHeight() &lt; rightBitmap.getHeight() ? leftBitmap.getHeight() : rightBitmap.getHeight();
+    }
+
+    // 缩放之后的bitmap
+    Bitmap tempBitmapL = leftBitmap;
+    Bitmap tempBitmapR = rightBitmap;
+
+    if (leftBitmap.getHeight() != height) {
+        tempBitmapL = Bitmap.createScaledBitmap(leftBitmap, (int)(leftBitmap.getWidth()*1f/leftBitmap.getHeight()*height), height, false);
+    } else if (rightBitmap.getHeight() != height) {
+        tempBitmapR = Bitmap.createScaledBitmap(rightBitmap, (int)(rightBitmap.getWidth()*1f/rightBitmap.getHeight()*height), height, false);
+    }
+
+    // 拼接后的宽度
+    int width = tempBitmapL.getWidth() + tempBitmapR.getWidth();
+
+    // 定义输出的bitmap
+    Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+    Canvas canvas = new Canvas(bitmap);
+
+    // 缩放后两个bitmap需要绘制的参数
+    Rect leftRect = new Rect(0, 0, tempBitmapL.getWidth(), tempBitmapL.getHeight());
+    Rect rightRect  = new Rect(0, 0, tempBitmapR.getWidth(), tempBitmapR.getHeight());
+
+    // 右边图需要绘制的位置，往右边偏移左边图的宽度，高度是相同的
+    Rect rightRectT  = new Rect(tempBitmapL.getWidth(), 0, width, height);
+
+    canvas.drawBitmap(tempBitmapL, leftRect, leftRect, null);
+    canvas.drawBitmap(tempBitmapR, rightRect, rightRectT, null);
+    return bitmap;
+}
+
+
+/**
+ * 把两个位图覆盖合成为一个位图，上下拼接
+ * @param leftBitmap 
+ * @param rightBitmap 
+ * @param isBaseMax 是否以高度大的位图为准，true则小图等比拉伸，false则大图等比压缩
+ * @return
+ */
+public static Bitmap mergeBitmap_TB(Bitmap topBitmap, Bitmap bottomBitmap, boolean isBaseMax) {
+
+    if (topBitmap == null || topBitmap.isRecycled() 
+            || bottomBitmap == null || bottomBitmap.isRecycled()) {
+        JDLog.logError(TAG, &quot;topBitmap=&quot; + topBitmap + &quot;;bottomBitmap=&quot; + bottomBitmap);
+        return null;
+    }
+    int width = 0;
+    if (isBaseMax) {
+        width = topBitmap.getWidth() &gt; bottomBitmap.getWidth() ? topBitmap.getWidth() : bottomBitmap.getWidth();
+    } else {
+        width = topBitmap.getWidth() &lt; bottomBitmap.getWidth() ? topBitmap.getWidth() : bottomBitmap.getWidth();
+    }
+    Bitmap tempBitmapT = topBitmap;
+    Bitmap tempBitmapB = bottomBitmap;
+
+    if (topBitmap.getWidth() != width) {
+        tempBitmapT = Bitmap.createScaledBitmap(topBitmap, width, (int)(topBitmap.getHeight()*1f/topBitmap.getWidth()*width), false);
+    } else if (bottomBitmap.getWidth() != width) {
+        tempBitmapB = Bitmap.createScaledBitmap(bottomBitmap, width, (int)(bottomBitmap.getHeight()*1f/bottomBitmap.getWidth()*width), false);
+    }
+
+    int height = tempBitmapT.getHeight() + tempBitmapB.getHeight();
+
+    Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+    Canvas canvas = new Canvas(bitmap);
+
+    Rect topRect = new Rect(0, 0, tempBitmapT.getWidth(), tempBitmapT.getHeight());
+    Rect bottomRect  = new Rect(0, 0, tempBitmapB.getWidth(), tempBitmapB.getHeight());
+
+    Rect bottomRectT  = new Rect(0, tempBitmapT.getHeight(), width, height);
+
+    canvas.drawBitmap(tempBitmapT, topRect, topRect, null);
+    canvas.drawBitmap(tempBitmapB, bottomRect, bottomRectT, null);
+    return bitmap;
+}
+</code></pre>
           
         
       
@@ -1542,317 +2021,11 @@ cmd -- diskpart -- list disk 可以看到U盘已成GPT(GPT栏有星号)
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/Visual-Studio-Code-使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/17/Visual-Studio-Code-使用/" itemprop="url">Visual Studio Code 使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-17T18:09:14+08:00">
-                2018-05-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="预览模式与编辑模式"><a href="#预览模式与编辑模式" class="headerlink" title="预览模式与编辑模式"></a>预览模式与编辑模式</h1><table>
-<thead>
-<tr>
-<th>操 作</th>
-<th>模式</th>
-<th>文件标题</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>单击</td>
-<td>预览模式</td>
-<td>斜体</td>
-</tr>
-<tr>
-<td>双击</td>
-<td>编辑模式</td>
-<td>正常</td>
-</tr>
-</tbody>
-</table>
-<p>在资源管理器双击文件，或者文件标题栏双击文件，都可以进入 编辑模式</p>
-<h2 id="禁用预览模式"><a href="#禁用预览模式" class="headerlink" title="禁用预览模式"></a>禁用预览模式</h2><p>设置文件修改</p>
-<pre><code>// 控制是否将打开的编辑器显示为预览。预览编辑器将会重用至其被保留(例如，通过双击或编辑)，且其字体样式将为斜体。
-&quot;workbench.editor.enablePreview&quot;: true,
-
-// 控制 Quick Open 中打开的编辑器是否显示为预览。预览编辑器可以重新使用，直到将其保留(例如，通过双击或编辑)。
-&quot;workbench.editor.enablePreviewFromQuickOpen&quot;: true
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/ReactNativ开发IDE/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/17/ReactNativ开发IDE/" itemprop="url">ReactNative开发IDE</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-17T17:25:12+08:00">
-                2018-05-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="不推荐IDE排行榜："><a href="#不推荐IDE排行榜：" class="headerlink" title="不推荐IDE排行榜："></a>不推荐IDE排行榜：</h1><p>Top1：Nuclide</p>
-<p>虽然是Facebook专门为React开发的，但依托于Atom的Nuclide真是慢的出奇，性能低到无法让人忍受</p>
-<p>Top2：WebStorm</p>
-<p>缺点是慢、卡、容易崩溃，而且是收费的</p>
-<h1 id="推荐IDE排行榜："><a href="#推荐IDE排行榜：" class="headerlink" title="推荐IDE排行榜："></a>推荐IDE排行榜：</h1><h2 id="top-1：VS-Code"><a href="#top-1：VS-Code" class="headerlink" title="top 1：VS Code"></a>top 1：VS Code</h2><h3 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h3><h3 id="添加RN开发插件"><a href="#添加RN开发插件" class="headerlink" title="添加RN开发插件"></a>添加RN开发插件</h3><ul>
-<li>React Native Tools：微软官方出的ReactNative插件,非常好用</li>
-<li>Reactjs code snippets：react的代码提示，如componentWillMount方法可以通过cwm直接获得</li>
-<li>Auto Close Tag：自动闭合标签</li>
-<li>Auto Rename Tag：自动重命名标签，配合上面的插件使用，基本上能赶上IntelliJ IDEA系的功能了</li>
-<li>Path Intellisense：文件路径提示补全</li>
-</ul>
-<h3 id="常用快捷键-amp-设置"><a href="#常用快捷键-amp-设置" class="headerlink" title="常用快捷键&amp;设置"></a>常用快捷键&amp;设置</h3><p>Ctrl + Space：代码提示，与输入快捷键冲突使用不了，可根据自己喜爱自行设置，设置：文件 =&gt; 首选项 =&gt; 键盘快捷方式 =&gt; 搜索“space”=&gt;修改为自己的快捷键</p>
-<h3 id="配置VSCode自动运行和调试ReactNative"><a href="#配置VSCode自动运行和调试ReactNative" class="headerlink" title="配置VSCode自动运行和调试ReactNative"></a>配置VSCode自动运行和调试ReactNative</h3><ul>
-<li>安装“React Native Tools”插件；</li>
-<li>点击调试 =&gt; 增加配置 =&gt; 选择“React Native:Debug Android” =&gt; 插入代码，如图：</li>
-</ul>
-<img src="/2018/05/17/ReactNativ开发IDE/vscode_1.png">
-<p><code>查看 -- 打开视图 -- 调试</code> 打开调试视图，就可以看到 <code>Debug Android</code> 单击开始调试</p>
-<h2 id="Top-2：Sublime-Text-3"><a href="#Top-2：Sublime-Text-3" class="headerlink" title="Top 2：Sublime Text 3"></a>Top 2：Sublime Text 3</h2><p>启动和关闭的速度简直快的像打开text文本一般，当装完插件之后也好用的可以上天</p>
-<h3 id="下载-1"><a href="#下载-1" class="headerlink" title="下载"></a>下载</h3><h3 id="安装Package-Control"><a href="#安装Package-Control" class="headerlink" title="安装Package Control"></a>安装Package Control</h3><p>Win系统可以使用“Ctrl+`”快捷键或者通过View-&gt;Show Console菜单打开命令行，粘贴如下代码：</p>
-<pre><code>import urllib.request,os; pf = &apos;Package Control.sublime-package&apos;; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); open(os.path.join(ipp, pf), &apos;wb&apos;).write(urllib.request.urlopen( &apos;http://sublime.wbond.net/&apos; + pf.replace(&apos; &apos;,&apos;%20&apos;)).read())
-</code></pre><h3 id="安装需要用到的插件"><a href="#安装需要用到的插件" class="headerlink" title="安装需要用到的插件"></a>安装需要用到的插件</h3><p>打开Sublime Text3 ，Win系统可以使用快捷键CTRL+SHIFT+P 打开或者，点击菜单栏的“Preferences”–&gt;”Package Control”</p>
-<p>打开的终端窗口，输入“install”,下方就会提示“Package Control:install package”,用鼠标点击，后输入要安装的插件：</p>
-<ul>
-<li>ReactJS：支持React开发，代码提示，高亮显示</li>
-<li>Emmet：前端开发必备</li>
-<li>Terminal：在sublime中打开终端并定位到当前目录</li>
-<li>react-native-snippets：react native 的代码片段</li>
-<li>JsFormat：格式化js代码</li>
-</ul>
-<p>其中要单独设置的是JsFormat可以设置为保存时自动格式化，设置如下：打开preferences -&gt; Package Settings -&gt; JsFormat -&gt; Setting - Users,输入以下代码：</p>
-<pre><code>{
-
-  &quot;e4x&quot;: true,
-
-  // jsformat options
-
-  &quot;format_on_save&quot;: true,
-
-}
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1902,7 +2075,7 @@ cmd -- diskpart -- list disk 可以看到U盘已成GPT(GPT栏有星号)
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">22</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1915,7 +2088,7 @@ cmd -- diskpart -- list disk 可以看到U盘已成GPT(GPT栏有星号)
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-count">23</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
