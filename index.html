@@ -262,6 +262,297 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/19/得到Android彻底组件化方案/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/19/得到Android彻底组件化方案/" itemprop="url">得到Android彻底组件化方案</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-19T11:37:17+08:00">
+                2018-06-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="一、模块化：组件化与插件化"><a href="#一、模块化：组件化与插件化" class="headerlink" title="一、模块化：组件化与插件化"></a>一、模块化：组件化与插件化</h1><h2 id="模块化、插件化和组件化的关系"><a href="#模块化、插件化和组件化的关系" class="headerlink" title="模块化、插件化和组件化的关系"></a>模块化、插件化和组件化的关系</h2><p>项目发展到一定程度，就必须进行模块化的拆分。</p>
+<p>模块化是一种指导理念，其核心思想就是分而治之、降低耦合。</p>
+<p>而在 Android 工程实践，目前有两种途径(两大流派)，一个是组件化，一个是插件化。</p>
+<h2 id="插件化和组件化的区别"><a href="#插件化和组件化的区别" class="headerlink" title="插件化和组件化的区别"></a>插件化和组件化的区别</h2><p>组件化和插件化的区别，有一个很形象的图：</p>
+<img src="/2018/06/19/得到Android彻底组件化方案/1.png">
+<p>上图看上去比较清晰，其实容易导致一些误解，下面五个小问题，图中可能说的不太清楚：</p>
+<ul>
+<li>整体的各组件缺一不可吗？<ul>
+<li>不是的。</li>
+<li>组件化的第一个目标就是<strong>降低 整体与组件 的依赖关系</strong>，缺少任何组件都能正常运行</li>
+</ul>
+</li>
+<li>组件<strong>独立运行</strong>支持吗？<ul>
+<li>可以。</li>
+<li>组件化的第二个目标就是<strong>组件可以独立运行</strong>，补足一些基本功能之后都是可以独立运行的</li>
+</ul>
+</li>
+<li>组件化和插件化可以都用右图来表示吗？<ul>
+<li>可以。</li>
+<li>每个组件都可以看成一个单独的整体</li>
+</ul>
+</li>
+<li>右图中的小机器人可以<strong>动态的添加和修改</strong>吗？<ul>
+<li>如果组件化和插件化都用右图来表示，答案就不一样了</li>
+<li>组件化，<strong>编译期</strong>可以</li>
+<li>插件化，编译期和<strong>运行时</strong>可以</li>
+</ul>
+</li>
+<li>组件化和插件化的最大区别（应该也是唯一区别）<ul>
+<li>组件化在运行时不具备动态添加和修改组件的功能，但是插件化是可以的</li>
+</ul>
+</li>
+</ul>
+<h2 id="如何取舍插件化和组件化"><a href="#如何取舍插件化和组件化" class="headerlink" title="如何取舍插件化和组件化"></a>如何取舍插件化和组件化</h2><p>理想的代码组织形式是插件化的方式，届时就具备了完备的运行时动态化</p>
+<p>奈何目前还没有一个完美兼容的插件化方案(RePlugin关注中)</p>
+<p>在插件化和组件化取舍的一个重要原则是：<strong>产品对动态性的要求</strong>比较高，考虑插件化。一般来说，电商类或广告类产品对动态性要求比较强烈，而类似“得到 APP”这类的知识服务产品，每个功能的推出都是经过精细打磨的，对这种即时的动态性要求不高，所以不需要采用插件化。</p>
+<p>产品对动态性的要求比较高，选择<strong>插件化</strong>之前也需要从两个方面权衡一下。</p>
+<ul>
+<li><strong>兼容性</strong>。一是插件化不可避免的去 hook 一些系统的 api，也就不可避免地有兼容性的问题，因此每个插件化方案需要有专门的团队去负责维护；</li>
+<li><strong>开发节奏</strong>。二是从一个业务逻辑复杂的项目中去拆分插件化需要的时间可能是非常巨大的，需要考虑对开发节奏的影响。</li>
+</ul>
+<p>因此，对大多数产品来说，组件化都是一个不错甚至最佳的选择，它没有兼容性，可以更方便地拆分，并且几乎没有技术障碍，可以更顺利地去执行。特别是对急需拆分的产品来说，组件化是一个可退可守的方案，可以更快地执行下去，并且将来要是迁移到插件化，组件化拆分也是必经的一步。</p>
+<h1 id="二、为何组件化"><a href="#二、为何组件化" class="headerlink" title="二、为何组件化"></a>二、为何组件化</h1><p>现状：</p>
+<ul>
+<li>业务复杂，代码交织在一起，可谓牵一发而动全身</li>
+<li>花费在熟悉代码的时间甚至大于新需求的开发时间</li>
+<li>大量代码堆积在一起，编译非常耗时。“得到 APP”Android端几十万行代码，编译一次大约10分钟</li>
+<li>每个改动都需要测试人员进行大范围的回归</li>
+<li>各项目组重复造轮子</li>
+</ul>
+<p>目标：<strong>优化代码结构，提升编码效率，降低编译耗时，减轻测试回归压力，组件复用</strong></p>
+<h1 id="三、何为彻底组件化"><a href="#三、何为彻底组件化" class="headerlink" title="三、何为彻底组件化"></a>三、何为彻底组件化</h1><p>彻底组件化，主要是为了更好地强调两点：<strong>独立运行，动态集成</strong>。只有做到了代码隔离，才可以称之为“彻底”的</p>
+<p><strong>组件可以独立运行，可以动态加载或卸载组件(组件之间针对接口编程，间接引用)</strong></p>
+<h1 id="四、如何彻底组件化"><a href="#四、如何彻底组件化" class="headerlink" title="四、如何彻底组件化"></a>四、如何彻底组件化</h1><p>要实现彻底组件化，需要考虑的问题主要包括下面四个：</p>
+<ul>
+<li><p>组件独立运行。每个组件都是一个完整的整体，如何让其单独运行和调试呢？</p>
+</li>
+<li><p>代码解耦与代码隔离。如何将一个庞大的工程拆分成有机的整体？如何从根本上避免组件之间的直接引用呢？也就是如何从根本上杜绝耦合的产生呢？</p>
+</li>
+<li><p>数据传递和UI跳转。因为每个组件都会给其他组件提供服务，那么主项目（Host）与组件、组件与组件之间如何传递数据？UI 跳转可以认为是一种特殊的数据传递，在实现思路上有啥不同？</p>
+</li>
+<li><p>组件的生命周期。我们的目标是可以做到对组件可以按需、动态的使用，因此就会涉及到组件加载、卸载和降维的生命周期。</p>
+</li>
+</ul>
+<img src="/2018/06/19/得到Android彻底组件化方案/architecture.png">
+<p>对三种 module 进行区分：</p>
+<ul>
+<li><p>依赖库 library，被其他组件直接引用。比如网络库 module 可以认为是一个 library。</p>
+</li>
+<li><p>组件 Component，是一个完整的功能模块。比如读书或者分享 module 就是一个 Component。我们讲的组件化也主要是针对这种类型</p>
+</li>
+<li><p>主项目 Host，负责拼装组件以形成一个完整app 的 module。一般我们称之为主项目、主 module 或者 Host</p>
+</li>
+</ul>
+<h2 id="组件独立运行"><a href="#组件独立运行" class="headerlink" title="组件独立运行"></a>组件独立运行</h2><p>设置一个变量 isRunAlone，标记当前是否需要独立运行，根据 isRunAlone 的取值，使用不同的 gradle 插件和 AndroidManifest 文件，甚至可以添加 Application 等 Java 文件，以便可以做一下初始化的操作。</p>
+<p>为了避免不同组件之间资源名重复，在每个组件的 build.gradle 中增加 resourcePrefix “xxx_”，从而固定每个组件的资源前缀</p>
+<p>下面是读书组件的 build.gradle 的示例：</p>
+<pre><code>if(isRunAlone.toBoolean()){    
+    apply plugin: &apos;com.android.application&apos;
+}else{  
+    apply plugin: &apos;com.android.library&apos;
+}
+.....
+resourcePrefix &quot;readerbook_&quot;
+sourceSets {
+  main {
+      if (isRunAlone.toBoolean()) {
+          manifest.srcFile &apos;src/main/runalone/AndroidManifest.xml&apos;
+          java.srcDirs = [&apos;src/main/java&apos;,&apos;src/main/runalone/java&apos;]
+          res.srcDirs = [&apos;src/main/res&apos;,&apos;src/main/runalone/res&apos;]
+      } else {
+          manifest.srcFile &apos;src/main/AndroidManifest.xml&apos;
+      }
+  }
+}
+</code></pre><h2 id="代码解耦与代码隔离"><a href="#代码解耦与代码隔离" class="headerlink" title="代码解耦与代码隔离"></a>代码解耦与代码隔离</h2><p>Android 的 multiple module 功能，很容易把代码进行初步的拆分</p>
+<p>组件针对接口编程</p>
+<ul>
+<li>坚决<strong>避免组件之间直接引用</strong>（compile) 。<ul>
+<li>直接引用难免会导致使用其他组件的具体实现类，这样针对接口编程的要求就成了一句空话。</li>
+<li>更严重的是，一旦对组件进行动态地加载或卸载，就会导致严重地崩溃。</li>
+</ul>
+</li>
+<li><strong>代码编写期间组件之间完全不可见</strong>。<ul>
+<li>杜绝了直接使用具体的实现类的情况，</li>
+</ul>
+</li>
+<li><strong>自动打包依赖的组件</strong></li>
+</ul>
+<p>通过 <strong>自定义gradle插件 + 配置文件</strong>，从根本上杜绝耦合的产生。每个组件都 apply 这个插件</p>
+<p>配置文件，每个组件声明自己所需要的其他组件，配置分为 debug 和 release 两种，可以在日常开发和正式打包之间更灵活的切换。</p>
+<p>自定义gradle插件，分析运行的 task 命令，如果是打包命令(例如 assembleRelease)自动根据配置文件引入依赖组件，不是(例如 sync/build)则不引入</p>
+<p>自定义gradle插件，自动的识别和修改组件的属性，识别出当前调试的组件，然后把这个组件修改为 application 项目，而其他组件则默默的修改成 library 项目。因此不论是要单独编译一个组件还是要把这个组件集成到其他组件中调试，都是不需要做任何的手动修改，使用起来相当的方便。</p>
+<pre><code>// 根据配置添加各种组件依赖，并且自动化生成组件加载代码
+if (project.android instanceof AppExtension) {
+       AssembleTask assembleTask = getTaskInfo(project.gradle.startParameter.taskNames)
+       if (assembleTask.isAssemble
+               &amp;&amp; (assembleTask.modules.contains(&quot;all&quot;) || assembleTask.modules.contains(module))) {
+         // 添加组件依赖
+          project.dependencies.add(&quot;compile&quot;,&quot;xxx:reader-release@aar&quot;)
+         // 字节码插入的部分也在这里实现
+       }
+}
+
+private AssembleTask getTaskInfo(List&lt;String&gt; taskNames) {
+   AssembleTask assembleTask = new AssembleTask();
+   for (String task : taskNames) {
+       if (task.toUpperCase().contains(&quot;ASSEMBLE&quot;)) {
+           assembleTask.isAssemble = true;
+           String[] strs = task.split(&quot;:&quot;)
+           assembleTask.modules.add(strs.length &gt; 1 ? strs[strs.length - 2] : &quot;all&quot;);
+       }
+   }
+   return assembleTask
+}
+</code></pre><h2 id="数据传递和UI跳转"><a href="#数据传递和UI跳转" class="headerlink" title="数据传递和UI跳转"></a>数据传递和UI跳转</h2><h3 id="数据传递"><a href="#数据传递" class="headerlink" title="数据传递"></a>数据传递</h3><p>向 Router 请求 组件功能 的具体实现，与 Binder 的 C/S 架构很相像。</p>
+<p>一个很容易犯的小错误就是通过持久化的方式来传递数据，例如 file、sharedpreference 等方式，这个是需要避免的。</p>
+<h4 id="组件声明自己提供的服务"><a href="#组件声明自己提供的服务" class="headerlink" title="组件声明自己提供的服务"></a>组件声明自己提供的服务</h4><p>组件声明自己提供的服务(抽象类或者接口)</p>
+<p>简单起见，专门建立了一个 componentservice 的依赖库，里面定义了每个组件向外提供的 service 和一些公共 model。将所有组件的 service 整合在一起，是为了在拆分初期操作更为简单，后面需要改为自动化的方式来生成。这个依赖库需要严格遵循开闭原则，以避免出现版本兼容等问题。</p>
+<h4 id="组件注册服务的具体实现"><a href="#组件注册服务的具体实现" class="headerlink" title="组件注册服务的具体实现"></a>组件注册服务的具体实现</h4><p>主项目加载组件时，组件注册服务的具体实现到 Router中。</p>
+<h3 id="UI跳转"><a href="#UI跳转" class="headerlink" title="UI跳转"></a>UI跳转</h3><p>UI 的跳转也是组件提供的一种特殊的服务，可以归属到上面的数据传递中去。不过一般 UI 的跳转我们会单独处理，一般通过短链的方式来跳转到具体的 Activity。每个组件可以注册自己所能处理的短链的 schme 和 host，并定义传输数据的格式。然后注册到统一的 UIRouter 中，UIRouter 通过 schme 和 host 的匹配关系负责分发路由。</p>
+<p>UI 跳转部分的具体实现是通过在每个 Activity 上添加注解，然后通过 apt 形成具体的逻辑代码。这个也是目前 Android 中 UI 路由的主流实现方式。</p>
+<h2 id="组件的生命周期"><a href="#组件的生命周期" class="headerlink" title="组件的生命周期"></a>组件的生命周期</h2><p>要动态的管理组件，给每个组件添加几个生命周期状态：加载、卸载和降维。</p>
+<p>为此我们给每个组件增加一个 ApplicationLike 类，里面定义了 onCreate 和 onStop 两个生命周期函数。</p>
+<ul>
+<li><p>加载：onCreate()。主项目调用 onCreate() 就称之为组件的加载。组件把自己的服务实现注册到 Router 里面去。</p>
+</li>
+<li><p>卸载：onStop()。组件将自己的服务实现从 Router 中取消注册。不过这种使用场景可能比较少，一般适用于一些只用一次的组件。</p>
+</li>
+<li><p>降维：降维使用的场景更为少见，比如一个组件出现了问题，我们想把这个组件从本地实现改为一个 wap 页。降维一般需要后台配置才生效，可以在 onCreate 对线上配置进行检查，如果需要降维，则把所有的 UI 跳转到配置的 wap 页上面去。</p>
+</li>
+</ul>
+<p>主项目负责加载组件，由于主项目和组件之间是隔离的，那么主项目如何调用组件 ApplicationLike 的生命周期方法呢，目前我们采用的是基于编译期字节码插入的方式，扫描所有的 ApplicationLike 类（其有一个共同的父类），然后通过 javassisit 在主项目的 onCreate 中插入调用 ApplicationLike.onCreate 的代码。</p>
+<h1 id="五、组件化的拆分步骤"><a href="#五、组件化的拆分步骤" class="headerlink" title="五、组件化的拆分步骤"></a>五、组件化的拆分步骤</h1><p>组件化的拆分是个庞大的工程，可以分成三步：</p>
+<ul>
+<li><p>从产品需求到开发阶段再到运营阶段都有清晰边界的功能开始拆分。比如读书模块、直播模块等，这些开始分批先拆分出去</p>
+</li>
+<li><p>在拆分中，造成组件依赖主项目的依赖模块继续拆出去。比如账户体系等</p>
+</li>
+<li><p>最终主项目就是一个 Host，包含很小的功能模块（比如启动图）以及组件之间的拼接逻辑</p>
+</li>
+</ul>
+<h1 id="六、组件化过程中要注意的问题"><a href="#六、组件化过程中要注意的问题" class="headerlink" title="六、组件化过程中要注意的问题"></a>六、组件化过程中要注意的问题</h1><p>一是技术细节上的不断完善，二是团队的共识建设问题</p>
+<p>方案中数据传输和 UI 跳转是分开的两个功能，这是在实际拆分中才做出的选择，因为数据传输更为频繁，且交互形式更多样，使用一个标准化的路由协议难以满足，因此把数据传输改成了接口 + 实现的形式，针对接口编程就可以更加灵活地处理这些情况。</p>
+<h1 id="七、组件化后的具体成果"><a href="#七、组件化后的具体成果" class="headerlink" title="七、组件化后的具体成果"></a>七、组件化后的具体成果</h1><ul>
+<li><strong>代码结构非常清晰</strong>，分层结构以及之间的交互很明了，团队中的任何一个人都可以很轻松的绘制出代码结构图，这个在之前是没法做到的</li>
+<li>每次开发需求的时候，面对的代码越来越少，不用背负那么重的代码包袱，可以说达到了“<strong>代码越写越少</strong>”的理想情况。</li>
+<li>每个组件的<strong>编译耗时大大降低</strong>。从 10 分钟降到了几十秒，工作效率有了很大地提升</li>
+<li><strong>减轻测试回归压力</strong>。可以分组件测试</li>
+<li><strong>组件可以复用</strong>。新产品可以使用已有的组件，提升整个公司效率</li>
+</ul>
+<h1 id="八、总结"><a href="#八、总结" class="headerlink" title="八、总结"></a>八、总结</h1><p>方案在设计之初参考了目前已有的组件化和插件化方案，站在巨人的肩膀上又加了一点自己的想法，主要是组件化生命周期以及完全的代码隔离方面。特别是代码隔离，不仅要有规范上的约束(针对接口编程)，更要有机制保证开发者不犯错(自定义gradle插件)，我觉得只有做到这一点才能认为是一个彻底的组件化方案</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/11/Android图片压缩/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1535,182 +1826,6 @@ Uri photoOutputUri = FileProvider.getUriForFile(
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/Cydia-- Native Dalvik FrameWork/CydiaSubstrate/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/Cydia-- Native Dalvik FrameWork/CydiaSubstrate/" itemprop="url">CydiaSubstrate</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Cydia Substrate可以修改任何主进程的代码，不管是用Java还是C/C++（native代码）编写的。而Xposed（开源）只支持 HOOK app_process中的java函数，因此Cydia Substrate是一款强大而实用的HOOK工具</p>
-<p>Cydia Substrate</p>
-<pre><code>参考自： 
-    Android HOOK工具Cydia Substrate使用详解 http://mobile.51cto.com/aprogram-454091.htm
-    周圣韬 Android上玩玩Hook：Cydia Substrate实战 http://www.csdn.net/article/2015-08-07/2825405 
-Cydia Substrate原名MobileSubstrate（类库中都是以MS开头），
-作者为大名鼎鼎的Jay Freeman（saurik）
-Cydia Substrate框架对于inline Hook(框架实现都是通过该方式)的操作目前还是存在一些bug，
-    使用的时候可能会出现崩溃的现象，
-    部分使用了国内定制ROM的设备在使用Cydia Substrate框架时会造成设备无法重新启动或无法Hook的现象。
-    无法重启可以按住音量+ 键 跳过hook插件，进入系统。
-</code></pre><p>1.安装substrate.apk，点击”Link Substrate Files”（连接本地的Substrate服务文件），<br>    这一步是需要Root权限的，连接后还需要重启设备才能够生效<br>    <a href="http://www.cydiasubstrate.com/download/com.saurik.substrate.apk" target="_blank" rel="noopener">http://www.cydiasubstrate.com/download/com.saurik.substrate.apk</a></p>
-<p>2.创建空Android工程。复制jar和so到libs文件夹中。<br>    其中的substrate.h头文件与lib文件夹下的so文件<br>        主要是substrate-api.jar<br>        .h和so是提供在使用NDK进行原生Hook程序开发中的函数支持库<br>    <a href="http://asdk.cydiasubstrate.com/zips/cydia_substrate-r2.zip" target="_blank" rel="noopener">http://asdk.cydiasubstrate.com/zips/cydia_substrate-r2.zip</a></p>
-<p>3.Manifest文件配置 权限和hook类（入口）<br>（1）需要指定权限：cydia.permission.SUBSTRATE<br>        manifest下 <uses-permission android:name="cydia.permission.SUBSTRATE"><br>（2）添加meta-data标签，指定自定义的hook类<br>        application下 <meta-data android:name="com.saurik.substrate.main" android:value=".Main"><br>            name 固定，value就是我们自定义的hook类完整类名（包含包名）</meta-data></uses-permission></p>
-<p>4.自定义hook类<br>    public class Main {<br>        static void initialize() { //插件加载时回调 static方法initialize<br>             MS.hookClassLoad(“android.content.res.Resources”, new MS.ClassLoadHook() { //hook 类加载<br>                public void classLoaded(Class&lt;?&gt; resources) { //类被加载时回调<br>                    Method getColor;<br>                    try {<br>                        getColor = resources.getMethod(“getColor”, Integer.TYPE);<br>                    } catch (NoSuchMethodException e) {<br>                        getColor = null;<br>                    }</p>
-<pre><code>                if (getColor != null) {
-                    final MS.MethodPointer old = new MS.MethodPointer(); //原方法指针。可以在任何时候运行原方法（被hook方法）
-
-                    MS.hookMethod(resources, getColor, new MS.MethodHook() {
-                        public Object invoked(Object resources, Object... args)
-                            throws Throwable
-                        {
-                            int color = (Integer) old.invoke(resources, args);
-                            return color &amp; ~0x0000ff00 | 0x00ff0000; //改变系统颜色
-                        }
-                    }, old);
-                }
-            }
-        });
-    }
-}
-
-也可以用以下代码实现hook
-MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer&gt;() {
-    public Integer invoked(Resources resources, Object... args)
-        throws Throwable
-    {
-        return invoke(resources, args) &amp; ~0x0000ff00 | 0x00ff0000;
-    }
-});
-</code></pre><p>5.安装apk，重启手机，生效。</p>
-<p>关键api<br>    void hookClassLoad(String className, MS.ClassLoadHook hook); Hook一个指定的Class<br>    void hookMethod(Class _class, Member member, MS.MethodHook methodhHook, MS.MethodPointer old);<br>    void hookMethod(Class _class, Member member, MS.MethodAlteration alteration);好用，稳定<br>        _class,需要hook的方法所属类<br>        member,需要hook的方法(或构造函数). 注意：不能HOOK字段 (在编译的时候会进行检测).<br>        methodhHook,MethodHook实例，其包含的invoked方法会被调用，用以代替被hook方法中的代码<br>        old,原方法指针，指向原方法（随时用该指针调用方法）<br>        alteration，MethodAlteration实例，其包含的invoked方法会被调用，用以代替被hook方法中的代码<br>            比MethodHook更好用稳定，在该方法直接调用invoke方法就是调用原方法<br>                不用自己定义 MS.MethodPointer old 指向原方法（随时用该指针调用方法）<br>    <t> T moveUnderClassLoader(ClassLoader loader, T object);   使用ClassLoder重载对象(少用)</t></p>
-<p>6.补充<br>“卧槽”洗脑病毒分析 <a href="http://www.2cto.com/Article/201505/400301.html" target="_blank" rel="noopener">http://www.2cto.com/Article/201505/400301.html</a><br>    表现：所有字变为 卧槽。<br>    分析：跟上例改变字体颜色原理相同，只是hook的设置字体的方法<br>        TextView.setText(CharSequence)<br>    复现：<br>        public class Main {<br>            public static void initialize() {<br>                MS.hookClassLoad(“android.widget.TextView”, new MS.ClassLoadHook() {<br>                    @Override<br>                    public void classLoaded(Class arg0) {<br>                        Method smstest ;<br>                        try {<br>                           smstest=arg0.getMethod(“setText”, CharSequence.class);<br>                        } catch (SecurityException e) {<br>                            smstest=null;<br>                            e.printStackTrace();<br>                        } catch (NoSuchMethodException e) {<br>                            smstest=null;<br>                            e.printStackTrace();<br>                        }  </p>
-<pre><code>               if(smstest!=null){        
-                    final MS.MethodPointer old = new MS.MethodPointer();  
-                    MS.hookMethod(arg0, smstest, new MS.MethodHook() {  
-                       @Override 
-                        public Object invoked(Object arg0, Object... arg1)throws Throwable {                                        
-                            return old.invoke(arg0, &quot;爱破解，爱鬼哥&quot;);                                                                 
-                        }                             
-                    }, old);                          
-                }                     
-            }                
-        });               
-    }                                 
-}  
-</code></pre><p>周圣韬 Android上玩玩Hook：Cydia Substrate实战 <a href="http://www.csdn.net/article/2015-08-07/2825405" target="_blank" rel="noopener">http://www.csdn.net/article/2015-08-07/2825405</a><br>    开始实战（广告注入）<br>    针对Android操作系统的浏览器应用，Hook其首页Activity的onCreate方法（其他方法不一定存在，但是onCreate方法一定会有），<br>        (1)声明一个透明的广告的Activity<br>            为什么设置透明背景的Activity?<br>                就是为了使得弹出来的广告与浏览器融为一体，让用户感觉是浏览器弹出的广告，<br>                也是恶意广告程序为了防止自身被卸载掉的一些通用隐藏手段。<br>                这里演示的注入广告是通过Hook指定的Activity中的onCreate方法来启动一个广告Activity。<br>                如果启动的Activity带有恶意性，如将Activity做得与原Activity一模一样的钓鱼Activity，<br>                那么对于移动设备用户来说是极具欺骗性的。<br>            <!-- 透明无动画的广告Activity --><br>            <activity android:name="com.example.hookad.MainActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"><br>                <intent-filter><br>                    <action android:name="android.intent.action.VIEW"><br>                    <category android:name="android.intent.category.DEFAULT"><br>                    <!-- 广告的action,方便无context时启动  --><br>                    <action android:name="com.example.hook.AD"><br>                </action></category></action></intent-filter><br>            </activity><br>        (2)找到浏览器主页的Activity名称<br>            使用adb shell下使用dumpsys activity命令找到浏览器主页的Activity名称为<br>                com.android.browser.BrowserActivity<br>        (3)关键hook代码<br>            // 执行Hook前的onCreate方法，保证浏览器正常启动<br>            Object result =  old.invoke(object, args);<br>            // 没有Context。所以执行一个shell 启动我们的广告Activity<br>            CMD.run(“am start -a com.example.hook.AD”);</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1854,7 +1969,7 @@ MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi注入原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1873,7 +1988,7 @@ MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/" itemprop="url">ddi 原理</a></h1>
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi注入原理/" itemprop="url">adbi 注入原理</a></h1>
         
 
         <div class="post-meta">
@@ -1925,9 +2040,239 @@ MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer
       
         
           
-            <p><a href="http://blog.csdn.net/roland_sun/article/details/38640297" target="_blank" rel="noopener">Android平台下Dalvik层hook框架ddi的研究</a> </p>
-<p><a href="https://github.com/crmulliner/ddi" target="_blank" rel="noopener">ddi源码</a></p>
+            <p><a href="http://blog.csdn.net/roland_sun/article/details/34109569" target="_blank" rel="noopener">Android平台下hook框架adbi的研究（上）</a></p>
+<p><a href="https://github.com/crmulliner/adbi" target="_blank" rel="noopener">adbi源代码</a></p>
+<p>Linux可以利用ptrace()函数来attach到一个进程上，从而可以修改对应该进程的内存内容和寄存器的值</p>
+<p>adbi（The Android Dynamic Binary Instrumentation Toolkit）是一个通用的框架，使得hook变得异常简单。</p>
+<h1 id="进程注入基本实现原理"><a href="#进程注入基本实现原理" class="headerlink" title="进程注入基本实现原理"></a>进程注入基本实现原理</h1><p>利用ptrace()attach到一个进程上，然后在进程调用序列中插入一个调用dlopen()加载so文件（初始化函数中hook指定的函数）的步骤。</p>
+<p>adbi工具集由两个主要模块组成，分别是用于注入.so文件的进程劫持工具（hijack tool）和一个修改函数入口的基础库。</p>
+<p>接下来，我们还是通过阅读代码来分别了解这两个模块的实现原理，本篇我们先将重点放在劫持工具的实现上。</p>
+<p><strong>注入进程需要解决两个问题</strong></p>
+<ol>
+<li>获得目标进程dlopen()函数的调用地址</li>
+<li>插入一个调用dlopen()函数的步骤到目标进程的调用序列中。</li>
+</ol>
+<h2 id="1-获得目标进程dlopen-函数的调用地址"><a href="#1-获得目标进程dlopen-函数的调用地址" class="headerlink" title="1. 获得目标进程dlopen()函数的调用地址"></a>1. 获得目标进程dlopen()函数的调用地址</h2><pre><code>----main()-----------------------------------------------------------------------
+//在当前进程中dlopen()加载libdl.so动态库，接着用dlsym()函数获得当前进程dlopen()函数的调用地址
+//libdl.so动态库肯定早已加载到当前进程中了，这里再加载一次并不会真的再在内存中的另一个位置加载一次，而是返回已经加载过的地址
+void *ldl = dlopen(&quot;libdl.so&quot;, RTLD_LAZY);  
+if (ldl) {  
+    dlopenaddr = dlsym(ldl, &quot;dlopen&quot;);  
+    dlclose(ldl);  
+}  
 
+unsigned long int lkaddr; //本进程linker地址。linker是Android提供的动态链接器，不同于普通的Linux。dlopen()函数就是在linker里面定义的（bionic/linker/dlfcn.cpp中: soinfo libdl_info = {&quot;libdl.so&quot;）  
+unsigned long int lkaddr2; //目标进程linker地址   
+find_linker(getpid(), &amp;lkaddr);  
+find_linker(pid, &amp;lkaddr2);  
+
+dlopenaddr = lkaddr2 + (dlopenaddr - lkaddr); //同一台机器上的进程肯定用的是同一个linker，所以其内部的dlopen()函数和linker头的偏移量是固定的
+
+----find_linker()-----------------------------------------------------------------------
+static int find_linker(pid_t pid, unsigned long *addr) {  
+    struct mm mm[1000];  
+    unsigned long libcaddr;  
+    int nmm;  
+    char libc[256];  
+    symtab_t s;  
+
+    if (0 &gt; load_memmap(pid, mm, &amp;nmm)) {  
+        printf(&quot;cannot read memory map\n&quot;);  
+        return -1;  
+    }  
+    if (0 &gt; find_linker_mem(libc, sizeof(libc), &amp;libcaddr, mm, nmm)) {  
+        printf(&quot;cannot find libc\n&quot;);  
+        return -1;  
+    }  
+
+    *addr = libcaddr;  
+
+    return 1;  
+} 
+
+      ----load_memmap()-----------------------------------------------------------------------
+    static int load_memmap(pid_t pid, struct mm *mm, int *nmmp) {  
+        char raw[80000]; // this depends on the number of libraries an executable uses  
+        char name[MAX_NAME_LEN];  
+        char *p;  
+        unsigned long start, end;  
+        struct mm *m;  
+        int nmm = 0;  
+        int fd, rv;  
+        int i;  
+
+        //打开文件(路径是“/proc/&lt;进程号&gt;/maps”)读出指定进程的内存映射信息，其格式大概如下：
+        sprintf(raw, &quot;/proc/%d/maps&quot;, pid);  
+        fd = open(raw, O_RDONLY);  
+        if (0 &gt; fd) {  
+            printf(&quot;Can&apos;t open %s for reading\n&quot;, raw);  
+            return -1;  
+        }  
+
+        //逐行读取内存映射信息文件的内容
+        memset(raw, 0, sizeof(raw));  /* Zero to ensure data is null terminated */                
+        p = raw;  
+        while (1) {  
+            rv = read(fd, p, sizeof(raw)-(p-raw));  
+            if (0 &gt; rv) {  
+                return -1;  
+            }  
+            if (0 == rv)  
+                break;  
+            p += rv;  
+            if (p-raw &gt;= sizeof(raw)) {  
+                printf(&quot;Too many memory mapping\n&quot;);  
+                return -1;  
+            }  
+        }  
+        close(fd);  
+
+        //逐行解析内存映射信息文件的内容。文件格式如下：
+        40096000-40098000 r-xp 00000000 b3:16 109        /system/bin/app_process  
+        40098000-40099000 r--p 00001000 b3:16 109        /system/bin/app_process  
+        40099000-4009a000 rw-p 00000000 00:00 0   
+        4009a000-400a9000 r-xp 00000000 b3:16 176        /system/bin/linker  
+        400a9000-400aa000 r--p 0000e000 b3:16 176        /system/bin/linker  
+        400aa000-400ab000 rw-p 0000f000 b3:16 176        /system/bin/linker  
+        400ab000-400ae000 rw-p 00000000 00:00 0   
+        400ae000-400b0000 r--p 00000000 00:00 0   
+        400b0000-400b9000 r-xp 00000000 b3:16 855        /system/lib/libcutils.so  
+        be846000-be867000 rw-p 00000000 00:00 0          [stack] 
+        p = strtok(raw, &quot;\n&quot;);  
+        m = mm;  
+        while (p) {  
+            /* parse current map line */  
+            rv = sscanf(p, &quot;%08lx-%08lx %*s %*s %*s %*s %s\n&quot;,  
+                &amp;start, &amp;end, name);  //解析出当前行的 起始地址，结束地址，和名称。
+
+            p = strtok(NULL, &quot;\n&quot;);  //获取下一行
+
+            if (rv == 2) {  //没有解析出名称(只有两个返回值)，就会用一个自定义的名称补上（“[memory]”）
+                m = &amp;mm[nmm++];  
+                m-&gt;start = start;  
+                m-&gt;end = end;  
+                strcpy(m-&gt;name, MEMORY_ONLY);  
+                continue;  
+            }  
+
+            if (strstr(name, &quot;stack&quot;) != 0) {  //名字是“stack”，表明这段内存用于栈
+                stack_start = start;  
+                stack_end = end;  
+            }  
+
+            //将连续的并且名字相同的内存段合并一下.(从前面的格式中可以看出，会有几行都叫一个名字的情况)
+            /* search backward for other mapping with same name */  
+            for (i = nmm-1; i &gt;= 0; i--) {  
+                m = &amp;mm[i];  
+                if (!strcmp(m-&gt;name, name))  
+                    break;  
+            }  
+
+            if (i &gt;= 0) {  
+                if (start &lt; m-&gt;start)  
+                    m-&gt;start = start;  
+                if (end &gt; m-&gt;end)  
+                    m-&gt;end = end;  
+            } else {  
+                /* new entry */  
+                m = &amp;mm[nmm++];  
+                m-&gt;start = start;  
+                m-&gt;end = end;  
+                strcpy(m-&gt;name, name);  
+        }  
+
+        *nmmp = nmm;  
+        return 0;  
+    } 
+
+    ----find_linker_mem()-----------------------------------------------------------------------
+    static int find_linker_mem(char *name, int len, unsigned long *start, struct mm *mm, int nmm) {  
+        int i;  
+        struct mm *m;  
+        char *p;  
+        for (i = 0, m = mm; i &lt; nmm; i++, m++) {  
+            if (!strcmp(m-&gt;name, MEMORY_ONLY))  
+                continue;  
+            p = strrchr(m-&gt;name, &apos;/&apos;);  
+            if (!p)  
+                continue;  
+            p++;  
+            if (strncmp(&quot;linker&quot;, p, 6))  //找出名字以“linker”结尾(/system/bin/linker)的那段内存的起始地址。
+                continue;  
+        break;  
+        }  
+        if (i &gt;= nmm)  
+        /* not found */  
+            return -1;  
+
+        *start = m-&gt;start;  
+        strncpy(name, m-&gt;name, len);  
+        if (strlen(m-&gt;name) &gt;= len)  
+            name[len-1] = &apos;\0&apos;;  
+        return 0;  
+    }  
+</code></pre><h2 id="2-插入一个调用dlopen-函数的步骤到目标进程的调用序列中"><a href="#2-插入一个调用dlopen-函数的步骤到目标进程的调用序列中" class="headerlink" title="2. 插入一个调用dlopen()函数的步骤到目标进程的调用序列中"></a>2. 插入一个调用dlopen()函数的步骤到目标进程的调用序列中</h2><pre><code>// Attach 
+if (0 &gt; ptrace(PTRACE_ATTACH, pid, 0, 0)) {//被Attach的进程将成为当前进程的子进程，并且会暂停执行。
+    printf(&quot;cannot attach to %d, error!\n&quot;, pid);
+    exit(1);
+}
+waitpid(pid, NULL, 0);//等待被Attach的进程暂停运行才返回
+ptrace(PTRACE_GETREGS, pid, 0, &amp;regs); //获得目标进程的所有寄存器的值
+//unsigned int sc[]
+sc[11] = regs.ARM_r0;  
+sc[12] = regs.ARM_r1;  
+sc[13] = regs.ARM_r2;  
+sc[14] = regs.ARM_r3;  
+sc[15] = regs.ARM_lr;  
+sc[16] = regs.ARM_pc;  
+sc[17] = regs.ARM_sp;  
+sc[19] = dlopenaddr;
+// push library name to stack  
+//case &apos;l&apos;: n = strlen(optarg)+1; n = n/4 + (n%4 ? 1 : 0); 
+//命令行-l参数后就是so库完整名称。ptrace()写入目标进程以4字节为单位 
+libaddr = regs.ARM_sp - n*4 - sizeof(sc);  
+sc[18] = libaddr; 
+// write library name to stack  
+if (0 &gt; write_mem(pid, (unsigned long*)arg, n, libaddr)) {  
+    printf(&quot;cannot write library name (%s) to stack, error!\n&quot;, arg);  
+    exit(1);  
+}  
+// write code to stack  
+codeaddr = regs.ARM_sp - sizeof(sc);  
+if (0 &gt; write_mem(pid, (unsigned long*)&amp;sc, sizeof(sc)/sizeof(long), codeaddr)) {  
+    printf(&quot;cannot write code, error!\n&quot;);  
+    exit(1);  
+}
+
+    ----write_mem()-----------------------------------------------------------------------
+    /* Write NLONG 4 byte words from BUF into PID starting at address POS.  Calling process must be attached to PID. */  
+    static int write_mem(pid_t pid, unsigned long *buf, int nlong, unsigned long pos) {  
+        unsigned long *p;  
+        int i;  
+
+        for (p = buf, i = 0; i &lt; nlong; p++, i++)  
+            if (0 &gt; ptrace(PTRACE_POKETEXT, pid, pos+(i*4), *p))  
+                return -1;  
+        return 0;  
+    }
+
+mprotect()给栈内存段设置可执行属性。
+    adbi采用了另一种方法找目标进程mprotect()内存地址。
+    思路是分析ELF文件libc.so来获得其中符号mprotect的值（其实就是mprotect()函数相对于文件头的偏移），再加上libc.so文件在内存中映射的起始地址，就是mprotect()函数真正的调用地址了
+// calc stack pointer  
+regs.ARM_sp = regs.ARM_sp - n*4 - sizeof(sc);  
+
+// call mprotect() to make stack executable  
+regs.ARM_r0 = stack_start; // want to make stack executable  
+regs.ARM_r1 = stack_end - stack_start; // stack size  
+regs.ARM_r2 = PROT_READ|PROT_WRITE|PROT_EXEC; // protections  
+
+regs.ARM_lr = codeaddr; // points to loading and fixing code  
+regs.ARM_pc = mprotectaddr; // execute mprotect()
+
+ptrace(PTRACE_SETREGS, pid, 0, &amp;regs);  
+ptrace(PTRACE_DETACH, pid, 0, SIGCONT); //deAttach,让目标进程恢复运行 
+</code></pre>
           
         
       
@@ -2016,7 +2361,7 @@ MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">33</span>
+                  <span class="site-state-item-count">34</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
