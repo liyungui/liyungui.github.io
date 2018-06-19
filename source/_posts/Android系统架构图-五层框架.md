@@ -1,7 +1,8 @@
 ---
 title: Android系统架构图(五层框架)
 date: 2018-05-07 14:15:53
-tags:
+tags: 
+	- 架构
 ---
 
 {% asset_img Android架构图(五层框架).png %}
