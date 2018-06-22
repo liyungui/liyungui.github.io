@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/22/test/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/22/技术分享/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/06/22/test/" itemprop="url">技术分享</a></h1>
+                <a class="post-title-link" href="/2018/06/22/技术分享/" itemprop="url">技术分享</a></h1>
         
 
         <div class="post-meta">
@@ -2024,7 +2024,7 @@ Uri photoOutputUri = FileProvider.getUriForFile(
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi-hook原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -2043,7 +2043,7 @@ Uri photoOutputUri = FileProvider.getUriForFile(
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/" itemprop="url">小米系统miui使用xposed框架</a></h1>
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi-hook原理/" itemprop="url">adbi hook原理</a></h1>
         
 
         <div class="post-meta">
@@ -2095,30 +2095,15 @@ Uri photoOutputUri = FileProvider.getUriForFile(
       
         
           
-            <p><a href="http://www.miui.com/thread-2973594-1-1.html" target="_blank" rel="noopener">解除系统对XPosed框架限制</a>    </p>
-<p>从9月23日开始，XPosed框架被系统限制，许多XP模块童鞋捉急。</p>
-<p>然而，高手在民间，不过几日，先是论坛许多miui优化包都放出XP框架可用，说明已破解，但从他们的包内确实找不出关键点。</p>
-<p>又一日，网友『尛』便爆出解决方法，赶脚试试，果然奏效，在这里再次感谢『尛』。</p>
-<p>发这帖是对 『尛』帖子的诠释，以下操作步骤仅为我的见解，不排除有比我更好的方法，希望能帮助到大家，祝基友国庆刷机愉快！</p>
-<p>先说主要的：</p>
+            <p><a href="http://blog.csdn.net/roland_sun/article/details/36049307" target="_blank" rel="noopener">Android平台下hook框架adbi的研究（下） </a></p>
+<h1 id="native函数hook原理"><a href="#native函数hook原理" class="headerlink" title="native函数hook原理"></a>native函数hook原理</h1><p><strong>native函数hook要解决两个问题</strong></p>
 <ol>
-<li><p>请到官方17日的包内提取两个文件：app_process 和 libandroid_runtime.so</p>
-<pre><code>其位置分别在：system/Bin下 和 system/Lib/下（为什么要17日的包？因为17日的包好找，不是内测的基友也可以下载到哦）
-</code></pre></li>
-<li><p>下载你想刷的官方的最新包。</p>
-</li>
-<li><p>把提取的 app_process 和 libandroid_runtime.so 文件替换到新下载包的同目录下（就是提取时的目录），直接覆盖确认。</p>
-<pre><code>替换文件在PC上操作，不要解压rom包。双击rom包，拖曳文件到相应位置直接覆盖替换，无需改权限什么的。
-</code></pre></li>
-<li><p>刷机–成功！（注意：请使用论坛雯雯的rec2.8.5刷入，使用官方REC可能因签名问题失败)</p>
-<pre><code>推荐使用第三方rec刷包(雯雯2.8.5，论坛置顶，这个REC刷官方rom和ota都能成功，真乃刷机神器！)。
-</code></pre><p>楼主机型 ：2014011    HM1STD    红米1S3G移动版<br>其他机型自测，据我观察论坛大部分机型几乎都可使用。</p>
-</li>
+<li>找到这个函数在内存中的位置</li>
+<li>修改函数偷梁换柱。</li>
 </ol>
-<p><strong>注意：请不要在手机系统上通过RE管理器直接替换文件，否则100%变砖！</strong></p>
-<p>我note 4g联通增强版就是在万恶的百度贴吧看教程用RE替换，然后变砖的。增强版刷机后资料全丢</p>
-<pre><code>http://en.miui.com/forum.php?mod=viewthread&amp;tid=176904&amp;highlight=Xposed Fix for Xposed restrictions on MIUI 7. KitKat Only (4.4.x)
-</code></pre><p>英国miui论坛提供的一个xposed apk，兼容4.4.x。note 4g联通增强版测试成功</p>
+<p>读取“/proc/&lt;进程号&gt;/maps”内存映射文件，找到函数库的起始位置和路径。</p>
+<p>mprotect()为该库内存段加上可写（PROT_WRITE）属性</p>
+<p>打开库文件，解析出符号表，从符号表中找到目标函数（其后是偏移地址，加上库起始地址就是内存地址），接下来就是判断Arm与Thumb指令集，hook了。</p>
 
           
         
