@@ -2024,7 +2024,7 @@ Uri photoOutputUri = FileProvider.getUriForFile(
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi-hook原理/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android开发流程/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -2043,7 +2043,7 @@ Uri photoOutputUri = FileProvider.getUriForFile(
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi-hook原理/" itemprop="url">adbi hook原理</a></h1>
+                <a class="post-title-link" href="/2018/05/18/Android开发流程/" itemprop="url">Android开发流程</a></h1>
         
 
         <div class="post-meta">
@@ -2095,15 +2095,51 @@ Uri photoOutputUri = FileProvider.getUriForFile(
       
         
           
-            <p><a href="http://blog.csdn.net/roland_sun/article/details/36049307" target="_blank" rel="noopener">Android平台下hook框架adbi的研究（下） </a></p>
-<h1 id="native函数hook原理"><a href="#native函数hook原理" class="headerlink" title="native函数hook原理"></a>native函数hook原理</h1><p><strong>native函数hook要解决两个问题</strong></p>
-<ol>
-<li>找到这个函数在内存中的位置</li>
-<li>修改函数偷梁换柱。</li>
-</ol>
-<p>读取“/proc/&lt;进程号&gt;/maps”内存映射文件，找到函数库的起始位置和路径。</p>
-<p>mprotect()为该库内存段加上可写（PROT_WRITE）属性</p>
-<p>打开库文件，解析出符号表，从符号表中找到目标函数（其后是偏移地址，加上库起始地址就是内存地址），接下来就是判断Arm与Thumb指令集，hook了。</p>
+            <h1 id="开发流程"><a href="#开发流程" class="headerlink" title="开发流程"></a>开发流程</h1><p>需求预审 → 需求评审 → 需求分解</p>
+<p>→ 需求开发 → 自测 → 静态代码检查   </p>
+<p>→ 提测预发布包 →  QA测试验证  </p>
+<p>→ 逐步放量灰度及异常数据观察→ hotfix修复灰度中的问题</p>
+<p>→  全渠道发布经过灰度验证后的版本（灰度中的问题已修复）→  异常数据观察 </p>
+<p>→ 版本总结</p>
+<h2 id="需求分解："><a href="#需求分解：" class="headerlink" title="需求分解："></a>需求分解：</h2><p>1）根据需求文档<strong>分解需求</strong>，分清需求的<strong>优先级</strong>，评估需求<strong>工作量</strong></p>
+<p>2）罗列需求的<strong>前置条件及关联方</strong>，联系关联方确定前置条件的<strong>交付时间</strong></p>
+<p>3）对于<strong>不确定因素和风险点</strong>，需同步出来并作为预估<strong>版本交付时间</strong>的依据。</p>
+<p>4）根据前面的工作，结合现有人力，安排需求分工，<strong>预估版本交付时间</strong></p>
+<h2 id="需求开发："><a href="#需求开发：" class="headerlink" title="需求开发："></a>需求开发：</h2><p>每天关注版本<strong>进度是否正常</strong>，及时发现风险，争取资源解决</p>
+<h2 id="QA测试验证："><a href="#QA测试验证：" class="headerlink" title="QA测试验证："></a>QA测试验证：</h2><p>1）提交云测平台进行安装卸载monkey测试</p>
+<p>2）功能测试</p>
+<p>3）视情况进行其他专项测试</p>
+<p>从CI（<a href="http://ci.xxx.local/job/xxx_android_release/）中提取发布包，并将发版记录登记到Android卓越网校钉钉群" target="_blank" rel="noopener">http://ci.xxx.local/job/xxx_android_release/）中提取发布包，并将发版记录登记到Android卓越网校钉钉群</a> 里面。</p>
+<h2 id="逐步放量灰度及异常数据观察"><a href="#逐步放量灰度及异常数据观察" class="headerlink" title="逐步放量灰度及异常数据观察"></a>逐步放量灰度及异常数据观察</h2><p>通过bugly提供的<strong>灰度功能进行逐步放量</strong>，并对异常数据（崩溃率、ANR率、错误率）进行观察</p>
+<p>灰度更新策略 <a href="https://bugly.qq.com" target="_blank" rel="noopener">https://bugly.qq.com</a> </p>
+<p>hotfix修复灰度中的问题</p>
+<p>Hotfix使用说明</p>
+<p><a href="https://bugly.qq.com" target="_blank" rel="noopener">https://bugly.qq.com</a></p>
+<p>（bugly账号目前由 xxx 保管）</p>
+<p>部分应用市场需要加固上传提审，可以通过 <a href="http://console.qcloud.com/legu" target="_blank" rel="noopener">http://console.qcloud.com/legu</a> 腾讯乐固加固应用。</p>
+<h2 id="全渠道发布"><a href="#全渠道发布" class="headerlink" title="全渠道发布"></a>全渠道发布</h2><p>1）官网渠道</p>
+<p>官网下载地址指向公司OSS地址，所以更新名为android-xxx-cn的bucket下的xxx_release.apk文件。</p>
+<p>2）应用商店渠道</p>
+<p>现在上线的商店有 应用宝/华为/小米/360/百度，相关账号，目前由 xxx 保管。</p>
+<p>3）检查更新渠道</p>
+<p>将bugly的灰度更新量提到不限下载量</p>
+<h2 id="版本总结"><a href="#版本总结" class="headerlink" title="版本总结"></a>版本总结</h2><p>1）异常经验集的完善</p>
+<p>2）总结开发过程中的不足及改进点</p>
+<h1 id="质量保障体系"><a href="#质量保障体系" class="headerlink" title="质量保障体系"></a>质量保障体系</h1><p>避免问题-&gt;发现问题-&gt;排查问题-&gt;解决问题-&gt;补救问题</p>
+<p>问题的定义：对于用户造成了影响，增加其不必要的使用成本的都叫做问题</p>
+<p>1.避免问题</p>
+<p><strong>异常处理经验集</strong>的丰富完善</p>
+<p><strong>代码规范</strong></p>
+<p>静态<strong>代码检查</strong></p>
+<p>2.发现问题</p>
+<p><strong>异常数据收集</strong></p>
+<p><strong>灰度验证</strong>（提前发现问题，缩小问题影响面）</p>
+<p>3.排查问题</p>
+<p>数据<strong>统计打点</strong>，数据分析，还原用户操作路径</p>
+<p>4.解决问题</p>
+<p><strong>Hotfix</strong>(加速修复问题)</p>
+<p>5.补救问题</p>
+<p>观察问题<strong>是否造成用户流失</strong>，通过短信或推送等方式通知用户已解决问题，并观察数据</p>
 
           
         
