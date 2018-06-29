@@ -262,6 +262,275 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/29/Dart/Dart教程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/29/Dart/Dart教程/" itemprop="url">Dart教程</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-29T15:00:04+08:00">
+                2018-06-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="A-basic-Dart-program"><a href="#A-basic-Dart-program" class="headerlink" title="A basic Dart program"></a>A basic Dart program</h1><pre><code>printInteger(int aNumber) {
+  print(&apos;The number is $aNumber.&apos;); // Print to console.
+}
+
+main() {//程序入口
+  var number = 42; // Declare and initialize a variable.
+  printInteger(number); // Call a function.
+}
+</code></pre><h1 id="Important-concepts"><a href="#Important-concepts" class="headerlink" title="Important concepts"></a>Important concepts</h1><ul>
+<li><strong>万物皆对象。包括 函数 null。</strong> <ul>
+<li><code>Object</code>是最顶层基类</li>
+<li>很多语言，函数都是一级对象(first-class objects)，如Ruby，Python</li>
+</ul>
+</li>
+<li>支持类型推断。虽然Dart是强类型语言</li>
+<li>支持泛型</li>
+<li>支持嵌套函数。create functions within functions (nested or local functions)</li>
+<li>下划线前缀表示private to its library。没有作用域关键字<code>public, protected, and private</code></li>
+<li>精确区分<code>表达式和语句块(expression and statement)</code></li>
+</ul>
+<h1 id="Variables"><a href="#Variables" class="headerlink" title="Variables"></a>Variables</h1><pre><code>String name = &apos;Bob&apos;;
+var name = &apos;Bob&apos;;//自动推断，String类型。局部变量建议使用此方式
+dynamic name = &apos;Bob&apos;;//动态类型
+Object name = &apos;Bob&apos;;//同上
+</code></pre><ul>
+<li>变量保存引用</li>
+</ul>
+<h2 id="默认值"><a href="#默认值" class="headerlink" title="默认值"></a>默认值</h2><p>默认值为null。即使是数字类型，因为Dart万物皆对象</p>
+<h2 id="final-and-const"><a href="#final-and-const" class="headerlink" title="final and const"></a>final and const</h2><ul>
+<li>final<ul>
+<li>只允许赋值一次</li>
+</ul>
+</li>
+<li>const<ul>
+<li>编译时常量</li>
+<li>较弱的final</li>
+<li>成员变量不能声明为const</li>
+</ul>
+</li>
+</ul>
+<p>示例</p>
+<pre><code>final name = &apos;Bob&apos;; // Without a type annotation
+final String nickname = &apos;Bobby&apos;;
+</code></pre><h1 id="Built-in-types"><a href="#Built-in-types" class="headerlink" title="Built-in types"></a>Built-in types</h1><h2 id="num"><a href="#num" class="headerlink" title="num"></a>num</h2><ul>
+<li>int。最长 64 bits。转为JavaScript 最长54位</li>
+<li>double。 64位</li>
+</ul>
+<h2 id="Strings"><a href="#Strings" class="headerlink" title="Strings"></a>Strings</h2><ul>
+<li><code>var s = &#39;string interpolation&#39;;</code></li>
+<li><code>${s}</code> 引用字符串</li>
+<li><code>==</code> 比较内容是否一致</li>
+<li><code>+</code> 拼接字符串</li>
+<li><code>&#39;&#39;&#39;多行字符串&#39;&#39;&#39;</code></li>
+<li>raw String。 <code>var s = r&quot;In a raw string, even \n isn&#39;t special.&quot;;</code></li>
+</ul>
+<h2 id="bool"><a href="#bool" class="headerlink" title="bool"></a>bool</h2><h2 id="List"><a href="#List" class="headerlink" title="List"></a>List</h2><pre><code>var list = [1, 2, 3];
+list[0] = 1;
+</code></pre><h2 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h2><pre><code>var gifts = {
+  // Key:    Value
+  &apos;first&apos;: &apos;partridge&apos;,
+  &apos;second&apos;: &apos;turtledoves&apos;,
+  &apos;fifth&apos;: &apos;golden rings&apos;
+};
+gifts[&apos;first&apos;] = &apos;partridge&apos;;
+
+var nobleGases = {
+  2: &apos;helium&apos;,
+  10: &apos;neon&apos;,
+  18: &apos;argon&apos;,
+};
+nobleGases[2] = &apos;helium&apos;;
+</code></pre><h2 id="Runes"><a href="#Runes" class="headerlink" title="Runes"></a>Runes</h2><p>UTF-32 code points of a string</p>
+<h2 id="Symbol"><a href="#Symbol" class="headerlink" title="Symbol"></a>Symbol</h2><p>代表一个操作或者符号</p>
+<p>获取一个Symbol <code>#bar</code></p>
+<h1 id="Function"><a href="#Function" class="headerlink" title="Function"></a>Function</h1><pre><code>bool isNoble(int atomicNumber) {
+  return _nobleGases[atomicNumber] != null;
+}
+</code></pre><ul>
+<li>返回值可省略。不建议省略</li>
+<li>函数体只有一个表达式。简写<ul>
+<li><code>bool isNoble(int atomicNumber) =&gt; _nobleGases[atomicNumber] != null;</code></li>
+<li>The =&gt; notation is sometimes referred to as fat arrow syntax.</li>
+<li>Dart严格区分表达式和语句块，支持单表达式简写<ul>
+<li>if 语句块 不支持</li>
+<li>条件表达式 支持</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Optional-parameters"><a href="#Optional-parameters" class="headerlink" title="Optional parameters"></a>Optional parameters</h2><h3 id="Optional-named-parameters"><a href="#Optional-named-parameters" class="headerlink" title="Optional named parameters"></a>Optional named parameters</h3><pre><code>void enableFlags({bool bold, bool hidden}) {
+  // ...
+}
+</code></pre><h3 id="Optional-positional-parameters"><a href="#Optional-positional-parameters" class="headerlink" title="Optional positional parameters"></a>Optional positional parameters</h3><pre><code>String say(String from, String msg, [String device]) {
+  var result = &apos;$from says $msg&apos;;
+  if (device != null) {
+    result = &apos;$result with a $device&apos;;
+  }
+  return result;
+}
+</code></pre><h3 id="Default-parameter-values-for-Optional-parameters"><a href="#Default-parameter-values-for-Optional-parameters" class="headerlink" title="Default parameter values for Optional parameters"></a>Default parameter values for Optional parameters</h3><p>默认值必须为 compile-time constants</p>
+<pre><code>void enableFlags({bool bold = false, bool hidden = false}) {
+  // ...
+}
+</code></pre><h2 id="The-main-function"><a href="#The-main-function" class="headerlink" title="The main() function"></a>The main() function</h2><p>入口函数</p>
+<ul>
+<li>returns void </li>
+<li>has an optional <code>List&lt;String&gt; parameter</code> for arguments</li>
+</ul>
+<h2 id="Functions-as-first-class-objects-函数作为对象"><a href="#Functions-as-first-class-objects-函数作为对象" class="headerlink" title="Functions as first-class objects 函数作为对象"></a>Functions as first-class objects 函数作为对象</h2><p>作为函数参数</p>
+<pre><code>void printElement(int element) {
+  print(element);
+}
+
+var list = [1, 2, 3];
+
+// Pass printElement as a parameter.
+list.forEach(printElement);
+</code></pre><p>作为变量值</p>
+<pre><code>var loudify = (msg) =&gt; &apos;!!! ${msg.toUpperCase()} !!!&apos;;
+assert(loudify(&apos;hello&apos;) == &apos;!!! HELLO !!!&apos;);
+匿名函数 + 简写
+</code></pre><h2 id="Anonymous-functions"><a href="#Anonymous-functions" class="headerlink" title="Anonymous functions"></a>Anonymous functions</h2><p>有时又称 closures</p>
+<pre><code>([[Type] param1[, …]]) { 
+  codeBlock; 
+}; 
+</code></pre><p>示例</p>
+<pre><code>var list = [&apos;apples&apos;, &apos;bananas&apos;, &apos;oranges&apos;];
+list.forEach((item) {
+  print(&apos;${list.indexOf(item)}: $item&apos;);
+});
+
+单表达式，简写
+list.forEach(
+    (item) =&gt; print(&apos;${list.indexOf(item)}: $item&apos;));
+</code></pre><h2 id="closures-闭包"><a href="#closures-闭包" class="headerlink" title="closures 闭包"></a>closures 闭包</h2><p>匿名函数的一种，匿名函数对象在变量作用域之外，访问变量。改变了变量作用域</p>
+<pre><code>Function makeAdder(num addBy) {//闭包改变addBy的作用域
+  return (num i) =&gt; addBy + i;
+}
+
+void main() {
+  // Create a function that adds 2.
+  var add2 = makeAdder(2);
+
+  // Create a function that adds 4.
+  var add4 = makeAdder(4);
+
+  assert(add2(3) == 5);
+  assert(add4(3) == 7);
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/27/Fresco使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1968,192 +2237,6 @@ mainClassName = &apos;com.binwin20.testjava.Main&apos; // main() 的路径
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/Android-7-适配/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/24/Android-7-适配/" itemprop="url">Android 7 适配</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-24T18:40:36+08:00">
-                2018-05-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="FileProvider替代file-Uri"><a href="#FileProvider替代file-Uri" class="headerlink" title="FileProvider替代file://Uri"></a>FileProvider替代file://Uri</h1><p>不再允许在app中把file://Uri暴露给其他app，包括但不局限于通过Intent或ClipData 等方法</p>
-<p>提供了FileProvider，使用它生成content://Uri来替代file://Uri。</p>
-<h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>使用file://Uri会有一些风险，比如：</p>
-<ul>
-<li>文件是私有的，接收file://Uri的app无法访问该文件。</li>
-<li>Android6.0引入运行时权限，如果接收file://Uri的app没有申请READ_EXTERNAL_STORAGE权限，在读取文件时会引发崩溃。</li>
-</ul>
-<h2 id="FileProvider"><a href="#FileProvider" class="headerlink" title="FileProvider"></a>FileProvider</h2><p>manifest application节点下</p>
-<pre><code>&lt;provider
-    android:authorities=&quot;${applicationId}.fileProvider&quot;
-    android:exported=&quot;false&quot;
-    android:grantUriPermissions=&quot;true&quot;&gt;
-    &lt;meta-data
-        android:name=&quot;android.support.FILE_PROVIDER_PATHS&quot;
-        android:resource=&quot;@xml/provider_paths&quot;/&gt;
-&lt;/provider&gt;
-</code></pre><p>res/xml/provider_paths.xml 指定路径和转换规则</p>
-<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
-&lt;paths xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;
-    &lt;files-path name=&quot;cache_pdf&quot; path=&quot;cache/pdf/&quot;/&gt;
-    &lt;external-files-path name=&quot;external_cache_pdf&quot; path=&quot;cache/pdf/&quot;/&gt;
-    &lt;external-path name=&quot;external_image&quot; path=&quot;zywx/image/&quot;/&gt;
-&lt;/paths&gt;
-</code></pre><p>代码</p>
-<pre><code>//Uri photoOutputUri = Uri.fromFile(photoOutputFile);
-Uri photoOutputUri = FileProvider.getUriForFile(
-                    mContext,
-                    mActivity.getPackageName() + &quot;.fileprovider&quot;,
-                    photoOutputFile);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoOutputUri);
-</code></pre><h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>android.support.v4.content.FileProvider 类只可以在manifest中注册一次。就如同一个Activity只可以注册一次一样</p>
-<pre><code>Error:
-    Element provider#android.support.v4.content.FileProvider at AndroidManifest.xml:119:9-131:20 duplicated with element declared at AndroidManifest.xml:105:9-117:20
-</code></pre><p>一些第三方sdk为了适配android 7 也添加了这个节点</p>
-<p>解决方案：</p>
-<ul>
-<li>自定义类 继承自FileProvider</li>
-<li>使用合并规则替换resource为我们的xml，然后把第三方sdk中的路径配置copy到provider_paths.xml<ul>
-<li>如果 authorities 不一致，就是利用合并规则替换了，也会报错。因为第三方库java代码大概率写死了 authorities。<ul>
-<li>代码不要写死 authorities，从manifest动态获取</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h2><ul>
-<li><p>FileUriExposedException</p>
-<pre><code>android.os.FileUriExposedException: file:///storage/emulated/0/Android/data/com.zy.course.dev/1467180514061025%23kefuchannelapp54752/test_22616/video/1527152182117.mp4 exposed beyond app through Intent.getData()
-    at android.os.StrictMode.onFileUriExposed(StrictMode.java:1799)
-    at android.net.Uri.checkFileUriExposed(Uri.java:2346)
-</code></pre><ul>
-<li>解决方案：使用FileProvider代替Uri.fromFile</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li>java.lang.SecurityException: Provider must not be exported<ul>
-<li>解决方案：android:exported必须设置成false</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li>Attempt to invoke virtual method ‘android.content.res.XmlResourceParser android.content.pm.PackageItemInfo.loadXmlMetaData(android.content.pm.PackageManager, java.lang.String)’ on a null object reference<ul>
-<li>解决方案：AndroidManifest.xml处的android:authorities必须跟 mActivity.getPackageName() + “.fileProvider” 一样</li>
-</ul>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2208,7 +2291,7 @@ Uri photoOutputUri = FileProvider.getUriForFile(
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-count">37</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2221,7 +2304,7 @@ Uri photoOutputUri = FileProvider.getUriForFile(
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-count">25</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

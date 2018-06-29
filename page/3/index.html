@@ -433,7 +433,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/xposed原理/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/Cydia-- Native Dalvik FrameWork/CydiaSubstrate/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -452,7 +452,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/xposed原理/" itemprop="url">xposed原理</a></h1>
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/Cydia-- Native Dalvik FrameWork/CydiaSubstrate/" itemprop="url">CydiaSubstrate</a></h1>
         
 
         <div class="post-meta">
@@ -504,83 +504,207 @@
       
         
           
-            <p><a href="http://www.xuebuyuan.com/2141468.html" target="_blank" rel="noopener">Android Hook框架Xposed原理与源代码分析</a> </p>
-<h1 id="xposed"><a href="#xposed" class="headerlink" title="xposed"></a>xposed</h1><p>Cydia Substrate可以修改任何主进程的代码，不管是用Java还是C/C++（native代码）编写的。</p>
-<p>而Xposed（开源）只支持 HOOK app_process中的java函数</p>
-<p>Xposed框架是一款可以在不修改APK的情况下影响程序运行（修改系统）的框架服务，<br>通过替换/system/bin/app_process程序控制zygote进程，使得app_process在启动过程中会加载XposedBridge.jar这个jar包，从而完成对Zygote进程及其创建的Dalvik虚拟机的劫持。</p>
-<p>基于Xposed框架可以制作出许多功能强大的模块，且在功能不冲突的情况下同时运作。<br>此外，Xposed框架中的每一个库还可以单独下载使用，</p>
-<pre><code>如Per APP Setting（为每个应用设置单独的dpi或修改权限）、
-    Cydia、XPrivacy（防止隐私泄露）、
-    BootManager（开启自启动程序管理应用）对原生Launcher替换图标等应用或功能均基于此框架。
-</code></pre><p>Xposed框架是基于一个Android的本地服务应用XposedInstaller，与一个提供API 的jar文件来完成的。</p>
-<h1 id="xposed安装"><a href="#xposed安装" class="headerlink" title="xposed安装"></a>xposed安装</h1><p>安装使用Xposed框架我们需要完成以下几个步骤：</p>
-<h2 id="安装本地服务XposedInstalle-需要root权限"><a href="#安装本地服务XposedInstalle-需要root权限" class="headerlink" title="安装本地服务XposedInstalle(需要root权限)"></a>安装本地服务XposedInstalle(需要root权限)</h2><h3 id="下载-安装。"><a href="#下载-安装。" class="headerlink" title="下载 安装。"></a><a href="http://repo.xposed.info/module/de.robv.android.xposed.installer" target="_blank" rel="noopener">下载</a> 安装。</h3><h3 id="激活框架。"><a href="#激活框架。" class="headerlink" title="激活框架。"></a>激活框架。</h3><p>点击“安装/更新”就能完成框架的激活了。</p>
-<p>部分设备如果不支持直接写入的话，选择“安装方式”为在Recovery模式下自动安装即可</p>
-<p>由于国内的部分ROM对Xposed不兼容，Recovery模式可能会造成设备反复重启而无法正常启动</p>
-<p>安装后会启动Xposed的app_process，所以安装过程中会存在设备多次重新启动</p>
-<h1 id="xposed项目编码"><a href="#xposed项目编码" class="headerlink" title="xposed项目编码"></a>xposed项目编码</h1><h2 id="jar包依赖"><a href="#jar包依赖" class="headerlink" title="jar包依赖"></a>jar包依赖</h2><ul>
-<li><p>下载API库 XposedBridgeApi-.jar。</p>
-</li>
-<li><p>复制到lib目录（注意是lib目录，不是Android提供的libs目录）</p>
-</li>
-</ul>
-<p>如果直接将jar包放置到了libs目录下，很可能会产生<a href="http://forum.xda-developers.com/xposed/xposed-api-changelog-developer-news-t2714067" target="_blank" rel="noopener">错误</a>： </p>
-<pre><code>“IllegalAccessError: Class ref in pre-verified class resolved to unexpected  implementation” 
-</code></pre><p>估计Xposed作者在其框架内部也引用了BridgeApi，这样操作避免重复引用。</p>
-<h2 id="Manifest设置"><a href="#Manifest设置" class="headerlink" title="Manifest设置"></a>Manifest设置</h2><p>在AndroidManifest.xml文件中meta-data配置 插件名称与Api版本号</p>
-<pre><code>application  下
-&lt;meta-data  
-    android:name=&quot;xposedmodule&quot;  
-    android:value=&quot;true&quot; /&gt;  
+            <p>Cydia Substrate可以修改任何主进程的代码，不管是用Java还是C/C++（native代码）编写的。而Xposed（开源）只支持 HOOK app_process中的java函数，因此Cydia Substrate是一款强大而实用的HOOK工具</p>
+<p>Cydia Substrate</p>
+<pre><code>参考自： 
+    Android HOOK工具Cydia Substrate使用详解 http://mobile.51cto.com/aprogram-454091.htm
+    周圣韬 Android上玩玩Hook：Cydia Substrate实战 http://www.csdn.net/article/2015-08-07/2825405 
+Cydia Substrate原名MobileSubstrate（类库中都是以MS开头），
+作者为大名鼎鼎的Jay Freeman（saurik）
+Cydia Substrate框架对于inline Hook(框架实现都是通过该方式)的操作目前还是存在一些bug，
+    使用的时候可能会出现崩溃的现象，
+    部分使用了国内定制ROM的设备在使用Cydia Substrate框架时会造成设备无法重新启动或无法Hook的现象。
+    无法重启可以按住音量+ 键 跳过hook插件，进入系统。
+</code></pre><p>1.安装substrate.apk，点击”Link Substrate Files”（连接本地的Substrate服务文件），<br>    这一步是需要Root权限的，连接后还需要重启设备才能够生效<br>    <a href="http://www.cydiasubstrate.com/download/com.saurik.substrate.apk" target="_blank" rel="noopener">http://www.cydiasubstrate.com/download/com.saurik.substrate.apk</a></p>
+<p>2.创建空Android工程。复制jar和so到libs文件夹中。<br>    其中的substrate.h头文件与lib文件夹下的so文件<br>        主要是substrate-api.jar<br>        .h和so是提供在使用NDK进行原生Hook程序开发中的函数支持库<br>    <a href="http://asdk.cydiasubstrate.com/zips/cydia_substrate-r2.zip" target="_blank" rel="noopener">http://asdk.cydiasubstrate.com/zips/cydia_substrate-r2.zip</a></p>
+<p>3.Manifest文件配置 权限和hook类（入口）<br>（1）需要指定权限：cydia.permission.SUBSTRATE<br>        manifest下 <uses-permission android:name="cydia.permission.SUBSTRATE"><br>（2）添加meta-data标签，指定自定义的hook类<br>        application下 <meta-data android:name="com.saurik.substrate.main" android:value=".Main"><br>            name 固定，value就是我们自定义的hook类完整类名（包含包名）</meta-data></uses-permission></p>
+<p>4.自定义hook类<br>    public class Main {<br>        static void initialize() { //插件加载时回调 static方法initialize<br>             MS.hookClassLoad(“android.content.res.Resources”, new MS.ClassLoadHook() { //hook 类加载<br>                public void classLoaded(Class&lt;?&gt; resources) { //类被加载时回调<br>                    Method getColor;<br>                    try {<br>                        getColor = resources.getMethod(“getColor”, Integer.TYPE);<br>                    } catch (NoSuchMethodException e) {<br>                        getColor = null;<br>                    }</p>
+<pre><code>                if (getColor != null) {
+                    final MS.MethodPointer old = new MS.MethodPointer(); //原方法指针。可以在任何时候运行原方法（被hook方法）
 
-&lt;!-- 模块描述 载入model之后显示的描述信息--&gt;
-&lt;meta-data  
-    android:name=&quot;xposeddescription&quot;  
-    android:value=&quot;一个登陆劫持的样例&quot; /&gt;  
-
-&lt;!-- 最低版本号 --&gt;
-&lt;meta-data  
-    android:name=&quot;xposedminversion&quot;  
-    android:value=&quot;30&quot; /&gt;  
-</code></pre><h2 id="自定义hook类"><a href="#自定义hook类" class="headerlink" title="自定义hook类"></a>自定义hook类</h2><pre><code>package com.example.loginhook
-public class Main implements IXposedHookLoadPackage { //加载包的时候回调  
-    public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {  
-
-        // 包名不是 com.example.login 的应用 不hook
-        if (!lpparam.packageName.equals(&quot;com.example.login&quot;)) return;  
-
-         // Hook MainActivity中的isCorrectInfo(String,String)方法  
-        XposedHelpers.findAndHookMethod(&quot;com.example.login.MainActivity&quot;, lpparam.classLoader, &quot;isCorrectInfo&quot;, String.class,  
-        String.class, new XC_MethodHook() {  
-
-            @Override  
-            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {  
-                XposedBridge.log(&quot;开始劫持了~&quot;);  
-                XposedBridge.log(&quot;参数1 = &quot; + param.args[0]);  
-                XposedBridge.log(&quot;参数2 = &quot; + param.args[1]);  
-            }  
-
-            @Override  
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {  
-                XposedBridge.log(&quot;劫持结束了~&quot;);  
-                XposedBridge.log(&quot;参数1 = &quot; + param.args[0]);  
-                XposedBridge.log(&quot;参数2 = &quot; + param.args[1]);  
-
-            }  
-        });    
-    }  
+                    MS.hookMethod(resources, getColor, new MS.MethodHook() {
+                        public Object invoked(Object resources, Object... args)
+                            throws Throwable
+                        {
+                            int color = (Integer) old.invoke(resources, args);
+                            return color &amp; ~0x0000ff00 | 0x00ff0000; //改变系统颜色
+                        }
+                    }, old);
+                }
+            }
+        });
+    }
 }
-</code></pre><h2 id="assets-xposed-init-声明主入口类"><a href="#assets-xposed-init-声明主入口类" class="headerlink" title="assets/xposed_init 声明主入口类."></a>assets/xposed_init 声明主入口类.</h2><p>这里我们的主入口类为 com.example.loginhook.Main</p>
-<h2 id="编译，安装xposed模块"><a href="#编译，安装xposed模块" class="headerlink" title="编译，安装xposed模块"></a>编译，安装xposed模块</h2><p>XpasedInstaller–模块选项中勾选待启用的模块让其正常的生效</p>
-<p>重启Android设备，进入XposedInstaller查看日志模块</p>
-<h1 id="关键api"><a href="#关键api" class="headerlink" title="关键api"></a>关键api</h1><p>hook主类入口接口</p>
-<pre><code>void handleLoadPackage(final LoadPackageParam lpparam) hook包加载 IXposedHookLoadPackage
-void initCmdApp(StartupParam startupParam) hook java程序初始化 IXposedHookCmdInit
-void handleInitPackageResources(InitPackageResourcesParam resparam) hook包资源初始化 IXposedHookInitPackageResources
-void initZygote(StartupParam startupParam) hook Zygote初始化 IXposedHookZygoteInit
-</code></pre><p>XposedHelpers hook方法等操作api</p>
-<pre><code>Unhook findAndHookMethod(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback)
-</code></pre>
+
+也可以用以下代码实现hook
+MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer&gt;() {
+    public Integer invoked(Resources resources, Object... args)
+        throws Throwable
+    {
+        return invoke(resources, args) &amp; ~0x0000ff00 | 0x00ff0000;
+    }
+});
+</code></pre><p>5.安装apk，重启手机，生效。</p>
+<p>关键api<br>    void hookClassLoad(String className, MS.ClassLoadHook hook); Hook一个指定的Class<br>    void hookMethod(Class _class, Member member, MS.MethodHook methodhHook, MS.MethodPointer old);<br>    void hookMethod(Class _class, Member member, MS.MethodAlteration alteration);好用，稳定<br>        _class,需要hook的方法所属类<br>        member,需要hook的方法(或构造函数). 注意：不能HOOK字段 (在编译的时候会进行检测).<br>        methodhHook,MethodHook实例，其包含的invoked方法会被调用，用以代替被hook方法中的代码<br>        old,原方法指针，指向原方法（随时用该指针调用方法）<br>        alteration，MethodAlteration实例，其包含的invoked方法会被调用，用以代替被hook方法中的代码<br>            比MethodHook更好用稳定，在该方法直接调用invoke方法就是调用原方法<br>                不用自己定义 MS.MethodPointer old 指向原方法（随时用该指针调用方法）<br>    <t> T moveUnderClassLoader(ClassLoader loader, T object);   使用ClassLoder重载对象(少用)</t></p>
+<p>6.补充<br>“卧槽”洗脑病毒分析 <a href="http://www.2cto.com/Article/201505/400301.html" target="_blank" rel="noopener">http://www.2cto.com/Article/201505/400301.html</a><br>    表现：所有字变为 卧槽。<br>    分析：跟上例改变字体颜色原理相同，只是hook的设置字体的方法<br>        TextView.setText(CharSequence)<br>    复现：<br>        public class Main {<br>            public static void initialize() {<br>                MS.hookClassLoad(“android.widget.TextView”, new MS.ClassLoadHook() {<br>                    @Override<br>                    public void classLoaded(Class arg0) {<br>                        Method smstest ;<br>                        try {<br>                           smstest=arg0.getMethod(“setText”, CharSequence.class);<br>                        } catch (SecurityException e) {<br>                            smstest=null;<br>                            e.printStackTrace();<br>                        } catch (NoSuchMethodException e) {<br>                            smstest=null;<br>                            e.printStackTrace();<br>                        }  </p>
+<pre><code>               if(smstest!=null){        
+                    final MS.MethodPointer old = new MS.MethodPointer();  
+                    MS.hookMethod(arg0, smstest, new MS.MethodHook() {  
+                       @Override 
+                        public Object invoked(Object arg0, Object... arg1)throws Throwable {                                        
+                            return old.invoke(arg0, &quot;爱破解，爱鬼哥&quot;);                                                                 
+                        }                             
+                    }, old);                          
+                }                     
+            }                
+        });               
+    }                                 
+}  
+</code></pre><p>周圣韬 Android上玩玩Hook：Cydia Substrate实战 <a href="http://www.csdn.net/article/2015-08-07/2825405" target="_blank" rel="noopener">http://www.csdn.net/article/2015-08-07/2825405</a><br>    开始实战（广告注入）<br>    针对Android操作系统的浏览器应用，Hook其首页Activity的onCreate方法（其他方法不一定存在，但是onCreate方法一定会有），<br>        (1)声明一个透明的广告的Activity<br>            为什么设置透明背景的Activity?<br>                就是为了使得弹出来的广告与浏览器融为一体，让用户感觉是浏览器弹出的广告，<br>                也是恶意广告程序为了防止自身被卸载掉的一些通用隐藏手段。<br>                这里演示的注入广告是通过Hook指定的Activity中的onCreate方法来启动一个广告Activity。<br>                如果启动的Activity带有恶意性，如将Activity做得与原Activity一模一样的钓鱼Activity，<br>                那么对于移动设备用户来说是极具欺骗性的。<br>            <!-- 透明无动画的广告Activity --><br>            <activity android:name="com.example.hookad.MainActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"><br>                <intent-filter><br>                    <action android:name="android.intent.action.VIEW"><br>                    <category android:name="android.intent.category.DEFAULT"><br>                    <!-- 广告的action,方便无context时启动  --><br>                    <action android:name="com.example.hook.AD"><br>                </action></category></action></intent-filter><br>            </activity><br>        (2)找到浏览器主页的Activity名称<br>            使用adb shell下使用dumpsys activity命令找到浏览器主页的Activity名称为<br>                com.android.browser.BrowserActivity<br>        (3)关键hook代码<br>            // 执行Hook前的onCreate方法，保证浏览器正常启动<br>            Object result =  old.invoke(object, args);<br>            // 没有Context。所以执行一个shell 启动我们的广告Activity<br>            CMD.run(“am start -a com.example.hook.AD”);</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/" itemprop="url">小米系统miui使用xposed框架</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.miui.com/thread-2973594-1-1.html" target="_blank" rel="noopener">解除系统对XPosed框架限制</a>    </p>
+<p>从9月23日开始，XPosed框架被系统限制，许多XP模块童鞋捉急。</p>
+<p>然而，高手在民间，不过几日，先是论坛许多miui优化包都放出XP框架可用，说明已破解，但从他们的包内确实找不出关键点。</p>
+<p>又一日，网友『尛』便爆出解决方法，赶脚试试，果然奏效，在这里再次感谢『尛』。</p>
+<p>发这帖是对 『尛』帖子的诠释，以下操作步骤仅为我的见解，不排除有比我更好的方法，希望能帮助到大家，祝基友国庆刷机愉快！</p>
+<p>先说主要的：</p>
+<ol>
+<li><p>请到官方17日的包内提取两个文件：app_process 和 libandroid_runtime.so</p>
+<pre><code>其位置分别在：system/Bin下 和 system/Lib/下（为什么要17日的包？因为17日的包好找，不是内测的基友也可以下载到哦）
+</code></pre></li>
+<li><p>下载你想刷的官方的最新包。</p>
+</li>
+<li><p>把提取的 app_process 和 libandroid_runtime.so 文件替换到新下载包的同目录下（就是提取时的目录），直接覆盖确认。</p>
+<pre><code>替换文件在PC上操作，不要解压rom包。双击rom包，拖曳文件到相应位置直接覆盖替换，无需改权限什么的。
+</code></pre></li>
+<li><p>刷机–成功！（注意：请使用论坛雯雯的rec2.8.5刷入，使用官方REC可能因签名问题失败)</p>
+<pre><code>推荐使用第三方rec刷包(雯雯2.8.5，论坛置顶，这个REC刷官方rom和ota都能成功，真乃刷机神器！)。
+</code></pre><p>楼主机型 ：2014011    HM1STD    红米1S3G移动版<br>其他机型自测，据我观察论坛大部分机型几乎都可使用。</p>
+</li>
+</ol>
+<p><strong>注意：请不要在手机系统上通过RE管理器直接替换文件，否则100%变砖！</strong></p>
+<p>我note 4g联通增强版就是在万恶的百度贴吧看教程用RE替换，然后变砖的。增强版刷机后资料全丢</p>
+<pre><code>http://en.miui.com/forum.php?mod=viewthread&amp;tid=176904&amp;highlight=Xposed Fix for Xposed restrictions on MIUI 7. KitKat Only (4.4.x)
+</code></pre><p>英国miui论坛提供的一个xposed apk，兼容4.4.x。note 4g联通增强版测试成功</p>
+
           
         
       
@@ -1649,146 +1773,6 @@ KeyIdentifier [
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/Chrome插件/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/17/Chrome插件/" itemprop="url">Chrome插件</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-17T10:36:09+08:00">
-                2018-05-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Surfingkeys"><a href="#Surfingkeys" class="headerlink" title="Surfingkeys"></a>Surfingkeys</h1><p>在Chrome上，可以摆脱掉烦人的鼠标了。Vimium 升级版，我的最爱。</p>
-<h1 id="Tampermonkey"><a href="#Tampermonkey" class="headerlink" title="Tampermonkey"></a>Tampermonkey</h1><p>油猴强大的脚本让你可以做很多很爽的事情。比如开车、百度网盘破解直接下载、VIP视频在线解析破解去广告等。</p>
-<h1 id="沙拉查词-网页划词翻译"><a href="#沙拉查词-网页划词翻译" class="headerlink" title="沙拉查词-网页划词翻译"></a>沙拉查词-网页划词翻译</h1><p>全能网页划词翻译，开放源码、功能丰富、超多词典、清爽快速、支持个性化设置<br>详细信息删除。<br>找了很久才找到的划词翻译软件，而且双击Ctrl还可以弹出查询翻译页面。用起来很爽。</p>
-<h1 id="掘金"><a href="#掘金" class="headerlink" title="掘金"></a>掘金</h1><p>新标签页托管给掘金，快速获得专业内容。掘金已成为一种习惯。</p>
-<h1 id="Imagus"><a href="#Imagus" class="headerlink" title="Imagus"></a>Imagus</h1><p>鼠标悬浮停留在图片上，自动弹出放大图片，不用再在新链接中打开看大图了。</p>
-<h1 id="oneTab"><a href="#oneTab" class="headerlink" title="oneTab"></a>oneTab</h1><p>标签页打开太多的时候，占用内存而且怕关掉后回头找不到？oneTab完美解决这个问题。<br>主要是用来缩减窗口，保存浏览记录。<br>为了省内存？Chrome越来越吃内存？加内存条才是根本的解决办法。</p>
-<h1 id="AutoPagerize"><a href="#AutoPagerize" class="headerlink" title="AutoPagerize"></a>AutoPagerize</h1><p>专门需要Google、百度，点击下一页很烦。AutoPagerize让我不再需要点下一页。</p>
-<h1 id="谷歌访问助手"><a href="#谷歌访问助手" class="headerlink" title="谷歌访问助手"></a>谷歌访问助手</h1><p>如果你只要访问个谷歌或者上谷歌商店的话，不需要突破围墙的话，装这个插件可以满足基本使用了。免费而且速度还行。<br>在我的酸酸乳被严打封锁期间，我是靠着这个插件熬下来的，且行且珍惜。良民万岁。</p>
-<h1 id="Proxy-SwitchyOmega"><a href="#Proxy-SwitchyOmega" class="headerlink" title="Proxy SwitchyOmega"></a>Proxy SwitchyOmega</h1><p>HTTP、SOCKS5代理插件，轻松快捷地管理和切换多个代理设置。用过段时间，挺好用的。</p>
-<h1 id="SwitchySharp"><a href="#SwitchySharp" class="headerlink" title="SwitchySharp"></a>SwitchySharp</h1><p>代理插件</p>
-<h1 id="LastPass"><a href="#LastPass" class="headerlink" title="LastPass"></a>LastPass</h1><p>省掉很多记密码的烦恼。</p>
-<h1 id="Insight-io-for-Github"><a href="#Insight-io-for-Github" class="headerlink" title="Insight.io for Github"></a>Insight.io for Github</h1><p>Github内看代码更方便，带高亮、跳转。</p>
-<h1 id="GitZip-for-github"><a href="#GitZip-for-github" class="headerlink" title="GitZip for github"></a>GitZip for github</h1><p>不想Clone整个项目，只想下载单个文件或者单个文件夹时，用这个。</p>
-<h1 id="Clear-Cache"><a href="#Clear-Cache" class="headerlink" title="Clear Cache"></a>Clear Cache</h1><p>一键清除缓存，可以少点很多步。</p>
-<h1 id="User-Agent-Switcher-for-Chrome"><a href="#User-Agent-Switcher-for-Chrome" class="headerlink" title="User-Agent Switcher for Chrome"></a>User-Agent Switcher for Chrome</h1><p>Chrome可以转换为别的浏览器进行访问，如IE、Safari、360甚至iOS、 Android等移动浏览器，方便用户进行测试。<br>​</p>
-<h1 id="Adblock-Plus"><a href="#Adblock-Plus" class="headerlink" title="Adblock Plus"></a>Adblock Plus</h1><p>网页去广告，不用uBlock Origin 的原因是它太强力，有时候把我博客的评论部分都杀掉了。</p>
-<h1 id="微博图床"><a href="#微博图床" class="headerlink" title="微博图床"></a>微博图床</h1><p>一键将页面中的图片上传到微博，微博是个好图床。我一般用微博图床来拿HTTPS图片。</p>
-<h1 id="扩展管理器（Extension-Manager）"><a href="#扩展管理器（Extension-Manager）" class="headerlink" title="扩展管理器（Extension Manager）"></a>扩展管理器（Extension Manager）</h1><p>一键管理所有扩展，快速开启/禁用、批量闪电管理，智能排序，右键卸载、锁定、选项配置，角标提醒，大小布局随心配。快捷、简单、安全。<br>当插件越来越多的时候，就需要个插件管理器了。这个管理器很方便，颜值不错。</p>
-<h1 id="IDM-Integration-Module"><a href="#IDM-Integration-Module" class="headerlink" title="IDM Integration Module"></a>IDM Integration Module</h1><p>接管Chrome下载，使用IDM下载。一般在安装IDM的时候会自动安装Chrome的扩展。</p>
-<h1 id="惠惠购物助手"><a href="#惠惠购物助手" class="headerlink" title="惠惠购物助手"></a>惠惠购物助手</h1><p>每逢剁手节的时候，都要打开这个看看历史价。</p>
-<h1 id="有道云网页剪报"><a href="#有道云网页剪报" class="headerlink" title="有道云网页剪报"></a>有道云网页剪报</h1><p>一键保存网页内容，保存到有道云笔记里，我有时候将这个作为类似书签使用。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1843,7 +1827,7 @@ KeyIdentifier [
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-count">37</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1856,7 +1840,7 @@ KeyIdentifier [
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-count">25</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
