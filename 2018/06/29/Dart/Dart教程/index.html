@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Dart," />
+  <meta name="keywords" content="Dart,Flutter," />
 
 
 
@@ -80,14 +80,14 @@
 
 
 <meta name="description" content="A basic Dart programprintInteger(int aNumber) {   print(&amp;apos;The number is $aNumber.&amp;apos;); // Print to console. }  main() {//程序入口   var number = 42; // Declare and initialize a variable.   printInt">
-<meta name="keywords" content="Dart">
+<meta name="keywords" content="Dart,Flutter">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Dart教程">
 <meta property="og:url" content="http://yoursite.com/2018/06/29/Dart/Dart教程/index.html">
 <meta property="og:site_name" content="风">
 <meta property="og:description" content="A basic Dart programprintInteger(int aNumber) {   print(&amp;apos;The number is $aNumber.&amp;apos;); // Print to console. }  main() {//程序入口   var number = 42; // Declare and initialize a variable.   printInt">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-06-29T10:24:56.823Z">
+<meta property="og:updated_time" content="2018-07-04T09:55:34.146Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Dart教程">
 <meta name="twitter:description" content="A basic Dart programprintInteger(int aNumber) {   print(&amp;apos;The number is $aNumber.&amp;apos;); // Print to console. }  main() {//程序入口   var number = 42; // Declare and initialize a variable.   printInt">
@@ -349,6 +349,7 @@ main() {//程序入口
 <li>支持嵌套函数。create functions within functions (nested or local functions)</li>
 <li>下划线前缀表示private to its library。没有作用域关键字<code>public, protected, and private</code></li>
 <li>精确区分<code>表达式和语句块(expression and statement)</code></li>
+<li>The <code>new</code> keyword became optional in Dart 2. </li>
 </ul>
 <h1 id="Variables"><a href="#Variables" class="headerlink" title="Variables"></a>Variables</h1><pre><code>String name = &apos;Bob&apos;;
 var name = &apos;Bob&apos;;//自动推断，String类型。局部变量建议使用此方式
@@ -480,6 +481,165 @@ void main() {
   assert(add2(3) == 5);
   assert(add4(3) == 7);
 }
+</code></pre><h1 id="Classes"><a href="#Classes" class="headerlink" title="Classes"></a>Classes</h1><h2 id="Instance-variables"><a href="#Instance-variables" class="headerlink" title="Instance variables"></a>Instance variables</h2><pre><code>class Point {
+  num x;
+  num y = 0;//创建对象就初始化这个成员变量值，before the constructor and its initializer list execute
+}
+
+void main() {
+  var point = Point();
+  point.x = 4; // Use the setter method for x.
+}
+</code></pre><ul>
+<li>所有成员变量 自动/隐式(implicit)生成 getter方法. </li>
+<li>Non-final成员变量 自动/隐式(implicit)生成  setter方法</li>
+</ul>
+<h2 id="Constructors"><a href="#Constructors" class="headerlink" title="Constructors"></a>Constructors</h2><ul>
+<li>和类名同名函数，自动调用父类的默认构造函数(如果没有手动调用父类其他构造函数)</li>
+<li>默认构造函数(unnamed, no-argument)。如果没有声明构造函数，会自动生成一个无参构造函数</li>
+<li>构造函数不会自动继承。可以手动复写</li>
+<li>初始化顺序<ul>
+<li>initializer list。用来初始化final成员变量很方便(handy)</li>
+<li>superclass’s no-arg constructor</li>
+<li>main class’s no-arg constructor</li>
+<li>构造函数body</li>
+</ul>
+</li>
+<li>先于自身构造函数执行的代码无法访问成员变量/成员方法/this。比如上面的：initializer list的赋值，传递给父类构造函数参数的值</li>
+</ul>
+<p>示例</p>
+<pre><code>class Point {
+  num x, y;
+
+  Point(num x, num y) {
+    this.x = x;//变量名冲突，所以加this.
+    this.y = y;
+  }
+}
+
+class Point {
+  num x, y;
+
+  Point(this.x, this.y);// Syntactic sugar for setting x and y, before the constructor body runs.
+}
+</code></pre><h3 id="Named-constructors"><a href="#Named-constructors" class="headerlink" title="Named constructors"></a>Named constructors</h3><pre><code>class Point {
+  num x, y;
+
+  Point(this.x, this.y);
+
+  // Named constructor
+  Point.origin() {
+    x = 0;
+    y = 0;
+  }
+}
+</code></pre><h3 id="Invoking-constructors"><a href="#Invoking-constructors" class="headerlink" title="Invoking constructors"></a>Invoking constructors</h3><h4 id="Invoking-a-non-default-superclass-constructor"><a href="#Invoking-a-non-default-superclass-constructor" class="headerlink" title="Invoking a non-default superclass constructor"></a>Invoking a non-default superclass constructor</h4><pre><code>构造函数：父类构造函数{
+}
+</code></pre><p>示例</p>
+<pre><code>class Person {
+  String firstName;
+
+  Person.fromJson(Map data) {
+    print(&apos;in Person&apos;);
+  }
+}
+
+class Employee extends Person {
+  Employee.fromJson(Map data) : super.fromJson(data) {
+    print(&apos;in Employee&apos;);
+  }
+}
+
+main() {
+  var emp = new Employee.fromJson({});
+}
+
+输出
+    in Person
+    in Employee
+</code></pre><p>示例2</p>
+<pre><code>class Employee extends Person {
+  Employee() : super.fromJson(getDefaultData());
+  // ···
+}
+</code></pre><h4 id="Redirecting-constructors"><a href="#Redirecting-constructors" class="headerlink" title="Redirecting constructors"></a>Redirecting constructors</h4><pre><code>class Point {
+  num x, y;
+
+  Point(this.x, this.y); // The main constructor for this class.
+
+  Point.alongXAxis(num x) : this(x, 0); // Delegates to the main constructor.
+}
+</code></pre><h3 id="Initializer-list"><a href="#Initializer-list" class="headerlink" title="Initializer list"></a>Initializer list</h3><pre><code>构造函数:Initializer1,Initializer2{
+}
+</code></pre><p>示例</p>
+<pre><code>Point.fromJson(Map&lt;String, num&gt; json)
+    : x = json[&apos;x&apos;],
+      y = json[&apos;y&apos;] {
+  print(&apos;In Point.fromJson(): ($x, $y)&apos;);
+}
+</code></pre><p>示例2：初始化final成员变量，很方便</p>
+<pre><code>import &apos;dart:math&apos;;
+
+class Point {
+  final num x;
+  final num y;
+  final num distanceFromOrigin;
+
+  Point(x, y)
+      : x = x,
+        y = y,
+        distanceFromOrigin = sqrt(x * x + y * y);
+}
+
+main() {
+  var p = new Point(3, 4);
+  print(p.distanceFromOrigin);
+}
+
+输出 5.0
+</code></pre><h3 id="Constant-constructors"><a href="#Constant-constructors" class="headerlink" title="Constant constructors"></a>Constant constructors</h3><p>define a const constructor and make sure that all instance variables are final</p>
+<pre><code>class ImmutablePoint {
+  static final ImmutablePoint origin =
+      const ImmutablePoint(0, 0);
+
+  final num x, y;
+
+  const ImmutablePoint(this.x, this.y);
+}
+</code></pre><h3 id="Factory-constructors"><a href="#Factory-constructors" class="headerlink" title="Factory constructors"></a>Factory constructors</h3><p>factory修饰构造函数，返回一个缓存对象或者子类对象</p>
+<pre><code>class Logger {
+  final String name;
+  bool mute = false;
+
+  // _cache is library-private
+  static final Map&lt;String, Logger&gt; _cache = &lt;String, Logger&gt;{};
+
+  factory Logger(String name) {
+    if (_cache.containsKey(name)) {
+      return _cache[name];
+    } else {
+      final logger = Logger._internal(name);
+      _cache[name] = logger;
+      return logger;
+    }
+  }
+
+  Logger._internal(this.name);
+
+  void log(String msg) {
+    if (!mute) print(msg);
+  }
+}
+</code></pre><h2 id="Using-class-members"><a href="#Using-class-members" class="headerlink" title="Using class members"></a>Using class members</h2><pre><code>var p = Point(2, 2);
+
+p.y = 3;// Set the value of the instance variable y.
+
+p?.y = 4;// If p is non-null, set its y value to 4.
+</code></pre><h1 id="mixins复用"><a href="#mixins复用" class="headerlink" title="mixins复用"></a><code>mixins</code>复用</h1><p>mixins是一种方便重用一个类的代码的方法。给类添加新的功能</p>
+<p>使用<code>with</code> 关键字来实现mixins的功能。</p>
+<pre><code>class Musician extends Performer with Musical {
+  // ...
+}
 </code></pre>
       
     </div>
@@ -498,6 +658,8 @@ void main() {
         <div class="post-tags">
           
             <a href="/tags/Dart/" rel="tag"><i class="fa fa-tag"></i> Dart</a>
+          
+            <a href="/tags/Flutter/" rel="tag"><i class="fa fa-tag"></i> Flutter</a>
           
         </div>
       
@@ -519,6 +681,10 @@ void main() {
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/03/Flutter/Flutter布局/" rel="prev" title="Flutter布局">
+                Flutter布局 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -599,7 +765,7 @@ void main() {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">39</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -612,7 +778,7 @@ void main() {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-count">26</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -645,7 +811,7 @@ void main() {
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#A-basic-Dart-program"><span class="nav-number">1.</span> <span class="nav-text">A basic Dart program</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Important-concepts"><span class="nav-number">2.</span> <span class="nav-text">Important concepts</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Variables"><span class="nav-number">3.</span> <span class="nav-text">Variables</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#默认值"><span class="nav-number">3.1.</span> <span class="nav-text">默认值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#final-and-const"><span class="nav-number">3.2.</span> <span class="nav-text">final and const</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Built-in-types"><span class="nav-number">4.</span> <span class="nav-text">Built-in types</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#num"><span class="nav-number">4.1.</span> <span class="nav-text">num</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Strings"><span class="nav-number">4.2.</span> <span class="nav-text">Strings</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bool"><span class="nav-number">4.3.</span> <span class="nav-text">bool</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#List"><span class="nav-number">4.4.</span> <span class="nav-text">List</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Map"><span class="nav-number">4.5.</span> <span class="nav-text">Map</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Runes"><span class="nav-number">4.6.</span> <span class="nav-text">Runes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Symbol"><span class="nav-number">4.7.</span> <span class="nav-text">Symbol</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Function"><span class="nav-number">5.</span> <span class="nav-text">Function</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Optional-parameters"><span class="nav-number">5.1.</span> <span class="nav-text">Optional parameters</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Optional-named-parameters"><span class="nav-number">5.1.1.</span> <span class="nav-text">Optional named parameters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Optional-positional-parameters"><span class="nav-number">5.1.2.</span> <span class="nav-text">Optional positional parameters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Default-parameter-values-for-Optional-parameters"><span class="nav-number">5.1.3.</span> <span class="nav-text">Default parameter values for Optional parameters</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-main-function"><span class="nav-number">5.2.</span> <span class="nav-text">The main() function</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Functions-as-first-class-objects-函数作为对象"><span class="nav-number">5.3.</span> <span class="nav-text">Functions as first-class objects 函数作为对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Anonymous-functions"><span class="nav-number">5.4.</span> <span class="nav-text">Anonymous functions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#closures-闭包"><span class="nav-number">5.5.</span> <span class="nav-text">closures 闭包</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#A-basic-Dart-program"><span class="nav-number">1.</span> <span class="nav-text">A basic Dart program</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Important-concepts"><span class="nav-number">2.</span> <span class="nav-text">Important concepts</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Variables"><span class="nav-number">3.</span> <span class="nav-text">Variables</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#默认值"><span class="nav-number">3.1.</span> <span class="nav-text">默认值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#final-and-const"><span class="nav-number">3.2.</span> <span class="nav-text">final and const</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Built-in-types"><span class="nav-number">4.</span> <span class="nav-text">Built-in types</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#num"><span class="nav-number">4.1.</span> <span class="nav-text">num</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Strings"><span class="nav-number">4.2.</span> <span class="nav-text">Strings</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bool"><span class="nav-number">4.3.</span> <span class="nav-text">bool</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#List"><span class="nav-number">4.4.</span> <span class="nav-text">List</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Map"><span class="nav-number">4.5.</span> <span class="nav-text">Map</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Runes"><span class="nav-number">4.6.</span> <span class="nav-text">Runes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Symbol"><span class="nav-number">4.7.</span> <span class="nav-text">Symbol</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Function"><span class="nav-number">5.</span> <span class="nav-text">Function</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Optional-parameters"><span class="nav-number">5.1.</span> <span class="nav-text">Optional parameters</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Optional-named-parameters"><span class="nav-number">5.1.1.</span> <span class="nav-text">Optional named parameters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Optional-positional-parameters"><span class="nav-number">5.1.2.</span> <span class="nav-text">Optional positional parameters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Default-parameter-values-for-Optional-parameters"><span class="nav-number">5.1.3.</span> <span class="nav-text">Default parameter values for Optional parameters</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-main-function"><span class="nav-number">5.2.</span> <span class="nav-text">The main() function</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Functions-as-first-class-objects-函数作为对象"><span class="nav-number">5.3.</span> <span class="nav-text">Functions as first-class objects 函数作为对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Anonymous-functions"><span class="nav-number">5.4.</span> <span class="nav-text">Anonymous functions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#closures-闭包"><span class="nav-number">5.5.</span> <span class="nav-text">closures 闭包</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Classes"><span class="nav-number">6.</span> <span class="nav-text">Classes</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Instance-variables"><span class="nav-number">6.1.</span> <span class="nav-text">Instance variables</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Constructors"><span class="nav-number">6.2.</span> <span class="nav-text">Constructors</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Named-constructors"><span class="nav-number">6.2.1.</span> <span class="nav-text">Named constructors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Invoking-constructors"><span class="nav-number">6.2.2.</span> <span class="nav-text">Invoking constructors</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Invoking-a-non-default-superclass-constructor"><span class="nav-number">6.2.2.1.</span> <span class="nav-text">Invoking a non-default superclass constructor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redirecting-constructors"><span class="nav-number">6.2.2.2.</span> <span class="nav-text">Redirecting constructors</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Initializer-list"><span class="nav-number">6.2.3.</span> <span class="nav-text">Initializer list</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Constant-constructors"><span class="nav-number">6.2.4.</span> <span class="nav-text">Constant constructors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Factory-constructors"><span class="nav-number">6.2.5.</span> <span class="nav-text">Factory constructors</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Using-class-members"><span class="nav-number">6.3.</span> <span class="nav-text">Using class members</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mixins复用"><span class="nav-number">7.</span> <span class="nav-text">mixins复用</span></a></li></ol></div>
             
 
           </div>

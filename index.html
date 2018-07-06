@@ -262,6 +262,939 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/04/Flutter/Flutter-for-Android-开发者/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/04/Flutter/Flutter-for-Android-开发者/" itemprop="url">Flutter for Android 开发者</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-04T15:42:04+08:00">
+                2018-07-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文档适用于Android开发人员，可以将您现有的Android知识应用于使用Flutter构建移动应用程序。您可以将此文档用作Flutter开发的一个开端</p>
+<h1 id="View"><a href="#View" class="headerlink" title="View"></a>View</h1><h2 id="Widget-Android中的View"><a href="#Widget-Android中的View" class="headerlink" title="Widget = Android中的View"></a>Widget = Android中的View</h2><p>在Flutter中，Widget相当于Android的View。</p>
+<h3 id="Widget与View不同之处"><a href="#Widget与View不同之处" class="headerlink" title="Widget与View不同之处"></a>Widget与View不同之处</h3><ul>
+<li>绘制<ul>
+<li>Widget仅支持一帧，并且每一帧上Flutter框架都会创建一个Widget实例树(每一帧它们都会重新构建)。</li>
+<li>View绘制结束后，就不会重绘，直到调用invalidate时才会重绘</li>
+</ul>
+</li>
+<li>更新<ul>
+<li>widget是不可变的，不会直接更新，而必须使用Widget的状态。这允许widget变得超级轻量</li>
+<li>直接对view进行改变来更新视图（在framework改变View视图）</li>
+</ul>
+</li>
+</ul>
+<p><strong>Widget特性</strong></p>
+<ul>
+<li>每一帧都会重新构建</li>
+<li>不可变(不能直接更新)</li>
+<li>通过Widget的状态(State对象)更新</li>
+</ul>
+<h2 id="如何布局"><a href="#如何布局" class="headerlink" title="如何布局"></a>如何布局</h2><p>Android中，通过XML编写布局</p>
+<p>但在Flutter中，使用widget树来编写布局</p>
+<h2 id="如何更新widget"><a href="#如何更新widget" class="headerlink" title="如何更新widget"></a>如何更新widget</h2><p>Android中，通过方法直接更新View</p>
+<p>但在Flutter中，使用Widget的状态更新Widget</p>
+<p>这是Stateful和Stateless widget的概念的来源。</p>
+<p>StatefulWidget有一个State对象，它可以跨帧存储状态数据并恢复它(更新)。</p>
+<p>可以将StatelessWidget包装在StatefulWidget中实现更新</p>
+<h3 id="Widget如何创建子Widget"><a href="#Widget如何创建子Widget" class="headerlink" title="Widget如何创建子Widget"></a>Widget如何创建子Widget</h3><p>StatelessWidget实现 <code>Widget build(BuildContext context)</code> 创建 Widget</p>
+<p>StatefulWidget实现 <code>State createState();</code> 创建 自定义State –&gt; 自定义State实现 <code>Widget build(BuildContext context)</code> 创建 Widget</p>
+<p>示例：<strong>点击按钮更新Text(StatelessWidget的子类)</strong></p>
+<pre><code>class SampleApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new MaterialApp(
+      title: &apos;Sample App&apos;,
+      theme: new ThemeData(primarySwatch: Colors.blue),
+      home: new SampleAppHomePage(),
+    );
+  }
+}
+
+class SampleAppHomePage extends StatefulWidget {
+  SampleAppPage({Key key}) : super(key: key);//官方文档源码有定义该构造函数。但是不写测试没发现问题
+  @override
+  State createState() {
+    return new SampleAppHomeState();
+  }
+}
+
+class SampleAppHomeState extends State&lt;SampleAppHomePage&gt; {
+  String textToShow = &apos;I Like Flutter&apos;;
+
+  void updateText() {
+    setState(() {//匿名函数。void setState(VoidCallback fn)，typedef void VoidCallback();
+      textToShow = &apos;Flutter is Awesome&apos;;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(&apos;HomePage&apos;),
+      ),
+      body: new Center(
+        child: new Text(textToShow),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: updateText,//很奇怪
+        tooltip: &apos;Update Text&apos;,//长按会展示action的描述
+        child: new Icon(Icons.update),
+      ),
+    );
+  }
+}
+</code></pre><h2 id="如何在布局中添加或删除组件Widget"><a href="#如何在布局中添加或删除组件Widget" class="headerlink" title="如何在布局中添加或删除组件Widget"></a>如何在布局中添加或删除组件Widget</h2><p>Android中，可以从父级控件调用addChild或removeChild以动态添加或删除View。 </p>
+<p>在Flutter中，在返回widget给父项的函数中通过值(一般是布尔值)控制widget的创建</p>
+<p>示例：<strong>点击按钮切换widget</strong></p>
+<pre><code>class SampleAppHomeState extends State&lt;SampleAppHomePage&gt; {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(&apos;HomePage&apos;),
+      ),
+      body: new Center(
+        child: getBodyChild(),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: onPress,
+        child: new Icon(Icons.update),
+      ),
+    );
+  }
+
+  getBodyChild() {
+    if (toggle) {
+      return new Text(&apos;Toggle One&apos;);
+    } else {
+      return new MaterialButton(
+        onPressed: () {},
+        child: new Text(&apos;Toggle Two&apos;),
+      );
+    }
+  }
+
+  bool toggle = true;
+  void onPress() {
+    setState(() {
+      toggle = !toggle;
+    });
+  }
+}
+</code></pre><h2 id="动画"><a href="#动画" class="headerlink" title="动画"></a>动画</h2><p>Android中，可以通过XML创建动画或在视图上调用.animate()</p>
+<p>Flutter中，将widget包装到Animation中，告诉<strong>控制器</strong>(<code>AnimationController</code>和<code>Interpolator</code>)启动<strong>动画</strong></p>
+<p>示例：<strong>FadeTransition淡入</strong></p>
+<pre><code>class SampleAppHomeState extends State&lt;SampleAppHomePage&gt; with TickerProviderStateMixin {
+  AnimationController animationController;
+  CurvedAnimation curvedAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    animationController = new AnimationController(duration: new Duration(microseconds: 2000), vsync: this);
+    curvedAnimation = new CurvedAnimation(parent: animationController, curve: Curves.easeIn);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(&apos;HomePage&apos;),
+      ),
+      body: new Center(
+        child: getBodyChild(),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: onPress,
+        child: new Icon(Icons.update),
+      ),
+    );
+  }
+
+  getBodyChild() {
+    return new Container(
+      child: new FadeTransition(
+        opacity: curvedAnimation,
+        child: new FlutterLogo(
+          size: 100.0,
+        ),
+      ),
+    );
+  }
+
+  void onPress() {
+    animationController.forward();
+  }
+}
+</code></pre><h2 id="Canvas-draw-paint"><a href="#Canvas-draw-paint" class="headerlink" title="Canvas draw/paint"></a>Canvas draw/paint</h2><p>CustomPaint和CustomPainter，Canvas</p>
+<p>示例使用了手势，先跳过</p>
+<h2 id="自定义-Widget"><a href="#自定义-Widget" class="headerlink" title="自定义 Widget"></a>自定义 Widget</h2><p>在Android中，通过<strong>继承</strong>View(覆盖其方法)和<strong>组合</strong>View来实现自定义View</p>
+<p>在Flutter中，自定义widget通常是通过<strong>组合</strong>其它widget来实现的，而不是继承。</p>
+<h1 id="Intent"><a href="#Intent" class="headerlink" title="Intent"></a>Intent</h1><p>Intent主要有两种使用场景：在Activity之间切换，以及调用外部组件(如Camera或File picker)</p>
+<p><strong>Flutter没有Intent</strong></p>
+<p>如果需要的话，Flutter可以通过<strong>Native</strong>集成来触发Intent</p>
+<h2 id="Flutter中切换屏幕"><a href="#Flutter中切换屏幕" class="headerlink" title="Flutter中切换屏幕"></a>Flutter中切换屏幕</h2><p>两个核心概念和类：</p>
+<ul>
+<li><strong>Route</strong>是应用程序的“屏幕”或“页面”的抽象（可以认为是Activity）</li>
+<li><strong>Navigator</strong>是管理Route的Widget。Navigator可以通过push和pop route以实现页面切换</li>
+</ul>
+<p>声明页面：</p>
+<ul>
+<li>Android，您可以在<strong>AndroidManifest.xml</strong>中声明您的Activities</li>
+<li><p>Flutter中，您可以将具有指定Route的Map传递到<strong>顶层MaterialApp</strong>实例</p>
+<pre><code>new MaterialApp(
+    home: new MyAppHome(), // becomes the route named &apos;/&apos;
+    routes: &lt;String, WidgetBuilder&gt; {
+      &apos;/a&apos;: (BuildContext context) =&gt; new MyPage(title: &apos;page A&apos;),
+      &apos;/b&apos;: (BuildContext context) =&gt; new MyPage(title: &apos;page B&apos;),
+      &apos;/c&apos;: (BuildContext context) =&gt; new MyPage(title: &apos;page C&apos;),
+    },
+  )
+</code></pre></li>
+</ul>
+<p>通过Navigator来切换到命名路由的页面</p>
+<pre><code>Navigator.of(context).pushNamed(&apos;/b&apos;);
+</code></pre><h2 id="处理Android传入的Intent"><a href="#处理Android传入的Intent" class="headerlink" title="处理Android传入的Intent"></a>处理Android传入的Intent</h2><p>示例：<strong>其他应用程序共享文本到Flutter应用程序</strong></p>
+<p>基本流程：首先处理Android端的共享文本数据，然后等待Flutter请求数据，然后通过MethodChannel发送</p>
+<h2 id="Flutter实现startActivityForResult"><a href="#Flutter实现startActivityForResult" class="headerlink" title="Flutter实现startActivityForResult"></a>Flutter实现startActivityForResult</h2><p>Navigator.push()返回结果就是新route页面pop的数据</p>
+<p>示例：<strong>选择定位位置</strong></p>
+<pre><code>Map coordinates = await Navigator.of(context).pushNamed(&apos;/location&apos;);
+Navigator.of(context).pop({&quot;lat&quot;:43.821757,&quot;long&quot;:-79.226392});//位置路由中，用户选择位置，将结果”pop”出栈
+</code></pre><h1 id="Activity-和-Fragment"><a href="#Activity-和-Fragment" class="headerlink" title="Activity 和 Fragment"></a>Activity 和 Fragment</h1><p>在Flutter中，这两个概念都等同于Widget</p>
+<h2 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h2><p>Android中，可以复写Activity/Fragment的生命周期回调函数</p>
+<p>Flutter中，通过添加<code>WidgetsBindingObserver</code>监听生命周期事件</p>
+<pre><code>WidgetsBinding.instance.addObserver.(WidgetsBindingObserver)
+</code></pre><p>WidgetsBindingObserver</p>
+<pre><code>abstract class WidgetsBindingObserver {
+    void didChangeAppLifecycleState(AppLifecycleState state) { }//前后台切换回调
+}
+</code></pre><p>AppLifecycleState</p>
+<ul>
+<li>resumed<ul>
+<li>可见有焦点。</li>
+<li>类似Android的onResume</li>
+</ul>
+</li>
+<li>inactive<ul>
+<li>可见，无焦点</li>
+<li>随时可能转为 paused</li>
+</ul>
+</li>
+<li>paused<ul>
+<li>不可见</li>
+<li>随时可能转为 suspending</li>
+</ul>
+</li>
+<li>suspending<ul>
+<li>暂时中止</li>
+<li>iOS暂时不可用</li>
+</ul>
+</li>
+</ul>
+<h1 id="资源"><a href="#资源" class="headerlink" title="资源"></a>资源</h1><h2 id="图片"><a href="#图片" class="headerlink" title="图片"></a>图片</h2><p>Flutter遵循类似iOS简单的3种分辨率格式: 1x, 2x, 3x.</p>
+<ul>
+<li><p>项目根创建images文件夹，子文件夹2x和3x，放入对应图片</p>
+<pre><code>…/my_icon.png
+…/2.0x/my_icon.png
+…/3.0x/my_icon.png
+</code></pre></li>
+<li><p>pubspec.yaml文件中声明这些图片</p>
+<pre><code>assets:
+ - images/my_icon.png
+</code></pre></li>
+<li><p>使用AssetImage访问图片</p>
+<pre><code>return new AssetImage(&quot;images/my_icon.png&quot;);
+</code></pre></li>
+</ul>
+<h2 id="依赖：Android-Gradle-vs-Flutter-pubspec-yaml"><a href="#依赖：Android-Gradle-vs-Flutter-pubspec-yaml" class="headerlink" title="依赖：Android Gradle vs Flutter pubspec.yaml"></a>依赖：Android Gradle vs Flutter pubspec.yaml</h2><p>在Android中，您可以在Gradle文件来添加依赖项。</p>
+<p>在Flutter中，虽然在Flutter项目中的Android文件夹下有Gradle文件，但只有在添加平台相关所需的依赖关系时才使用这些文件。 否则，应该使用pubspec.yaml声明用于Flutter的外部依赖项。</p>
+<h1 id="触摸事件处理"><a href="#触摸事件处理" class="headerlink" title="触摸事件处理"></a>触摸事件处理</h1><h2 id="Widget支持事件监听"><a href="#Widget支持事件监听" class="headerlink" title="Widget支持事件监听"></a>Widget支持事件监听</h2><p>将一个函数传递给它并进行处理</p>
+<pre><code>return new RaisedButton(
+  onPressed: () {
+    print(&quot;click&quot;);
+  },
+  child: new Text(&quot;Button&quot;));
+</code></pre><h2 id="Widget不支持事件监听-–-GestureDetector"><a href="#Widget不支持事件监听-–-GestureDetector" class="headerlink" title="Widget不支持事件监听 – GestureDetector"></a>Widget不支持事件监听 – GestureDetector</h2><p>将该Widget包装到GestureDetector中</p>
+<p>GestureDetector，可以监听多种手势</p>
+<ul>
+<li>Tap<ul>
+<li>onTapDown</li>
+<li>onTapUp</li>
+<li>onTapCancel</li>
+<li>onTap</li>
+</ul>
+</li>
+<li>Double tap 用户快速连续两次在同一位置轻敲屏幕.<ul>
+<li>onDoubleTap </li>
+</ul>
+</li>
+<li>长按<ul>
+<li>onLongPress</li>
+</ul>
+</li>
+<li>垂直拖动<ul>
+<li>onVerticalDragStart</li>
+<li>onVerticalDragUpdate</li>
+<li>onVerticalDragEnd</li>
+</ul>
+</li>
+<li>水平拖拽<ul>
+<li>onHorizontalDragStart</li>
+<li>onHorizontalDragUpdate</li>
+<li>onHorizontalDragEnd</li>
+</ul>
+</li>
+</ul>
+<p>示例：双击旋转FlutterLogo</p>
+<pre><code>class SampleAppHomeState extends State&lt;SampleAppHomePage&gt;  with TickerProviderStateMixin {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(&apos;HomePage&apos;),
+      ),
+      body: new Center(
+        child: getBodyChild(),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: onPress,
+        child: new Icon(Icons.update),
+      ),
+    );
+  }
+
+  AnimationController controller;
+  CurvedAnimation curve;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = new AnimationController(duration: const Duration(milliseconds: 2000), vsync: this);
+    curve = new CurvedAnimation(parent: controller, curve: Curves.easeIn);
+  }
+
+  getBodyChild() {
+    return new GestureDetector(
+      child: new RotationTransition(
+          turns: curve,
+          child: new FlutterLogo(
+            size: 200.0,
+          )),
+      onDoubleTap: () {
+        if (controller.isCompleted) {
+          controller.reverse();
+        } else {
+          controller.forward();
+        }
+      },
+    );
+  }
+
+  void onPress() {
+  }
+}
+</code></pre><h1 id="Listview-amp-Adapter"><a href="#Listview-amp-Adapter" class="headerlink" title="Listview &amp; Adapter"></a>Listview &amp; Adapter</h1><p>必须确保在合适的时机回收行，否则，你会得到各种疯狂的视觉和内存问题。</p>
+<pre><code>class SampleAppHomeState extends State&lt;SampleAppHomePage&gt;  with TickerProviderStateMixin {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(&apos;HomePage&apos;),
+      ),
+      body: new Center(
+        child: getBodyChild(),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: onPress,
+        child: new Icon(Icons.update),
+      ),
+    );
+  }
+
+  void onPress() {
+  }
+
+  getBodyChild() {
+    return new ListView(children: getListData());
+  }
+
+  getListData() {
+    List&lt;Widget&gt; widgets = [];
+    for (int i = 0; i &lt; 100; i++) {
+      widgets.add(new GestureDetector(
+        child: new Padding(
+            padding: new EdgeInsets.all(10.0),
+            child: new Text(&quot;Row $i&quot;)),
+        onTap: () {//点击item事件
+          print(&apos;row $i tapped&apos;);
+        },
+      ));
+    }
+    return widgets;
+  }
+
+}
+
+logcat输出： 07-05 06:21:57.034 1997-2032/com.lyg.flutterapp I/flutter: row 0 tapped
+</code></pre><h2 id="动态更新ListView"><a href="#动态更新ListView" class="headerlink" title="动态更新ListView"></a>动态更新ListView</h2><p>示例：点击item，在列表末尾add一个item</p>
+<h3 id="新建ListView：setState中创建一个新的List"><a href="#新建ListView：setState中创建一个新的List" class="headerlink" title="新建ListView：setState中创建一个新的List"></a>新建ListView：setState中创建一个新的List</h3><p>setState被调用时，Flutter渲染引擎会遍历所有的widget以查看它们是否已经改变。 当遍历到ListView时，它会做一个==运算，以查看两个ListView是否相同，因为没有任何改变，因此没有更新数据。</p>
+<pre><code>List&lt;Widget&gt; widgets = [];
+
+@override
+void initState() {
+  super.initState();
+  for (int i = 0; i &lt; 100; i++) {
+    widgets.add(getRow(i));
+  }
+}
+
+getBodyChild() {
+  return new ListView(children: widgets);
+}
+
+Widget getRow(int i) {
+  return new GestureDetector(
+    child: new Padding(
+        padding: new EdgeInsets.all(10.0),
+        child: new Text(&quot;Row $i&quot;)),
+    onTap: () {
+      print(&apos;row $i tapped&apos;);
+      setState(() {
+        widgets = new List.from(widgets);//创建新列表
+        widgets.add(getRow(widgets.length));
+      });
+    },
+  );
+}
+</code></pre><h3 id="新建ListView-Builder：推荐使用"><a href="#新建ListView-Builder：推荐使用" class="headerlink" title="新建ListView.Builder：推荐使用"></a>新建ListView.Builder：推荐使用</h3><p><strong>动态列表或包含大量数据的列表</strong>时，ListView.Builder非常有用。</p>
+<p>实际上相当于在Android上使用RecyclerView，会<strong>自动回收列表元素</strong></p>
+<pre><code>getBodyChild() {
+  return new ListView.builder(
+      itemCount: widgets.length,
+      itemBuilder: (BuildContext context, int position) {//非常类似Android适配器中的getView()
+        return getRow(position);
+      });
+}
+
+Widget getRow(int i) {
+  return new GestureDetector(
+    child: new Padding(
+        padding: new EdgeInsets.all(10.0),
+        child: new Text(&quot;Row $i&quot;)),
+    onTap: () {
+      print(&apos;row $i tapped&apos;);
+      setState(() {
+        widgets.add(getRow(widgets.length));//不创建新列表，只添加新元素到列表
+      });
+    },
+  );
+}
+</code></pre><h1 id="异步UI"><a href="#异步UI" class="headerlink" title="异步UI"></a>异步UI</h1><p>Dart是单线程执行模型(默认在主UI线程中运行)，并由事件循环驱动</p>
+<p>支持Isolates、事件循环和异步编程。 </p>
+<h2 id="异步函数"><a href="#异步函数" class="headerlink" title="异步函数"></a>异步函数</h2><p>将函数声明为异步函数 <code>async</code>，并在该函数中等待 <code>await</code> 这个耗时任务返回即可。Dart的事件循环将负责其余的事情</p>
+<p>声明异步函数的方式需要注意，是将  <code>async</code> 放在 函数体{} 前面</p>
+<p>示例：<strong>异步加载数据并将其显示在ListView中</strong></p>
+<pre><code>import &apos;package:flutter/material.dart&apos;;
+import &apos;dart:convert&apos;;
+import &apos;package:http/http.dart&apos; as http;
+
+  List widgets = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+
+  getBodyChild() {
+    return new ListView.builder(
+        itemCount: widgets.length,
+        itemBuilder: (BuildContext context, int position) {
+          return getRow(position);
+        });
+  }
+
+  Widget getRow(int i) {
+    return new Padding(
+        padding: new EdgeInsets.all(10.0),
+        child: new Text(&quot;Row ${widgets[i][&quot;title&quot;]}&quot;)
+    );
+  }
+
+  loadData() async {
+    String dataURL = &quot;https://jsonplaceholder.typicode.com/posts&quot;;
+    http.Response response = await http.get(dataURL);
+    setState(() {
+      widgets = JSON.decode(response.body);
+    });
+  }
+</code></pre><h2 id="Isolates"><a href="#Isolates" class="headerlink" title="Isolates"></a>Isolates</h2><p>isolates    英[‘aɪsəleɪts]    使隔离;使分离;</p>
+<p>有时您可能需要处理大量数据，导致UI可能会挂起。</p>
+<p>在这种情况下，通过使用Isolates，可以利用多个CPU内核来执行耗时或计算密集型任务。</p>
+<p>Isolates是一个独立的执行线程，它运行时不会与主线程共享任何内存。这意味着你不能从该线程访问变量或通过调用setState来更新你的UI。</p>
+<p>示例：<strong>Isolate与主线程通信和共享数据以更新UI</strong></p>
+<pre><code>import &apos;package:flutter/material.dart&apos;;
+import &apos;dart:convert&apos;;
+import &apos;package:http/http.dart&apos; as http;
+import &apos;dart:async&apos;;
+import &apos;dart:isolate&apos;;
+
+  getBodyChild() {
+    if (widgets.length == 0) {
+      return new Center(child: new CircularProgressIndicator());//LoadingDialog
+    } else {
+      return new ListView.builder(
+          itemCount: widgets.length,
+          itemBuilder: (BuildContext context, int position) {
+            return getRow(position);
+          });
+    }
+  }
+
+  Widget getRow(int i) {
+    return new Padding(
+        padding: new EdgeInsets.all(10.0),
+        child: new Text(&quot;Row ${widgets[i][&quot;title&quot;]}&quot;)
+    );
+  }
+
+  loadData() async {
+    ReceivePort receivePort = new ReceivePort();
+    await Isolate.spawn(dataLoader, receivePort.sendPort);
+
+    // The &apos;echo&apos; isolate sends it&apos;s SendPort as the first message
+    SendPort sendPort = await receivePort.first;
+
+    List msg = await sendReceive(sendPort, &quot;https://jsonplaceholder.typicode.com/posts&quot;);
+
+    setState(() {
+      widgets = msg;
+    });
+  }
+
+// the entry point for the isolate
+  static dataLoader(SendPort sendPort) async {
+    // Open the ReceivePort for incoming messages.
+    ReceivePort port = new ReceivePort();
+
+    // Notify any other isolates what port this isolate listens to.
+    sendPort.send(port.sendPort);
+
+    await for (var msg in port) {
+      String data = msg[0];
+      SendPort replyTo = msg[1];
+
+      String dataURL = data;
+      http.Response response = await http.get(dataURL);
+      // Lots of JSON to parse
+      replyTo.send(JSON.decode(response.body));
+    }
+  }
+
+  Future sendReceive(SendPort port, msg) {
+    ReceivePort response = new ReceivePort();
+    port.send([msg, response.sendPort]);
+    return response.first;
+  }
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/03/Flutter/Flutter布局/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/03/Flutter/Flutter布局/" itemprop="url">Flutter布局</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-03T17:00:29+08:00">
+                2018-07-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://docs.flutter.kim/" target="_blank" rel="noopener">Flutter中文文档</a> </p>
+<h1 id="Row-和-Column"><a href="#Row-和-Column" class="headerlink" title="Row 和 Column"></a>Row 和 Column</h1><p>行。水平方向上排列子widget</p>
+<p>列。垂直方向上排列子widget</p>
+<h2 id="对齐"><a href="#对齐" class="headerlink" title="对齐"></a>对齐</h2><h3 id="对齐方向"><a href="#对齐方向" class="headerlink" title="对齐方向"></a>对齐方向</h3><ul>
+<li>mainAxisAlignment <strong>主轴</strong></li>
+<li>crossAxisAlignment <strong>垂直轴</strong></li>
+</ul>
+<p>对于行，主轴水平，垂直轴垂直。对于列，主轴垂直，垂直轴水平。</p>
+<h3 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h3><ul>
+<li>start</li>
+<li>end</li>
+<li>center</li>
+<li>spaceBetween  剩余空间均匀的分布在children<strong>之间</strong></li>
+<li>spaceAround 剩余空间均匀的分布在children<strong>周围</strong>(两边)</li>
+<li>spaceEvenly  剩余空间均匀的分布在children<strong>之间和周围</strong></li>
+</ul>
+<img src="/2018/07/03/Flutter/Flutter布局/space.png">
+<pre><code>body: new Row(
+  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  children: [
+    new Image.asset(
+      &apos;images/lake.jpg&apos;,
+      width: 100.0,
+      height: 100.0,
+      fit: BoxFit.cover,
+    ),
+    new Image.asset(
+      &apos;images/lake.jpg&apos;,
+      width: 100.0,
+      height: 100.0,
+      fit: BoxFit.cover,
+    ), new Image.asset(
+      &apos;images/lake.jpg&apos;,
+      width: 100.0,
+      height: 100.0,
+      fit: BoxFit.cover,
+    ),
+  ])),
+</code></pre><h1 id="Expanded"><a href="#Expanded" class="headerlink" title="Expanded"></a>Expanded</h1><p>只可用于Row、Column、Flex内，会被Expanded撑开，充满主轴可用空间</p>
+<p>如果多个子组件展开，可用空间会被其伸缩因子(可理解为比例,每个控件默认为1) <code>flex</code> 分割</p>
+<p>Row、Column、Flex到Expanded的路径必须只包括StatelessWidgets或StatefulWidgets组件</p>
+<pre><code>body: new Row(
+  children: [
+    new Image.asset(&apos;images/lake.jpg&apos;),
+    new Image.asset(&apos;images/lake.jpg&apos;),
+    new Image.asset(&apos;images/lake.jpg&apos;),
+  ])),
+</code></pre><p>当布局太大而不适合设备时，沿着受影响的边缘会出现黄黑条纹。例如，示例中的行对于设备的屏幕来说太宽了</p>
+<img src="/2018/07/03/Flutter/Flutter布局/out-width.png">
+<pre><code>body: new Row(children: [
+    new Expanded(
+      child: new Image.asset(&apos;images/lake.jpg&apos;),
+    ),
+    new Expanded(
+      child: new Image.asset(&apos;images/lake.jpg&apos;),
+    ),
+    new Expanded(
+      child: new Image.asset(&apos;images/lake.jpg&apos;),
+    ),
+  ])),
+</code></pre><img src="/2018/07/03/Flutter/Flutter布局/Expanded.png">
+<h1 id="Container"><a href="#Container" class="headerlink" title="Container"></a>Container</h1><p>绘制、定位、调整大小</p>
+<ul>
+<li>constraints : Additional constraints to apply to the child。 类型是 BoxConstraints</li>
+<li>decoration ： The decoration to paint behind the child。类型是Decoration</li>
+<li>foregroundDecoration ： The decoration to paint in front of the child</li>
+<li>transform ：The transformation matrix to apply before painting the container. 类型是 Matrix4</li>
+</ul>
+<p>示例</p>
+<pre><code>body: new Container(
+  constraints: new BoxConstraints.expand(
+    height:
+        Theme.of(context).textTheme.display1.fontSize * 1.1 + 200.0,
+  ),
+  padding: const EdgeInsets.all(8.0),
+  color: Colors.teal.shade700,
+  alignment: Alignment.center,
+  child: new Text(&apos;Hello World&apos;,
+      style: Theme
+          .of(context)
+          .textTheme
+          .display1
+          .copyWith(color: Colors.white)),
+  foregroundDecoration: new BoxDecoration(
+    image: new DecorationImage(
+      image: new NetworkImage(
+          &apos;http://img.zcool.cn/community/0142135541fe180000019ae9b8cf86.jpg@1280w_1l_2o_100sh.png&apos;),
+      centerSlice: new Rect.fromLTRB(270.0, 180.0, 1360.0, 730.0),
+    ),
+  ),
+  transform: new Matrix4.rotationZ(0.1),
+))
+</code></pre><h1 id="Scaffold"><a href="#Scaffold" class="headerlink" title="Scaffold"></a>Scaffold</h1><p>属性有：</p>
+<ul>
+<li>appBar 顶部</li>
+<li>body 中间内容</li>
+<li>bottomNavigationBar 底部导航</li>
+<li>persistentFooterButtons 底部按钮</li>
+<li>floatingActionButton 右下角悬浮按钮</li>
+<li>drawer 抽屉。 Swipes in from either left-to-right (TextDirection.ltr) or right-to-left (TextDirection.rtl) </li>
+<li>endDrawer 抽屉</li>
+</ul>
+<h1 id="MaterialApp"><a href="#MaterialApp" class="headerlink" title="MaterialApp"></a>MaterialApp</h1><ul>
+<li>title ： 任务管理窗口(历史堆栈)中所显示的应用名字</li>
+<li>theme ： 主题颜色</li>
+<li>color ： 主要颜色值（primary color），也就是安卓任务管理窗口中所显示的应用颜色</li>
+<li>home ： 默认显示的界面 Widget</li>
+<li>builder ： <ul>
+<li>类型是TransitionBuilder。<ul>
+<li>Widget TransitionBuilder(BuildContext context, Widget child)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>routes ： 多页面路由(跳转)规则。 <ul>
+<li>类型是 Map&lt;String, WidgetBuilder&gt;。<ul>
+<li>Widget WidgetBuilder(BuildContext context)</li>
+</ul>
+</li>
+<li>当使用 Navigator.pushNamed 来路由的时候<ul>
+<li>会在 routes 查找路由名字</li>
+<li>然后使用 对应的 WidgetBuilder 来构造一个带有页面切换动画的 MaterialPageRoute。</li>
+</ul>
+</li>
+<li>只有routes时，必须有Navigator.defaultRouteName(<code>/</code>)的入口。</li>
+<li>有 home，又有Navigator.defaultRouteName(<code>/</code>)的入口，就会出错，home冲突</li>
+<li>查找的路由在 routes 中不存在，则会通过 onGenerateRoute 来查找</li>
+</ul>
+</li>
+<li>initialRoute ：默认显示的路由名字，默认值为 Window.defaultRouteName。</li>
+<li>onGenerateRoute ： 生成路由的回调函数</li>
+<li>onLocaleChanged ： 系统修改语言的回调</li>
+<li>navigatorObservers ： 应用 Navigator 的监听器</li>
+<li>debugShowMaterialGrid ： 是否显示基础布局网格(调试 UI 的工具)</li>
+<li>showPerformanceOverlay ： 显示性能标签</li>
+<li>checkerboardRasterCacheImages 、showSemanticsDebugger、debugShowCheckedModeBanner 调试开关</li>
+</ul>
+<p>示例，注释掉home,使用routes</p>
+<pre><code>routes: &lt;String, WidgetBuilder&gt;{
+    Navigator.defaultRouteName: (context) =&gt; Scaffold(
+        appBar: AppBar(
+          title: Text(&apos;Flutter Title&apos;),
+        ),
+        body: new Container(
+          constraints: new BoxConstraints.expand(
+            height:
+                Theme.of(context).textTheme.display1.fontSize * 1.1 + 200.0,
+          ),
+          padding: const EdgeInsets.all(8.0),
+          color: Colors.teal.shade700,
+          alignment: Alignment.center,
+          child: new Text(&apos;Hello World&apos;,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .display1
+                  .copyWith(color: Colors.white)),
+          foregroundDecoration: new BoxDecoration(
+            image: new DecorationImage(
+              image: new NetworkImage(
+                  &apos;http://img.zcool.cn/community/0142135541fe180000019ae9b8cf86.jpg@1280w_1l_2o_100sh.png&apos;),
+              centerSlice: new Rect.fromLTRB(270.0, 180.0, 1360.0, 730.0),
+            ),
+          ),
+          transform: new Matrix4.rotationZ(0.1),
+        ))
+  },
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/29/Dart/Dart教程/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -352,6 +1285,7 @@ main() {//程序入口
 <li>支持嵌套函数。create functions within functions (nested or local functions)</li>
 <li>下划线前缀表示private to its library。没有作用域关键字<code>public, protected, and private</code></li>
 <li>精确区分<code>表达式和语句块(expression and statement)</code></li>
+<li>The <code>new</code> keyword became optional in Dart 2. </li>
 </ul>
 <h1 id="Variables"><a href="#Variables" class="headerlink" title="Variables"></a>Variables</h1><pre><code>String name = &apos;Bob&apos;;
 var name = &apos;Bob&apos;;//自动推断，String类型。局部变量建议使用此方式
@@ -482,6 +1416,165 @@ void main() {
 
   assert(add2(3) == 5);
   assert(add4(3) == 7);
+}
+</code></pre><h1 id="Classes"><a href="#Classes" class="headerlink" title="Classes"></a>Classes</h1><h2 id="Instance-variables"><a href="#Instance-variables" class="headerlink" title="Instance variables"></a>Instance variables</h2><pre><code>class Point {
+  num x;
+  num y = 0;//创建对象就初始化这个成员变量值，before the constructor and its initializer list execute
+}
+
+void main() {
+  var point = Point();
+  point.x = 4; // Use the setter method for x.
+}
+</code></pre><ul>
+<li>所有成员变量 自动/隐式(implicit)生成 getter方法. </li>
+<li>Non-final成员变量 自动/隐式(implicit)生成  setter方法</li>
+</ul>
+<h2 id="Constructors"><a href="#Constructors" class="headerlink" title="Constructors"></a>Constructors</h2><ul>
+<li>和类名同名函数，自动调用父类的默认构造函数(如果没有手动调用父类其他构造函数)</li>
+<li>默认构造函数(unnamed, no-argument)。如果没有声明构造函数，会自动生成一个无参构造函数</li>
+<li>构造函数不会自动继承。可以手动复写</li>
+<li>初始化顺序<ul>
+<li>initializer list。用来初始化final成员变量很方便(handy)</li>
+<li>superclass’s no-arg constructor</li>
+<li>main class’s no-arg constructor</li>
+<li>构造函数body</li>
+</ul>
+</li>
+<li>先于自身构造函数执行的代码无法访问成员变量/成员方法/this。比如上面的：initializer list的赋值，传递给父类构造函数参数的值</li>
+</ul>
+<p>示例</p>
+<pre><code>class Point {
+  num x, y;
+
+  Point(num x, num y) {
+    this.x = x;//变量名冲突，所以加this.
+    this.y = y;
+  }
+}
+
+class Point {
+  num x, y;
+
+  Point(this.x, this.y);// Syntactic sugar for setting x and y, before the constructor body runs.
+}
+</code></pre><h3 id="Named-constructors"><a href="#Named-constructors" class="headerlink" title="Named constructors"></a>Named constructors</h3><pre><code>class Point {
+  num x, y;
+
+  Point(this.x, this.y);
+
+  // Named constructor
+  Point.origin() {
+    x = 0;
+    y = 0;
+  }
+}
+</code></pre><h3 id="Invoking-constructors"><a href="#Invoking-constructors" class="headerlink" title="Invoking constructors"></a>Invoking constructors</h3><h4 id="Invoking-a-non-default-superclass-constructor"><a href="#Invoking-a-non-default-superclass-constructor" class="headerlink" title="Invoking a non-default superclass constructor"></a>Invoking a non-default superclass constructor</h4><pre><code>构造函数：父类构造函数{
+}
+</code></pre><p>示例</p>
+<pre><code>class Person {
+  String firstName;
+
+  Person.fromJson(Map data) {
+    print(&apos;in Person&apos;);
+  }
+}
+
+class Employee extends Person {
+  Employee.fromJson(Map data) : super.fromJson(data) {
+    print(&apos;in Employee&apos;);
+  }
+}
+
+main() {
+  var emp = new Employee.fromJson({});
+}
+
+输出
+    in Person
+    in Employee
+</code></pre><p>示例2</p>
+<pre><code>class Employee extends Person {
+  Employee() : super.fromJson(getDefaultData());
+  // ···
+}
+</code></pre><h4 id="Redirecting-constructors"><a href="#Redirecting-constructors" class="headerlink" title="Redirecting constructors"></a>Redirecting constructors</h4><pre><code>class Point {
+  num x, y;
+
+  Point(this.x, this.y); // The main constructor for this class.
+
+  Point.alongXAxis(num x) : this(x, 0); // Delegates to the main constructor.
+}
+</code></pre><h3 id="Initializer-list"><a href="#Initializer-list" class="headerlink" title="Initializer list"></a>Initializer list</h3><pre><code>构造函数:Initializer1,Initializer2{
+}
+</code></pre><p>示例</p>
+<pre><code>Point.fromJson(Map&lt;String, num&gt; json)
+    : x = json[&apos;x&apos;],
+      y = json[&apos;y&apos;] {
+  print(&apos;In Point.fromJson(): ($x, $y)&apos;);
+}
+</code></pre><p>示例2：初始化final成员变量，很方便</p>
+<pre><code>import &apos;dart:math&apos;;
+
+class Point {
+  final num x;
+  final num y;
+  final num distanceFromOrigin;
+
+  Point(x, y)
+      : x = x,
+        y = y,
+        distanceFromOrigin = sqrt(x * x + y * y);
+}
+
+main() {
+  var p = new Point(3, 4);
+  print(p.distanceFromOrigin);
+}
+
+输出 5.0
+</code></pre><h3 id="Constant-constructors"><a href="#Constant-constructors" class="headerlink" title="Constant constructors"></a>Constant constructors</h3><p>define a const constructor and make sure that all instance variables are final</p>
+<pre><code>class ImmutablePoint {
+  static final ImmutablePoint origin =
+      const ImmutablePoint(0, 0);
+
+  final num x, y;
+
+  const ImmutablePoint(this.x, this.y);
+}
+</code></pre><h3 id="Factory-constructors"><a href="#Factory-constructors" class="headerlink" title="Factory constructors"></a>Factory constructors</h3><p>factory修饰构造函数，返回一个缓存对象或者子类对象</p>
+<pre><code>class Logger {
+  final String name;
+  bool mute = false;
+
+  // _cache is library-private
+  static final Map&lt;String, Logger&gt; _cache = &lt;String, Logger&gt;{};
+
+  factory Logger(String name) {
+    if (_cache.containsKey(name)) {
+      return _cache[name];
+    } else {
+      final logger = Logger._internal(name);
+      _cache[name] = logger;
+      return logger;
+    }
+  }
+
+  Logger._internal(this.name);
+
+  void log(String msg) {
+    if (!mute) print(msg);
+  }
+}
+</code></pre><h2 id="Using-class-members"><a href="#Using-class-members" class="headerlink" title="Using class members"></a>Using class members</h2><pre><code>var p = Point(2, 2);
+
+p.y = 3;// Set the value of the instance variable y.
+
+p?.y = 4;// If p is non-null, set its y value to 4.
+</code></pre><h1 id="mixins复用"><a href="#mixins复用" class="headerlink" title="mixins复用"></a><code>mixins</code>复用</h1><p>mixins是一种方便重用一个类的代码的方法。给类添加新的功能</p>
+<p>使用<code>with</code> 关键字来实现mixins的功能。</p>
+<pre><code>class Musician extends Performer with Musical {
+  // ...
 }
 </code></pre>
           
@@ -1923,320 +3016,6 @@ public static Bitmap mergeBitmap_TB(Bitmap topBitmap, Bitmap bottomBitmap, boole
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/25/Android-Studio-运行-Java代码/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/25/Android-Studio-运行-Java代码/" itemprop="url">Android Studio 运行 Java代码</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-25T11:45:08+08:00">
-                2018-05-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="修改启动方式"><a href="#修改启动方式" class="headerlink" title="修改启动方式"></a>修改启动方式</h1><p>目前有2种方法 :</p>
-<h2 id="右键运行方法"><a href="#右键运行方法" class="headerlink" title="右键运行方法"></a>右键运行方法</h2><p>在Java文件中添加main方法，  鼠标点击到main方法里任意地方，然后点击鼠标右键，选择Run ‘MainActivity main()’或者Debug ‘MainActivity main’就行了</p>
-<h3 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h3><pre><code>Error:Gradle: failed to create directory &apos;D:\AndroidProject\app\build\generated\source\r\debug\com\example\test&apos;.
-</code></pre><p>Android Studio 3.0，在项目的 gradle.properties 中添加 android.enableAapt2=false 即可</p>
-<h2 id="Java-Library"><a href="#Java-Library" class="headerlink" title="Java Library"></a>Java Library</h2><p>new Module – Java Library</p>
-<p>运行处有个下拉小箭头，点击Edit Configuration – Add New Configuration – Application</p>
-<pre><code>Name 名字随便，这里取名Java
-Main class 填要运行的Java类路径
-Use class of Module 选择lib名字
-</code></pre><p>运行处选择运行方式为Java， 然后点击绿色运行按钮就行了</p>
-<h1 id="直接创建JAVA文件"><a href="#直接创建JAVA文件" class="headerlink" title="直接创建JAVA文件"></a>直接创建JAVA文件</h1><p>类文件上右键 ，<code>Run &#39;MainClass.mian()&#39;</code></p>
-<h1 id="使用Gradle编译和运行Java程序"><a href="#使用Gradle编译和运行Java程序" class="headerlink" title="使用Gradle编译和运行Java程序"></a>使用Gradle编译和运行Java程序</h1><p>build.gradle</p>
-<pre><code>apply plugin: &apos;java&apos;  
-apply plugin: &apos;application&apos;  
-
-mainClassName = &apos;com.binwin20.testjava.Main&apos; // main() 的路径
-</code></pre><p>运行java</p>
-<pre><code>gradle -q run  
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/AndroidManifest合并原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/24/AndroidManifest合并原理/" itemprop="url">AndroidManifest合并原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-24T18:44:53+08:00">
-                2018-05-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://mouxuejie.com/blog/2016-02-05/androidmanifest-merge/" target="_blank" rel="noopener">ss</a></p>
-<p><a href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn" target="_blank" rel="noopener">啊啊</a></p>
-<p>APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。</p>
-<p>清单合并工具通过遵循某些<strong>合并冲突启发式算法</strong>，和 <strong>合并首选项</strong>(通过特殊 XML 属性定义)，来合并各个文件中的所有 XML 元素 。</p>
-<h1 id="合并优先级"><a href="#合并优先级" class="headerlink" title="合并优先级"></a>合并优先级</h1><p><strong>从优先级最低的文件合并至优先级最高的文件</strong></p>
-<img src="/2018/05/24/AndroidManifest合并原理/manifest-merger_priority.png">
-<h2 id="库清单文件"><a href="#库清单文件" class="headerlink" title="库清单文件"></a>库清单文件</h2><p>多个库，则其清单优先级与依赖顺序（库出现在 Gradle dependencies 块中的顺序，由高到低）匹配</p>
-<h2 id="构建变体"><a href="#构建变体" class="headerlink" title="构建变体"></a>构建变体</h2><p>变体有多个源集，则其清单优先级如下(由高到低)：</p>
-<ul>
-<li>构建变体清单（如 src/demoDebug/）</li>
-<li>构建类型清单（如 src/debug/）</li>
-<li>产品定制清单（如 src/demo/）</li>
-</ul>
-<p>如果使用的是定制维度，清单优先级将与每个维度在 flavorDimensions 属性中的列示顺序(由高到低)对应。</p>
-<h1 id="合并冲突启发式算法"><a href="#合并冲突启发式算法" class="headerlink" title="合并冲突启发式算法"></a>合并冲突启发式算法</h1><h2 id="默认合并规则"><a href="#默认合并规则" class="headerlink" title="默认合并规则"></a>默认合并规则</h2><img src="/2018/05/24/AndroidManifest合并原理/merge.png">
-<h3 id="编码原则：不依赖于默认属性值"><a href="#编码原则：不依赖于默认属性值" class="headerlink" title="编码原则：不依赖于默认属性值"></a>编码原则：不依赖于默认属性值</h3><p>高优先级清单实际上依赖于属性的默认值而不需要声明，则可能会导致意外结果。</p>
-<p>例如，高优先级清单不声明android:launchMode 属性，则会使用 “standard” 的默认值；但如果低优先级清单声明此属性具有其他值，该值将应用于合并清单（替代默认值）。因此，您应该按期望明确定义每个属性。（每个属性的默认值都会记录在 <a href="https://developer.android.com/guide/topics/manifest/manifest-intro?hl=zh-cn" target="_blank" rel="noopener">Manifest reference</a> 中）。</p>
-<h2 id="合并工具为减少合并冲突的特殊规则"><a href="#合并工具为减少合并冲突的特殊规则" class="headerlink" title="合并工具为减少合并冲突的特殊规则"></a>合并工具为减少合并冲突的特殊规则</h2><ul>
-<li><code>&lt;manifest&gt;</code>元素的属性绝不合并—仅使用优先级最高的清单中的属性。</li>
-<li><code>&lt;uses-feature&gt;</code>元素 <code>&lt;uses-library&gt;</code>元素<code>android:required</code>属性 使用 <strong>OR</strong> 合并，因此如果出现冲突，系统将应用 “true” 并始终包括某个清单所需的功能或库。</li>
-<li><code>&lt;uses-sdk&gt;</code>元素始终使用较高优先级的清单中的值，但以下情况有些特殊：<ul>
-<li>minSdkVersion，低优先级清单的值 较高<ul>
-<li>默认，使用 低优先级清单的值</li>
-<li>应用 overrideLibrary 合并规则，使用 较高优先级的清单中的值</li>
-</ul>
-</li>
-<li>targetSdkVersion，低优先级清单的值 较低<ul>
-<li>合并工具将使用高优先级清单中的值</li>
-<li>但也会添加任何必要的系统权限，以确保所导入的库继续正常工作<ul>
-<li>适用于 较高的 Android 版本需要更多权限限制的情况。 如需了解有关此行为的详细信息，请参阅有关隐式系统权限的部分。</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><code>&lt;intent-filter&gt;</code>元素。 每个元素都被视为唯一元素，直接添加至合并清单中的常用父元素。</li>
-</ul>
-<h1 id="合并规则标记"><a href="#合并规则标记" class="headerlink" title="合并规则标记"></a>合并规则标记</h1><ul>
-<li>是什么：是一个 XML 属性</li>
-<li>作用：标记如何解决合并冲突和属性的首选项</li>
-<li>作用域：整个元素或元素的特定属性</li>
-<li>合并工具会在高优先级清单文件中寻找这些标记</li>
-<li>所有标记均属于 Android <code>tools</code> 命名空间，必须先在 <code>&lt;manifest&gt;</code>元素中声明此命名空间</li>
-</ul>
-<h2 id="元素-节点标记"><a href="#元素-节点标记" class="headerlink" title="元素/节点标记"></a>元素/节点标记</h2><p><strong>tools:node=”xx”</strong></p>
-<ul>
-<li><strong>merge</strong> <ul>
-<li>元素的默认行为</li>
-<li>合并所有属性以及所有嵌套元素。 例如：<code>&lt;activity&gt;</code> 嵌套 <code>&lt;intent-filter&gt;</code></li>
-</ul>
-</li>
-<li><strong>merge-only-attributes</strong><ul>
-<li>仅合并属性，不合并嵌套元素</li>
-</ul>
-</li>
-<li><strong>remove</strong></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2291,7 +3070,7 @@ mainClassName = &apos;com.binwin20.testjava.Main&apos; // main() 的路径
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">39</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2304,7 +3083,7 @@ mainClassName = &apos;com.binwin20.testjava.Main&apos; // main() 的路径
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-count">26</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

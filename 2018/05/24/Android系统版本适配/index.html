@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="FileProvider替代file://Uri不再允许在app中把file://Uri暴露给其他app，包括但不局限于通过Intent或ClipData 等方法 提供了FileProvider，使用它生成content://Uri来替代file://Uri。 原因使用file://Uri会有一些风险，比如：  文件是私有的，接收file://Uri的app无法访问该文件。 Android6.0引">
+<meta name="description" content="FileProvider替代file://Uri不再允许在app中把file://Uri暴露给其他app，包括但不局限于通过Intent或ClipData 等方法 Android7 提供了FileProvider，使用它生成content://Uri来替代file://Uri。 原因使用file://Uri会有一些风险，比如：  文件是私有的，接收file://Uri的app无法访问该文件。 An">
 <meta name="keywords" content="适配">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Android 7 适配">
-<meta property="og:url" content="http://yoursite.com/2018/05/24/Android-7-适配/index.html">
+<meta property="og:title" content="Android系统版本适配">
+<meta property="og:url" content="http://yoursite.com/2018/05/24/Android系统版本适配/index.html">
 <meta property="og:site_name" content="风">
-<meta property="og:description" content="FileProvider替代file://Uri不再允许在app中把file://Uri暴露给其他app，包括但不局限于通过Intent或ClipData 等方法 提供了FileProvider，使用它生成content://Uri来替代file://Uri。 原因使用file://Uri会有一些风险，比如：  文件是私有的，接收file://Uri的app无法访问该文件。 Android6.0引">
+<meta property="og:description" content="FileProvider替代file://Uri不再允许在app中把file://Uri暴露给其他app，包括但不局限于通过Intent或ClipData 等方法 Android7 提供了FileProvider，使用它生成content://Uri来替代file://Uri。 原因使用file://Uri会有一些风险，比如：  文件是私有的，接收file://Uri的app无法访问该文件。 An">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-06-07T07:58:08.139Z">
+<meta property="og:updated_time" content="2018-07-06T08:55:26.623Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Android 7 适配">
-<meta name="twitter:description" content="FileProvider替代file://Uri不再允许在app中把file://Uri暴露给其他app，包括但不局限于通过Intent或ClipData 等方法 提供了FileProvider，使用它生成content://Uri来替代file://Uri。 原因使用file://Uri会有一些风险，比如：  文件是私有的，接收file://Uri的app无法访问该文件。 Android6.0引">
+<meta name="twitter:title" content="Android系统版本适配">
+<meta name="twitter:description" content="FileProvider替代file://Uri不再允许在app中把file://Uri暴露给其他app，包括但不局限于通过Intent或ClipData 等方法 Android7 提供了FileProvider，使用它生成content://Uri来替代file://Uri。 原因使用file://Uri会有一些风险，比如：  文件是私有的，接收file://Uri的app无法访问该文件。 An">
 
 
 
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/05/24/Android-7-适配/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/05/24/Android系统版本适配/"/>
 
 
 
 
 
-  <title>Android 7 适配 | 风</title>
+  <title>Android系统版本适配 | 风</title>
   
 
 
@@ -263,7 +263,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/Android-7-适配/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/Android系统版本适配/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -280,7 +280,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Android 7 适配</h1>
+          <h1 class="post-title" itemprop="name headline">Android系统版本适配</h1>
         
 
         <div class="post-meta">
@@ -331,7 +331,7 @@
 
       
         <h1 id="FileProvider替代file-Uri"><a href="#FileProvider替代file-Uri" class="headerlink" title="FileProvider替代file://Uri"></a>FileProvider替代file://Uri</h1><p>不再允许在app中把file://Uri暴露给其他app，包括但不局限于通过Intent或ClipData 等方法</p>
-<p>提供了FileProvider，使用它生成content://Uri来替代file://Uri。</p>
+<p>Android7 提供了FileProvider，使用它生成content://Uri来替代file://Uri。</p>
 <h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>使用file://Uri会有一些风险，比如：</p>
 <ul>
 <li>文件是私有的，接收file://Uri的app无法访问该文件。</li>
@@ -397,7 +397,95 @@ Uri photoOutputUri = FileProvider.getUriForFile(
 </ul>
 </li>
 </ul>
+<h1 id="AlarmManager"><a href="#AlarmManager" class="headerlink" title="AlarmManager"></a>AlarmManager</h1><h2 id="定时任务的最佳实践"><a href="#定时任务的最佳实践" class="headerlink" title="定时任务的最佳实践"></a>定时任务的最佳实践</h2><ul>
+<li>Handler 依赖于 Handler 所在的线程的，如果线程结束，就起不到定时任务的效果；</li>
+<li>Timer 手机关屏后长时间不使用，CPU 就会进入休眠模式。Timer 无法唤醒 CPU，定时任务就会失败</li>
+<li>AlarmManager 依赖 Android 系统服务，具备唤醒机制</li>
+</ul>
+<p>AlarmManager实质是一个全局的定时器，是Android中常用的一种系统级别的提示服务，在指定时间或周期性发送<code>PendingIntent</code>广播  启动其它组件（包括Activity,Service,BroadcastReceiver）</p>
+<h2 id="版本适配"><a href="#版本适配" class="headerlink" title="版本适配"></a>版本适配</h2><p>查阅 <a href="https://developer.android.google.cn/about/versions/android-4.4" target="_blank" rel="noopener">Android官网中关于 Android 4.4 变更</a>发现Google 为了追求系统省电，<code>set()</code> 或 <code>setRepeating()</code> 创建的闹铃将变得不准确。还要追求精准的闹钟定时任务，要使用 <code>setExact()</code> 方法</p>
+<p><a href="https://developer.android.google.cn/about/versions/marshmallow/android-6.0-changes" target="_blank" rel="noopener">查阅 Android官网中关于 Android 6.0 变更</a> ，发现在 Android 6.0 中引入了低电耗模式和应用待机模式，标准 AlarmManager 闹铃（包括 <code>setExact()</code> 和 <code>setWindow()</code>）推迟到下一维护时段。<br>如果您需要设置在低电耗模式下触发的闹铃，请使用 <code>setAndAllowWhileIdle()</code> 或 <code>setExactAndAllowWhileIdle()</code>。触发闹铃的时间间隔都不能超过 9 分钟</p>
+<pre><code>public static void setAlarmTimer(Context context, long triggerAtMillis,
+                                 String action, int AlarmManagerType, int alarmId, String tutorTeacherName) {
+    Intent myIntent = new Intent();
+    myIntent.putExtra(&quot;tutorTeacherName&quot;, tutorTeacherName);//闹铃广播可以传递数据
+    myIntent.setAction(action);
+    PendingIntent pendingIntent = PendingIntent.getBroadcast(context, alarmId, myIntent, 0);
+    AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
+    if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M) {
+        alarmManager.setExactAndAllowWhileIdle(AlarmManagerType, triggerAtMillis, pendingIntent);
+    } else if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) {
+        alarmManager.setExact(AlarmManagerType, triggerAtMillis, pendingIntent);
+    } else {
+        alarmManager.set(AlarmManagerType, triggerAtMillis, pendingIntent);
+    }
+}
+
+public static void cancelAlarmTimer(Context context, String action) {
+    Intent myIntent = new Intent();
+    myIntent.setAction(action);
+    PendingIntent sender = PendingIntent.getBroadcast(context, 0, myIntent, 0);
+    AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+    alarm.cancel(sender);
+}
+</code></pre><p>广播接收者接收闹铃广播</p>
+<pre><code>public class AlarmReceiver extends BroadcastReceiver {
+    public final static String TIMER_ACTION_REPEATING = &quot;com.shensz.TIMER_ACTION_REPEATING&quot;;// 周期性的闹钟
+    public final static String TIMER_ACTION = &quot;com.shensz.TIMER_ACTION&quot;;// 定时闹钟
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (intent.getAction().equals(TIMER_ACTION_REPEATING)) {
+        } else if (intent.getAction().equals(TIMER_ACTION)) {
+            String tutorTeacherName = intent.getStringExtra(&quot;tutorTeacherName&quot;);
+            if (!TextUtils.isEmpty(tutorTeacherName)) {
+                sendNotification(context, tutorTeacherName);
+            }
+        }
+    }
+
+}
+</code></pre><p>注册广播接收者</p>
+<pre><code>    &lt;receiver android:name=&quot;com.shensz.course.module.main.AlarmReceiver&quot;&gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name=&quot;com.shensz.TIMER_ACTION_REPEATING&quot; /&gt;
+        &lt;action android:name=&quot;com.shensz.TIMER_ACTION&quot; /&gt;
+    &lt;/intent-filter&gt;
+&lt;/receiver&gt;
+</code></pre><h2 id="int-type-和-long-triggerAtMillis"><a href="#int-type-和-long-triggerAtMillis" class="headerlink" title="int type 和 long triggerAtMillis"></a>int type 和 long triggerAtMillis</h2><p>这个需要注意文档的描述。不留神triggerAtMillis没有加上基准时间(根据type而不同)，就会发现广播都是马上触发(因为触发时间已过，所以马上发送广播)</p>
+<p>type：闹钟类型</p>
+<ul>
+<li>ELAPSED_REALTIME：<ul>
+<li>在指定的延时过后，发送广播，但不唤醒设备（闹钟在睡眠状态下不可用）。如果在系统休眠时闹钟触发，它将不会被传递，直到下一次设备唤醒。</li>
+<li>延时是要把系统启动到现在的时间SystemClock.elapsedRealtime()(基准时间)算进去的。</li>
+</ul>
+</li>
+<li>ELAPSED_REALTIME_WAKEUP：<ul>
+<li>同上，唯一区别就是 会唤醒设备</li>
+</ul>
+</li>
+<li>RTC：<ul>
+<li>当系统调用System.currentTimeMillis()方法返回的值等于triggerAtTime时，发送广播，但不唤醒设备。<ul>
+<li>可以设置系统时间触发闹铃广播</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>RTC_WAKEUP：<ul>
+<li>同上，唯一区别就是 会唤醒设备</li>
+</ul>
+</li>
+<li>POWER_OFF_WAKEUP：<ul>
+<li>闹钟在手机关机状态下也能正常进行提示功能，所以是5个状态中用的最多的状态之一</li>
+<li>该状态下闹钟也是用绝对时间，状态值为4；不过本状态好像受SDK版本影响，某些版本并不支持。</li>
+</ul>
+</li>
+</ul>
+<p>示例：</p>
+<pre><code>AlarmManager.RTC，System.currentTimeMillis()+10 * 60 * 1000
+AlarmManager.ELAPSED_REALTIME，SystemClock.elapsedRealtime()+10 * 60 * 1000
+</code></pre>
       
     </div>
     
@@ -427,8 +515,8 @@ Uri photoOutputUri = FileProvider.getUriForFile(
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/xposed原理/" rel="next" title="xposed原理">
-                <i class="fa fa-chevron-left"></i> xposed原理
+              <a href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/Cydia-- Native Dalvik FrameWork/CydiaSubstrate/" rel="next" title="CydiaSubstrate">
+                <i class="fa fa-chevron-left"></i> CydiaSubstrate
               </a>
             
           </div>
@@ -520,7 +608,7 @@ Uri photoOutputUri = FileProvider.getUriForFile(
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">37</span>
+                  <span class="site-state-item-count">39</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -533,7 +621,7 @@ Uri photoOutputUri = FileProvider.getUriForFile(
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-count">26</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -566,7 +654,7 @@ Uri photoOutputUri = FileProvider.getUriForFile(
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#FileProvider替代file-Uri"><span class="nav-number">1.</span> <span class="nav-text">FileProvider替代file://Uri</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#原因"><span class="nav-number">1.1.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FileProvider"><span class="nav-number">1.2.</span> <span class="nav-text">FileProvider</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意"><span class="nav-number">1.3.</span> <span class="nav-text">注意</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常处理"><span class="nav-number">1.4.</span> <span class="nav-text">异常处理</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#FileProvider替代file-Uri"><span class="nav-number">1.</span> <span class="nav-text">FileProvider替代file://Uri</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#原因"><span class="nav-number">1.1.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FileProvider"><span class="nav-number">1.2.</span> <span class="nav-text">FileProvider</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注意"><span class="nav-number">1.3.</span> <span class="nav-text">注意</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常处理"><span class="nav-number">1.4.</span> <span class="nav-text">异常处理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AlarmManager"><span class="nav-number">2.</span> <span class="nav-text">AlarmManager</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务的最佳实践"><span class="nav-number">2.1.</span> <span class="nav-text">定时任务的最佳实践</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#版本适配"><span class="nav-number">2.2.</span> <span class="nav-text">版本适配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#int-type-和-long-triggerAtMillis"><span class="nav-number">2.3.</span> <span class="nav-text">int type 和 long triggerAtMillis</span></a></li></ol></li></ol></div>
             
 
           </div>
