@@ -128,7 +128,7 @@ Row、Column、Flex到Expanded的路径必须只包括StatelessWidgets或Statefu
 
 属性有：
 
-- appBar 顶部
+- appBar 顶部bar
 - body 中间内容
 - bottomNavigationBar 底部导航
 - persistentFooterButtons 底部按钮

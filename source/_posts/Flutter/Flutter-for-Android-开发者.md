@@ -221,7 +221,7 @@ Intent主要有两种使用场景：在Activity之间切换，以及调用外部
 两个核心概念和类：
 
 - **Route**是应用程序的“屏幕”或“页面”的抽象（可以认为是Activity）
-- **Navigator**是管理Route的Widget。Navigator可以通过push和pop route以实现页面切换
+- **Navigator**是通过堆栈管理Route的Widget。Navigator可以通过push和pop route以实现页面切换
 
 声明页面：
 
@@ -241,11 +241,100 @@ Intent主要有两种使用场景：在Activity之间切换，以及调用外部
 
 	Navigator.of(context).pushNamed('/b');
 
+通过Navigator切换到MaterialPageRoute实例页面
+
+	Navigator.push(context, new MaterialPageRoute<void>(
+	  builder: (BuildContext context) {//通过build创建widget展示到屏幕，从而绑定context实现push和pop
+	    return new Scaffold(
+	      appBar: new AppBar(title: new Text('My Page')),
+	      body: new Center(
+	        child: new FlatButton(
+	          child: new Text('POP'),
+	          onPressed: () {
+	            Navigator.pop(context);//退出页面
+	          },
+	        ),
+	      ),
+	    );
+	  },
+	));
+
 ## 处理Android传入的Intent ##
+
+**Flutter通过自定义MethodChannel和原生交互**
 
 示例：**其他应用程序共享文本到Flutter应用程序**
 
 基本流程：首先处理Android端的共享文本数据，然后等待Flutter请求数据，然后通过MethodChannel发送
+
+manifest中为MainActivity添加 intent-filter
+	
+	<intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="text/plain" />
+    </intent-filter>
+
+MainActivity中 注册MethodChannel
+
+	public class MainActivity extends FlutterActivity {//继承FlutterActivity
+	  String sharedText;
+	  @Override
+	  protected void onCreate(Bundle savedInstanceState) {
+	    super.onCreate(savedInstanceState);
+	    GeneratedPluginRegistrant.registerWith(this);//生成Flutter工程默认实现
+
+	    Intent intent = getIntent();
+	    String action = intent.getAction();
+	    String type = intent.getType();
+	
+	    if (Intent.ACTION_SEND.equals(action) && type != null) {
+	      if ("text/plain".equals(type)) {
+	        sharedText = intent.getStringExtra(Intent.EXTRA_TEXT); // Handle text being sent
+	      }
+	    }
+	
+	    new MethodChannel(getFlutterView(), "app.channel.shared.data").setMethodCallHandler(new MethodChannel.MethodCallHandler() {
+	      @Override
+	      public void onMethodCall(MethodCall methodCall, MethodChannel.Result result) {
+	        if (methodCall.method.contentEquals("getSharedText")) {
+	          result.success(sharedText);
+	          sharedText = null;
+	        }
+	      }
+	    });
+	  }
+	
+	}
+
+Flutter中 使用MethodChannel
+
+	import 'package:flutter/material.dart';
+	import 'package:flutter/services.dart';
+	
+	  static const platform = const MethodChannel('app.channel.shared.data');
+	  String dataShared = "No data";
+	
+	  @override
+	  void initState() {
+	    super.initState();
+	    getSharedText();
+	  }
+	
+	  getBodyChild() {
+	    return new Text(dataShared);
+	  }
+	
+	  getSharedText() async {
+	    var sharedData = await platform.invokeMethod("getSharedText");
+	    if (sharedData != null) {
+	      setState(() {
+	        dataShared = sharedData;
+	      });
+	    }
+	  }
+
+在系统浏览器中选中一段文本，右键分享，选择APP，发现APP内容刷新为分享的文本
 
 ## Flutter实现startActivityForResult ##
 
@@ -255,6 +344,18 @@ Navigator.push()返回结果就是新route页面pop的数据
 
 	Map coordinates = await Navigator.of(context).pushNamed('/location');
 	Navigator.of(context).pop({"lat":43.821757,"long":-79.226392});//位置路由中，用户选择位置，将结果”pop”出栈
+
+## PopupRoute ##
+
+半透明模态页面(阻断下面的页面获取焦点)，直接覆盖在当前route上面
+
+创建和显示PopupRoute的函数有：`showDialog`, `showMenu`, `showModalBottomSheet`
+
+PopupRoute类Widget有：`PopupMenuButton`, `DropdownButton`。原理是创建 PopupRoute的内部子类，通过Navigator来显示隐藏
+
+## Custom routes ##
+
+`PageRouteBuilder`自定义页面，包括页面动画，样式，行为等
 
 # Activity 和 Fragment #
 
@@ -571,7 +672,7 @@ isolates	英['aɪsəleɪts]	使隔离;使分离;
 
 Isolates是一个独立的执行线程，它运行时不会与主线程共享任何内存。这意味着你不能从该线程访问变量或通过调用setState来更新你的UI。
 
-示例：**Isolate与主线程通信和共享数据以更新UI**
+示例：**Isolate与主线程通信和共享数据以更新UI(带进度指示器)**
 
 	import 'package:flutter/material.dart';
 	import 'dart:convert';
@@ -636,3 +737,79 @@ Isolates是一个独立的执行线程，它运行时不会与主线程共享任
 	    port.send([msg, response.sendPort]);
 	    return response.first;
 	  }
+
+# Flutter packages #
+
+## 使用 packages ##
+
+
+[GPS插件](https://pub.dartlang.org/packages/location)
+
+[相机插件](https://pub.dartlang.org/packages/image_picker)
+
+Packages会被发布到了 [Pub](https://pub.dartlang.org/) 包仓库.
+
+### 使用步骤 ###
+
+- 添加包依赖
+	- `pubspec.yaml`文件`dependencies`下添加
+- 安装包依赖
+	- terminal中: 运行 flutter packages get
+	- 或者IntelliJ中: 点击pubspec.yaml文件顶部的’Packages Get’
+- 导入包依赖
+	- 在Dart代码中添加相应的import语句.
+
+### 管理包依赖和版本 ###
+
+#### Package versions ####
+
+	dependencies:
+	  css_colors: //被解释为 css_colors: any可以使用任何版本的包。为了稳定性，建议指定版本范围
+	  url_launcher: '>=0.1.2 <0.2.0'  //指定一个最小和最大的版本号
+	  collection: '^0.1.2' //caret 语法
+
+#### 更新依赖包 ####
+
+添加一个包后首次运行（IntelliJ中的’Packages Get’）flutter packages get，Flutter将找到包的版本保存在 `pubspec.lock`。这确保了团队中的其他开发人员运行flutter packages get后回获取相同版本的包
+
+升级到软件包的新版本，请运行flutter packages upgrade（在IntelliJ中点击Upgrade dependencies）。 这将根据您在pubspec.yaml中指定的版本约束下载所允许的最高可用版本
+
+#### 管理包依赖 ####
+
+- 发布到 **Pub**
+- **路径** 支持相对路径和绝对路径
+
+		dependencies:
+	  	  plugin1:
+	        path: ../plugin1/
+- **Git**
+
+		dependencies:
+		  plugin1:
+		    git:
+		      url: git://github.com/flutter/plugin1.git //包位于Git存储库的根目录中
+			  //还可以通过path指定非根目录包，ref指定commit，branch或tag
+			  path: packages/package1    
+
+## 开发Packages ##
+
+### Package 介绍 ###
+
+创建可轻松共享的模块化代码
+
+#### Package 结构 ####
+
+一个最小的package包括
+
+- 一个 `pubspec.yaml` 文件：声明了package的名称、版本、作者等的元数据文件。
+
+- 一个 `lib` 文件夹：包括包中公开的(public)代码，最少应有一个 `<package-name>.dart` 文件
+
+#### Package 类型 ####
+
+- Dart包：
+	- 可能依赖Flutter框架
+- 插件包：
+	- 包含针对Android（使用Java或Kotlin）和/或针对iOS（使用ObjC或Swift）平台的特定实现。一个具体的例子是`battery`插件包。
+
+### 开发Dart包 ###

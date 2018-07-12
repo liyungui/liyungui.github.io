@@ -13,6 +13,10 @@ tags:
 
 在Java文件中添加main方法，  鼠标点击到main方法里任意地方，然后点击鼠标右键，选择Run 'MainActivity main()'或者Debug 'MainActivity main'就行了
 
+	public static void main(String[] args) {
+   		System.out.println("ok");
+   	}
+
 ### 异常 ###
 
 	Error:Gradle: failed to create directory 'D:\AndroidProject\app\build\generated\source\r\debug\com\example\test'.
