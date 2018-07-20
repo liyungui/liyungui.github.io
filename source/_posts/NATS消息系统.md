@@ -90,11 +90,64 @@ NATS的服务端监听了一个端口，并将此端口暴露在公网。所有�
 
 java客户端是[java-nats](https://github.com/nats-io/java-nats)
 
-## Android ##
+### Android ###
 
 Gradle/Grails
 
 	compile 'io.nats:jnats:1.0'
+
+### 常见问题 ###
+
+#### 重复收到消息 ####
+
+原因是重复subscribe(String subject)
+
+每次subscribe都会生成一个AsyncSubscriptionImpl并添加到队列中接受消息
+
+所以要特别注意动态订阅的主题重复订阅问题
+
+	SubscriptionImpl subscribe(String subject, String queue, MessageHandler cb,
+                               BlockingQueue<Message> ch) {
+        final SubscriptionImpl sub;
+        try {
+            if (cb != null) {
+                sub = new AsyncSubscriptionImpl(this, subject, queue, cb);
+                // If we have an async callback, start up a sub specific Runnable to deliver the messages
+                logger.debug("Starting subscription for subject '{}'", subject);
+                subexec.submit(new Runnable() {
+                    public void run() {
+                        try {
+                            waitForMsgs((AsyncSubscriptionImpl) sub);
+                        } catch (InterruptedException e) {
+                            logger.debug("Interrupted in waitForMsgs");
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                });
+            } 
+
+            // Sets sid and adds to subs map
+            addSubscription(sub);
+			...
+        } finally {
+            mu.unlock();
+        }
+    }
+
+#### 重复收到自己reply to request的消息 ####
+
+如果所有subscribe使用了同一个MessageHandler，就会出现这种情况。因为我们request和publish的主题相同，我们发送reply的publish，自己也会收到，然后又reply自己...反复循环
+
+	if ("help".equals(msg.getSubject())) {
+        NATSManager.getInstance().getNATSService().reply(msg.getSubject(), msg.getReplyTo(), "I can help!".getBytes(), new NATSService.CallBack() {
+            @Override
+            public void onError(Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+
 
 # 异常处理 #
 

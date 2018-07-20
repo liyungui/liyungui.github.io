@@ -1,7 +1,7 @@
 ---
-title: rxjava
+title: RxJava
 date: 2018-04-26 14:12:33
-tags: rxjava
+tags: RxJava
 ---
 
 # RxJava是什么 #
@@ -145,12 +145,83 @@ RxJava 规定，当不会再有新的事件发出时，需要触发 onCompleted(
 
 		Observable observable = Observable.just("Hello", "Hi", "Aloha");
 
+示例代码：try-catch代码块，子线程执行网络耗时操作，如果出现异常将异常抛出到主线程
+
+	Observable
+        .just(true)
+        .map(new Func1<Boolean, Exception>() {
+            @Override
+            public Exception call(Boolean aBoolean) {
+                try {
+                    Log.d("lyg", "call on Thread " + Thread.currentThread().getName());
+                    getConnection().publish(subject, data);
+                    throw new Exception("test");
+                } catch (Exception e) {
+                    return e;
+                }
+            }
+        })
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .doOnNext(new Action1<Exception>() {
+            @Override
+            public void call(Exception e) {
+                Log.d("lyg", " Exception on Thread " + Thread.currentThread().getName());
+                if (e != null) {
+                    callBack.onError(e);
+                }
+            }
+        })
+        .subscribe();
+
+	输出
+		
+		07-20 13:40:32.151 5952-6631/com.zy.course.dev D/lyg: call on Thread RxCachedThreadScheduler-5
+		07-20 13:40:32.389 5952-5952/com.zy.course.dev D/lyg:  Exception on Thread main
+
 ### `from(T[]) / from(Iterable<? extends T>)` ###
 
 - 将传入的数组或 Iterable 拆分成具体对象后，依次发送出来。 
 
 		tring[] words = {"Hello", "Hi", "Aloha"};
 		Observable observable = Observable.from(words);
+
+### 单纯切换线程 ###
+
+一般使用Rxjava都会用create、just、from进行传参操作，但有时候不需要传参只是想切换一下线程而已。
+
+有如下方法： 
+
+#### 使用Observer.create()，在onNext方法中传空值 ####
+
+	Observable
+        .create(new Observable.OnSubscribe<Object>() {
+            @Override
+            public void call(Subscriber<? super Object> subscriber) {
+                subscriber.onNext(null);
+            }
+        })
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<Object>() {
+            @Override
+            public void call(Object o) {
+            }
+        });
+
+#### 使用Observer.empty() ####
+
+返回一个不向Observer发送任何条目而立即调用onCompleted()方法的Observable. 因此该方法不会调用onNext()和onError()
+
+	Observable
+        .empty()
+        .observeOn(AndroidSchedulers.mainThread())
+        .doOnCompleted(new Action0() {
+            @Override
+            public void call() {
+                Log.e("Observer.empty()", "doOnCompleted");
+            }
+        })
+        .subscribe();
 
 ## 订阅 observable.subscribe(observer) ##
 
