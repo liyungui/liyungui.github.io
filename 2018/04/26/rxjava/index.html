@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="rxjava," />
+  <meta name="keywords" content="RxJava," />
 
 
 
@@ -80,9 +80,9 @@
 
 
 <meta name="description" content="RxJava是什么一个词：异步 GitHub主页上的自我介绍是 “a library for composing asynchronous and event-based programs using observable sequences for the Java VM”（一个在 Java VM 上使用可观测的序列来组成异步的、基于事件的程序的库） RxJava 好在哪一个词：逻辑简洁。不是代">
-<meta name="keywords" content="rxjava">
+<meta name="keywords" content="RxJava">
 <meta property="og:type" content="article">
-<meta property="og:title" content="rxjava">
+<meta property="og:title" content="RxJava">
 <meta property="og:url" content="http://yoursite.com/2018/04/26/rxjava/index.html">
 <meta property="og:site_name" content="风">
 <meta property="og:description" content="RxJava是什么一个词：异步 GitHub主页上的自我介绍是 “a library for composing asynchronous and event-based programs using observable sequences for the Java VM”（一个在 Java VM 上使用可观测的序列来组成异步的、基于事件的程序的库） RxJava 好在哪一个词：逻辑简洁。不是代">
@@ -93,9 +93,9 @@
 <meta property="og:image" content="http://yoursite.com/2018/04/26/rxjava/observeOn.jpg">
 <meta property="og:image" content="http://yoursite.com/2018/04/26/rxjava/multi_schedule.jpg">
 <meta property="og:image" content="http://yoursite.com/2018/04/26/rxjava/lift.jpg">
-<meta property="og:updated_time" content="2018-05-15T11:13:25.413Z">
+<meta property="og:updated_time" content="2018-07-20T06:03:45.377Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="rxjava">
+<meta name="twitter:title" content="RxJava">
 <meta name="twitter:description" content="RxJava是什么一个词：异步 GitHub主页上的自我介绍是 “a library for composing asynchronous and event-based programs using observable sequences for the Java VM”（一个在 Java VM 上使用可观测的序列来组成异步的、基于事件的程序的库） RxJava 好在哪一个词：逻辑简洁。不是代">
 <meta name="twitter:image" content="http://yoursite.com/2018/04/26/rxjava/rxjava.jpg">
 
@@ -133,7 +133,7 @@
 
 
 
-  <title>rxjava | 风</title>
+  <title>RxJava | 风</title>
   
 
 
@@ -287,7 +287,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">rxjava</h1>
+          <h1 class="post-title" itemprop="name headline">RxJava</h1>
         
 
         <div class="post-meta">
@@ -410,13 +410,71 @@ public interface Subscription {
 <pre><code>Observable observable = Observable.just(&quot;Hello&quot;, &quot;Hi&quot;, &quot;Aloha&quot;);
 </code></pre></li>
 </ul>
-<h3 id="from-T-from-Iterable-lt-extends-T-gt"><a href="#from-T-from-Iterable-lt-extends-T-gt" class="headerlink" title="from(T[]) / from(Iterable&lt;? extends T&gt;)"></a><code>from(T[]) / from(Iterable&lt;? extends T&gt;)</code></h3><ul>
+<p>示例代码：try-catch代码块，子线程执行网络耗时操作，如果出现异常将异常抛出到主线程</p>
+<pre><code>Observable
+    .just(true)
+    .map(new Func1&lt;Boolean, Exception&gt;() {
+        @Override
+        public Exception call(Boolean aBoolean) {
+            try {
+                Log.d(&quot;lyg&quot;, &quot;call on Thread &quot; + Thread.currentThread().getName());
+                getConnection().publish(subject, data);
+                throw new Exception(&quot;test&quot;);
+            } catch (Exception e) {
+                return e;
+            }
+        }
+    })
+    .subscribeOn(Schedulers.io())
+    .observeOn(AndroidSchedulers.mainThread())
+    .doOnNext(new Action1&lt;Exception&gt;() {
+        @Override
+        public void call(Exception e) {
+            Log.d(&quot;lyg&quot;, &quot; Exception on Thread &quot; + Thread.currentThread().getName());
+            if (e != null) {
+                callBack.onError(e);
+            }
+        }
+    })
+    .subscribe();
+
+输出
+
+    07-20 13:40:32.151 5952-6631/com.zy.course.dev D/lyg: call on Thread RxCachedThreadScheduler-5
+    07-20 13:40:32.389 5952-5952/com.zy.course.dev D/lyg:  Exception on Thread main
+</code></pre><h3 id="from-T-from-Iterable-lt-extends-T-gt"><a href="#from-T-from-Iterable-lt-extends-T-gt" class="headerlink" title="from(T[]) / from(Iterable&lt;? extends T&gt;)"></a><code>from(T[]) / from(Iterable&lt;? extends T&gt;)</code></h3><ul>
 <li><p>将传入的数组或 Iterable 拆分成具体对象后，依次发送出来。 </p>
 <pre><code>tring[] words = {&quot;Hello&quot;, &quot;Hi&quot;, &quot;Aloha&quot;};
 Observable observable = Observable.from(words);
 </code></pre></li>
 </ul>
-<h2 id="订阅-observable-subscribe-observer"><a href="#订阅-observable-subscribe-observer" class="headerlink" title="订阅 observable.subscribe(observer)"></a>订阅 observable.subscribe(observer)</h2><p>subscribe() 这个方法有点怪：它看起来是 <code>observalbe</code> 订阅了 <code>observer / subscriber</code>，看起来就像 『杂志订阅了读者』 一样颠倒了对象关系</p>
+<h3 id="单纯切换线程"><a href="#单纯切换线程" class="headerlink" title="单纯切换线程"></a>单纯切换线程</h3><p>一般使用Rxjava都会用create、just、from进行传参操作，但有时候不需要传参只是想切换一下线程而已。</p>
+<p>有如下方法： </p>
+<h4 id="使用Observer-create-，在onNext方法中传空值"><a href="#使用Observer-create-，在onNext方法中传空值" class="headerlink" title="使用Observer.create()，在onNext方法中传空值"></a>使用Observer.create()，在onNext方法中传空值</h4><pre><code>Observable
+    .create(new Observable.OnSubscribe&lt;Object&gt;() {
+        @Override
+        public void call(Subscriber&lt;? super Object&gt; subscriber) {
+            subscriber.onNext(null);
+        }
+    })
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(new Action1&lt;Object&gt;() {
+        @Override
+        public void call(Object o) {
+        }
+    });
+</code></pre><h4 id="使用Observer-empty"><a href="#使用Observer-empty" class="headerlink" title="使用Observer.empty()"></a>使用Observer.empty()</h4><p>返回一个不向Observer发送任何条目而立即调用onCompleted()方法的Observable. 因此该方法不会调用onNext()和onError()</p>
+<pre><code>Observable
+    .empty()
+    .observeOn(AndroidSchedulers.mainThread())
+    .doOnCompleted(new Action0() {
+        @Override
+        public void call() {
+            Log.e(&quot;Observer.empty()&quot;, &quot;doOnCompleted&quot;);
+        }
+    })
+    .subscribe();
+</code></pre><h2 id="订阅-observable-subscribe-observer"><a href="#订阅-observable-subscribe-observer" class="headerlink" title="订阅 observable.subscribe(observer)"></a>订阅 observable.subscribe(observer)</h2><p>subscribe() 这个方法有点怪：它看起来是 <code>observalbe</code> 订阅了 <code>observer / subscriber</code>，看起来就像 『杂志订阅了读者』 一样颠倒了对象关系</p>
 <p>这是为了 流式 API 的设计</p>
 <pre><code>// 注意：这是 subscribe() 的核心代码，将与性能、兼容性、扩展性有关的代码剔除了。
 public Subscription subscribe(Subscriber subscriber) {
@@ -743,7 +801,7 @@ mSubscription.unsubscribe();//取消轮询
       
         <div class="post-tags">
           
-            <a href="/tags/rxjava/" rel="tag"><i class="fa fa-tag"></i> rxjava</a>
+            <a href="/tags/RxJava/" rel="tag"><i class="fa fa-tag"></i> RxJava</a>
           
         </div>
       
@@ -845,7 +903,7 @@ mSubscription.unsubscribe();//取消轮询
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">39</span>
+                  <span class="site-state-item-count">42</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -858,7 +916,7 @@ mSubscription.unsubscribe();//取消轮询
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">26</span>
+                  <span class="site-state-item-count">27</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -891,7 +949,7 @@ mSubscription.unsubscribe();//取消轮询
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RxJava是什么"><span class="nav-number">1.</span> <span class="nav-text">RxJava是什么</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RxJava-好在哪"><span class="nav-number">2.</span> <span class="nav-text">RxJava 好在哪</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#引入依赖"><span class="nav-number">3.</span> <span class="nav-text">引入依赖</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#原理简析"><span class="nav-number">4.</span> <span class="nav-text">原理简析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#观察者模式–四个基本概念"><span class="nav-number">4.1.</span> <span class="nav-text">观察者模式–四个基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#被观察者-可观察者-Observable"><span class="nav-number">4.1.1.</span> <span class="nav-text">被观察者/可观察者(Observable)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#观察者-Observer"><span class="nav-number">4.1.2.</span> <span class="nav-text">观察者(Observer)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#订阅-Subscribe"><span class="nav-number">4.1.3.</span> <span class="nav-text">订阅(Subscribe)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件"><span class="nav-number">4.1.4.</span> <span class="nav-text">事件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RxJava–扩展的观察者模式"><span class="nav-number">4.2.</span> <span class="nav-text">RxJava–扩展的观察者模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#onCompleted"><span class="nav-number">4.2.1.</span> <span class="nav-text">onCompleted()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#onError"><span class="nav-number">4.2.2.</span> <span class="nav-text">onError()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基本实现API"><span class="nav-number">5.</span> <span class="nav-text">基本实现API</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建-Observer"><span class="nav-number">5.1.</span> <span class="nav-text">创建 Observer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#interface-Observer-lt-T-gt"><span class="nav-number">5.1.1.</span> <span class="nav-text">interface Observer&lt;T&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#abstract-class-Subscriber-lt-T-gt"><span class="nav-number">5.1.2.</span> <span class="nav-text">abstract class Subscriber&lt;T&gt;</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#onStart"><span class="nav-number">5.1.2.1.</span> <span class="nav-text">onStart()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#unsubscribe"><span class="nav-number">5.1.2.2.</span> <span class="nav-text">unsubscribe()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建-Observable"><span class="nav-number">5.2.</span> <span class="nav-text">创建 Observable</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#create"><span class="nav-number">5.2.1.</span> <span class="nav-text">create()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#just-T"><span class="nav-number">5.2.2.</span> <span class="nav-text">just(T...)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#from-T-from-Iterable-lt-extends-T-gt"><span class="nav-number">5.2.3.</span> <span class="nav-text">from(T[]) / from(Iterable&lt;? extends T&gt;)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#订阅-observable-subscribe-observer"><span class="nav-number">5.3.</span> <span class="nav-text">订阅 observable.subscribe(observer)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程控制-Scheduler"><span class="nav-number">5.4.</span> <span class="nav-text">线程控制 Scheduler</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内置Scheduler"><span class="nav-number">5.4.1.</span> <span class="nav-text">内置Scheduler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程控制"><span class="nav-number">5.4.2.</span> <span class="nav-text">线程控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Scheduler原理"><span class="nav-number">5.4.3.</span> <span class="nav-text">Scheduler原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多个-subscribeOn-和-observeOn-混合使用，线程调度"><span class="nav-number">5.4.4.</span> <span class="nav-text">多个 subscribeOn() 和 observeOn() 混合使用，线程调度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#延伸：doOnSubscribe"><span class="nav-number">5.4.5.</span> <span class="nav-text">延伸：doOnSubscribe()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#变换"><span class="nav-number">6.</span> <span class="nav-text">变换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#API"><span class="nav-number">6.1.</span> <span class="nav-text">API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#map"><span class="nav-number">6.1.1.</span> <span class="nav-text">map()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flatMap"><span class="nav-number">6.1.2.</span> <span class="nav-text">flatMap()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#throttleFirst"><span class="nav-number">6.1.3.</span> <span class="nav-text">throttleFirst()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变换的原理：lift"><span class="nav-number">6.2.</span> <span class="nav-text">变换的原理：lift()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#compose-对-Observable-整体的变换"><span class="nav-number">6.3.</span> <span class="nav-text">compose:对 Observable 整体的变换</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Do"><span class="nav-number">7.</span> <span class="nav-text">Do</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#retryWhen"><span class="nav-number">8.</span> <span class="nav-text">retryWhen</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#interval"><span class="nav-number">9.</span> <span class="nav-text">interval</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#RxJava是什么"><span class="nav-number">1.</span> <span class="nav-text">RxJava是什么</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RxJava-好在哪"><span class="nav-number">2.</span> <span class="nav-text">RxJava 好在哪</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#引入依赖"><span class="nav-number">3.</span> <span class="nav-text">引入依赖</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#原理简析"><span class="nav-number">4.</span> <span class="nav-text">原理简析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#观察者模式–四个基本概念"><span class="nav-number">4.1.</span> <span class="nav-text">观察者模式–四个基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#被观察者-可观察者-Observable"><span class="nav-number">4.1.1.</span> <span class="nav-text">被观察者/可观察者(Observable)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#观察者-Observer"><span class="nav-number">4.1.2.</span> <span class="nav-text">观察者(Observer)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#订阅-Subscribe"><span class="nav-number">4.1.3.</span> <span class="nav-text">订阅(Subscribe)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件"><span class="nav-number">4.1.4.</span> <span class="nav-text">事件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RxJava–扩展的观察者模式"><span class="nav-number">4.2.</span> <span class="nav-text">RxJava–扩展的观察者模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#onCompleted"><span class="nav-number">4.2.1.</span> <span class="nav-text">onCompleted()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#onError"><span class="nav-number">4.2.2.</span> <span class="nav-text">onError()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#基本实现API"><span class="nav-number">5.</span> <span class="nav-text">基本实现API</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建-Observer"><span class="nav-number">5.1.</span> <span class="nav-text">创建 Observer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#interface-Observer-lt-T-gt"><span class="nav-number">5.1.1.</span> <span class="nav-text">interface Observer&lt;T&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#abstract-class-Subscriber-lt-T-gt"><span class="nav-number">5.1.2.</span> <span class="nav-text">abstract class Subscriber&lt;T&gt;</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#onStart"><span class="nav-number">5.1.2.1.</span> <span class="nav-text">onStart()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#unsubscribe"><span class="nav-number">5.1.2.2.</span> <span class="nav-text">unsubscribe()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建-Observable"><span class="nav-number">5.2.</span> <span class="nav-text">创建 Observable</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#create"><span class="nav-number">5.2.1.</span> <span class="nav-text">create()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#just-T"><span class="nav-number">5.2.2.</span> <span class="nav-text">just(T...)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#from-T-from-Iterable-lt-extends-T-gt"><span class="nav-number">5.2.3.</span> <span class="nav-text">from(T[]) / from(Iterable&lt;? extends T&gt;)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#单纯切换线程"><span class="nav-number">5.2.4.</span> <span class="nav-text">单纯切换线程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#使用Observer-create-，在onNext方法中传空值"><span class="nav-number">5.2.4.1.</span> <span class="nav-text">使用Observer.create()，在onNext方法中传空值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用Observer-empty"><span class="nav-number">5.2.4.2.</span> <span class="nav-text">使用Observer.empty()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#订阅-observable-subscribe-observer"><span class="nav-number">5.3.</span> <span class="nav-text">订阅 observable.subscribe(observer)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程控制-Scheduler"><span class="nav-number">5.4.</span> <span class="nav-text">线程控制 Scheduler</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内置Scheduler"><span class="nav-number">5.4.1.</span> <span class="nav-text">内置Scheduler</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#线程控制"><span class="nav-number">5.4.2.</span> <span class="nav-text">线程控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Scheduler原理"><span class="nav-number">5.4.3.</span> <span class="nav-text">Scheduler原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多个-subscribeOn-和-observeOn-混合使用，线程调度"><span class="nav-number">5.4.4.</span> <span class="nav-text">多个 subscribeOn() 和 observeOn() 混合使用，线程调度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#延伸：doOnSubscribe"><span class="nav-number">5.4.5.</span> <span class="nav-text">延伸：doOnSubscribe()</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#变换"><span class="nav-number">6.</span> <span class="nav-text">变换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#API"><span class="nav-number">6.1.</span> <span class="nav-text">API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#map"><span class="nav-number">6.1.1.</span> <span class="nav-text">map()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#flatMap"><span class="nav-number">6.1.2.</span> <span class="nav-text">flatMap()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#throttleFirst"><span class="nav-number">6.1.3.</span> <span class="nav-text">throttleFirst()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变换的原理：lift"><span class="nav-number">6.2.</span> <span class="nav-text">变换的原理：lift()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#compose-对-Observable-整体的变换"><span class="nav-number">6.3.</span> <span class="nav-text">compose:对 Observable 整体的变换</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Do"><span class="nav-number">7.</span> <span class="nav-text">Do</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#retryWhen"><span class="nav-number">8.</span> <span class="nav-text">retryWhen</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#interval"><span class="nav-number">9.</span> <span class="nav-text">interval</span></a></li></ol></div>
             
 
           </div>
