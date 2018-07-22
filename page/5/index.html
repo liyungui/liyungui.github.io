@@ -262,6 +262,530 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/07/Android端架构_单Activity的View栈模式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/07/Android端架构_单Activity的View栈模式/" itemprop="url">Android端架构_单Activity模式</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-07T16:53:01+08:00">
+                2018-05-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="架构存在的必要"><a href="#架构存在的必要" class="headerlink" title="架构存在的必要"></a>架构存在的必要</h1><p>本架构带来的好处是：</p>
+<ul>
+<li><strong>单Activity模式，脱离系统限制</strong>：<ul>
+<li>Android界面之间的切换要依赖系统的Activity<ul>
+<li>切换过程和动画不可控制</li>
+<li>一个界面的生命周期也无法掌握（做一个缓存都很困难）</li>
+<li>界面之间的逻辑交互和信息传递麻烦且不清晰。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>分层分责，更符合OOP原则</strong>：<ul>
+<li><strong>可读性</strong>：划分层次，各司其职，清晰明了。</li>
+<li><strong>复用性</strong>：基础设施可以快速复用。</li>
+<li><strong>扩展性</strong>：隔离了业务逻辑和基础设施，能够轻松扩展，拥抱变化<ul>
+<li>纵向分层（Controller&amp;Manager&amp;Service以及Observer&amp;CommandReceiver）</li>
+<li>横向分责（MVC&amp;MVP以及状态机）</li>
+<li>不会有牵一发而动全身的尴尬</li>
+<li>纵向分层，下层对上层屏蔽具体实现逻辑，上层不用关心下层具体实现逻辑。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="架构特性"><a href="#架构特性" class="headerlink" title="架构特性"></a>架构特性</h1><p>高内聚，低耦合</p>
+<ul>
+<li><strong>单Activity的View栈</strong>： <ul>
+<li>框架采用单Activity模式，通过一个Activity的生命周期来维护人机交互。</li>
+<li>通过维护一个View栈来实现界面的切换。 </li>
+<li>自由度高，自己控制切换形式和生命周期</li>
+</ul>
+</li>
+<li><strong>MVC||MVP</strong>： <ul>
+<li>实现数据与展现及业务逻辑分离</li>
+</ul>
+</li>
+<li><strong>状态机</strong>： <ul>
+<li>当前状态只关心与当前状态有关的消息，然后做出适合当前状态操作。 </li>
+<li>场景的分离，状态机让每个特定的场景的业务逻辑内聚，只关心自己的业务</li>
+<li><strong>State 绑定/决定唤起展示 Screen</strong></li>
+</ul>
+</li>
+<li><strong>纵向分层：Controller&amp;Manager&amp;Service</strong>： <ul>
+<li>纵向分层，屏蔽底部实现 <ul>
+<li>Service提供基础的服务，比如存储服务，网络服务等。 </li>
+<li>Manager通过service的服务，完成一个业务模块的具体事务。 </li>
+<li>Controller帮助manager与其他（view） </li>
+</ul>
+</li>
+<li>业务逻辑的纵向分层，每一层只完成该层的任务，逻辑清晰，层次分明，复用性高</li>
+</ul>
+</li>
+<li><strong>Observer&amp;CommandReceiver</strong>： <ul>
+<li>观察模式和命令模式，自上而下的命令，自下而上的汇报。 </li>
+<li>多用于界面展现纵向分层，使每一个控件只专注于展现和完成自己的交互</li>
+</ul>
+</li>
+<li><strong>工厂模式</strong>： <ul>
+<li>利用工厂来统一维护生命周期，按需加载控件。 </li>
+<li>统一管理，可新建一个工厂生产另外一套风格的控件</li>
+</ul>
+</li>
+</ul>
+<h1 id="鸟瞰"><a href="#鸟瞰" class="headerlink" title="鸟瞰"></a>鸟瞰</h1><h2 id="核心类图"><a href="#核心类图" class="headerlink" title="核心类图"></a>核心类图</h2><img src="/2018/05/07/Android端架构_单Activity的View栈模式/framework.png">
+<p>核心类BaseController，以它为中心所控制的各种Manager（UiManager、StateManager、UserManager、PersonManager），Manager也许会靠一些Service（NetService、StorageService、StatisticsService）支撑它。</p>
+<h2 id="Screen是如何添加到屏幕中的"><a href="#Screen是如何添加到屏幕中的" class="headerlink" title="Screen是如何添加到屏幕中的"></a>Screen是如何添加到屏幕中的</h2><pre><code>MainActivity.onCreate() --&gt; MainController.onCreate() --&gt; BaseStateManager.inTurnBackAllAndSetTopState()
+--&gt; BaseState.handleForwardEnter() --&gt; StateMain.forwardEnter() --&gt; StateMain.showScreen()
+--&gt; MainController.receiveCommand() --&gt; MainUiManager.receiveCommand() --&gt; BaseFrameView.pushScreen() 调用 BaseFrameView.this.addView(screen);
+</code></pre><p>MainController</p>
+<pre><code>private void confirmState() {
+    mStateManager.inTurnBackAllAndSetTopState(StateMain.getInstance(), null, null);
+}
+</code></pre><p>BaseStateManager</p>
+<pre><code>public void inTurnBackAllAndSetTopState(S topState, IContainer params, IContainer result) {
+    while (mStackState.size() != 0) {
+        goBack(params, result);
+    }
+
+    setCurrentState(topState, params, result);
+}
+public void setCurrentState(S state, IContainer params, IContainer result) {
+    mStackState.clear();
+    mStackState.push(state);
+    state.handleForwardEnter(mController, this, null, params, result);
+}
+</code></pre><p>BaseState</p>
+<pre><code>void handleForwardEnter(ICommandReceiver commandReceiver, M stateManager, S lastState,
+                        IContainer params, IContainer result) {
+    mCommandReceiver = commandReceiver;
+    mStateManager = stateManager;
+    mLastState = lastState;
+    forwardEnter(commandReceiver, stateManager, lastState, params, result);
+}
+</code></pre><p>StateMain</p>
+<pre><code> protected void forwardEnter(ICommandReceiver commandReceiver, StateManager stateManager, State lastState, IContainer params, IContainer result) {
+    showScreen(ScreenMain.class);
+}
+protected void showScreen(@NonNull Class baseScreen, @Nullable IContainer params, boolean pool) {
+    if (params == null) {
+        params = Cargo.obtain();
+    }
+    params.put(BaseCargoId.Clazz, baseScreen);
+    params.put(BaseCargoId.Pool, pool);
+    if (mCommandReceiver != null) {
+        mCommandReceiver.receiveCommand(BaseCommandId.Command_Common_Show_Screen, params, null);
+    }
+    params.release();
+}
+</code></pre><p>MainController</p>
+<pre><code>@Override
+public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+    boolean isReceive = receiveCommandBeforeScreen(commandId, params, result);
+    if (!isReceive &amp;&amp; mUiManager != null) {
+        isReceive = mUiManager.receiveCommand(commandId, params, result);
+    }
+    return isReceive;
+}
+</code></pre><p>MainUiManager</p>
+<pre><code>public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+    boolean isReceive = false;
+    switch (commandId) {
+        case BaseCommandId.Command_Common_Show_Screen: {
+            if (params != null) {
+                if (params.contains(BaseCargoId.Clazz)) {
+                    Class&lt;Screen&gt; clazz = (Class&lt;Screen&gt;) params.get(BaseCargoId.Clazz);
+                    boolean pool = (boolean) params.get(BaseCargoId.Pool);
+                    Screen screen = mMainViewFactory.getScreen(clazz, pool);
+                    mFrameView.pushScreen(screen);
+                    screen.receiveCommand(commandId, params, result);
+                }
+            }
+            isReceive = true;
+        }
+        break;
+        ...
+    }
+}
+</code></pre><p>BaseUiManager – mFrameView</p>
+<pre><code>public void initUiFrame() {
+    mRootView = createRootView();
+    mActivity.setContentView(mRootView);
+    mFrameView = createFrameView();
+    mRootView.addView(mFrameView);
+}
+</code></pre><p>BaseFrameView</p>
+<pre><code>public void pushScreen(final S screen) {
+    screen.onBeforePush();
+    KeyBoardUtil.hideKeyboard(this);
+
+    S lastScreen = getTopScreen();
+    if (lastScreen != null) {
+        lastScreen.onStop();
+    }
+
+    screen.setVisibility(View.VISIBLE);
+    mScreenStack.push(screen);
+    screen.onStart();
+
+    mHandler.post(new Runnable() {
+        @Override
+        public void run() {
+            BaseFrameView.this.addView(screen);
+            screen.onAfterPush();
+            screen.resetDrag();
+        }
+    });
+
+}
+</code></pre><h2 id="点击一次按键后发生了什么？"><a href="#点击一次按键后发生了什么？" class="headerlink" title="点击一次按键后发生了什么？"></a>点击一次按键后发生了什么？</h2><img src="/2018/05/07/Android端架构_单Activity的View栈模式/sequence.png">
+<p>控件只能向上汇报自己被点击的Message，具体如何操作只能由能够做决定的层来处理这条Message(一般在当前State)，当前State明白意图后告诉Controller去执行具体的逻辑。Controller命令Manager去做具体模块的事务。Manager需要指挥多个Service来完成一次事务的处理，指挥NetService拉去网络数据，拉去成功后然后指挥StorageService将其保存到储存中。完成这些操作后，Controller接到Manager的完成通知会发出一个message，当前state收到消息会去告诉Controller更新相关界面。</p>
+<h3 id="实例：直播间点击弹出金币榜单"><a href="#实例：直播间点击弹出金币榜单" class="headerlink" title="实例：直播间点击弹出金币榜单"></a>实例：直播间点击弹出金币榜单</h3><p>ScreenLiveRoom</p>
+<pre><code>mObserver.handleMessage(MainMessageId.LiveRoom.Get_Ranking_List,cargo,null);
+
+@Override
+public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+    return mContentView.receiveCommand(commandId, params, result);
+}
+
+private class ContentView extends LiveAreaWidget implements SszViewContract, ICommandReceiver {
+    @Override
+    public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+        boolean isReceived = false;
+        switch (commandId) {
+            case MainCommandId.Live.Update_Ranking_List: {
+                if (params != null &amp;&amp; params.contains(MainCargoId.Ranking_List)) {
+                    mLiveRoomRankingListView.updateRankingList(((List&lt;LiveRoomRankingBean&gt;) params.get(MainCargoId.Ranking_List)));
+                }
+                isReceived = true;
+            }
+            break;
+        }
+        return isReceived;
+    }
+}   
+</code></pre><p>BaseUiManager</p>
+<pre><code>@Override
+public boolean handleMessage(int messageId, IContainer params, IContainer result) {
+    return mController.handleMessage(messageId, params, result);
+}
+
+@Override
+public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+    boolean isReceive = false;
+    switch (commandId) {
+        default: {
+            if (mFrameView != null &amp;&amp; mFrameView.getTopScreen() != null) {
+                isReceive = mFrameView.getTopScreen().receiveCommand(commandId, params, result);
+            }
+        }
+        break;
+    }
+    return isReceive;
+}
+</code></pre><p>MainController</p>
+<pre><code>@Override
+public boolean handleMessage(int messageId, IContainer params, IContainer result) {
+    boolean isHandled = handleMessageBeforeState(messageId, params, result);
+    if (!isHandled &amp;&amp; mStateManager.getCurrentState() != null) {
+        if (mStateManager.getCurrentState() != null) {
+            isHandled = mStateManager.getCurrentState().handleMessage(this, mStateManager, messageId, params, result);
+        }
+    }
+    return isHandled;
+}
+
+@Override
+public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+    boolean isReceive = receiveCommandBeforeScreen(commandId, params, result);
+    if (!isReceive &amp;&amp; mUiManager != null) {
+        isReceive = mUiManager.receiveCommand(commandId, params, result);
+    }
+    return isReceive;
+}
+</code></pre><p>StateLiveRoom</p>
+<pre><code>@Override
+public boolean handleMessage(ICommandReceiver commandReceiver, StateManager stateManager, int messageId, IContainer params, IContainer result) {
+    boolean isHandled = false;
+    switch (messageId) {
+        case MainMessageId.LiveRoom.Get_Ranking_List: {
+            if (params != null &amp;&amp; params.contains(MainCargoId.Type)) {
+                getRankingList(((int) params.get(MainCargoId.Type)));
+            }
+            isHandled = true;
+        }
+        break;
+    }
+    return isHandled || super.handleMessage(commandReceiver, stateManager, messageId, params, result);
+}
+
+mCommandReceiver.receiveCommand(MainCommandId.Live.Update_Ranking_List, cargo, null);
+</code></pre><h2 id="Controller-UiManager-State-Screen-如何交互-Message-和-Command"><a href="#Controller-UiManager-State-Screen-如何交互-Message-和-Command" class="headerlink" title="Controller UiManager State Screen 如何交互 Message 和 Command"></a>Controller UiManager State Screen 如何交互 Message 和 Command</h2><p>State – Controller – UiManager – Screen</p>
+<p>public abstract class BaseController implements IObserver, ICommandReceiver {}</p>
+<h3 id="State-获取-ICommandReceiver-Controller"><a href="#State-获取-ICommandReceiver-Controller" class="headerlink" title="State 获取 ICommandReceiver/Controller"></a>State 获取 ICommandReceiver/Controller</h3><p>Controller 中，BaseStateManager 把State设为Top State时，调用State.handleForwardEnter(),把 Controller 转为 ICommandReceiver 传入 State</p>
+<pre><code>state.handleForwardEnter(mController, this, null, params, result);
+
+void handleForwardEnter(ICommandReceiver commandReceiver, M stateManager, S lastState, IContainer params, IContainer result) {
+    mCommandReceiver = commandReceiver;
+}
+</code></pre><h3 id="State-发送-Command-到-Screen"><a href="#State-发送-Command-到-Screen" class="headerlink" title="State 发送 Command 到 Screen"></a>State 发送 Command 到 Screen</h3><p>实例： State 让 Screen 展示到屏幕</p>
+<p>State 进入时handleForwardEnter()，showScreen()，调用 ICommandReceiver 发送 展示Screen 命令</p>
+<pre><code>protected void showScreen(@NonNull Class baseScreen, @Nullable IContainer params, boolean pool) {
+    if (params == null) {
+        params = Cargo.obtain();
+    }
+    params.put(BaseCargoId.Clazz, baseScreen);
+    params.put(BaseCargoId.Pool, pool);
+    if (mCommandReceiver != null) {
+        mCommandReceiver.receiveCommand(BaseCommandId.Command_Common_Show_Screen, params, null);
+    }
+    params.release();
+}
+</code></pre><p>State中的 ICommandReceiver 其实就是 Controller</p>
+<pre><code>@Override
+public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+    boolean isReceive = mUiManager.receiveCommand(commandId, params, result);
+    return isReceive;
+}
+</code></pre><p>Controller 调用 MainUiManager，通过 ViewFactory 创建Screen，把 MainUiManager 转为 IObserver 传入 Screen</p>
+<pre><code>public boolean receiveCommand(int commandId, IContainer params, IContainer result) {
+    boolean isReceive = false;
+    switch (commandId) {
+        case BaseCommandId.Command_Common_Show_Screen: {
+            if (params != null) {
+                if (params.contains(BaseCargoId.Clazz)) {
+                    Class&lt;Screen&gt; clazz = (Class&lt;Screen&gt;) params.get(BaseCargoId.Clazz);
+                    boolean pool = (boolean) params.get(BaseCargoId.Pool);
+                    Screen screen = mMainViewFactory.getScreen(clazz, pool);
+                    mFrameView.pushScreen(screen);
+                    screen.receiveCommand(commandId, params, result); //调用到 screen.receiveCommand()
+                }
+            }
+            isReceive = true;
+        }
+        break;
+        ...
+    }
+}
+</code></pre><h3 id="Screen-获取-IObserver-UiManager"><a href="#Screen-获取-IObserver-UiManager" class="headerlink" title="Screen 获取 IObserver/UiManager"></a>Screen 获取 IObserver/UiManager</h3><p>Controller 调用 MainUiManager，通过 ViewFactory 创建Screen，把 MainUiManager 转为 IObserver 传入 Screen。代码如上</p>
+<p>ViewFactory</p>
+<pre><code>public Screen getScreen(@NonNull Class&lt;T&gt; clazz, boolean pool) {
+    return super.getScreen(clazz, pool);
+}
+</code></pre><p>BaseViewFactory<u extends="" baseuimanager,="" s="" basescreen,="" ss=""> <strong>构造Screen时传入 UiManager</strong></u></p>
+<pre><code>public S getScreen(@NonNull Class&lt;T&gt; clazz, boolean pool) {
+    try {
+        Constructor constructor = clazz.getDeclaredConstructor(new Class[]{Context.class, IObserver.class});
+        constructor.setAccessible(true);
+        S s = (S) constructor.newInstance(new Object[]{
+                mContext, mUiManager
+        });
+        return s;
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+}
+</code></pre><p>BaseScreen</p>
+<pre><code>public BaseScreen(@NonNull Context context, @NonNull IObserver observer) {
+    super(context);
+    if (context instanceof Activity) {
+        mAttachedActivity = (Activity) context;
+    }
+    mObserver = observer;
+}
+</code></pre><h1 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a>最佳实践</h1><h2 id="快速上手"><a href="#快速上手" class="headerlink" title="快速上手"></a>快速上手</h2><h3 id="从Activity开始"><a href="#从Activity开始" class="headerlink" title="从Activity开始:"></a>从Activity开始:</h3><ul>
+<li>1）继承BaseActivity。 </li>
+<li>2）<strong>Controller</strong>：实现BaseActivity的createController()方法，提供一个继承BaseController的Controller。 </li>
+<li>3）<strong>UiManager</strong>：实现BaseController的createUiManager()方法，提供一个继承BaseUiManager的UiManager。 </li>
+<li>4）<strong>Factory</strong>：在UiManager实现自己的ViewFactory、DialogFactory、PopupWindowFactory、</li>
+</ul>
+<h3 id="State一个状态，Screen一张屏幕"><a href="#State一个状态，Screen一张屏幕" class="headerlink" title="State一个状态，Screen一张屏幕:"></a>State一个状态，Screen一张屏幕:</h3><ul>
+<li><p>State </p>
+<ul>
+<li>继承一个状态，通过StateManager将状态加入栈中</li>
+<li>forwardEnter() 进入状态时的回调（可在此时将Screen加到View树中）</li>
+<li>pop() 将状态从栈中移除时回调（可在此时将Screen从View树中移除）</li>
+<li>exit() 进入别的状态，来开始此状态时回调（可在此时停止一些有关于此屏幕的异步操作）</li>
+<li><p>backEnter() 从别的状态中回到当前状态时回调（可在此时刷新数据显示）</p>
+<pre><code>public abstract class State implements IUserEventProcessor {
+        ...
+
+    public boolean handleMessage(ICommandReceiver commandReceiver, StateManager stateManager,int messageId, IContainer params, IContainer result) {
+        return false;
+    }
+        public abstract void pop(ICommandReceiver commandReceiver,State nextState, IContainer params,IContainer result);
+
+        public abstract void exit(ICommandReceiver commandReceiver, State nextState, IContainer params,IContainer result);
+
+        public abstract void forwardEnter(ICommandReceiver commandReceiver, State lastState,IContainer params, IContainer result);
+
+        public abstract void backEnter(ICommandReceiver commandReceiver, State lastState,IContainer params, IContainer result);
+        ...
+}
+</code></pre></li>
+</ul>
+</li>
+<li><p>Screen </p>
+<ul>
+<li>继承Screen，实现各部分控件，在ViewFactory创建后，UiManager将其push到FrameView中，</li>
+<li>MainActionBar 顶部栏</li>
+<li>BottomBar 底部工具栏</li>
+<li><p>ViewGroup 内容        </p>
+<pre><code>public abstract class Screen extends FrameLayout implements MainActionBarListener,BottomBarListener,IObserver,ICommandReceiver {
+    protected abstract MainActionBar createMainActionBar();
+
+    protected abstract BottomBar createBottomBar();
+
+    protected abstract ViewGroup createContent();
+}
+</code></pre></li>
+</ul>
+</li>
+</ul>
+<h3 id="Observer接受汇报，CommandReceiver接受命令"><a href="#Observer接受汇报，CommandReceiver接受命令" class="headerlink" title="Observer接受汇报，CommandReceiver接受命令:"></a>Observer接受汇报，CommandReceiver接受命令:</h3><ul>
+<li><p>Observer </p>
+<ul>
+<li>向上汇报，例如按钮-我被点击了。</li>
+<li><p>消费者模式，一直上报到能够处理这条消息的层为止。</p>
+<pre><code>public interface IObserver {
+        boolean handleMessage(int messageId, IContainer params,IContainer result);
+}
+</code></pre></li>
+</ul>
+</li>
+<li><p>CommandReceiver </p>
+<ul>
+<li>向下命令，例如将此数据显示。</li>
+<li><p>消费者模式，一直向下到能够执行此命令的层为止。</p>
+<pre><code>public interface ICommandReceiver {
+    boolean receiveCommand(int commandId, IContainer params, IContainer result);
+}
+</code></pre></li>
+</ul>
+</li>
+</ul>
+<h3 id="Manager业务相关，Service基础操作"><a href="#Manager业务相关，Service基础操作" class="headerlink" title="Manager业务相关，Service基础操作"></a>Manager业务相关，Service基础操作</h3><ul>
+<li><p>多个Service可为同一个Manager服务。</p>
+</li>
+<li><p>Service例如 NetService（网络请求），StorageService（本地储存），StatisticsService（统计）</p>
+</li>
+<li><p>Manager例如UserManager（登录、注册、找回密码管理）、DetectManager（扫描答题卡管理）、PersonManager（一些登录后用户的个人数据管理）</p>
+</li>
+</ul>
+<h1 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h1><p>让搭建的基础设施变成可积累的资产，让逻辑一目了然，让定位问题变成简单。</p>
+<p>框架对于不可预期的需求总是不完美的，但追求好的架构可以使代码具有高可维护性、高可读性、高扩展性，使我们更加轻松面对需求的变化和演进。</p>
+<p>更多细节，请查阅代码    </p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/07/Android系统架构图-五层框架/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1016,7 +1540,7 @@ mSubscription.unsubscribe();//取消轮询
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">42</span>
+                  <span class="site-state-item-count">43</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1029,7 +1553,7 @@ mSubscription.unsubscribe();//取消轮询
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">27</span>
+                  <span class="site-state-item-count">28</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

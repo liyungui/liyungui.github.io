@@ -262,6 +262,692 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/gdb演示Android-ELF的GOT-Hook/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/gdb演示Android-ELF的GOT-Hook/" itemprop="url">Android Hook原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://laokaddk.blog.51cto.com/368606/1168989/" target="_blank" rel="noopener">gdb演示Android ELF的GOT Hook</a> </p>
+<p>需要Android源码环境编译，GOT时还需要源码库下的Android库的符号信息（包括libmym.so）</p>
+<p>gdb ‘/home/liyunggui/桌面/testhook’</p>
+<p>Reading symbols from /home/liyunggui/桌面/testhook…(no debugging symbols found)…done. 可能是因为编译过程跟博文不同，导致调试信息丢失而找不到</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/Android-Hook原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/Android-Hook原理/" itemprop="url">Android Hook原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.sanwho.com/248.html" target="_blank" rel="noopener">Android inline hook之原理分析篇 </a></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">修改GOT</th>
+<th style="text-align:left">inLine</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">实现难易</td>
+<td style="text-align:left">比较容易，只需知道elf文件中调用外部符号的地址</td>
+<td style="text-align:left">比较难，需要分析函数实现汇编码，保持堆栈平衡</td>
+</tr>
+<tr>
+<td style="text-align:left">使用频率</td>
+<td style="text-align:left">基本都是用此方式</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">功能强弱</td>
+<td style="text-align:left">比较弱，只能hookGOT调用方式（通过java层调用API真实实现代码）</td>
+<td style="text-align:left">很强大，能hookjni调用真实实现API的方式</td>
+</tr>
+<tr>
+<td style="text-align:left">R11</td>
+<td style="text-align:left">fp</td>
+<td style="text-align:left">桢指针</td>
+</tr>
+<tr>
+<td style="text-align:left">R12</td>
+<td style="text-align:left">ip</td>
+<td style="text-align:left">指令指针，内部过程调用寄存器</td>
+</tr>
+<tr>
+<td style="text-align:left">R13</td>
+<td style="text-align:left">sp</td>
+<td style="text-align:left">栈指针</td>
+</tr>
+<tr>
+<td style="text-align:left">R14</td>
+<td style="text-align:left">lr</td>
+<td style="text-align:left">返回地址，连接寄存器</td>
+</tr>
+<tr>
+<td style="text-align:left">R15</td>
+<td style="text-align:left">pc</td>
+<td style="text-align:left">程序计数器</td>
+</tr>
+</tbody>
+</table>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/" itemprop="url">小米系统miui使用xposed框架</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.miui.com/thread-2973594-1-1.html" target="_blank" rel="noopener">解除系统对XPosed框架限制</a>    </p>
+<p>从9月23日开始，XPosed框架被系统限制，许多XP模块童鞋捉急。</p>
+<p>然而，高手在民间，不过几日，先是论坛许多miui优化包都放出XP框架可用，说明已破解，但从他们的包内确实找不出关键点。</p>
+<p>又一日，网友『尛』便爆出解决方法，赶脚试试，果然奏效，在这里再次感谢『尛』。</p>
+<p>发这帖是对 『尛』帖子的诠释，以下操作步骤仅为我的见解，不排除有比我更好的方法，希望能帮助到大家，祝基友国庆刷机愉快！</p>
+<p>先说主要的：</p>
+<ol>
+<li><p>请到官方17日的包内提取两个文件：app_process 和 libandroid_runtime.so</p>
+<pre><code>其位置分别在：system/Bin下 和 system/Lib/下（为什么要17日的包？因为17日的包好找，不是内测的基友也可以下载到哦）
+</code></pre></li>
+<li><p>下载你想刷的官方的最新包。</p>
+</li>
+<li><p>把提取的 app_process 和 libandroid_runtime.so 文件替换到新下载包的同目录下（就是提取时的目录），直接覆盖确认。</p>
+<pre><code>替换文件在PC上操作，不要解压rom包。双击rom包，拖曳文件到相应位置直接覆盖替换，无需改权限什么的。
+</code></pre></li>
+<li><p>刷机–成功！（注意：请使用论坛雯雯的rec2.8.5刷入，使用官方REC可能因签名问题失败)</p>
+<pre><code>推荐使用第三方rec刷包(雯雯2.8.5，论坛置顶，这个REC刷官方rom和ota都能成功，真乃刷机神器！)。
+</code></pre><p>楼主机型 ：2014011    HM1STD    红米1S3G移动版<br>其他机型自测，据我观察论坛大部分机型几乎都可使用。</p>
+</li>
+</ol>
+<p><strong>注意：请不要在手机系统上通过RE管理器直接替换文件，否则100%变砖！</strong></p>
+<p>我note 4g联通增强版就是在万恶的百度贴吧看教程用RE替换，然后变砖的。增强版刷机后资料全丢</p>
+<pre><code>http://en.miui.com/forum.php?mod=viewthread&amp;tid=176904&amp;highlight=Xposed Fix for Xposed restrictions on MIUI 7. KitKat Only (4.4.x)
+</code></pre><p>英国miui论坛提供的一个xposed apk，兼容4.4.x。note 4g联通增强版测试成功</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi-hook原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi-hook原理/" itemprop="url">adbi hook原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://blog.csdn.net/roland_sun/article/details/36049307" target="_blank" rel="noopener">Android平台下hook框架adbi的研究（下） </a></p>
+<h1 id="native函数hook原理"><a href="#native函数hook原理" class="headerlink" title="native函数hook原理"></a>native函数hook原理</h1><p><strong>native函数hook要解决两个问题</strong></p>
+<ol>
+<li>找到这个函数在内存中的位置</li>
+<li>修改函数偷梁换柱。</li>
+</ol>
+<p>读取“/proc/&lt;进程号&gt;/maps”内存映射文件，找到函数库的起始位置和路径。</p>
+<p>mprotect()为该库内存段加上可写（PROT_WRITE）属性</p>
+<p>打开库文件，解析出符号表，从符号表中找到目标函数（其后是偏移地址，加上库起始地址就是内存地址），接下来就是判断Arm与Thumb指令集，hook了。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/" itemprop="url">ddi 原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://blog.csdn.net/roland_sun/article/details/38640297" target="_blank" rel="noopener">Android平台下Dalvik层hook框架ddi的研究</a> </p>
+<p><a href="https://github.com/crmulliner/ddi" target="_blank" rel="noopener">ddi源码</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/Xposed热更新hook目标方法后的行为代码/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -340,203 +1026,6 @@
 <p>读取/sdcard/classes.dex文件，直接导入Hotfix类，调用他的invoke方法</p>
 <img src="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik%20FrameWork/Xposed热更新hook目标方法后的行为代码/DexFile-loadClass.jpg">
 <img src="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik%20FrameWork/Xposed热更新hook目标方法后的行为代码/DexFile-loadClass-2.jpg">
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/Android-dalvik-hook原理与实现/Android-dalvik-hook原理与实现/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/Android-dalvik-hook原理与实现/Android-dalvik-hook原理与实现/" itemprop="url">Android dalvik hook原理与实现</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://bbs.pediy.com/showthread.php?t=187522&amp;highlight=dalvik+hook" target="_blank" rel="noopener">Android dalvik hook的另外一种实现形式</a> </p>
-<p><a href="http://bbs.pediy.com/showthread.php?t=186054" target="_blank" rel="noopener">注入安卓进程,并hook java世界的方法</a> </p>
-<h1 id="替换方法实现–修改Method对象的insns字段"><a href="#替换方法实现–修改Method对象的insns字段" class="headerlink" title="替换方法实现–修改Method对象的insns字段"></a>替换方法实现–修改Method对象的insns字段</h1><p>dalvik中，每一个java方法都有一个对应的Method对象（Method结构体声明在源码目录树下的dalvik/vm/oo/Object.h文件内）</p>
-<p>Method结构体字段insns保存着java方法具体的实现代码。</p>
-<p>下面用代码实现说明</p>
-<pre><code>public class HelloJni extends Activity {
-    static {
-        System.loadLibrary(&quot;hello-jni&quot;);
-    }
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        TextView tv = new TextView(this);
-        tv.setText(truth());
-        setContentView(tv);
-    }
-
-    public String truth() {
-        return &quot;hello from truth&quot;;
-    }
-
-    public String fake() {
-        return &quot;fake string&quot;;
-    }
-
-}
------------------------c code --------------------
-#include &lt;string.h&gt;
-#include &lt;jni.h&gt;
-
-jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-    JNIEnv *env;
-
-    if ((*vm)-&gt;GetEnv(vm, (void**) &amp;env, JNI_VERSION_1_6) != 0) {
-        return -1;
-    }
-    jclass father = (*env)-&gt;FindClass(env, &quot;com/example/hellojni/HelloJni&quot;); //搜索java类
-
-    jmethodID truthMethod = (*env)-&gt;GetMethodID(env, father, &quot;truth&quot;, &quot;()Ljava/lang/String;&quot;); //搜索java方法
-    jmethodID fakeMethod = (*env)-&gt;GetMethodID(env, father, &quot;fake&quot;, &quot;()Ljava/lang/String;&quot;);
-
-    // jmethodID 是一个ClassObject 的指针类型，
-    // ClassObject 对象的偏移地址32位处为insns字段。
-    *(int *) ((int) truthMethod + 32) = *(int *) ((int) fakeMethod + 32);
-
-    int result = JNI_OK;
-    return ((result != JNI_OK) ? result : JNI_VERSION_1_6);
-}
-</code></pre><h1 id="替换方法为native方法–native方法替换java方法"><a href="#替换方法为native方法–native方法替换java方法" class="headerlink" title="替换方法为native方法–native方法替换java方法"></a>替换方法为native方法–native方法替换java方法</h1><p>正常情况下,只能在Java世界通过jni调用native方法,而native不能在没有任何java上的支持下干涉java世界。</p>
-<p>传统的linux进程注入技术在安卓上只能进入目标进程的native世界。</p>
-<p>本教程是要注入别的进程,并hook java世界的java 方法!</p>
-<p>程序大致的流程是这样的：</p>
-<pre><code>so.so注入到目标进程 --&gt; 执行Hook()函数 
-                  --&gt; Hook()加载libTest.so,获取libTest.so定义的Hook信息.接着用ClassMethodHook()hook java世界的方法.
-</code></pre><p>  关键一,从native世界进入java世界。我们只要获得一个JNIEnv就能进入到java世界了。突破点就在android::AndroidRuntime::getJavaVM();这个静态方法能够获取一个JavaVM,JavaVM-&gt;GetEnv方法能够获得一个JNIEnv了。JNIEnv是和线程相关的,使用前一定记得将其附加到当前进程,也要在适当的时候将其销毁。</p>
-<p>  关键二,怎么影响内存里的java代码。替换内存是不现实的,但是可以取巧，在运行时将一个不是native的方法修改成native方法。我们知道java代码里将一个方法声明为native方法时,对此函数的调用就会到native世界里找。</p>
-<h1 id="两种方法的比较"><a href="#两种方法的比较" class="headerlink" title="两种方法的比较"></a>两种方法的比较</h1><table>
-<thead>
-<tr>
-<th style="text-align:left"></th>
-<th style="text-align:left">替换方法实现</th>
-<th style="text-align:left">替换方法为native方法</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">难度</td>
-<td style="text-align:left">容易，只要修改insns字段</td>
-<td style="text-align:left">难，多个字段</td>
-</tr>
-<tr>
-<td style="text-align:left">线程安全</td>
-<td style="text-align:left">安全</td>
-<td style="text-align:left">非安全，修改字段过多</td>
-</tr>
-</tbody>
-</table>
 
           
         
@@ -761,6 +1250,357 @@ MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi注入原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi注入原理/" itemprop="url">adbi 注入原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://blog.csdn.net/roland_sun/article/details/34109569" target="_blank" rel="noopener">Android平台下hook框架adbi的研究（上）</a></p>
+<p><a href="https://github.com/crmulliner/adbi" target="_blank" rel="noopener">adbi源代码</a></p>
+<p>Linux可以利用ptrace()函数来attach到一个进程上，从而可以修改对应该进程的内存内容和寄存器的值</p>
+<p>adbi（The Android Dynamic Binary Instrumentation Toolkit）是一个通用的框架，使得hook变得异常简单。</p>
+<h1 id="进程注入基本实现原理"><a href="#进程注入基本实现原理" class="headerlink" title="进程注入基本实现原理"></a>进程注入基本实现原理</h1><p>利用ptrace()attach到一个进程上，然后在进程调用序列中插入一个调用dlopen()加载so文件（初始化函数中hook指定的函数）的步骤。</p>
+<p>adbi工具集由两个主要模块组成，分别是用于注入.so文件的进程劫持工具（hijack tool）和一个修改函数入口的基础库。</p>
+<p>接下来，我们还是通过阅读代码来分别了解这两个模块的实现原理，本篇我们先将重点放在劫持工具的实现上。</p>
+<p><strong>注入进程需要解决两个问题</strong></p>
+<ol>
+<li>获得目标进程dlopen()函数的调用地址</li>
+<li>插入一个调用dlopen()函数的步骤到目标进程的调用序列中。</li>
+</ol>
+<h2 id="1-获得目标进程dlopen-函数的调用地址"><a href="#1-获得目标进程dlopen-函数的调用地址" class="headerlink" title="1. 获得目标进程dlopen()函数的调用地址"></a>1. 获得目标进程dlopen()函数的调用地址</h2><pre><code>----main()-----------------------------------------------------------------------
+//在当前进程中dlopen()加载libdl.so动态库，接着用dlsym()函数获得当前进程dlopen()函数的调用地址
+//libdl.so动态库肯定早已加载到当前进程中了，这里再加载一次并不会真的再在内存中的另一个位置加载一次，而是返回已经加载过的地址
+void *ldl = dlopen(&quot;libdl.so&quot;, RTLD_LAZY);  
+if (ldl) {  
+    dlopenaddr = dlsym(ldl, &quot;dlopen&quot;);  
+    dlclose(ldl);  
+}  
+
+unsigned long int lkaddr; //本进程linker地址。linker是Android提供的动态链接器，不同于普通的Linux。dlopen()函数就是在linker里面定义的（bionic/linker/dlfcn.cpp中: soinfo libdl_info = {&quot;libdl.so&quot;）  
+unsigned long int lkaddr2; //目标进程linker地址   
+find_linker(getpid(), &amp;lkaddr);  
+find_linker(pid, &amp;lkaddr2);  
+
+dlopenaddr = lkaddr2 + (dlopenaddr - lkaddr); //同一台机器上的进程肯定用的是同一个linker，所以其内部的dlopen()函数和linker头的偏移量是固定的
+
+----find_linker()-----------------------------------------------------------------------
+static int find_linker(pid_t pid, unsigned long *addr) {  
+    struct mm mm[1000];  
+    unsigned long libcaddr;  
+    int nmm;  
+    char libc[256];  
+    symtab_t s;  
+
+    if (0 &gt; load_memmap(pid, mm, &amp;nmm)) {  
+        printf(&quot;cannot read memory map\n&quot;);  
+        return -1;  
+    }  
+    if (0 &gt; find_linker_mem(libc, sizeof(libc), &amp;libcaddr, mm, nmm)) {  
+        printf(&quot;cannot find libc\n&quot;);  
+        return -1;  
+    }  
+
+    *addr = libcaddr;  
+
+    return 1;  
+} 
+
+      ----load_memmap()-----------------------------------------------------------------------
+    static int load_memmap(pid_t pid, struct mm *mm, int *nmmp) {  
+        char raw[80000]; // this depends on the number of libraries an executable uses  
+        char name[MAX_NAME_LEN];  
+        char *p;  
+        unsigned long start, end;  
+        struct mm *m;  
+        int nmm = 0;  
+        int fd, rv;  
+        int i;  
+
+        //打开文件(路径是“/proc/&lt;进程号&gt;/maps”)读出指定进程的内存映射信息，其格式大概如下：
+        sprintf(raw, &quot;/proc/%d/maps&quot;, pid);  
+        fd = open(raw, O_RDONLY);  
+        if (0 &gt; fd) {  
+            printf(&quot;Can&apos;t open %s for reading\n&quot;, raw);  
+            return -1;  
+        }  
+
+        //逐行读取内存映射信息文件的内容
+        memset(raw, 0, sizeof(raw));  /* Zero to ensure data is null terminated */                
+        p = raw;  
+        while (1) {  
+            rv = read(fd, p, sizeof(raw)-(p-raw));  
+            if (0 &gt; rv) {  
+                return -1;  
+            }  
+            if (0 == rv)  
+                break;  
+            p += rv;  
+            if (p-raw &gt;= sizeof(raw)) {  
+                printf(&quot;Too many memory mapping\n&quot;);  
+                return -1;  
+            }  
+        }  
+        close(fd);  
+
+        //逐行解析内存映射信息文件的内容。文件格式如下：
+        40096000-40098000 r-xp 00000000 b3:16 109        /system/bin/app_process  
+        40098000-40099000 r--p 00001000 b3:16 109        /system/bin/app_process  
+        40099000-4009a000 rw-p 00000000 00:00 0   
+        4009a000-400a9000 r-xp 00000000 b3:16 176        /system/bin/linker  
+        400a9000-400aa000 r--p 0000e000 b3:16 176        /system/bin/linker  
+        400aa000-400ab000 rw-p 0000f000 b3:16 176        /system/bin/linker  
+        400ab000-400ae000 rw-p 00000000 00:00 0   
+        400ae000-400b0000 r--p 00000000 00:00 0   
+        400b0000-400b9000 r-xp 00000000 b3:16 855        /system/lib/libcutils.so  
+        be846000-be867000 rw-p 00000000 00:00 0          [stack] 
+        p = strtok(raw, &quot;\n&quot;);  
+        m = mm;  
+        while (p) {  
+            /* parse current map line */  
+            rv = sscanf(p, &quot;%08lx-%08lx %*s %*s %*s %*s %s\n&quot;,  
+                &amp;start, &amp;end, name);  //解析出当前行的 起始地址，结束地址，和名称。
+
+            p = strtok(NULL, &quot;\n&quot;);  //获取下一行
+
+            if (rv == 2) {  //没有解析出名称(只有两个返回值)，就会用一个自定义的名称补上（“[memory]”）
+                m = &amp;mm[nmm++];  
+                m-&gt;start = start;  
+                m-&gt;end = end;  
+                strcpy(m-&gt;name, MEMORY_ONLY);  
+                continue;  
+            }  
+
+            if (strstr(name, &quot;stack&quot;) != 0) {  //名字是“stack”，表明这段内存用于栈
+                stack_start = start;  
+                stack_end = end;  
+            }  
+
+            //将连续的并且名字相同的内存段合并一下.(从前面的格式中可以看出，会有几行都叫一个名字的情况)
+            /* search backward for other mapping with same name */  
+            for (i = nmm-1; i &gt;= 0; i--) {  
+                m = &amp;mm[i];  
+                if (!strcmp(m-&gt;name, name))  
+                    break;  
+            }  
+
+            if (i &gt;= 0) {  
+                if (start &lt; m-&gt;start)  
+                    m-&gt;start = start;  
+                if (end &gt; m-&gt;end)  
+                    m-&gt;end = end;  
+            } else {  
+                /* new entry */  
+                m = &amp;mm[nmm++];  
+                m-&gt;start = start;  
+                m-&gt;end = end;  
+                strcpy(m-&gt;name, name);  
+        }  
+
+        *nmmp = nmm;  
+        return 0;  
+    } 
+
+    ----find_linker_mem()-----------------------------------------------------------------------
+    static int find_linker_mem(char *name, int len, unsigned long *start, struct mm *mm, int nmm) {  
+        int i;  
+        struct mm *m;  
+        char *p;  
+        for (i = 0, m = mm; i &lt; nmm; i++, m++) {  
+            if (!strcmp(m-&gt;name, MEMORY_ONLY))  
+                continue;  
+            p = strrchr(m-&gt;name, &apos;/&apos;);  
+            if (!p)  
+                continue;  
+            p++;  
+            if (strncmp(&quot;linker&quot;, p, 6))  //找出名字以“linker”结尾(/system/bin/linker)的那段内存的起始地址。
+                continue;  
+        break;  
+        }  
+        if (i &gt;= nmm)  
+        /* not found */  
+            return -1;  
+
+        *start = m-&gt;start;  
+        strncpy(name, m-&gt;name, len);  
+        if (strlen(m-&gt;name) &gt;= len)  
+            name[len-1] = &apos;\0&apos;;  
+        return 0;  
+    }  
+</code></pre><h2 id="2-插入一个调用dlopen-函数的步骤到目标进程的调用序列中"><a href="#2-插入一个调用dlopen-函数的步骤到目标进程的调用序列中" class="headerlink" title="2. 插入一个调用dlopen()函数的步骤到目标进程的调用序列中"></a>2. 插入一个调用dlopen()函数的步骤到目标进程的调用序列中</h2><pre><code>// Attach 
+if (0 &gt; ptrace(PTRACE_ATTACH, pid, 0, 0)) {//被Attach的进程将成为当前进程的子进程，并且会暂停执行。
+    printf(&quot;cannot attach to %d, error!\n&quot;, pid);
+    exit(1);
+}
+waitpid(pid, NULL, 0);//等待被Attach的进程暂停运行才返回
+ptrace(PTRACE_GETREGS, pid, 0, &amp;regs); //获得目标进程的所有寄存器的值
+//unsigned int sc[]
+sc[11] = regs.ARM_r0;  
+sc[12] = regs.ARM_r1;  
+sc[13] = regs.ARM_r2;  
+sc[14] = regs.ARM_r3;  
+sc[15] = regs.ARM_lr;  
+sc[16] = regs.ARM_pc;  
+sc[17] = regs.ARM_sp;  
+sc[19] = dlopenaddr;
+// push library name to stack  
+//case &apos;l&apos;: n = strlen(optarg)+1; n = n/4 + (n%4 ? 1 : 0); 
+//命令行-l参数后就是so库完整名称。ptrace()写入目标进程以4字节为单位 
+libaddr = regs.ARM_sp - n*4 - sizeof(sc);  
+sc[18] = libaddr; 
+// write library name to stack  
+if (0 &gt; write_mem(pid, (unsigned long*)arg, n, libaddr)) {  
+    printf(&quot;cannot write library name (%s) to stack, error!\n&quot;, arg);  
+    exit(1);  
+}  
+// write code to stack  
+codeaddr = regs.ARM_sp - sizeof(sc);  
+if (0 &gt; write_mem(pid, (unsigned long*)&amp;sc, sizeof(sc)/sizeof(long), codeaddr)) {  
+    printf(&quot;cannot write code, error!\n&quot;);  
+    exit(1);  
+}
+
+    ----write_mem()-----------------------------------------------------------------------
+    /* Write NLONG 4 byte words from BUF into PID starting at address POS.  Calling process must be attached to PID. */  
+    static int write_mem(pid_t pid, unsigned long *buf, int nlong, unsigned long pos) {  
+        unsigned long *p;  
+        int i;  
+
+        for (p = buf, i = 0; i &lt; nlong; p++, i++)  
+            if (0 &gt; ptrace(PTRACE_POKETEXT, pid, pos+(i*4), *p))  
+                return -1;  
+        return 0;  
+    }
+
+mprotect()给栈内存段设置可执行属性。
+    adbi采用了另一种方法找目标进程mprotect()内存地址。
+    思路是分析ELF文件libc.so来获得其中符号mprotect的值（其实就是mprotect()函数相对于文件头的偏移），再加上libc.so文件在内存中映射的起始地址，就是mprotect()函数真正的调用地址了
+// calc stack pointer  
+regs.ARM_sp = regs.ARM_sp - n*4 - sizeof(sc);  
+
+// call mprotect() to make stack executable  
+regs.ARM_r0 = stack_start; // want to make stack executable  
+regs.ARM_r1 = stack_end - stack_start; // stack size  
+regs.ARM_r2 = PROT_READ|PROT_WRITE|PROT_EXEC; // protections  
+
+regs.ARM_lr = codeaddr; // points to loading and fixing code  
+regs.ARM_pc = mprotectaddr; // execute mprotect()
+
+ptrace(PTRACE_SETREGS, pid, 0, &amp;regs);  
+ptrace(PTRACE_DETACH, pid, 0, SIGCONT); //deAttach,让目标进程恢复运行 
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android开发流程/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -877,549 +1717,6 @@ MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer
 <p><strong>Hotfix</strong>(加速修复问题)</p>
 <p>5.补救问题</p>
 <p>观察问题<strong>是否造成用户流失</strong>，通过短信或推送等方式通知用户已解决问题，并观察数据</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/" itemprop="url">ddi 原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://blog.csdn.net/roland_sun/article/details/38640297" target="_blank" rel="noopener">Android平台下Dalvik层hook框架ddi的研究</a> </p>
-<p><a href="https://github.com/crmulliner/ddi" target="_blank" rel="noopener">ddi源码</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi-hook原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi-hook原理/" itemprop="url">adbi hook原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://blog.csdn.net/roland_sun/article/details/36049307" target="_blank" rel="noopener">Android平台下hook框架adbi的研究（下） </a></p>
-<h1 id="native函数hook原理"><a href="#native函数hook原理" class="headerlink" title="native函数hook原理"></a>native函数hook原理</h1><p><strong>native函数hook要解决两个问题</strong></p>
-<ol>
-<li>找到这个函数在内存中的位置</li>
-<li>修改函数偷梁换柱。</li>
-</ol>
-<p>读取“/proc/&lt;进程号&gt;/maps”内存映射文件，找到函数库的起始位置和路径。</p>
-<p>mprotect()为该库内存段加上可写（PROT_WRITE）属性</p>
-<p>打开库文件，解析出符号表，从符号表中找到目标函数（其后是偏移地址，加上库起始地址就是内存地址），接下来就是判断Arm与Thumb指令集，hook了。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/Android-Hook原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/Android-Hook原理/" itemprop="url">Android Hook原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.sanwho.com/248.html" target="_blank" rel="noopener">Android inline hook之原理分析篇 </a></p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left"></th>
-<th style="text-align:left">修改GOT</th>
-<th style="text-align:left">inLine</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">实现难易</td>
-<td style="text-align:left">比较容易，只需知道elf文件中调用外部符号的地址</td>
-<td style="text-align:left">比较难，需要分析函数实现汇编码，保持堆栈平衡</td>
-</tr>
-<tr>
-<td style="text-align:left">使用频率</td>
-<td style="text-align:left">基本都是用此方式</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">功能强弱</td>
-<td style="text-align:left">比较弱，只能hookGOT调用方式（通过java层调用API真实实现代码）</td>
-<td style="text-align:left">很强大，能hookjni调用真实实现API的方式</td>
-</tr>
-<tr>
-<td style="text-align:left">R11</td>
-<td style="text-align:left">fp</td>
-<td style="text-align:left">桢指针</td>
-</tr>
-<tr>
-<td style="text-align:left">R12</td>
-<td style="text-align:left">ip</td>
-<td style="text-align:left">指令指针，内部过程调用寄存器</td>
-</tr>
-<tr>
-<td style="text-align:left">R13</td>
-<td style="text-align:left">sp</td>
-<td style="text-align:left">栈指针</td>
-</tr>
-<tr>
-<td style="text-align:left">R14</td>
-<td style="text-align:left">lr</td>
-<td style="text-align:left">返回地址，连接寄存器</td>
-</tr>
-<tr>
-<td style="text-align:left">R15</td>
-<td style="text-align:left">pc</td>
-<td style="text-align:left">程序计数器</td>
-</tr>
-</tbody>
-</table>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/gdb演示Android-ELF的GOT-Hook/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/gdb演示Android-ELF的GOT-Hook/" itemprop="url">Android Hook原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://laokaddk.blog.51cto.com/368606/1168989/" target="_blank" rel="noopener">gdb演示Android ELF的GOT Hook</a> </p>
-<p>需要Android源码环境编译，GOT时还需要源码库下的Android库的符号信息（包括libmym.so）</p>
-<p>gdb ‘/home/liyunggui/桌面/testhook’</p>
-<p>Reading symbols from /home/liyunggui/桌面/testhook…(no debugging symbols found)…done. 可能是因为编译过程跟博文不同，导致调试信息丢失而找不到</p>
 
           
         
@@ -1656,140 +1953,6 @@ cmd -- diskpart -- list disk 可以看到U盘已成GPT(GPT栏有星号)
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/科学上网/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/科学上网/" itemprop="url">科学上网</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T10:25:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="VPN"><a href="#VPN" class="headerlink" title="VPN"></a>VPN</h1><ul>
-<li>系统全局代理。系统中的软件，（无需配置）自动走 VPN 通道</li>
-<li>不方便共享 VPN 的翻墙通道给【其它系统】</li>
-<li>一般通过设置系统VPN或使用客户端软件(比如ShadowSocket)</li>
-</ul>
-<h2 id="Privoxy"><a href="#Privoxy" class="headerlink" title="Privoxy"></a>Privoxy</h2><p>跨系统共享 VPN 的翻墙通道</p>
-<p>Privoxy 跟 VPN 安装到同一个操作系统中。</p>
-<p>配置 Privoxy 的监听选项，把监听地址设置为 0.0.0.0（表示监听端口绑定到任意地址）</p>
-<p>支持转发HTTP 和 SOCKS 两种</p>
-<p>公司的共享服务器就是用这个辅助的</p>
-<p><a href="https://program-think.blogspot.com/2014/12/gfw-privoxy.html" target="_blank" rel="noopener">详细教程参考</a></p>
-<h1 id="代理式"><a href="#代理式" class="headerlink" title="代理式"></a>代理式</h1><ul>
-<li>容易跨系统共享翻墙通道</li>
-<li>一般都是通过设置浏览器代理或使用浏览器插件</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1844,7 +2007,7 @@ cmd -- diskpart -- list disk 可以看到U盘已成GPT(GPT栏有星号)
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">42</span>
+                  <span class="site-state-item-count">43</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1857,7 +2020,7 @@ cmd -- diskpart -- list disk 可以看到U盘已成GPT(GPT栏有星号)
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">27</span>
+                  <span class="site-state-item-count">28</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
