@@ -4,7 +4,7 @@ date: 2018-05-17 17:25:12
 tags: 
 	- VisualStudioCode
 	- SublimeText
-	- ReactNative
+	- RN
 ---
 
 # 不推荐IDE排行榜： #

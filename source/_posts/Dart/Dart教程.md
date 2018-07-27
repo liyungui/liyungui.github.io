@@ -194,7 +194,7 @@ UTF-32 code points of a string
 
 ## closures 闭包 ##
 
-匿名函数的一种，匿名函数对象在变量作用域之外，访问变量。改变了变量作用域
+匿名函数的一种，匿名函数对象在变量作用域之外，访问变量。**改变了变量作用域**
 
 	Function makeAdder(num addBy) {//闭包改变addBy的作用域
 	  return (num i) => addBy + i;

@@ -28,7 +28,7 @@ tags:
 - end
 - center
 - spaceBetween  剩余空间均匀的分布在children**之间**
-- spaceAround 剩余空间均匀的分布在children**周围**(两边)
+- spaceAround 剩余空间均匀的分布在children**周围**(两边)。
 - spaceEvenly  剩余空间均匀的分布在children**之间和周围**
 
 {% asset_img space.png %}
