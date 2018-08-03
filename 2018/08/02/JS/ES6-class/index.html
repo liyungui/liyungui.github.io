@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="JS,ES6," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="定义和使用 语法糖。更像面向对象编程的语法而已 本质是函数。可以看作构造函数的另一种写法 但是只能通过new调用   属性。 默认定义在原型上 可以显式定义在其本身 即定义在this对象上     方法定义前不需要function关键字 类内定义的方法，都是不可枚举的   constructor() 类的默认方法 没有显式定义，自动生成一个空实现   new对象实例时，自动调用该方法 默认返回实例">
+<meta name="keywords" content="JS,ES6">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ES6-class">
+<meta property="og:url" content="http://yoursite.com/2018/08/02/JS/ES6-class/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="定义和使用 语法糖。更像面向对象编程的语法而已 本质是函数。可以看作构造函数的另一种写法 但是只能通过new调用   属性。 默认定义在原型上 可以显式定义在其本身 即定义在this对象上     方法定义前不需要function关键字 类内定义的方法，都是不可枚举的   constructor() 类的默认方法 没有显式定义，自动生成一个空实现   new对象实例时，自动调用该方法 默认返回实例">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-08-03T07:47:07.528Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ES6-class">
+<meta name="twitter:description" content="定义和使用 语法糖。更像面向对象编程的语法而已 本质是函数。可以看作构造函数的另一种写法 但是只能通过new调用   属性。 默认定义在原型上 可以显式定义在其本身 即定义在this对象上     方法定义前不需要function关键字 类内定义的方法，都是不可枚举的   constructor() 类的默认方法 没有显式定义，自动生成一个空实现   new对象实例时，自动调用该方法 默认返回实例">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/08/02/JS/ES6-class/"/>
+
+
+
+
+
+  <title>ES6-class | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/02/JS/ES6-class/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ES6-class</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-02T10:34:20+08:00">
+                2018-08-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="定义和使用"><a href="#定义和使用" class="headerlink" title="定义和使用"></a>定义和使用</h1><ul>
+<li><strong>语法糖</strong>。更像面向对象编程的语法而已</li>
+<li><strong>本质是函数</strong>。可以看作构造函数的另一种写法<ul>
+<li>但是<strong>只能通过new调用</strong></li>
+</ul>
+</li>
+<li>属性。<ul>
+<li>默认定义在原型上</li>
+<li>可以显式定义在其本身<ul>
+<li>即定义在this对象上</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>方法定义前不需要function关键字<ul>
+<li>类内定义的方法，都是不可枚举的</li>
+</ul>
+</li>
+<li><strong>constructor()</strong><ul>
+<li>类的默认方法<ul>
+<li>没有显式定义，自动生成一个空实现</li>
+</ul>
+</li>
+<li>new对象实例时，自动调用该方法</li>
+<li>默认返回实例对象。不需要显式返回<ul>
+<li>可以强制return其他对象</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>严格模式</strong><ul>
+<li>类和模块的内部，默认就是严格模式</li>
+<li>所有的代码，其实都是运行在模块之中，所以 ES6 实际上把整个语言升级到了严格模式。</li>
+</ul>
+</li>
+<li><strong>所有实例共享一个原型对象</strong></li>
+<li><strong>不存在变量提升</strong>。 先定义，后使用<ul>
+<li>此规定能保证子类在父类之后定义</li>
+</ul>
+</li>
+</ul>
+<p>实例：</p>
+<pre><code>class Point {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+  toString() {
+    return &apos;(&apos; + this.x + &apos;, &apos; + this.y + &apos;)&apos;;
+  }
+}
+
+typeof Point // &quot;function&quot;
+Point === Point.prototype.constructor // true
+
+Object.keys(Point.prototype)
+// []
+Object.getOwnPropertyNames(Point.prototype)
+// [&quot;constructor&quot;,&quot;toString&quot;]
+
+point.hasOwnProperty(&apos;x&apos;) // true
+point.hasOwnProperty(&apos;y&apos;) // true
+point.hasOwnProperty(&apos;toString&apos;) // false
+point.__proto__.hasOwnProperty(&apos;toString&apos;) // true
+</code></pre><p>实例：所有实例共享一个原型对象</p>
+<pre><code>var p1 = new Point(2,3);
+var p2 = new Point(3,2);
+p1.__proto__ === p2.__proto__
+//true
+</code></pre><h2 id="匿名类"><a href="#匿名类" class="headerlink" title="匿名类"></a>匿名类</h2><pre><code>let person = new class {
+  constructor(name) {
+    this.name = name;
+  }
+
+  sayName() {
+    console.log(this.name);
+  }
+}(&apos;张三&apos;);
+person.sayName(); // &quot;张三&quot;
+</code></pre><h2 id="私有属性"><a href="#私有属性" class="headerlink" title="私有属性"></a>私有属性</h2><p><strong>ES6 不支持私有属性</strong></p>
+<h3 id="现有方案"><a href="#现有方案" class="headerlink" title="现有方案"></a>现有方案</h3><h4 id="约定前缀下划线表示私有"><a href="#约定前缀下划线表示私有" class="headerlink" title="约定前缀下划线表示私有"></a>约定前缀下划线表示私有</h4><h4 id="将方法移出模块"><a href="#将方法移出模块" class="headerlink" title="将方法移出模块"></a>将方法移出模块</h4><p>因为模块内部的所有方法都是对外可见</p>
+<pre><code>class Widget {
+  foo (baz) {
+    bar.call(this, baz);
+  }
+}
+function bar(baz) {
+  return this.snaf = baz;
+}
+bar实际上成为了当前模块的私有方法
+</code></pre><h4 id="命名为一个Symbol值"><a href="#命名为一个Symbol值" class="headerlink" title="命名为一个Symbol值"></a>命名为一个Symbol值</h4><p>利用Symbol值的唯一性</p>
+<pre><code>const bar = Symbol(&apos;bar&apos;);
+const snaf = Symbol(&apos;snaf&apos;);
+export default class myClass{
+  [bar](baz) {
+    return this[snaf] = baz;
+  }
+};
+
+bar和snaf都是Symbol值，导致第三方无法获取到它们
+因此达到了私有方法和私有属性的效果
+</code></pre><h3 id="私有属性的提案"><a href="#私有属性的提案" class="headerlink" title="私有属性的提案"></a>私有属性的提案</h3><p><strong>使用#前缀表示私有属性</strong></p>
+<ul>
+<li>没有采用private关键字，是因为 JavaScript 是动态语言，使用独立的符号似乎是唯一的可靠方法</li>
+</ul>
+<p>实例</p>
+<pre><code>class Foo {
+  #a;
+  #b;
+  #sum() { return #a + #b; }
+  constructor(a, b) { #a = a; #b = b; }
+}
+</code></pre><h1 id="静态方法"><a href="#静态方法" class="headerlink" title="静态方法"></a>静态方法</h1><ul>
+<li>方法前，加上static关键字</li>
+<li>直接通过类来调用</li>
+<li>不会被实例继承<ul>
+<li>在实例上调用静态方法，会抛出一个不存在该方法错误</li>
+</ul>
+</li>
+<li>静态方法中this关键字指的是类</li>
+<li>可以被子类继承</li>
+</ul>
+<p>ES6 明确规定，Class 内部只有静态方法，<strong>没有静态属性</strong></p>
+<h1 id="new-target-属性"><a href="#new-target-属性" class="headerlink" title="new.target 属性"></a>new.target 属性</h1><p><strong>返回new命令作用于的构造函数</strong></p>
+<ul>
+<li><strong>返回值就是当前类</strong>。子类继承父类时，返回<strong>子类</strong><ul>
+<li><strong>类中</strong>调用：类严格等于构造函数。类本质是函数，是构造函数的另一种写法</li>
+<li><strong>函数中</strong>调用：函数也是对象。</li>
+</ul>
+</li>
+<li>构造函数不是通过new命令调用的，new.target会返回<strong>undefined</strong></li>
+</ul>
+<p>实例</p>
+<pre><code>function Person(name) {
+  if (new.target === Person) {
+    this.name = name;
+  } else {
+    throw new Error(&apos;必须使用 new 命令生成实例&apos;);
+  }
+}
+
+class Rectangle {
+  constructor(length, width) {
+    console.log(new.target === Rectangle); //true
+    this.length = length;
+    this.width = width;
+  }
+}
+
+class Square extends Rectangle {
+  constructor(length) { //false。返回的是子类
+    super(length, length);
+  }
+}    
+</code></pre><h1 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h1><h2 id="extends"><a href="#extends" class="headerlink" title="extends"></a>extends</h2><p><strong>通过extends关键字实现继承</strong></p>
+<ul>
+<li>必须在constructor()中调用super方法</li>
+<li>调用super之后，才可以使用this关键字</li>
+</ul>
+<h2 id="Object-getPrototypeOf"><a href="#Object-getPrototypeOf" class="headerlink" title="Object.getPrototypeOf()"></a>Object.getPrototypeOf()</h2><p><strong>获取父类</strong></p>
+<pre><code>Object.getPrototypeOf(ColorPoint) === Point
+// true
+</code></pre><h1 id="原生构造函数的继承"><a href="#原生构造函数的继承" class="headerlink" title="原生构造函数的继承"></a>原生构造函数的继承</h1><h2 id="原生构造函数"><a href="#原生构造函数" class="headerlink" title="原生构造函数"></a>原生构造函数</h2><p><strong>语言内置的构造函数，通常用来生成数据结构</strong></p>
+<p>大致有下面这些。</p>
+<ul>
+<li>Object()</li>
+<li>Boolean()</li>
+<li>Number()</li>
+<li>String()</li>
+<li>Array()</li>
+<li>Date()</li>
+<li>Function()</li>
+<li>RegExp()</li>
+<li>Error()</li>
+</ul>
+<h2 id="继承的实现"><a href="#继承的实现" class="headerlink" title="继承的实现"></a>继承的实现</h2><p>ES5 的继承，实质是<strong>先创造子类的实例对象this</strong>，然后再将父类的方法添加到this上面（Parent.apply(this)）。</p>
+<p>ES6 的继承机制完全不同，实质是<strong>新建父类的实例对象this</strong>（所以必须先调用super方法），然后再用子类的构造函数修改this</p>
+<h2 id="原生构造函数的继承-1"><a href="#原生构造函数的继承-1" class="headerlink" title="原生构造函数的继承"></a>原生构造函数的继承</h2><h3 id="ES5无法继承"><a href="#ES5无法继承" class="headerlink" title="ES5无法继承"></a>ES5无法继承</h3><p>子类无法获得原生构造函数的内部属性，通过Array.apply()或者分配给原型对象都不行。原生构造函数会忽略apply方法传入的this，也就是说，原生构造函数的this无法绑定，导致拿不到内部属性。</p>
+<p>ES5 是先新建子类的实例对象this，再将父类的属性添加到子类上，由于父类的内部属性无法获取，导致无法继承原生的构造函数。</p>
+<h3 id="ES6允许继承原生构造函数"><a href="#ES6允许继承原生构造函数" class="headerlink" title="ES6允许继承原生构造函数"></a>ES6允许继承原生构造函数</h3><p><strong>继承Object的子类，有一个行为差异。</strong></p>
+<p>ES6 改变了Object构造函数的行为，一旦发现Object方法不是通过new Object()这种形式调用，Object构造函数会忽略参数。</p>
+<pre><code>class NewObj extends Object{
+  constructor(){
+    super(...arguments);
+  }
+}
+var o = new NewObj({attr: true});
+o.attr === true  // false
+</code></pre><h1 id="Mixin-模式的实现"><a href="#Mixin-模式的实现" class="headerlink" title="Mixin 模式的实现"></a>Mixin 模式的实现</h1><p><strong>Mixin 指的是多个对象合成一个新的对象，新对象具有各个组成成员的接口</strong></p>
+<p>实例：最简单实现</p>
+<pre><code>const a = {
+  a: &apos;a&apos;
+};
+const b = {
+  b: &apos;b&apos;
+};
+const c = {...a, ...b}; // {a: &apos;a&apos;, b: &apos;b&apos;}
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JS/" rel="tag"><i class="fa fa-tag"></i> JS</a>
+          
+            <a href="/tags/ES6/" rel="tag"><i class="fa fa-tag"></i> ES6</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/01/JS/ES6-字符串的扩展/" rel="next" title="ES6-字符串的扩展">
+                <i class="fa fa-chevron-left"></i> ES6-字符串的扩展
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/08/02/JS/ES6-数组的扩展/" rel="prev" title="ES6-数组的扩展">
+                ES6-数组的扩展 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">31</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#定义和使用"><span class="nav-number">1.</span> <span class="nav-text">定义和使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#匿名类"><span class="nav-number">1.1.</span> <span class="nav-text">匿名类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#私有属性"><span class="nav-number">1.2.</span> <span class="nav-text">私有属性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#现有方案"><span class="nav-number">1.2.1.</span> <span class="nav-text">现有方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#约定前缀下划线表示私有"><span class="nav-number">1.2.1.1.</span> <span class="nav-text">约定前缀下划线表示私有</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#将方法移出模块"><span class="nav-number">1.2.1.2.</span> <span class="nav-text">将方法移出模块</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#命名为一个Symbol值"><span class="nav-number">1.2.1.3.</span> <span class="nav-text">命名为一个Symbol值</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#私有属性的提案"><span class="nav-number">1.2.2.</span> <span class="nav-text">私有属性的提案</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#静态方法"><span class="nav-number">2.</span> <span class="nav-text">静态方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#new-target-属性"><span class="nav-number">3.</span> <span class="nav-text">new.target 属性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#继承"><span class="nav-number">4.</span> <span class="nav-text">继承</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#extends"><span class="nav-number">4.1.</span> <span class="nav-text">extends</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Object-getPrototypeOf"><span class="nav-number">4.2.</span> <span class="nav-text">Object.getPrototypeOf()</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#原生构造函数的继承"><span class="nav-number">5.</span> <span class="nav-text">原生构造函数的继承</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#原生构造函数"><span class="nav-number">5.1.</span> <span class="nav-text">原生构造函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#继承的实现"><span class="nav-number">5.2.</span> <span class="nav-text">继承的实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原生构造函数的继承-1"><span class="nav-number">5.3.</span> <span class="nav-text">原生构造函数的继承</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ES5无法继承"><span class="nav-number">5.3.1.</span> <span class="nav-text">ES5无法继承</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ES6允许继承原生构造函数"><span class="nav-number">5.3.2.</span> <span class="nav-text">ES6允许继承原生构造函数</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Mixin-模式的实现"><span class="nav-number">6.</span> <span class="nav-text">Mixin 模式的实现</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

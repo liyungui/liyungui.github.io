@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="风">
 <meta property="og:description" content="语法区分大小写变量是弱类型的变量可以不声明直接使用每行结尾的分号可有可无推荐书写分号  编码规范 没有分号在有些浏览器不能正确运行  注释与 Java、C 和 PHP 语言的注释相同//this is a single-line comment  /*this is a multi- line comment*/ 括号表示代码块从 Java 中借鉴 if (test1 == &amp;quot;red&amp;q">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-07-27T11:54:56.184Z">
+<meta property="og:updated_time" content="2018-07-31T03:11:26.022Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="JS教程">
 <meta name="twitter:description" content="语法区分大小写变量是弱类型的变量可以不声明直接使用每行结尾的分号可有可无推荐书写分号  编码规范 没有分号在有些浏览器不能正确运行  注释与 Java、C 和 PHP 语言的注释相同//this is a single-line comment  /*this is a multi- line comment*/ 括号表示代码块从 Java 中借鉴 if (test1 == &amp;quot;red&amp;q">
@@ -463,6 +463,10 @@ with(sMessage) {
 }
 </code></pre><h2 id="参数使用-arguments-对象"><a href="#参数使用-arguments-对象" class="headerlink" title="参数使用 arguments 对象"></a>参数使用 arguments 对象</h2><p>保存了函数所有参数</p>
 <ul>
+<li>arguments对象不是数组，而是一个类似数组的对象。<ul>
+<li>所以为了使用数组的方法，必须使用Array.prototype.slice.call先将其转为数组。</li>
+</ul>
+</li>
 <li>ECMAScript 不会验证传递给函数的参数个数是否等于函数定义的参数个数</li>
 <li>可以接受任意个数的参数（根据 Netscape 的文档，最多可接受 255 个）</li>
 <li>遗漏的参数都会以 undefined 传递给函数，多余的函数将忽略</li>
@@ -576,6 +580,415 @@ function addNum(iNum1, iNum2) {
   }
   return doAdd();
 }
+</code></pre><h1 id="面向对象"><a href="#面向对象" class="headerlink" title="面向对象"></a>面向对象</h1><p>ECMA-262 把对象（object）定义为“属性的无序集合，每个属性存放一个原始值、对象或函数”。严格来说，这意味着对象是无特定顺序的值的数组。</p>
+<h2 id="实例化"><a href="#实例化" class="headerlink" title="实例化"></a>实例化</h2><p>无参构造函数，可以省略括号</p>
+<pre><code>var oStringObject = new String();
+var oStringObject = new String;
+</code></pre><h2 id="对象废除"><a href="#对象废除" class="headerlink" title="对象废除"></a>对象废除</h2><p>ECMAScript 拥有无用存储单元收集程序（garbage collection routine），意味着不必专门销毁对象来释放内存。</p>
+<p>把对象的<strong>所有引用</strong>都设置为 null，可以强制性地废除对象。下次运行无用存储单元收集程序时，该对象将被销毁。</p>
+<p>每用完一个对象后，就将其废除，来释放内存，这是个好习惯。</p>
+<h2 id="绑定"><a href="#绑定" class="headerlink" title="绑定"></a>绑定</h2><p>绑定（binding），即把对象的接口与对象实例结合在一起的方法。</p>
+<ul>
+<li><strong>早绑定</strong>（early binding）是先定义类型再实例化。<ul>
+<li>编译器或解释程序能提前检查对象类型，提前转换机器代码。</li>
+<li>强类型语言使用早绑定。如Java </li>
+<li>可以在开发环境中使用 IntelliSense<ul>
+<li>即给开发者提供对象中属性和方法列表的功能。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>晚绑定</strong>（late binding）<ul>
+<li>编译器或解释程序在运行前，不知道对象的类型。只需检查对象是否支持属性和方法即可。</li>
+<li>ECMAScript 中的所有变量都采用晚绑定方法。</li>
+</ul>
+</li>
+</ul>
+<h2 id="对象类型"><a href="#对象类型" class="headerlink" title="对象类型"></a>对象类型</h2><p>ECMAScript 中，可以创建并使用的对象有三种：</p>
+<ul>
+<li><strong>本地对象</strong>(native object)。 <strong>独立于宿主环境</strong>的 ECMAScript 实现提供的对象<ul>
+<li><strong>内置对象</strong>(built-in object)。 在 ECMAScript <strong>程序开始执行时被实例化</strong>。<ul>
+<li>这意味着开发者不必明确实例化内置对象，它已被实例化了。</li>
+<li>每个内置对象都是本地对象</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>宿主对象</strong>(host object)。 <strong>所有非本地对象</strong><ul>
+<li>所有 BOM 和 DOM 对象都是宿主对象</li>
+</ul>
+</li>
+</ul>
+<p><strong>出于安全原因，本地类和宿主类不能作为基类。防止恶意攻击。</strong></p>
+<h3 id="本地对象"><a href="#本地对象" class="headerlink" title="本地对象"></a>本地对象</h3><p>包括：</p>
+<ul>
+<li>Object</li>
+<li>Boolean</li>
+<li>Number</li>
+<li>String</li>
+<li>Date</li>
+<li>Array</li>
+<li>Function</li>
+<li>RegExp</li>
+<li>Error</li>
+<li>EvalError</li>
+<li>RangeError</li>
+<li>ReferenceError</li>
+<li>SyntaxError</li>
+<li>TypeError</li>
+<li>URIError</li>
+</ul>
+<h3 id="内置对象"><a href="#内置对象" class="headerlink" title="内置对象"></a>内置对象</h3><p>包括：</p>
+<ul>
+<li>Global</li>
+<li>Math</li>
+</ul>
+<h2 id="作用域"><a href="#作用域" class="headerlink" title="作用域"></a>作用域</h2><p><strong>ECMAScript 只有公用作用域。</strong> 所有属性和方法默认都是公用的！</p>
+<h3 id="私有作用域"><a href="#私有作用域" class="headerlink" title="私有作用域"></a>私有作用域</h3><p>开发者确定一个规约，说明哪些属性和方法应该被<strong>看做</strong>私有的。并不改变属性是公用属性的事实，它只是告诉其他开发者，应该把该属性看作私有的。</p>
+<p>比如规定在属性前后加下划线：</p>
+<pre><code>obj._color_ = &quot;blue&quot;;
+</code></pre><h3 id="静态作用域"><a href="#静态作用域" class="headerlink" title="静态作用域"></a>静态作用域</h3><p>函数是对象，对象可以有属性和方法。</p>
+<p>利用函数对象的属性和方法实现静态作用域</p>
+<pre><code>function sayHello() {
+  alert(&quot;hello&quot;);
+}
+
+sayHello.alternate = function() {
+  alert(&quot;hi&quot;);
+}
+
+sayHello();        //输出 &quot;hello&quot;
+sayHello.alternate();    //输出 &quot;hi&quot;
+</code></pre><h2 id="关键字-this"><a href="#关键字-this" class="headerlink" title="关键字 this"></a>关键字 this</h2><p>this 指向对象本身</p>
+<h2 id="定义对象"><a href="#定义对象" class="headerlink" title="定义对象"></a>定义对象</h2><p>对象的属性分为两种：</p>
+<ul>
+<li>属性：非函数属性</li>
+<li>方法：函数属性</li>
+</ul>
+<h3 id="原始方式"><a href="#原始方式" class="headerlink" title="原始方式"></a>原始方式</h3><pre><code>var oCar = new Object;
+oCar.color = &quot;blue&quot;;
+oCar.doors = 4;
+oCar.mpg = 25;
+oCar.showColor = function() {//指向函数的指针，意味着该属性是个方法
+  alert(this.color);
+};
+</code></pre><p>问题：<strong>未封装</strong>。不利于复用</p>
+<h3 id="工厂方法"><a href="#工厂方法" class="headerlink" title="工厂方法"></a>工厂方法</h3><pre><code>function createCar() {
+  var oTempCar = new Object;
+  oTempCar.color = &quot;blue&quot;;
+  oTempCar.doors = 4;
+  oTempCar.mpg = 25;
+  oTempCar.showColor = function() {
+    alert(this.color);
+  };
+  return oTempCar;
+}
+
+var oCar1 = createCar();
+var oCar2 = createCar();
+</code></pre><p><strong>核心问题：函数属性重复创建函数对象</strong></p>
+<p>每次调用函数 createCar()，都要创建新函数 showColor()，意味着每个对象都有自己的 showColor() 版本。而事实上，每个对象都共享同一个函数。</p>
+<h4 id="在工厂方法外定义对象的方法"><a href="#在工厂方法外定义对象的方法" class="headerlink" title="在工厂方法外定义对象的方法"></a>在工厂方法外定义对象的方法</h4><pre><code>function showColor() {
+  alert(this.color);
+}
+
+function createCar(sColor,iDoors,iMpg) {
+  var oTempCar = new Object;
+  oTempCar.color = sColor;
+  oTempCar.doors = iDoors;
+  oTempCar.mpg = iMpg;
+  oTempCar.showColor = showColor;
+  return oTempCar;
+}
+
+var oCar1 = createCar(&quot;red&quot;,4,23);
+var oCar2 = createCar(&quot;blue&quot;,3,25);
+</code></pre><p>问题：<strong>封装不彻底</strong>。解决了重复创建函数对象的问题；但是从语义上讲，该函数不太像是对象的方法</p>
+<h3 id="构造函数方式"><a href="#构造函数方式" class="headerlink" title="构造函数方式"></a>构造函数方式</h3><p>构造函数这个概念是 <strong>开发者定义的</strong>。</p>
+<p><strong>和工厂方法的区别</strong>：</p>
+<ul>
+<li><p>创建对象实例时使用new关键字，<strong>形式上很像使用构造函数</strong>。</p>
+</li>
+<li><p><strong>定义时没有创建对象</strong></p>
+</li>
+</ul>
+<p>代码</p>
+<pre><code>function Car(sColor,iDoors,iMpg) {//首字母通常大写
+  this.color = sColor;//没有创建对象，而是使用 this 关键字
+  this.doors = iDoors;
+  this.mpg = iMpg;
+  this.showColor = function() {
+    alert(this.color);
+  };
+}
+
+var oCar1 = new Car(&quot;red&quot;,4,23);
+var oCar2 = new Car(&quot;blue&quot;,3,25);
+</code></pre><p>函数内没有创建对象，而是使用 this 关键字。使用 new 运算符构造函数时，在执行第一行代码前先创建一个对象，只有用 this 才能访问该对象。然后可以直接赋予 this 属性，<strong>默认情况下是构造函数的返回值（不必明确使用 return 运算符）</strong>。</p>
+<p>问题：重复创建函数对象</p>
+<h3 id="构造函数-工厂方法"><a href="#构造函数-工厂方法" class="headerlink" title="构造函数 + 工厂方法"></a>构造函数 + 工厂方法</h3><p>实际上实现跟工厂方法一样(定义时创建了对象)，也有重复定义函数对象问题。不建议使用</p>
+<pre><code>function Car() {
+  var oTempCar = new Object;
+  oTempCar.color = &quot;blue&quot;;
+  oTempCar.doors = 4;
+  oTempCar.mpg = 25;
+  oTempCar.showColor = function() {
+    alert(this.color);
+  };
+
+  return oTempCar;
+}
+
+var car = new Car();//由于在 Car() 构造函数内部调用了 new 运算符，所以忽略此处的 new 运算符（位于构造函数之外），在构造函数内部创建的对象被传递回变量 car。
+</code></pre><h3 id="构造函数-原型方式"><a href="#构造函数-原型方式" class="headerlink" title="构造函数 + 原型方式"></a>构造函数 + 原型方式</h3><p><strong>利用对象的 prototype 属性设置的属性，指向同一个对象</strong></p>
+<pre><code>function Car() {
+}
+
+Car.prototype.color = &quot;blue&quot;;
+Car.prototype.doors = 4;
+Car.prototype.mpg = 25;
+Car.prototype.drivers = new Array(&quot;Mike&quot;,&quot;John&quot;);
+Car.prototype.showColor = function() {
+  alert(this.color);
+};
+
+var oCar1 = new Car();
+var oCar2 = new Car();
+
+oCar1.drivers.push(&quot;Bill&quot;);
+
+alert(oCar1.drivers);    //输出 &quot;Mike,John,Bill&quot;
+alert(oCar2.drivers);    //输出 &quot;Mike,John,Bill&quot;
+</code></pre><p><strong>构造函数内定义非函数属性，而函数属性(方法)则利用原型属性定义</strong></p>
+<pre><code>function Car(sColor,iDoors,iMpg) {
+  this.color = sColor;
+  this.doors = iDoors;
+  this.mpg = iMpg;
+  this.drivers = new Array(&quot;Mike&quot;,&quot;John&quot;);
+}
+
+Car.prototype.showColor = function() {
+  alert(this.color);
+};
+
+var oCar1 = new Car(&quot;red&quot;,4,23);
+var oCar2 = new Car(&quot;blue&quot;,3,25);
+
+oCar1.drivers.push(&quot;Bill&quot;);
+
+alert(oCar1.drivers);    //输出 &quot;Mike,John,Bill&quot;
+alert(oCar2.drivers);    //输出 &quot;Mike,John&quot;
+</code></pre><p>问题：<strong>封装不彻底</strong>。属性和方法定义分离了</p>
+<h3 id="构造函数-动态原型方法"><a href="#构造函数-动态原型方法" class="headerlink" title="构造函数 + 动态原型方法"></a>构造函数 + 动态原型方法</h3><p><strong>最优方案</strong></p>
+<p><strong>增加一个变量标识是否已经用原型方法初始化过函数属性</strong></p>
+<pre><code>function Car(sColor,iDoors,iMpg) {
+  this.color = sColor;
+  this.doors = iDoors;
+  this.mpg = iMpg;
+  this.drivers = new Array(&quot;Mike&quot;,&quot;John&quot;);
+
+  if (typeof Car._initialized == &quot;undefined&quot;) {
+    Car.prototype.showColor = function() {
+      alert(this.color);
+    };
+
+    Car._initialized = true;
+  }
+}
+</code></pre><h3 id="实例：自定义StringBuffer实现字符串拼接"><a href="#实例：自定义StringBuffer实现字符串拼接" class="headerlink" title="实例：自定义StringBuffer实现字符串拼接"></a>实例：自定义StringBuffer实现字符串拼接</h3><p>与其他语言类似，ECMAScript 的<strong>字符串是不可变的</strong>，即它们的值不能改变</p>
+<h4 id="字符串连接性能问题："><a href="#字符串连接性能问题：" class="headerlink" title="字符串连接性能问题："></a>字符串连接性能问题：</h4><pre><code>var str = &quot;hello &quot;;
+str += &quot;world&quot;;
+</code></pre><p>实际上，这段代码在幕后执行的步骤如下：</p>
+<ol>
+<li>创建 “hello “ 字符串。</li>
+<li>创建 “world” 字符串。</li>
+<li>创建存储连接结果的字符串。</li>
+<li>把 str 的当前内容复制到结果中。</li>
+<li>把 “world” 复制到结果中。</li>
+<li>更新 str，使它指向结果。</li>
+</ol>
+<p>这种操作非常消耗资源。</p>
+<h4 id="解决方案：用-Array-对象存储字符串"><a href="#解决方案：用-Array-对象存储字符串" class="headerlink" title="解决方案：用 Array 对象存储字符串"></a>解决方案：用 Array 对象存储字符串</h4><p>var arr = new Array();<br>arr[0] = “hello “;<br>arr[1] = “world”;<br>var str = arr.join(“”);</p>
+<p><strong>问题：可读性不好</strong></p>
+<h4 id="自定义StringBuffer"><a href="#自定义StringBuffer" class="headerlink" title="自定义StringBuffer"></a>自定义StringBuffer</h4><pre><code>function StringBuffer () {
+  this._strings_ = new Array();
+}
+
+StringBuffer.prototype.append = function(str) {
+  this._strings_.push(str);
+};
+
+StringBuffer.prototype.toString = function() {
+  return this._strings_.join(&quot;&quot;);
+};
+</code></pre><p>使用</p>
+<pre><code>var buffer = new StringBuffer ();
+buffer.append(&quot;hello &quot;);
+buffer.append(&quot;world&quot;);
+var result = buffer.toString();
+</code></pre><h2 id="修改已有对象"><a href="#修改已有对象" class="headerlink" title="修改已有对象"></a>修改已有对象</h2><p><strong>原理：使用prototype 属性 实现</strong></p>
+<ul>
+<li>添加新属性，新方法</li>
+<li>复写已有属性，已有方法</li>
+</ul>
+<p>所有本地对象都继承了 Object 对象，所以如果我们对 Object 对象做任何改变，都会反应在所有本地对象上。</p>
+<h3 id="复写已有方法"><a href="#复写已有方法" class="headerlink" title="复写已有方法"></a>复写已有方法</h3><p><strong>特别注意</strong>：指向的原始函数将被无用存储单元回收程序<strong>回收</strong>。所以在覆盖原始方法前，比较安全的做法是<strong>存储原始函数的指针</strong>。</p>
+<pre><code>Function.prototype.originalToString = Function.prototype.toString;
+
+Function.prototype.toString = function() {
+  if (this.originalToString().length &gt; 100) {
+    return &quot;Function too long to display.&quot;;
+  } else {
+    return this.originalToString();
+  }
+};
+</code></pre><h3 id="极晚绑定（Very-Late-Binding）"><a href="#极晚绑定（Very-Late-Binding）" class="headerlink" title="极晚绑定（Very Late Binding）"></a>极晚绑定（Very Late Binding）</h3><p><strong>对象实例化后再定义它的方法</strong></p>
+<p>根本<strong>不存在</strong>极晚绑定。<strong>本书采用</strong>该术语描述 ECMAScript 中的这种现象</p>
+<pre><code>var o = new Object();
+
+Object.prototype.sayHi = function () {
+  alert(&quot;hi&quot;);
+};
+
+o.sayHi();//输出hi
+</code></pre><h1 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h1><p><strong>出于安全原因，本地类和宿主类不能作为基类。防止恶意攻击。</strong></p>
+<p>尽管 ECMAScript 并没有像其他语言那样严格地定义抽象类，但有时它的确会创建一些不允许使用的类。通常，我们称这种类为抽象类。</p>
+<h2 id="继承机制的实现"><a href="#继承机制的实现" class="headerlink" title="继承机制的实现"></a>继承机制的实现</h2><p>ECMAScript中的继承机制<strong>并不是明确规定的</strong>，而是通过<strong>模仿实现的</strong></p>
+<h3 id="对象冒充"><a href="#对象冒充" class="headerlink" title="对象冒充"></a>对象冒充</h3><p>ECMAScript 根本没打算设计对象冒充（object masquerading <code>[mɑ:skə&#39;reɪdɪŋ]</code>）。它是在开发者使用 this 关键字才发展出来</p>
+<pre><code>function ClassA(sColor) {
+    this.color = sColor;
+    this.sayColor = function () {
+        alert(this.color);
+    };
+}
+
+function ClassB(sColor, sName) {
+    this.newMethod = ClassA;
+    this.newMethod(sColor);
+    delete this.newMethod;//所有新属性和新方法都必须在删除了新方法的代码行后定义。否则，可能会覆盖超类的相关属性和方法：
+
+    this.name = sName;
+    this.sayName = function () {
+        alert(this.name);
+    };
+}
+
+var objA = new ClassA(&quot;blue&quot;);
+var objB = new ClassB(&quot;red&quot;, &quot;John&quot;);
+objA.sayColor();    //输出 &quot;blue&quot;
+objB.sayColor();    //输出 &quot;red&quot;
+objB.sayName();        //输出 &quot;John&quot;
+</code></pre><h4 id="对象冒充可以实现多重继承"><a href="#对象冒充可以实现多重继承" class="headerlink" title="对象冒充可以实现多重继承"></a>对象冒充可以实现多重继承</h4><p>ClassZ 继承 ClassX 和 ClassY</p>
+<p>如果 类 ClassX 和 ClassY 具有同名的属性或方法，ClassY 具有高优先级</p>
+<pre><code>function ClassZ() {
+    this.newMethod = ClassX;
+    this.newMethod();
+    delete this.newMethod;
+
+    this.newMethod = ClassY;
+    this.newMethod();
+    delete this.newMethod;
+}
+</code></pre><h3 id="call-和-apply"><a href="#call-和-apply" class="headerlink" title="call() 和 apply()"></a>call() 和 apply()</h3><p>由于对象冒充这种继承方法的流行，ECMAScript 的第三版为 Function 对象加入了两个方法，即 call() 和 apply()</p>
+<h4 id="call"><a href="#call" class="headerlink" title="call()"></a>call()</h4><p><strong>call() 第一个参数用作 调用该方法的对象。其他参数是真正的函数参数</strong></p>
+<pre><code>function sayColor(sPrefix,sSuffix) {
+    alert(sPrefix + this.color + sSuffix);
+};
+
+var obj = new Object();
+obj.color = &quot;blue&quot;;
+
+sayColor.call(obj, &quot;The color is &quot;, &quot;a very nice color indeed.&quot;);//输出The color is blue, a very nice color indeed
+</code></pre><p><strong>实现</strong>：等价于对象冒充方法的赋值、调用和删除这三行代码</p>
+<pre><code>function ClassB(sColor) {
+    //this.newMethod = ClassA;
+    //this.newMethod(color);
+    //delete this.newMethod;
+    ClassA.call(this, sColor);
+}
+</code></pre><h4 id="apply"><a href="#apply" class="headerlink" title="apply()"></a>apply()</h4><p><strong>apply()第一个参数用作 调用该方法的对象。第二个参数是真正的函数参数组成的数组</strong></p>
+<pre><code>function sayColor(sPrefix,sSuffix) {
+    alert(sPrefix + this.color + sSuffix);
+};
+
+var obj = new Object();
+obj.color = &quot;blue&quot;;
+
+sayColor.apply(obj, new Array(&quot;The color is &quot;, &quot;a very nice color indeed.&quot;));
+</code></pre><p><strong>实现</strong></p>
+<pre><code>function ClassB(sColor, sName) {
+    //this.newMethod = ClassA;
+    //this.newMethod(color);
+    //delete this.newMethod;
+    ClassA.apply(this, arguments);
+}
+</code></pre><h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li>超类中的参数顺序与子类中的<strong>参数顺序完全一致</strong>(参数个数可以不一致，多余参数直接舍弃)时，apply()传递参数对象 <strong>arguments</strong>。</li>
+<li>参数顺序不完全一致<ul>
+<li>apply()创建一个单独的数组，按照正确的顺序放置参数。</li>
+<li>使用 call()</li>
+</ul>
+</li>
+</ul>
+<h3 id="原型链（prototype-chaining）"><a href="#原型链（prototype-chaining）" class="headerlink" title="原型链（prototype chaining）"></a>原型链（prototype chaining）</h3><p><strong>用另一类型的对象重写类的 prototype 属性</strong></p>
+<pre><code>function ClassA() {
+}
+
+ClassA.prototype.color = &quot;blue&quot;;
+ClassA.prototype.sayColor = function () {
+    alert(this.color);
+};
+
+function ClassB() {
+}
+
+ClassB.prototype = new ClassA();//ClassB.prototype赋值为ClassA的对象
+ClassB.prototype.name = &quot;&quot;;
+ClassB.prototype.sayName = function () {
+    alert(this.name);
+};
+
+var objA = new ClassA();
+var objB = new ClassB();
+objA.color = &quot;blue&quot;;
+objB.color = &quot;red&quot;;
+objB.name = &quot;John&quot;;
+objA.sayColor();    //输出 &quot;blue&quot;
+objB.sayColor();    //输出 &quot;red&quot;
+objB.sayName();        //输出 &quot;John&quot;
+</code></pre><h4 id="原型链和对象冒充的区别"><a href="#原型链和对象冒充的区别" class="headerlink" title="原型链和对象冒充的区别"></a>原型链和对象冒充的区别</h4><p><strong>原型链，对 ClassB 的所有实例，instanceof 为 ClassA 和 ClassB 都返回 true</strong>。</p>
+<pre><code>alert(objB instanceof ClassA);    //输出 &quot;true&quot;
+alert(objB instanceof ClassB);    //输出 &quot;true&quot;
+</code></pre><p><strong>原型链，不能实现多继承。</strong></p>
+<p><strong>对象冒充可以实现多继承</strong></p>
+<p><strong>对象冒充使用的是构造函数</strong></p>
+<h3 id="混合方式"><a href="#混合方式" class="headerlink" title="混合方式"></a>混合方式</h3><p>定义类的最好方式是用构造函数定义属性，用原型定义方法。</p>
+<p>这种方式同样适用于继承机制，用对象冒充继承构造函数的属性，用原型链继承 prototype 对象的方法。</p>
+<p>用这两种方式重写前面的例子，代码如下：</p>
+<pre><code>function ClassA(sColor) {
+    this.color = sColor;
+}
+
+ClassA.prototype.sayColor = function () {
+    alert(this.color);
+};
+
+function ClassB(sColor, sName) {
+    ClassA.call(this, sColor);
+    this.name = sName;
+}
+
+ClassB.prototype = new ClassA();
+
+ClassB.prototype.sayName = function () {
+    alert(this.name);
+};
+
+var objA = new ClassA(&quot;blue&quot;);
+var objB = new ClassB(&quot;red&quot;, &quot;John&quot;);
+objA.sayColor();    //输出 &quot;blue&quot;
+objB.sayColor();    //输出 &quot;red&quot;
+objB.sayName();    //输出 &quot;John&quot;
 </code></pre>
       
     </div>
@@ -615,6 +1028,10 @@ function addNum(iNum1, iNum2) {
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/07/30/JS/ES6-let和const 命令/" rel="prev" title="ES6-let和const 命令">
+                ES6-let和const 命令 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -695,7 +1112,7 @@ function addNum(iNum1, iNum2) {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">50</span>
+                  <span class="site-state-item-count">60</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -708,7 +1125,7 @@ function addNum(iNum1, iNum2) {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">29</span>
+                  <span class="site-state-item-count">31</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -741,7 +1158,7 @@ function addNum(iNum1, iNum2) {
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#语法"><span class="nav-number">1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#区分大小写"><span class="nav-number">1.1.</span> <span class="nav-text">区分大小写</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量是弱类型的"><span class="nav-number">1.2.</span> <span class="nav-text">变量是弱类型的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量可以不声明直接使用"><span class="nav-number">1.3.</span> <span class="nav-text">变量可以不声明直接使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#每行结尾的分号可有可无"><span class="nav-number">1.4.</span> <span class="nav-text">每行结尾的分号可有可无</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注释与-Java、C-和-PHP-语言的注释相同"><span class="nav-number">1.5.</span> <span class="nav-text">注释与 Java、C 和 PHP 语言的注释相同</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#括号表示代码块"><span class="nav-number">1.6.</span> <span class="nav-text">括号表示代码块</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#变量"><span class="nav-number">2.</span> <span class="nav-text">变量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#命名变量"><span class="nav-number">2.1.</span> <span class="nav-text">命名变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#声明变量"><span class="nav-number">2.2.</span> <span class="nav-text">声明变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量值"><span class="nav-number">2.3.</span> <span class="nav-text">变量值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原始类型"><span class="nav-number">2.3.1.</span> <span class="nav-text">原始类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Undefined-类型"><span class="nav-number">2.3.1.1.</span> <span class="nav-text">Undefined 类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Null-类型"><span class="nav-number">2.3.1.2.</span> <span class="nav-text">Null 类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#typeof-运算符"><span class="nav-number">2.3.1.3.</span> <span class="nav-text">typeof 运算符</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引用类型"><span class="nav-number">2.3.2.</span> <span class="nav-text">引用类型</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#运算符"><span class="nav-number">3.</span> <span class="nav-text">运算符</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#一元运算符"><span class="nav-number">3.1.</span> <span class="nav-text">一元运算符</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#delete"><span class="nav-number">3.1.1.</span> <span class="nav-text">delete</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#void"><span class="nav-number">3.1.2.</span> <span class="nav-text">void</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#流程控制"><span class="nav-number">4.</span> <span class="nav-text">流程控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#if"><span class="nav-number">4.1.</span> <span class="nav-text">if</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#switch"><span class="nav-number">4.2.</span> <span class="nav-text">switch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迭代"><span class="nav-number">4.3.</span> <span class="nav-text">迭代</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#with"><span class="nav-number">4.4.</span> <span class="nav-text">with</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数"><span class="nav-number">5.</span> <span class="nav-text">函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#参数使用-arguments-对象"><span class="nav-number">5.1.</span> <span class="nav-text">参数使用 arguments 对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#模拟函数重载"><span class="nav-number">5.1.1.</span> <span class="nav-text">模拟函数重载</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数其实是-Function-对象"><span class="nav-number">5.2.</span> <span class="nav-text">函数其实是 Function 对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用-Function-直接创建函数"><span class="nav-number">5.2.1.</span> <span class="nav-text">用 Function 直接创建函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数作为参数传递给另一个函数"><span class="nav-number">5.2.2.</span> <span class="nav-text">函数作为参数传递给另一个函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Function-对象的-length-属性"><span class="nav-number">5.2.3.</span> <span class="nav-text">Function 对象的 length 属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Function-对象的方法"><span class="nav-number">5.2.4.</span> <span class="nav-text">Function 对象的方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#闭包-closure"><span class="nav-number">5.3.</span> <span class="nav-text">闭包 closure</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#语法"><span class="nav-number">1.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#区分大小写"><span class="nav-number">1.1.</span> <span class="nav-text">区分大小写</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量是弱类型的"><span class="nav-number">1.2.</span> <span class="nav-text">变量是弱类型的</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量可以不声明直接使用"><span class="nav-number">1.3.</span> <span class="nav-text">变量可以不声明直接使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#每行结尾的分号可有可无"><span class="nav-number">1.4.</span> <span class="nav-text">每行结尾的分号可有可无</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注释与-Java、C-和-PHP-语言的注释相同"><span class="nav-number">1.5.</span> <span class="nav-text">注释与 Java、C 和 PHP 语言的注释相同</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#括号表示代码块"><span class="nav-number">1.6.</span> <span class="nav-text">括号表示代码块</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#变量"><span class="nav-number">2.</span> <span class="nav-text">变量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#命名变量"><span class="nav-number">2.1.</span> <span class="nav-text">命名变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#声明变量"><span class="nav-number">2.2.</span> <span class="nav-text">声明变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量值"><span class="nav-number">2.3.</span> <span class="nav-text">变量值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原始类型"><span class="nav-number">2.3.1.</span> <span class="nav-text">原始类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Undefined-类型"><span class="nav-number">2.3.1.1.</span> <span class="nav-text">Undefined 类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Null-类型"><span class="nav-number">2.3.1.2.</span> <span class="nav-text">Null 类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#typeof-运算符"><span class="nav-number">2.3.1.3.</span> <span class="nav-text">typeof 运算符</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引用类型"><span class="nav-number">2.3.2.</span> <span class="nav-text">引用类型</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#运算符"><span class="nav-number">3.</span> <span class="nav-text">运算符</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#一元运算符"><span class="nav-number">3.1.</span> <span class="nav-text">一元运算符</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#delete"><span class="nav-number">3.1.1.</span> <span class="nav-text">delete</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#void"><span class="nav-number">3.1.2.</span> <span class="nav-text">void</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#流程控制"><span class="nav-number">4.</span> <span class="nav-text">流程控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#if"><span class="nav-number">4.1.</span> <span class="nav-text">if</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#switch"><span class="nav-number">4.2.</span> <span class="nav-text">switch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迭代"><span class="nav-number">4.3.</span> <span class="nav-text">迭代</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#with"><span class="nav-number">4.4.</span> <span class="nav-text">with</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#函数"><span class="nav-number">5.</span> <span class="nav-text">函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#参数使用-arguments-对象"><span class="nav-number">5.1.</span> <span class="nav-text">参数使用 arguments 对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#模拟函数重载"><span class="nav-number">5.1.1.</span> <span class="nav-text">模拟函数重载</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数其实是-Function-对象"><span class="nav-number">5.2.</span> <span class="nav-text">函数其实是 Function 对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#用-Function-直接创建函数"><span class="nav-number">5.2.1.</span> <span class="nav-text">用 Function 直接创建函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数作为参数传递给另一个函数"><span class="nav-number">5.2.2.</span> <span class="nav-text">函数作为参数传递给另一个函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Function-对象的-length-属性"><span class="nav-number">5.2.3.</span> <span class="nav-text">Function 对象的 length 属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Function-对象的方法"><span class="nav-number">5.2.4.</span> <span class="nav-text">Function 对象的方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#闭包-closure"><span class="nav-number">5.3.</span> <span class="nav-text">闭包 closure</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#面向对象"><span class="nav-number">6.</span> <span class="nav-text">面向对象</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#实例化"><span class="nav-number">6.1.</span> <span class="nav-text">实例化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对象废除"><span class="nav-number">6.2.</span> <span class="nav-text">对象废除</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绑定"><span class="nav-number">6.3.</span> <span class="nav-text">绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#对象类型"><span class="nav-number">6.4.</span> <span class="nav-text">对象类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#本地对象"><span class="nav-number">6.4.1.</span> <span class="nav-text">本地对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内置对象"><span class="nav-number">6.4.2.</span> <span class="nav-text">内置对象</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#作用域"><span class="nav-number">6.5.</span> <span class="nav-text">作用域</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#私有作用域"><span class="nav-number">6.5.1.</span> <span class="nav-text">私有作用域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态作用域"><span class="nav-number">6.5.2.</span> <span class="nav-text">静态作用域</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关键字-this"><span class="nav-number">6.6.</span> <span class="nav-text">关键字 this</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义对象"><span class="nav-number">6.7.</span> <span class="nav-text">定义对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原始方式"><span class="nav-number">6.7.1.</span> <span class="nav-text">原始方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#工厂方法"><span class="nav-number">6.7.2.</span> <span class="nav-text">工厂方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#在工厂方法外定义对象的方法"><span class="nav-number">6.7.2.1.</span> <span class="nav-text">在工厂方法外定义对象的方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构造函数方式"><span class="nav-number">6.7.3.</span> <span class="nav-text">构造函数方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构造函数-工厂方法"><span class="nav-number">6.7.4.</span> <span class="nav-text">构造函数 + 工厂方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构造函数-原型方式"><span class="nav-number">6.7.5.</span> <span class="nav-text">构造函数 + 原型方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#构造函数-动态原型方法"><span class="nav-number">6.7.6.</span> <span class="nav-text">构造函数 + 动态原型方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例：自定义StringBuffer实现字符串拼接"><span class="nav-number">6.7.7.</span> <span class="nav-text">实例：自定义StringBuffer实现字符串拼接</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#字符串连接性能问题："><span class="nav-number">6.7.7.1.</span> <span class="nav-text">字符串连接性能问题：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解决方案：用-Array-对象存储字符串"><span class="nav-number">6.7.7.2.</span> <span class="nav-text">解决方案：用 Array 对象存储字符串</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#自定义StringBuffer"><span class="nav-number">6.7.7.3.</span> <span class="nav-text">自定义StringBuffer</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改已有对象"><span class="nav-number">6.8.</span> <span class="nav-text">修改已有对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#复写已有方法"><span class="nav-number">6.8.1.</span> <span class="nav-text">复写已有方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#极晚绑定（Very-Late-Binding）"><span class="nav-number">6.8.2.</span> <span class="nav-text">极晚绑定（Very Late Binding）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#继承"><span class="nav-number">7.</span> <span class="nav-text">继承</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#继承机制的实现"><span class="nav-number">7.1.</span> <span class="nav-text">继承机制的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#对象冒充"><span class="nav-number">7.1.1.</span> <span class="nav-text">对象冒充</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#对象冒充可以实现多重继承"><span class="nav-number">7.1.1.1.</span> <span class="nav-text">对象冒充可以实现多重继承</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#call-和-apply"><span class="nav-number">7.1.2.</span> <span class="nav-text">call() 和 apply()</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#call"><span class="nav-number">7.1.2.1.</span> <span class="nav-text">call()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#apply"><span class="nav-number">7.1.2.2.</span> <span class="nav-text">apply()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#总结"><span class="nav-number">7.1.2.3.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原型链（prototype-chaining）"><span class="nav-number">7.1.3.</span> <span class="nav-text">原型链（prototype chaining）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原型链和对象冒充的区别"><span class="nav-number">7.1.3.1.</span> <span class="nav-text">原型链和对象冒充的区别</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#混合方式"><span class="nav-number">7.1.4.</span> <span class="nav-text">混合方式</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
