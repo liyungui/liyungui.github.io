@@ -262,6 +262,416 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/07/View转为Bitmap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/07/View转为Bitmap/" itemprop="url">View转为Bitmap</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-07T15:54:53+08:00">
+                2018-06-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="方法一-view-getDrawingCache"><a href="#方法一-view-getDrawingCache" class="headerlink" title="方法一:view.getDrawingCache()"></a>方法一:view.getDrawingCache()</h1><p>适用于View显示在界面上的情况。可以被完全遮挡住，只要android:visibility=”visible”就可以</p>
+<pre><code>public Bitmap convertViewToBitmap(View view){
+
+    view.setDrawingCacheEnabled(true); ////启用DrawingCache
+
+    view.buildDrawingCache(); //创建位图
+
+    Bitmap bitmap=Bitmap.createBitmap(view.getDrawingCache()); ////创建一个DrawingCache的拷贝，因为DrawingCache得到的位图在禁用后会被回收
+
+    view.setDrawingCacheEnabled(false);  //禁用DrawingCahce否则会影响性能
+
+    return bitmap;
+
+}
+</code></pre><h2 id="返回的Bitmap为null或生成Bitmap全黑色"><a href="#返回的Bitmap为null或生成Bitmap全黑色" class="headerlink" title="返回的Bitmap为null或生成Bitmap全黑色"></a>返回的Bitmap为null或生成Bitmap全黑色</h2><p>主要原因是drawingCache的值大于系统给定的值，buildDrawingCache()失败</p>
+<pre><code>if (width &lt;= 0 || height &lt;= 0 ||(width * height * (opaque &amp;&amp; !translucentWindow ? 2 : 4) &gt; ViewConfiguration.get(mContext).getScaledMaximumDrawingCacheSize())) {   
+     destroyDrawingCache();   
+     return;   
+  }  
+</code></pre><p>解决方案：</p>
+<pre><code>public static Bitmap convertViewToBitmap(View view){
+    view.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+    view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+    view.buildDrawingCache();
+    Bitmap bitmap = view.getDrawingCache();
+    return bitmap;
+}
+</code></pre><h1 id="方法二-View-draw-Canvas-canvas"><a href="#方法二-View-draw-Canvas-canvas" class="headerlink" title="方法二:View.draw(Canvas canvas)"></a>方法二:View.draw(Canvas canvas)</h1><p>从源码中可以看到buildDrawingCache就是获得View的Canvas然后画到bitmap上，直接返回对应的bitmap。有些同学就直接将View画到bitmap</p>
+<p><strong>个人不推荐使用</strong>。因为系统buildDrawingCache考虑的因素很多，比如透明磁，大小 ，图片质量等；还有重新定位到当前可显示的区域(这点很重要，如果有可滚动的控件，不重定位是无法正确得到Bitmap的，比如ViewPager第二页，手动draw就会出问题)</p>
+<pre><code>public static Bitmap convertViewToBitmap(View view) {  
+    Bitmap bitmap= Bitmap.createBitmap(view.getWidth(), view.getHeight(), HDConstantSet.BITMAP_QUALITY);  
+    Canvas canvas = new Canvas(bitmap);  
+    view.draw(canvas);  
+    return bitmap;  
+}
+</code></pre><h2 id="View没有显示在界面上的情况"><a href="#View没有显示在界面上的情况" class="headerlink" title="View没有显示在界面上的情况"></a>View没有显示在界面上的情况</h2><p>通过java代码创建的或者inflate创建的View，是获取不到Bitmap的。</p>
+<p>因为View在添加到容器中之前并没有得到实际的大小，需要先指定View的大小</p>
+<pre><code>public static Bitmap convertViewToBitmap(View view) {  
+    layoutView(view);//必须measure和layout。否则宽高都为0，报错 java.lang.IllegalArgumentException: width and height must be &gt; 0
+    Bitmap bitmap= Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);  
+    Canvas canvas = new Canvas(bitmap);  
+    view.draw(canvas);  
+    return bitmap;  
+}
+
+private void layoutView(View v) {
+    DisplayMetrics metric = new DisplayMetrics();
+    getWindowManager().getDefaultDisplay().getMetrics(metric);
+    int width = metric.widthPixels;     // 屏幕宽度（像素）
+    int height = metric.heightPixels;   // 屏幕高度（像素）
+    v.layout(0, 0, width, height);
+    int measuredWidth = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY);
+    int measuredHeight = View.MeasureSpec.makeMeasureSpec(10000, View.MeasureSpec.AT_MOST);
+    v.measure(measuredWidth, measuredHeight);
+    v.layout(0, 0, v.getMeasuredWidth(), v.getMeasuredHeight());
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/07/Bitmap图片生成/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/07/Bitmap图片生成/" itemprop="url">Bitmap图片生成</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-07T15:51:21+08:00">
+                2018-06-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>把两张bitmap合成为一张图</p>
+<pre><code>/**
+ * 把两个位图覆盖合成为一个位图，以底层位图的长宽为基准
+ * @param backBitmap 在底部的位图
+ * @param frontBitmap 盖在上面的位图
+ * @return
+ */
+public static Bitmap mergeBitmap(Bitmap backBitmap, Bitmap frontBitmap) {
+
+    if (backBitmap == null || backBitmap.isRecycled() 
+            || frontBitmap == null || frontBitmap.isRecycled()) {
+        Log.e(TAG, &quot;backBitmap=&quot; + backBitmap + &quot;;frontBitmap=&quot; + frontBitmap);
+        return null;
+    }
+    Bitmap bitmap = backBitmap.copy(Config.ARGB_8888, true);
+    Canvas canvas = new Canvas(bitmap);
+    Rect baseRect  = new Rect(0, 0, backBitmap.getWidth(), backBitmap.getHeight());
+    Rect frontRect = new Rect(0, 0, frontBitmap.getWidth(), frontBitmap.getHeight());
+    canvas.drawBitmap(frontBitmap, frontRect, baseRect, null);
+    return bitmap;
+}
+
+/**
+ * 把两个位图覆盖合成为一个位图，左右拼接
+ * @param leftBitmap 
+ * @param rightBitmap 
+ * @param isBaseMax 是否以宽度大的位图为准，true则小图等比拉伸，false则大图等比压缩
+ * @return
+ */
+public static Bitmap mergeBitmap_LR(Bitmap leftBitmap, Bitmap rightBitmap, boolean isBaseMax) {
+
+    if (leftBitmap == null || leftBitmap.isRecycled() 
+            || rightBitmap == null || rightBitmap.isRecycled()) {
+        JDLog.logError(TAG, &quot;leftBitmap=&quot; + leftBitmap + &quot;;rightBitmap=&quot; + rightBitmap);
+        return null;
+    }
+    int height = 0; // 拼接后的高度，按照参数取大或取小
+    if (isBaseMax) {
+        height = leftBitmap.getHeight() &gt; rightBitmap.getHeight() ? leftBitmap.getHeight() : rightBitmap.getHeight();
+    } else {
+        height = leftBitmap.getHeight() &lt; rightBitmap.getHeight() ? leftBitmap.getHeight() : rightBitmap.getHeight();
+    }
+
+    // 缩放之后的bitmap
+    Bitmap tempBitmapL = leftBitmap;
+    Bitmap tempBitmapR = rightBitmap;
+
+    if (leftBitmap.getHeight() != height) {
+        tempBitmapL = Bitmap.createScaledBitmap(leftBitmap, (int)(leftBitmap.getWidth()*1f/leftBitmap.getHeight()*height), height, false);
+    } else if (rightBitmap.getHeight() != height) {
+        tempBitmapR = Bitmap.createScaledBitmap(rightBitmap, (int)(rightBitmap.getWidth()*1f/rightBitmap.getHeight()*height), height, false);
+    }
+
+    // 拼接后的宽度
+    int width = tempBitmapL.getWidth() + tempBitmapR.getWidth();
+
+    // 定义输出的bitmap
+    Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+    Canvas canvas = new Canvas(bitmap);
+
+    // 缩放后两个bitmap需要绘制的参数
+    Rect leftRect = new Rect(0, 0, tempBitmapL.getWidth(), tempBitmapL.getHeight());
+    Rect rightRect  = new Rect(0, 0, tempBitmapR.getWidth(), tempBitmapR.getHeight());
+
+    // 右边图需要绘制的位置，往右边偏移左边图的宽度，高度是相同的
+    Rect rightRectT  = new Rect(tempBitmapL.getWidth(), 0, width, height);
+
+    canvas.drawBitmap(tempBitmapL, leftRect, leftRect, null);
+    canvas.drawBitmap(tempBitmapR, rightRect, rightRectT, null);
+    return bitmap;
+}
+
+
+/**
+ * 把两个位图覆盖合成为一个位图，上下拼接
+ * @param leftBitmap 
+ * @param rightBitmap 
+ * @param isBaseMax 是否以高度大的位图为准，true则小图等比拉伸，false则大图等比压缩
+ * @return
+ */
+public static Bitmap mergeBitmap_TB(Bitmap topBitmap, Bitmap bottomBitmap, boolean isBaseMax) {
+
+    if (topBitmap == null || topBitmap.isRecycled() 
+            || bottomBitmap == null || bottomBitmap.isRecycled()) {
+        JDLog.logError(TAG, &quot;topBitmap=&quot; + topBitmap + &quot;;bottomBitmap=&quot; + bottomBitmap);
+        return null;
+    }
+    int width = 0;
+    if (isBaseMax) {
+        width = topBitmap.getWidth() &gt; bottomBitmap.getWidth() ? topBitmap.getWidth() : bottomBitmap.getWidth();
+    } else {
+        width = topBitmap.getWidth() &lt; bottomBitmap.getWidth() ? topBitmap.getWidth() : bottomBitmap.getWidth();
+    }
+    Bitmap tempBitmapT = topBitmap;
+    Bitmap tempBitmapB = bottomBitmap;
+
+    if (topBitmap.getWidth() != width) {
+        tempBitmapT = Bitmap.createScaledBitmap(topBitmap, width, (int)(topBitmap.getHeight()*1f/topBitmap.getWidth()*width), false);
+    } else if (bottomBitmap.getWidth() != width) {
+        tempBitmapB = Bitmap.createScaledBitmap(bottomBitmap, width, (int)(bottomBitmap.getHeight()*1f/bottomBitmap.getWidth()*width), false);
+    }
+
+    int height = tempBitmapT.getHeight() + tempBitmapB.getHeight();
+
+    Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+    Canvas canvas = new Canvas(bitmap);
+
+    Rect topRect = new Rect(0, 0, tempBitmapT.getWidth(), tempBitmapT.getHeight());
+    Rect bottomRect  = new Rect(0, 0, tempBitmapB.getWidth(), tempBitmapB.getHeight());
+
+    Rect bottomRectT  = new Rect(0, tempBitmapT.getHeight(), width, height);
+
+    canvas.drawBitmap(tempBitmapT, topRect, topRect, null);
+    canvas.drawBitmap(tempBitmapB, bottomRect, bottomRectT, null);
+    return bitmap;
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/25/Android-Studio-运行-Java代码/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -853,7 +1263,7 @@ AlarmManager.ELAPSED_REALTIME，SystemClock.elapsedRealtime()+10 * 60 * 1000
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/Android-dalvik-hook原理与实现/Android-dalvik-hook原理与实现/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -872,7 +1282,7 @@ AlarmManager.ELAPSED_REALTIME，SystemClock.elapsedRealtime()+10 * 60 * 1000
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/Android-dalvik-hook原理与实现/Android-dalvik-hook原理与实现/" itemprop="url">Android dalvik hook原理与实现</a></h1>
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/" itemprop="url">ddi 原理</a></h1>
         
 
         <div class="post-meta">
@@ -924,84 +1334,8 @@ AlarmManager.ELAPSED_REALTIME，SystemClock.elapsedRealtime()+10 * 60 * 1000
       
         
           
-            <p><a href="http://bbs.pediy.com/showthread.php?t=187522&amp;highlight=dalvik+hook" target="_blank" rel="noopener">Android dalvik hook的另外一种实现形式</a> </p>
-<p><a href="http://bbs.pediy.com/showthread.php?t=186054" target="_blank" rel="noopener">注入安卓进程,并hook java世界的方法</a> </p>
-<h1 id="替换方法实现–修改Method对象的insns字段"><a href="#替换方法实现–修改Method对象的insns字段" class="headerlink" title="替换方法实现–修改Method对象的insns字段"></a>替换方法实现–修改Method对象的insns字段</h1><p>dalvik中，每一个java方法都有一个对应的Method对象（Method结构体声明在源码目录树下的dalvik/vm/oo/Object.h文件内）</p>
-<p>Method结构体字段insns保存着java方法具体的实现代码。</p>
-<p>下面用代码实现说明</p>
-<pre><code>public class HelloJni extends Activity {
-    static {
-        System.loadLibrary(&quot;hello-jni&quot;);
-    }
-
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        TextView tv = new TextView(this);
-        tv.setText(truth());
-        setContentView(tv);
-    }
-
-    public String truth() {
-        return &quot;hello from truth&quot;;
-    }
-
-    public String fake() {
-        return &quot;fake string&quot;;
-    }
-
-}
------------------------c code --------------------
-#include &lt;string.h&gt;
-#include &lt;jni.h&gt;
-
-jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-    JNIEnv *env;
-
-    if ((*vm)-&gt;GetEnv(vm, (void**) &amp;env, JNI_VERSION_1_6) != 0) {
-        return -1;
-    }
-    jclass father = (*env)-&gt;FindClass(env, &quot;com/example/hellojni/HelloJni&quot;); //搜索java类
-
-    jmethodID truthMethod = (*env)-&gt;GetMethodID(env, father, &quot;truth&quot;, &quot;()Ljava/lang/String;&quot;); //搜索java方法
-    jmethodID fakeMethod = (*env)-&gt;GetMethodID(env, father, &quot;fake&quot;, &quot;()Ljava/lang/String;&quot;);
-
-    // jmethodID 是一个ClassObject 的指针类型，
-    // ClassObject 对象的偏移地址32位处为insns字段。
-    *(int *) ((int) truthMethod + 32) = *(int *) ((int) fakeMethod + 32);
-
-    int result = JNI_OK;
-    return ((result != JNI_OK) ? result : JNI_VERSION_1_6);
-}
-</code></pre><h1 id="替换方法为native方法–native方法替换java方法"><a href="#替换方法为native方法–native方法替换java方法" class="headerlink" title="替换方法为native方法–native方法替换java方法"></a>替换方法为native方法–native方法替换java方法</h1><p>正常情况下,只能在Java世界通过jni调用native方法,而native不能在没有任何java上的支持下干涉java世界。</p>
-<p>传统的linux进程注入技术在安卓上只能进入目标进程的native世界。</p>
-<p>本教程是要注入别的进程,并hook java世界的java 方法!</p>
-<p>程序大致的流程是这样的：</p>
-<pre><code>so.so注入到目标进程 --&gt; 执行Hook()函数 
-                  --&gt; Hook()加载libTest.so,获取libTest.so定义的Hook信息.接着用ClassMethodHook()hook java世界的方法.
-</code></pre><p>  关键一,从native世界进入java世界。我们只要获得一个JNIEnv就能进入到java世界了。突破点就在android::AndroidRuntime::getJavaVM();这个静态方法能够获取一个JavaVM,JavaVM-&gt;GetEnv方法能够获得一个JNIEnv了。JNIEnv是和线程相关的,使用前一定记得将其附加到当前进程,也要在适当的时候将其销毁。</p>
-<p>  关键二,怎么影响内存里的java代码。替换内存是不现实的,但是可以取巧，在运行时将一个不是native的方法修改成native方法。我们知道java代码里将一个方法声明为native方法时,对此函数的调用就会到native世界里找。</p>
-<h1 id="两种方法的比较"><a href="#两种方法的比较" class="headerlink" title="两种方法的比较"></a>两种方法的比较</h1><table>
-<thead>
-<tr>
-<th style="text-align:left"></th>
-<th style="text-align:left">替换方法实现</th>
-<th style="text-align:left">替换方法为native方法</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">难度</td>
-<td style="text-align:left">容易，只要修改insns字段</td>
-<td style="text-align:left">难，多个字段</td>
-</tr>
-<tr>
-<td style="text-align:left">线程安全</td>
-<td style="text-align:left">安全</td>
-<td style="text-align:left">非安全，修改字段过多</td>
-</tr>
-</tbody>
-</table>
+            <p><a href="http://blog.csdn.net/roland_sun/article/details/38640297" target="_blank" rel="noopener">Android平台下Dalvik层hook框架ddi的研究</a> </p>
+<p><a href="https://github.com/crmulliner/ddi" target="_blank" rel="noopener">ddi源码</a></p>
 
           
         
@@ -1214,7 +1548,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/Xposed热更新hook目标方法后的行为代码/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/Cydia-- Native Dalvik FrameWork/CydiaSubstrate/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1233,7 +1567,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/Xposed热更新hook目标方法后的行为代码/" itemprop="url">Xposed热更新hook目标方法后的行为代码</a></h1>
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/Cydia-- Native Dalvik FrameWork/CydiaSubstrate/" itemprop="url">CydiaSubstrate</a></h1>
         
 
         <div class="post-meta">
@@ -1285,13 +1619,63 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
       
         
           
-            <p><a href="https://github.com/githubwing/HotXposed" target="_blank" rel="noopener">Xposed热更新 hook目标方法后的行为代码</a></p>
-<p>无法更新hook的目标，但可以更新hook目标后的行为。</p>
-<p>比如 hook Activity的onCreate方法，toast Activity名称改为 logcat 打印Activity名称</p>
-<h1 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h1><p>参考android里classloader实现，发现findClass()最后都是调用了DexFile来loadClass。把需要写的逻辑代码单独放到一个dex里，然后使用DexFile加载</p>
-<p>读取/sdcard/classes.dex文件，直接导入Hotfix类，调用他的invoke方法</p>
-<img src="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik%20FrameWork/Xposed热更新hook目标方法后的行为代码/DexFile-loadClass.jpg">
-<img src="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik%20FrameWork/Xposed热更新hook目标方法后的行为代码/DexFile-loadClass-2.jpg">
+            <p>Cydia Substrate可以修改任何主进程的代码，不管是用Java还是C/C++（native代码）编写的。而Xposed（开源）只支持 HOOK app_process中的java函数，因此Cydia Substrate是一款强大而实用的HOOK工具</p>
+<p>Cydia Substrate</p>
+<pre><code>参考自： 
+    Android HOOK工具Cydia Substrate使用详解 http://mobile.51cto.com/aprogram-454091.htm
+    周圣韬 Android上玩玩Hook：Cydia Substrate实战 http://www.csdn.net/article/2015-08-07/2825405 
+Cydia Substrate原名MobileSubstrate（类库中都是以MS开头），
+作者为大名鼎鼎的Jay Freeman（saurik）
+Cydia Substrate框架对于inline Hook(框架实现都是通过该方式)的操作目前还是存在一些bug，
+    使用的时候可能会出现崩溃的现象，
+    部分使用了国内定制ROM的设备在使用Cydia Substrate框架时会造成设备无法重新启动或无法Hook的现象。
+    无法重启可以按住音量+ 键 跳过hook插件，进入系统。
+</code></pre><p>1.安装substrate.apk，点击”Link Substrate Files”（连接本地的Substrate服务文件），<br>    这一步是需要Root权限的，连接后还需要重启设备才能够生效<br>    <a href="http://www.cydiasubstrate.com/download/com.saurik.substrate.apk" target="_blank" rel="noopener">http://www.cydiasubstrate.com/download/com.saurik.substrate.apk</a></p>
+<p>2.创建空Android工程。复制jar和so到libs文件夹中。<br>    其中的substrate.h头文件与lib文件夹下的so文件<br>        主要是substrate-api.jar<br>        .h和so是提供在使用NDK进行原生Hook程序开发中的函数支持库<br>    <a href="http://asdk.cydiasubstrate.com/zips/cydia_substrate-r2.zip" target="_blank" rel="noopener">http://asdk.cydiasubstrate.com/zips/cydia_substrate-r2.zip</a></p>
+<p>3.Manifest文件配置 权限和hook类（入口）<br>（1）需要指定权限：cydia.permission.SUBSTRATE<br>        manifest下 <uses-permission android:name="cydia.permission.SUBSTRATE"><br>（2）添加meta-data标签，指定自定义的hook类<br>        application下 <meta-data android:name="com.saurik.substrate.main" android:value=".Main"><br>            name 固定，value就是我们自定义的hook类完整类名（包含包名）</meta-data></uses-permission></p>
+<p>4.自定义hook类<br>    public class Main {<br>        static void initialize() { //插件加载时回调 static方法initialize<br>             MS.hookClassLoad(“android.content.res.Resources”, new MS.ClassLoadHook() { //hook 类加载<br>                public void classLoaded(Class&lt;?&gt; resources) { //类被加载时回调<br>                    Method getColor;<br>                    try {<br>                        getColor = resources.getMethod(“getColor”, Integer.TYPE);<br>                    } catch (NoSuchMethodException e) {<br>                        getColor = null;<br>                    }</p>
+<pre><code>                if (getColor != null) {
+                    final MS.MethodPointer old = new MS.MethodPointer(); //原方法指针。可以在任何时候运行原方法（被hook方法）
+
+                    MS.hookMethod(resources, getColor, new MS.MethodHook() {
+                        public Object invoked(Object resources, Object... args)
+                            throws Throwable
+                        {
+                            int color = (Integer) old.invoke(resources, args);
+                            return color &amp; ~0x0000ff00 | 0x00ff0000; //改变系统颜色
+                        }
+                    }, old);
+                }
+            }
+        });
+    }
+}
+
+也可以用以下代码实现hook
+MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer&gt;() {
+    public Integer invoked(Resources resources, Object... args)
+        throws Throwable
+    {
+        return invoke(resources, args) &amp; ~0x0000ff00 | 0x00ff0000;
+    }
+});
+</code></pre><p>5.安装apk，重启手机，生效。</p>
+<p>关键api<br>    void hookClassLoad(String className, MS.ClassLoadHook hook); Hook一个指定的Class<br>    void hookMethod(Class _class, Member member, MS.MethodHook methodhHook, MS.MethodPointer old);<br>    void hookMethod(Class _class, Member member, MS.MethodAlteration alteration);好用，稳定<br>        _class,需要hook的方法所属类<br>        member,需要hook的方法(或构造函数). 注意：不能HOOK字段 (在编译的时候会进行检测).<br>        methodhHook,MethodHook实例，其包含的invoked方法会被调用，用以代替被hook方法中的代码<br>        old,原方法指针，指向原方法（随时用该指针调用方法）<br>        alteration，MethodAlteration实例，其包含的invoked方法会被调用，用以代替被hook方法中的代码<br>            比MethodHook更好用稳定，在该方法直接调用invoke方法就是调用原方法<br>                不用自己定义 MS.MethodPointer old 指向原方法（随时用该指针调用方法）<br>    <t> T moveUnderClassLoader(ClassLoader loader, T object);   使用ClassLoder重载对象(少用)</t></p>
+<p>6.补充<br>“卧槽”洗脑病毒分析 <a href="http://www.2cto.com/Article/201505/400301.html" target="_blank" rel="noopener">http://www.2cto.com/Article/201505/400301.html</a><br>    表现：所有字变为 卧槽。<br>    分析：跟上例改变字体颜色原理相同，只是hook的设置字体的方法<br>        TextView.setText(CharSequence)<br>    复现：<br>        public class Main {<br>            public static void initialize() {<br>                MS.hookClassLoad(“android.widget.TextView”, new MS.ClassLoadHook() {<br>                    @Override<br>                    public void classLoaded(Class arg0) {<br>                        Method smstest ;<br>                        try {<br>                           smstest=arg0.getMethod(“setText”, CharSequence.class);<br>                        } catch (SecurityException e) {<br>                            smstest=null;<br>                            e.printStackTrace();<br>                        } catch (NoSuchMethodException e) {<br>                            smstest=null;<br>                            e.printStackTrace();<br>                        }  </p>
+<pre><code>               if(smstest!=null){        
+                    final MS.MethodPointer old = new MS.MethodPointer();  
+                    MS.hookMethod(arg0, smstest, new MS.MethodHook() {  
+                       @Override 
+                        public Object invoked(Object arg0, Object... arg1)throws Throwable {                                        
+                            return old.invoke(arg0, &quot;爱破解，爱鬼哥&quot;);                                                                 
+                        }                             
+                    }, old);                          
+                }                     
+            }                
+        });               
+    }                                 
+}  
+</code></pre><p>周圣韬 Android上玩玩Hook：Cydia Substrate实战 <a href="http://www.csdn.net/article/2015-08-07/2825405" target="_blank" rel="noopener">http://www.csdn.net/article/2015-08-07/2825405</a><br>    开始实战（广告注入）<br>    针对Android操作系统的浏览器应用，Hook其首页Activity的onCreate方法（其他方法不一定存在，但是onCreate方法一定会有），<br>        (1)声明一个透明的广告的Activity<br>            为什么设置透明背景的Activity?<br>                就是为了使得弹出来的广告与浏览器融为一体，让用户感觉是浏览器弹出的广告，<br>                也是恶意广告程序为了防止自身被卸载掉的一些通用隐藏手段。<br>                这里演示的注入广告是通过Hook指定的Activity中的onCreate方法来启动一个广告Activity。<br>                如果启动的Activity带有恶意性，如将Activity做得与原Activity一模一样的钓鱼Activity，<br>                那么对于移动设备用户来说是极具欺骗性的。<br>            <!-- 透明无动画的广告Activity --><br>            <activity android:name="com.example.hookad.MainActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"><br>                <intent-filter><br>                    <action android:name="android.intent.action.VIEW"><br>                    <category android:name="android.intent.category.DEFAULT"><br>                    <!-- 广告的action,方便无context时启动  --><br>                    <action android:name="com.example.hook.AD"><br>                </action></category></action></intent-filter><br>            </activity><br>        (2)找到浏览器主页的Activity名称<br>            使用adb shell下使用dumpsys activity命令找到浏览器主页的Activity名称为<br>                com.android.browser.BrowserActivity<br>        (3)关键hook代码<br>            // 执行Hook前的onCreate方法，保证浏览器正常启动<br>            Object result =  old.invoke(object, args);<br>            // 没有Context。所以执行一个shell 启动我们的广告Activity<br>            CMD.run(“am start -a com.example.hook.AD”);</p>
 
           
         
@@ -1340,7 +1724,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/xposed原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1359,7 +1743,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/" itemprop="url">小米系统miui使用xposed框架</a></h1>
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/xposed原理/" itemprop="url">xposed原理</a></h1>
         
 
         <div class="post-meta">
@@ -1411,152 +1795,83 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
       
         
           
-            <p><a href="http://www.miui.com/thread-2973594-1-1.html" target="_blank" rel="noopener">解除系统对XPosed框架限制</a>    </p>
-<p>从9月23日开始，XPosed框架被系统限制，许多XP模块童鞋捉急。</p>
-<p>然而，高手在民间，不过几日，先是论坛许多miui优化包都放出XP框架可用，说明已破解，但从他们的包内确实找不出关键点。</p>
-<p>又一日，网友『尛』便爆出解决方法，赶脚试试，果然奏效，在这里再次感谢『尛』。</p>
-<p>发这帖是对 『尛』帖子的诠释，以下操作步骤仅为我的见解，不排除有比我更好的方法，希望能帮助到大家，祝基友国庆刷机愉快！</p>
-<p>先说主要的：</p>
-<ol>
-<li><p>请到官方17日的包内提取两个文件：app_process 和 libandroid_runtime.so</p>
-<pre><code>其位置分别在：system/Bin下 和 system/Lib/下（为什么要17日的包？因为17日的包好找，不是内测的基友也可以下载到哦）
-</code></pre></li>
-<li><p>下载你想刷的官方的最新包。</p>
+            <p><a href="http://www.xuebuyuan.com/2141468.html" target="_blank" rel="noopener">Android Hook框架Xposed原理与源代码分析</a> </p>
+<h1 id="xposed"><a href="#xposed" class="headerlink" title="xposed"></a>xposed</h1><p>Cydia Substrate可以修改任何主进程的代码，不管是用Java还是C/C++（native代码）编写的。</p>
+<p>而Xposed（开源）只支持 HOOK app_process中的java函数</p>
+<p>Xposed框架是一款可以在不修改APK的情况下影响程序运行（修改系统）的框架服务，<br>通过替换/system/bin/app_process程序控制zygote进程，使得app_process在启动过程中会加载XposedBridge.jar这个jar包，从而完成对Zygote进程及其创建的Dalvik虚拟机的劫持。</p>
+<p>基于Xposed框架可以制作出许多功能强大的模块，且在功能不冲突的情况下同时运作。<br>此外，Xposed框架中的每一个库还可以单独下载使用，</p>
+<pre><code>如Per APP Setting（为每个应用设置单独的dpi或修改权限）、
+    Cydia、XPrivacy（防止隐私泄露）、
+    BootManager（开启自启动程序管理应用）对原生Launcher替换图标等应用或功能均基于此框架。
+</code></pre><p>Xposed框架是基于一个Android的本地服务应用XposedInstaller，与一个提供API 的jar文件来完成的。</p>
+<h1 id="xposed安装"><a href="#xposed安装" class="headerlink" title="xposed安装"></a>xposed安装</h1><p>安装使用Xposed框架我们需要完成以下几个步骤：</p>
+<h2 id="安装本地服务XposedInstalle-需要root权限"><a href="#安装本地服务XposedInstalle-需要root权限" class="headerlink" title="安装本地服务XposedInstalle(需要root权限)"></a>安装本地服务XposedInstalle(需要root权限)</h2><h3 id="下载-安装。"><a href="#下载-安装。" class="headerlink" title="下载 安装。"></a><a href="http://repo.xposed.info/module/de.robv.android.xposed.installer" target="_blank" rel="noopener">下载</a> 安装。</h3><h3 id="激活框架。"><a href="#激活框架。" class="headerlink" title="激活框架。"></a>激活框架。</h3><p>点击“安装/更新”就能完成框架的激活了。</p>
+<p>部分设备如果不支持直接写入的话，选择“安装方式”为在Recovery模式下自动安装即可</p>
+<p>由于国内的部分ROM对Xposed不兼容，Recovery模式可能会造成设备反复重启而无法正常启动</p>
+<p>安装后会启动Xposed的app_process，所以安装过程中会存在设备多次重新启动</p>
+<h1 id="xposed项目编码"><a href="#xposed项目编码" class="headerlink" title="xposed项目编码"></a>xposed项目编码</h1><h2 id="jar包依赖"><a href="#jar包依赖" class="headerlink" title="jar包依赖"></a>jar包依赖</h2><ul>
+<li><p>下载API库 XposedBridgeApi-.jar。</p>
 </li>
-<li><p>把提取的 app_process 和 libandroid_runtime.so 文件替换到新下载包的同目录下（就是提取时的目录），直接覆盖确认。</p>
-<pre><code>替换文件在PC上操作，不要解压rom包。双击rom包，拖曳文件到相应位置直接覆盖替换，无需改权限什么的。
-</code></pre></li>
-<li><p>刷机–成功！（注意：请使用论坛雯雯的rec2.8.5刷入，使用官方REC可能因签名问题失败)</p>
-<pre><code>推荐使用第三方rec刷包(雯雯2.8.5，论坛置顶，这个REC刷官方rom和ota都能成功，真乃刷机神器！)。
-</code></pre><p>楼主机型 ：2014011    HM1STD    红米1S3G移动版<br>其他机型自测，据我观察论坛大部分机型几乎都可使用。</p>
+<li><p>复制到lib目录（注意是lib目录，不是Android提供的libs目录）</p>
 </li>
-</ol>
-<p><strong>注意：请不要在手机系统上通过RE管理器直接替换文件，否则100%变砖！</strong></p>
-<p>我note 4g联通增强版就是在万恶的百度贴吧看教程用RE替换，然后变砖的。增强版刷机后资料全丢</p>
-<pre><code>http://en.miui.com/forum.php?mod=viewthread&amp;tid=176904&amp;highlight=Xposed Fix for Xposed restrictions on MIUI 7. KitKat Only (4.4.x)
-</code></pre><p>英国miui论坛提供的一个xposed apk，兼容4.4.x。note 4g联通增强版测试成功</p>
+</ul>
+<p>如果直接将jar包放置到了libs目录下，很可能会产生<a href="http://forum.xda-developers.com/xposed/xposed-api-changelog-developer-news-t2714067" target="_blank" rel="noopener">错误</a>： </p>
+<pre><code>“IllegalAccessError: Class ref in pre-verified class resolved to unexpected  implementation” 
+</code></pre><p>估计Xposed作者在其框架内部也引用了BridgeApi，这样操作避免重复引用。</p>
+<h2 id="Manifest设置"><a href="#Manifest设置" class="headerlink" title="Manifest设置"></a>Manifest设置</h2><p>在AndroidManifest.xml文件中meta-data配置 插件名称与Api版本号</p>
+<pre><code>application  下
+&lt;meta-data  
+    android:name=&quot;xposedmodule&quot;  
+    android:value=&quot;true&quot; /&gt;  
 
-          
-        
-      
-    </div>
-    
-    
-    
+&lt;!-- 模块描述 载入model之后显示的描述信息--&gt;
+&lt;meta-data  
+    android:name=&quot;xposeddescription&quot;  
+    android:value=&quot;一个登陆劫持的样例&quot; /&gt;  
 
-    
+&lt;!-- 最低版本号 --&gt;
+&lt;meta-data  
+    android:name=&quot;xposedminversion&quot;  
+    android:value=&quot;30&quot; /&gt;  
+</code></pre><h2 id="自定义hook类"><a href="#自定义hook类" class="headerlink" title="自定义hook类"></a>自定义hook类</h2><pre><code>package com.example.loginhook
+public class Main implements IXposedHookLoadPackage { //加载包的时候回调  
+    public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {  
 
-    
+        // 包名不是 com.example.login 的应用 不hook
+        if (!lpparam.packageName.equals(&quot;com.example.login&quot;)) return;  
 
-    
+         // Hook MainActivity中的isCorrectInfo(String,String)方法  
+        XposedHelpers.findAndHookMethod(&quot;com.example.login.MainActivity&quot;, lpparam.classLoader, &quot;isCorrectInfo&quot;, String.class,  
+        String.class, new XC_MethodHook() {  
 
-    <footer class="post-footer">
-      
+            @Override  
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {  
+                XposedBridge.log(&quot;开始劫持了~&quot;);  
+                XposedBridge.log(&quot;参数1 = &quot; + param.args[0]);  
+                XposedBridge.log(&quot;参数2 = &quot; + param.args[1]);  
+            }  
 
-      
+            @Override  
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {  
+                XposedBridge.log(&quot;劫持结束了~&quot;);  
+                XposedBridge.log(&quot;参数1 = &quot; + param.args[0]);  
+                XposedBridge.log(&quot;参数2 = &quot; + param.args[1]);  
 
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/" itemprop="url">ddi 原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://blog.csdn.net/roland_sun/article/details/38640297" target="_blank" rel="noopener">Android平台下Dalvik层hook框架ddi的研究</a> </p>
-<p><a href="https://github.com/crmulliner/ddi" target="_blank" rel="noopener">ddi源码</a></p>
-
+            }  
+        });    
+    }  
+}
+</code></pre><h2 id="assets-xposed-init-声明主入口类"><a href="#assets-xposed-init-声明主入口类" class="headerlink" title="assets/xposed_init 声明主入口类."></a>assets/xposed_init 声明主入口类.</h2><p>这里我们的主入口类为 com.example.loginhook.Main</p>
+<h2 id="编译，安装xposed模块"><a href="#编译，安装xposed模块" class="headerlink" title="编译，安装xposed模块"></a>编译，安装xposed模块</h2><p>XpasedInstaller–模块选项中勾选待启用的模块让其正常的生效</p>
+<p>重启Android设备，进入XposedInstaller查看日志模块</p>
+<h1 id="关键api"><a href="#关键api" class="headerlink" title="关键api"></a>关键api</h1><p>hook主类入口接口</p>
+<pre><code>void handleLoadPackage(final LoadPackageParam lpparam) hook包加载 IXposedHookLoadPackage
+void initCmdApp(StartupParam startupParam) hook java程序初始化 IXposedHookCmdInit
+void handleInitPackageResources(InitPackageResourcesParam resparam) hook包资源初始化 IXposedHookInitPackageResources
+void initZygote(StartupParam startupParam) hook Zygote初始化 IXposedHookZygoteInit
+</code></pre><p>XposedHelpers hook方法等操作api</p>
+<pre><code>Unhook findAndHookMethod(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback)
+</code></pre>
           
         
       
@@ -1714,182 +2029,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/Android-Hook原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/Android-Hook原理/" itemprop="url">Android Hook原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.sanwho.com/248.html" target="_blank" rel="noopener">Android inline hook之原理分析篇 </a></p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left"></th>
-<th style="text-align:left">修改GOT</th>
-<th style="text-align:left">inLine</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">实现难易</td>
-<td style="text-align:left">比较容易，只需知道elf文件中调用外部符号的地址</td>
-<td style="text-align:left">比较难，需要分析函数实现汇编码，保持堆栈平衡</td>
-</tr>
-<tr>
-<td style="text-align:left">使用频率</td>
-<td style="text-align:left">基本都是用此方式</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">功能强弱</td>
-<td style="text-align:left">比较弱，只能hookGOT调用方式（通过java层调用API真实实现代码）</td>
-<td style="text-align:left">很强大，能hookjni调用真实实现API的方式</td>
-</tr>
-<tr>
-<td style="text-align:left">R11</td>
-<td style="text-align:left">fp</td>
-<td style="text-align:left">桢指针</td>
-</tr>
-<tr>
-<td style="text-align:left">R12</td>
-<td style="text-align:left">ip</td>
-<td style="text-align:left">指令指针，内部过程调用寄存器</td>
-</tr>
-<tr>
-<td style="text-align:left">R13</td>
-<td style="text-align:left">sp</td>
-<td style="text-align:left">栈指针</td>
-</tr>
-<tr>
-<td style="text-align:left">R14</td>
-<td style="text-align:left">lr</td>
-<td style="text-align:left">返回地址，连接寄存器</td>
-</tr>
-<tr>
-<td style="text-align:left">R15</td>
-<td style="text-align:left">pc</td>
-<td style="text-align:left">程序计数器</td>
-</tr>
-</tbody>
-</table>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1939,7 +2083,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-count">62</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

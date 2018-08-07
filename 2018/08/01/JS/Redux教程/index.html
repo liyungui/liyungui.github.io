@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="介绍动机随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state(状态) 通过限制更新发生的时间和方式，Redux 试图让 state 的变化变得可预测。这些限制条件反映在 Redux 的三大原则中 核心概念Redux核心概念没有任何魔法。两个普通JavaScript对象，一个普通JavaScript函数用来串联两个对象 90% 的代码都是纯">
+<meta name="description" content="基础使用动机让 state的变化变得可预测随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state(状态) 通过限制更新发生的时间和方式(三大原则)，让 state的变化变得可预测。 易于测试 不需要模拟任何东西，因为它们都是纯函数。 只需dispatch(action)，断言state变化，写测试就是这么简单  核心概念Redux核心概念没有">
 <meta name="keywords" content="JS,Redux">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redux教程">
 <meta property="og:url" content="http://yoursite.com/2018/08/01/JS/Redux教程/index.html">
 <meta property="og:site_name" content="风">
-<meta property="og:description" content="介绍动机随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state(状态) 通过限制更新发生的时间和方式，Redux 试图让 state 的变化变得可预测。这些限制条件反映在 Redux 的三大原则中 核心概念Redux核心概念没有任何魔法。两个普通JavaScript对象，一个普通JavaScript函数用来串联两个对象 90% 的代码都是纯">
+<meta property="og:description" content="基础使用动机让 state的变化变得可预测随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state(状态) 通过限制更新发生的时间和方式(三大原则)，让 state的变化变得可预测。 易于测试 不需要模拟任何东西，因为它们都是纯函数。 只需dispatch(action)，断言state变化，写测试就是这么简单  核心概念Redux核心概念没有">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-08-01T09:01:05.551Z">
+<meta property="og:updated_time" content="2018-08-07T11:57:15.713Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Redux教程">
-<meta name="twitter:description" content="介绍动机随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state(状态) 通过限制更新发生的时间和方式，Redux 试图让 state 的变化变得可预测。这些限制条件反映在 Redux 的三大原则中 核心概念Redux核心概念没有任何魔法。两个普通JavaScript对象，一个普通JavaScript函数用来串联两个对象 90% 的代码都是纯">
+<meta name="twitter:description" content="基础使用动机让 state的变化变得可预测随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state(状态) 通过限制更新发生的时间和方式(三大原则)，让 state的变化变得可预测。 易于测试 不需要模拟任何东西，因为它们都是纯函数。 只需dispatch(action)，断言state变化，写测试就是这么简单  核心概念Redux核心概念没有">
 
 
 
@@ -330,22 +330,29 @@
       
 
       
-        <h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><h2 id="动机"><a href="#动机" class="headerlink" title="动机"></a>动机</h2><p>随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state(状态)</p>
-<p>通过限制更新发生的时间和方式，<strong>Redux 试图让 state 的变化变得可预测</strong>。这些限制条件反映在 Redux 的三大原则中</p>
+        <h1 id="基础使用"><a href="#基础使用" class="headerlink" title="基础使用"></a>基础使用</h1><h2 id="动机"><a href="#动机" class="headerlink" title="动机"></a>动机</h2><h3 id="让-state的变化变得可预测"><a href="#让-state的变化变得可预测" class="headerlink" title="让 state的变化变得可预测"></a>让 state的变化变得可预测</h3><p>随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state(状态)</p>
+<p>通过限制更新发生的时间和方式(三大原则)，让 state的变化变得可预测。</p>
+<h3 id="易于测试"><a href="#易于测试" class="headerlink" title="易于测试"></a>易于测试</h3><ul>
+<li>不需要模拟任何东西，因为它们都是纯函数。</li>
+<li>只需<strong>dispatch(action)，断言state变化</strong>，写测试就是这么简单</li>
+</ul>
 <h2 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h2><p>Redux核心概念没有任何魔法。两个普通JavaScript对象，一个普通JavaScript函数用来串联两个对象</p>
 <p>90% 的代码都是纯 JavaScript，没用 Redux、Redux API 和其它魔法。Redux 里有一些工具来简化这种模式，但是主要的想法是如何根据这些 action 对象来更新 state</p>
 <h3 id="state"><a href="#state" class="headerlink" title="state"></a>state</h3><p><strong>普通JavaScript对象，描述状态</strong></p>
 <p>实例：todo 应用的 state</p>
 <pre><code>{
   todos: [{
+    id: 1
     text: &apos;Eat food&apos;,
     completed: true
   }, {
+    id: 2
     text: &apos;Exercise&apos;,
     completed: false
   }],
   visibilityFilter: &apos;SHOW_COMPLETED&apos;
 }
+    visibilityFilter取值：SHOW_ALL,SHOW_ACTIVE
 </code></pre><h3 id="action"><a href="#action" class="headerlink" title="action"></a>action</h3><p><strong>普通JavaScript对象，描述已发生事件</strong></p>
 <ul>
 <li>必须使用一个字符串类型的 <code>type</code> 字段来表示将要执行的动作<ul>
@@ -357,7 +364,7 @@
 </ul>
 <p>实例</p>
 <pre><code>{ type: &apos;ADD_TODO&apos;, text: &apos;Go to swimming pool&apos; }
-{ type: &apos;TOGGLE_TODO&apos;, index: 1 }
+{ type: &apos;TOGGLE_TODO&apos;, id: 1 }
 { type: &apos;SET_VISIBILITY_FILTER&apos;, filter: &apos;SHOW_ALL&apos; }
 </code></pre><p>实例</p>
 <pre><code>const ADD_TODO = &apos;ADD_TODO&apos;
@@ -365,28 +372,40 @@
 import { ADD_TODO, REMOVE_TODO } from &apos;../actionTypes&apos;
 { type: ADD_TODO, text: &apos;Build my first Redux app&apos; }
 </code></pre><h4 id="action-创建函数"><a href="#action-创建函数" class="headerlink" title="action 创建函数"></a>action 创建函数</h4><p>生成 action 的方法</p>
-<pre><code>function addTodo(text) {
-  return {
-    type: ADD_TODO,
-    text
-  }
-}
+<pre><code>let nextTodoId = 0
+export const addTodo = text =&gt; ({
+  type: &apos;ADD_TODO&apos;,
+  id: nextTodoId++,
+  text
+})
 </code></pre><h3 id="reducers"><a href="#reducers" class="headerlink" title="reducers"></a>reducers</h3><p><strong>普通JavaScript函数，描述action如何改变state</strong></p>
 <p><strong>接收 state 和 action，并返回新的 state</strong></p>
-<p><strong>永远保持 reducer 纯净非常重要</strong>。即：<strong>只单纯执行计算。只要传入参数相同，返回计算得到的 state 就一定相同。没有特殊情况、没有副作用，没有 API 请求、没有变量修改。</strong></p>
+<p><strong>是纯函数</strong>。保持 reducer 纯净非常重要，只单纯执行计算</p>
 <ul>
-<li>不修改传入参数；</li>
-<li>不执行有副作用的操作<ul>
-<li>如 API 请求和路由跳转；</li>
+<li><strong>相同的输入必须产生相同的输出</strong><ul>
+<li>只要传入参数相同，每次返回计算得到的 state 就一定相同</li>
 </ul>
 </li>
-<li>不调用非纯函数<ul>
-<li>如 Date.now() 或 Math.random()。</li>
+<li><strong>不修改传入参数</strong></li>
+<li>不执行有副作用的操作<ul>
+<li>如 API 请求和路由跳转；<ul>
+<li>这些应该在 dispatch action 前发生</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>不调用非纯函数</strong><ul>
+<li>如 Date.now() 或 Math.random()。不能保证每次输出一致</li>
 </ul>
 </li>
 </ul>
 <p><strong>Redux 首次执行时，state 为 undefined，此时我们可借机设置并返回应用的初始 state</strong></p>
-<p>实际开发中，一般编写很多小reducer函数来分别管理 state 的一部分：</p>
+<h4 id="根reducer"><a href="#根reducer" class="headerlink" title="根reducer"></a>根reducer</h4><ul>
+<li>调用你的一系列 reducer</li>
+<li>每个 reducer 处理 根据 key 筛选出 state 中的那部分数据</li>
+<li>将所有 reducer 的结果合并成一个大的对象 返回</li>
+</ul>
+<p>实际开发中，一般编写很多小reducer函数来分别管理 state 的一部分，再开发一个 根reducer 调用这些 reducer，实现管理整个应用的 state</p>
 <pre><code>function visibilityFilter(state = &apos;SHOW_ALL&apos;, action) {
   switch (action.type) {
     case &apos;SET_VISIBILITY_FILTER&apos;:
@@ -397,11 +416,28 @@ import { ADD_TODO, REMOVE_TODO } from &apos;../actionTypes&apos;
 }
 
 function todos(state = [], action) {
-      switch (action.type) {
-    ...
+    switch (action.type) {
+        case &apos;ADD_TODO&apos;:
+          return [
+            ...state,
+            {
+              id: action.id,
+              text: action.text,
+              completed: false
+            }
+          ]
+        case &apos;TOGGLE_TODO&apos;:
+          return state.map(todo =&gt;
+            (todo.id === action.id)
+              ? {...todo, completed: !todo.completed}
+              : todo
+          )
+        default:
+          return state
+      }
 }
-</code></pre><p>再开发一个 reducer 调用这两个 reducer，进而来管理整个应用的 state：</p>
-<pre><code>const initialState = {
+
+const initialState = {
   visibilityFilter: VisibilityFilters.SHOW_ALL,
   todos: []
 };
@@ -412,7 +448,72 @@ function todoApp(state = initialState, action) {
     visibilityFilter: visibilityFilter(state.visibilityFilter, action)
   };
 }
-</code></pre><h2 id="三大原则"><a href="#三大原则" class="headerlink" title="三大原则"></a>三大原则</h2><h3 id="单一数据源"><a href="#单一数据源" class="headerlink" title="单一数据源"></a>单一数据源</h3><p><strong>单一的 state tree: 整个应用的 state 被储存在一棵 object tree 中，并且这个 object tree 只存在于唯一一个 store 中。</strong></p>
+</code></pre><h4 id="combineReducers-reducers"><a href="#combineReducers-reducers" class="headerlink" title="combineReducers(reducers)"></a>combineReducers(reducers)</h4><p><strong>生成一个根reducer函数</strong></p>
+<p>完全等价上面的todoApp()。</p>
+<pre><code>import { combineReducers } from &apos;redux&apos;
+const todoApp = combineReducers({
+  visibilityFilter,
+  todos
+})
+    使用了简写，因为键值对同名，省略key
+</code></pre><h5 id="最简洁写法"><a href="#最简洁写法" class="headerlink" title="最简洁写法"></a>最简洁写法</h5><p><strong>不推荐</strong>。会造成 reducer 爆炸，而且不合符开闭原则。</p>
+<p><strong>推荐每个reducer一个单独文件</strong></p>
+<ul>
+<li>将所有顶级的 reducer 放到一个独立的文件中</li>
+<li>通过 export 暴露出每个 reducer 函数</li>
+<li>使用 import * as reducers 得到一个以它们名字作为 key 的 object，可以直接传给combineReducers()</li>
+</ul>
+<p>实例：</p>
+<pre><code>import { combineReducers } from &apos;redux&apos;
+import * as reducers from &apos;./reducers&apos;
+
+const todoApp = combineReducers(reducers)
+</code></pre><h3 id="store"><a href="#store" class="headerlink" title="store"></a>store</h3><p><strong>Redux对象，联系Action和Reducer</strong></p>
+<ul>
+<li><strong>单一store</strong></li>
+<li><strong>单一 state tree</strong></li>
+</ul>
+<h4 id="store职责"><a href="#store职责" class="headerlink" title="store职责"></a>store职责</h4><ul>
+<li><strong>管理 state</strong>；<ul>
+<li>获取 state，getState()</li>
+<li>更新 state，dispatch(action)</li>
+</ul>
+</li>
+<li><strong>管理 state监听器</strong> 状态有更新，回调监听器<ul>
+<li>注册监听器，subscribe(listener)</li>
+<li>注销监听器，通过 subscribe(listener) 返回的函数来注销</li>
+</ul>
+</li>
+</ul>
+<h4 id="创建-store"><a href="#创建-store" class="headerlink" title="创建 store"></a>创建 store</h4><p><strong>createStore(reducer, [preloadedState], enhancer)</strong></p>
+<ul>
+<li>reducer<ul>
+<li>function，使用 combineReducers() 将多个 reducer 合并成为一个。</li>
+</ul>
+</li>
+<li>preloadedState<ul>
+<li>可选。 设置 state 初始状态</li>
+</ul>
+</li>
+<li>enhancer <ul>
+<li>可选。 function，是一个组合 store creator 的高阶函数，返回一个新的强化过的 store creator</li>
+</ul>
+</li>
+</ul>
+<p>实例：监听器管理</p>
+<pre><code>// subscribe() 返回一个函数用来注销监听器
+const unsubscribe = store.subscribe(() =&gt;
+  console.log(store.getState())
+)
+
+// 停止监听 state 更新
+unsubscribe();
+</code></pre><h3 id="严格的单向数据流"><a href="#严格的单向数据流" class="headerlink" title="严格的单向数据流"></a>严格的单向数据流</h3><p><strong>意味着数据都遵循相同的生命周期</strong></p>
+<h4 id="调用-store-dispatch-action"><a href="#调用-store-dispatch-action" class="headerlink" title="调用 store.dispatch(action)"></a>调用 store.dispatch(action)</h4><h4 id="Redux-store-调用传入的根-reducer-函数"><a href="#Redux-store-调用传入的根-reducer-函数" class="headerlink" title="Redux store 调用传入的根 reducer 函数"></a>Redux store 调用传入的根 reducer 函数</h4><p>createStore(reducer)时传入的，是根 reducer</p>
+<h4 id="Redux-store-保存了根-reducer-返回的完整-state-树"><a href="#Redux-store-保存了根-reducer-返回的完整-state-树" class="headerlink" title="Redux store 保存了根 reducer 返回的完整 state 树"></a>Redux store 保存了根 reducer 返回的完整 state 树</h4><p>现在，可以应用新的 state 来更新 UI</p>
+<p>如果你使用了 React Redux 这类的绑定库，这时就应该调用 component.setState(newState) 来更新 UI</p>
+<p>所有注册的监听器都将被调用</p>
+<h2 id="三大原则"><a href="#三大原则" class="headerlink" title="三大原则"></a>三大原则</h2><h3 id="单一数据源"><a href="#单一数据源" class="headerlink" title="单一数据源"></a>单一数据源</h3><p><strong>单一的 state tree: 整个应用的 state 被储存在一棵 object tree 中，并且这个 object tree 只存在于唯一一个 store 中。</strong></p>
 <pre><code>store.getState()
 </code></pre><h3 id="State-是只读的"><a href="#State-是只读的" class="headerlink" title="State 是只读的"></a>State 是只读的</h3><p><strong>唯一改变 state 的方法就是触发 action</strong></p>
 <pre><code>store.dispatch({
@@ -428,23 +529,201 @@ function todoApp(state = initialState, action) {
 <li><strong>action是store数据的唯一来源</strong></li>
 </ul>
 <h3 id="使用纯函数来执行修改"><a href="#使用纯函数来执行修改" class="headerlink" title="使用纯函数来执行修改"></a>使用纯函数来执行修改</h3><p><strong>编写 reducers 描述 action 如何改变 state tree </strong></p>
-<pre><code>function visibilityFilter(state = &apos;SHOW_ALL&apos;, action) {
-  switch (action.type) {
-    case &apos;SET_VISIBILITY_FILTER&apos;:
-      return action.filter
+<h2 id="搭配-React"><a href="#搭配-React" class="headerlink" title="搭配 React"></a>搭配 React</h2><p>Redux 和 React 之间没有关系。</p>
+<p>Redux 支持 React、Angular、Ember、jQuery 甚至纯 JavaScript。</p>
+<p>尽管如此，Redux 还是和 React 和 Deku 这类库搭配起来用最好</p>
+<ul>
+<li>这类库允许你以 state 函数的形式来描述界面</li>
+<li>Redux 通过 action 的形式来发起 state 变化。</li>
+</ul>
+<h3 id="安装-React-Redux"><a href="#安装-React-Redux" class="headerlink" title="安装 React Redux"></a>安装 React Redux</h3><p>Redux 默认并不包含 React 绑定库，需要单独安装</p>
+<pre><code>npm install --save react-redux
+</code></pre><h3 id="容器组件和展示组件"><a href="#容器组件和展示组件" class="headerlink" title="容器组件和展示组件"></a>容器组件和展示组件</h3><p><strong>将组件分为两类，更易于复用和维护</strong></p>
+<ul>
+<li>Container和Presentational Components</li>
+<li>Fat和Skinny</li>
+<li>Smart和Dumb</li>
+<li>Stateful和Pure</li>
+</ul>
+<p>甚至直接称为：</p>
+<ul>
+<li>Screens和Components</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>展示组件</th>
+<th>容器组件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>作用</td>
+<td>描述如何展现（骨架、样式）</td>
+<td>描述如何运行（数据来源获取、状态更新）</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>一般没有。有UI状态而不是数据</td>
+<td>有。往往充当数据源，给其他组件提供数据和行为</td>
+</tr>
+<tr>
+<td>直接使用Redux</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>数据来源</td>
+<td>props</td>
+<td>监听 Redux state</td>
+</tr>
+<tr>
+<td>数据修改</td>
+<td>从 props 调用回调函数</td>
+<td>向 Redux 派发 actions</td>
+</tr>
+<tr>
+<td>创建方式</td>
+<td>手动，一般常用函数式无状态组件实现</td>
+<td>通常用 React Redux的connect() 生成</td>
+</tr>
+<tr>
+<td>示例</td>
+<td>Page，Sidebar，Story，List</td>
+<td>UserPage，FollowersSidebar，StoryContainer，FollowedUserList</td>
+</tr>
+</tbody>
+</table>
+<p><strong>展示组件只定义外观并不关心数据来源和如何改变。传入什么就渲染什么</strong></p>
+<p><strong>大部分的组件都应该是展示型的，但需要少数的几个容器组件把它们和 Redux store 连接起来</strong></p>
+<p><strong>有时偶尔混用 容器和展示。</strong> 比如 含有“Add”按钮的输入框</p>
+<h3 id="传入-Store"><a href="#传入-Store" class="headerlink" title="传入 Store"></a>传入 Store</h3><p><strong>容器组件需要使用store来获取state</strong>。有两种方法</p>
+<ul>
+<li>把store以 props 的形式传入到所有容器组件中。<ul>
+<li>太麻烦</li>
+<li>必须要用 store 把展示组件包裹一层</li>
+</ul>
+</li>
+<li><strong>使用 React Redux 组件 <code>&lt;Provider&gt;</code></strong> <ul>
+<li>不必显示地传递store，只需要在渲染根组件时使用即可</li>
+<li>让Provider内所有容器组件都可以访问 store</li>
+</ul>
+</li>
+</ul>
+<p>实例：index.js</p>
+<pre><code>let store = createStore(todoApp)
+
+render(
+  &lt;Provider store={store}&gt;
+    &lt;App /&gt;
+  &lt;/Provider&gt;,
+  document.getElementById(&apos;root&apos;)
+)
+
+    API：render(element,container)。实例是获取首页id为root的div
+</code></pre><h3 id="React-Redux的connect"><a href="#React-Redux的connect" class="headerlink" title="React Redux的connect()"></a>React Redux的connect()</h3><p><strong>容器组件 通常用 React Redux的connect() 生成</strong></p>
+<ul>
+<li><p>这个方法做了性能优化来避免很多不必要的重复渲染。</p>
+<ul>
+<li>不必为了性能而手动实现 React 性能优化建议 中的 shouldComponentUpdate()。</li>
+</ul>
+</li>
+<li><p>实现原理：使用 store.subscribe() 从 Redux state 树中读取部分数据，并通过 props 把这些数据提供给要渲染的组件</p>
+</li>
+</ul>
+<h3 id="实现容器组件"><a href="#实现容器组件" class="headerlink" title="实现容器组件"></a>实现容器组件</h3><p>容器组件管理数据(state)，涉及到<strong>读取和修改</strong></p>
+<ul>
+<li>读取数据后，需要把state映射到展示组件的props中<ul>
+<li>定义 <code>mapStateToProps()</code> 指定映射规则</li>
+</ul>
+</li>
+<li>修改数据是通过dispatch(action)实现，需要把action映射为期望注入展示组件的props中的回调方法<ul>
+<li>定义 <code>mapDispatchToProps()</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="实例：FilterLink"><a href="#实例：FilterLink" class="headerlink" title="实例：FilterLink"></a>实例：FilterLink</h4><ul>
+<li><strong>FilterLink</strong> 得到当前过滤器并渲染 Link<ul>
+<li><strong>Link</strong> 带有 callback 回调功能的链接<ul>
+<li>onClick() 当点击链接时会触发</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>代码</p>
+<pre><code>import { connect } from &apos;react-redux&apos;
+import { setVisibilityFilter } from &apos;../actions&apos;
+import Link from &apos;../components/Link&apos;
+
+const mapStateToProps = (state, ownProps) =&gt; ({
+  active: ownProps.filter === state.visibilityFilter
+})
+
+const mapDispatchToProps = (dispatch, ownProps) =&gt; ({
+  onClick: () =&gt; dispatch(setVisibilityFilter(ownProps.filter))
+})//点击发送SET_VISIBILITY_FILTER的action
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Link)
+</code></pre><h4 id="实例：VisibleTodoList"><a href="#实例：VisibleTodoList" class="headerlink" title="实例：VisibleTodoList"></a>实例：VisibleTodoList</h4><ul>
+<li><strong>VisibleTodoList</strong> 根据当前显示的状态来对 todo 列表进行过滤，并渲染 TodoList<ul>
+<li><strong>TodoList</strong> 用于显示 todos 列表。<ul>
+<li>todos: Array 以 { text, completed } 形式显示的 todo 项数组。</li>
+<li>onTodoClick(index: number) 当 todo 项被点击时调用的回调函数。</li>
+</ul>
+</li>
+<li><strong>Todo</strong> 一个 todo 项。<ul>
+<li>text: string 显示的文本内容。</li>
+<li>completed: boolean todo 项是否显示删除线。</li>
+<li>onClick() 当 todo 项被点击时调用的回调函数。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>代码</p>
+<pre><code>import { connect } from &apos;react-redux&apos;
+import { toggleTodo } from &apos;../actions&apos;
+import TodoList from &apos;../components/TodoList&apos;
+import { VisibilityFilters } from &apos;../actions&apos;
+
+const getVisibleTodos = (todos, filter) =&gt; {
+  switch (filter) {
+    case VisibilityFilters.SHOW_ALL:
+      return todos
+    case VisibilityFilters.SHOW_COMPLETED:
+      return todos.filter(t =&gt; t.completed)
+    case VisibilityFilters.SHOW_ACTIVE:
+      return todos.filter(t =&gt; !t.completed)
     default:
-      return state
+      throw new Error(&apos;Unknown filter: &apos; + filter)
   }
 }
 
-function todos(state = [], action) {
-      switch (action.type) {
-    ...
-}
+const mapStateToProps = state =&gt; ({
+  todos: getVisibleTodos(state.todos, state.visibilityFilter)
+})
 
-import { combineReducers, createStore } from &apos;redux&apos;
-let reducer = combineReducers({ visibilityFilter, todos })
-let store = createStore(reducer)
+const mapDispatchToProps = dispatch =&gt; ({
+  toggleTodo: id =&gt; dispatch(toggleTodo(id))
+})//点击发送TOGGLE_TODO的action
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TodoList)
+</code></pre><h4 id="reselect计算衍生数据"><a href="#reselect计算衍生数据" class="headerlink" title="reselect计算衍生数据"></a>reselect计算衍生数据</h4><p>如果你担心 mapStateToProps 创建新对象太过频繁，可以学习如何使用 reselect 来 计算衍生数据</p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><h3 id="Todos"><a href="#Todos" class="headerlink" title="Todos"></a>Todos</h3><pre><code>git clone https://github.com/reactjs/redux.git
+
+cd redux/examples/todos
+npm install
+npm start
+
+open http://localhost:3000/
 </code></pre>
       
     </div>
@@ -570,7 +849,7 @@ let store = createStore(reducer)
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-count">62</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -616,7 +895,7 @@ let store = createStore(reducer)
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#动机"><span class="nav-number">1.1.</span> <span class="nav-text">动机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心概念"><span class="nav-number">1.2.</span> <span class="nav-text">核心概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#state"><span class="nav-number">1.2.1.</span> <span class="nav-text">state</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#action"><span class="nav-number">1.2.2.</span> <span class="nav-text">action</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#action-创建函数"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">action 创建函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reducers"><span class="nav-number">1.2.3.</span> <span class="nav-text">reducers</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三大原则"><span class="nav-number">1.3.</span> <span class="nav-text">三大原则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#单一数据源"><span class="nav-number">1.3.1.</span> <span class="nav-text">单一数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#State-是只读的"><span class="nav-number">1.3.2.</span> <span class="nav-text">State 是只读的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用纯函数来执行修改"><span class="nav-number">1.3.3.</span> <span class="nav-text">使用纯函数来执行修改</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基础使用"><span class="nav-number">1.</span> <span class="nav-text">基础使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#动机"><span class="nav-number">1.1.</span> <span class="nav-text">动机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#让-state的变化变得可预测"><span class="nav-number">1.1.1.</span> <span class="nav-text">让 state的变化变得可预测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#易于测试"><span class="nav-number">1.1.2.</span> <span class="nav-text">易于测试</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心概念"><span class="nav-number">1.2.</span> <span class="nav-text">核心概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#state"><span class="nav-number">1.2.1.</span> <span class="nav-text">state</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#action"><span class="nav-number">1.2.2.</span> <span class="nav-text">action</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#action-创建函数"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">action 创建函数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#reducers"><span class="nav-number">1.2.3.</span> <span class="nav-text">reducers</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#根reducer"><span class="nav-number">1.2.3.1.</span> <span class="nav-text">根reducer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#combineReducers-reducers"><span class="nav-number">1.2.3.2.</span> <span class="nav-text">combineReducers(reducers)</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#最简洁写法"><span class="nav-number">1.2.3.2.1.</span> <span class="nav-text">最简洁写法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#store"><span class="nav-number">1.2.4.</span> <span class="nav-text">store</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#store职责"><span class="nav-number">1.2.4.1.</span> <span class="nav-text">store职责</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建-store"><span class="nav-number">1.2.4.2.</span> <span class="nav-text">创建 store</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#严格的单向数据流"><span class="nav-number">1.2.5.</span> <span class="nav-text">严格的单向数据流</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#调用-store-dispatch-action"><span class="nav-number">1.2.5.1.</span> <span class="nav-text">调用 store.dispatch(action)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redux-store-调用传入的根-reducer-函数"><span class="nav-number">1.2.5.2.</span> <span class="nav-text">Redux store 调用传入的根 reducer 函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redux-store-保存了根-reducer-返回的完整-state-树"><span class="nav-number">1.2.5.3.</span> <span class="nav-text">Redux store 保存了根 reducer 返回的完整 state 树</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三大原则"><span class="nav-number">1.3.</span> <span class="nav-text">三大原则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#单一数据源"><span class="nav-number">1.3.1.</span> <span class="nav-text">单一数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#State-是只读的"><span class="nav-number">1.3.2.</span> <span class="nav-text">State 是只读的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用纯函数来执行修改"><span class="nav-number">1.3.3.</span> <span class="nav-text">使用纯函数来执行修改</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#搭配-React"><span class="nav-number">1.4.</span> <span class="nav-text">搭配 React</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装-React-Redux"><span class="nav-number">1.4.1.</span> <span class="nav-text">安装 React Redux</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#容器组件和展示组件"><span class="nav-number">1.4.2.</span> <span class="nav-text">容器组件和展示组件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#传入-Store"><span class="nav-number">1.4.3.</span> <span class="nav-text">传入 Store</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#React-Redux的connect"><span class="nav-number">1.4.4.</span> <span class="nav-text">React Redux的connect()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现容器组件"><span class="nav-number">1.4.5.</span> <span class="nav-text">实现容器组件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#实例：FilterLink"><span class="nav-number">1.4.5.1.</span> <span class="nav-text">实例：FilterLink</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#实例：VisibleTodoList"><span class="nav-number">1.4.5.2.</span> <span class="nav-text">实例：VisibleTodoList</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#reselect计算衍生数据"><span class="nav-number">1.4.5.3.</span> <span class="nav-text">reselect计算衍生数据</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实例"><span class="nav-number">1.5.</span> <span class="nav-text">实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Todos"><span class="nav-number">1.5.1.</span> <span class="nav-text">Todos</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
