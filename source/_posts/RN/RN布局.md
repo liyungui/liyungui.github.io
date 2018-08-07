@@ -151,10 +151,10 @@ React Native中的Flexbox的工作原理和web上的CSS基本一致，当然也�
 
 **方向**
 
-- row。上下
-- row-reverse。下上
-- column。左右**默认值**
-- colum-reverse。右左
+- row。左右
+- row-reverse。右左
+- column。上下**默认值**
+- colum-reverse。下上右左
 
 ## justifyContent 和 alignItems ##
 
