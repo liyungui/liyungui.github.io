@@ -232,6 +232,11 @@ android\node_modules 是原来Android项目就有的。
 
 重新运行，调试成功
 
+## 小技巧 ##
+
+APP和调试服务器并没有绑定。即任一APP都可以读取本地调试服务器的bundle
+
+如果某个工程无法运行调试，就可以把js代码复制到sample project进行调试
 
 
 
