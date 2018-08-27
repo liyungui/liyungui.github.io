@@ -262,6 +262,212 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/24/Android/X5内核使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/24/Android/X5内核使用/" itemprop="url">X5内核使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-24T15:40:53+08:00">
+                2018-08-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="X5内核概述"><a href="#X5内核概述" class="headerlink" title="X5内核概述"></a>X5内核概述</h1><ul>
+<li>对系统WebView的聚合包装</li>
+<li>加载失败会切换到系统内核</li>
+<li>当手机上有宿主（QQ、微信或QQ空间）时共享宿主的内核，没有可用的内核时会自己去下载内核</li>
+</ul>
+<h1 id="坑"><a href="#坑" class="headerlink" title="坑"></a>坑</h1><p>项目使用的是版本 <code>43500SDK_43656Core</code></p>
+<h2 id="暂时不提供64位的so文件"><a href="#暂时不提供64位的so文件" class="headerlink" title="暂时不提供64位的so文件"></a>暂时不提供64位的so文件</h2><p>解决方案：强制APP使用32位so</p>
+<ul>
+<li><p>指定只保留32位so库</p>
+<pre><code>android{
+    defaultConfig{
+        ndk{abiFilters &quot;armeabi&quot;}
+    }
+}
+
+如果配置后编译报错，在gradle.properties文件中加上 Android.useDeprecatedNdk=true； 
+</code></pre></li>
+<li><p>指定目录下必须有so文件(否则打包无该目录)</p>
+<pre><code>build.gradle中配置的so加载目录:jniLibs.srcDir:customerDir
+
+如果没有该项配置则so加载目录默认为：src/main/jniLibs
+
+将.so文件放置该目录的armeabi文件夹下
+    没有该目录则新建一个
+    APP中没有使用到.so文件则需要拷贝任意一个32位的so文件到该目录下
+        如果没有合适的so可以到官网http://x5.tencent.com/tbs/sdk.html下载官网“SDK接入示例“,拷贝对应目录下的liblbs.so文件
+</code></pre></li>
+</ul>
+<h2 id="如何判断已加载了x5内核"><a href="#如何判断已加载了x5内核" class="headerlink" title="如何判断已加载了x5内核"></a>如何判断已加载了x5内核</h2><p>参考sdk说明文件之 <code>无法加载x5内核的解决方案.doc</code></p>
+<ol>
+<li>webview的<strong>getX5WebViewExtension()</strong>返回非null表示已加载了x5内核webview</li>
+<li>app打开<a href="http://soft.imtt.qq.com/browser/tes/feedback.html" target="_blank" rel="noopener">测试网页</a>，显示000000表示加载的是系统内核，显示大于零的数字表示加载了x5内核（该数字是x5内核版本号）</li>
+</ol>
+<h3 id="共享使用微信手Q的内核"><a href="#共享使用微信手Q的内核" class="headerlink" title="共享使用微信手Q的内核"></a>共享使用微信手Q的内核</h3><p>微信扫下面的二维码打开网页，如果显示的数字是00000说明您的手机微信没有安装内核</p>
+<p>微信扫下面的二维码安装内核43906版本</p>
+<h2 id="初次初始化失败"><a href="#初次初始化失败" class="headerlink" title="初次初始化失败"></a>初次初始化失败</h2><p>经测试，第一次启动APP(Application中)加载X5内核，很大概率失败，重启即可加载成功。解决方案比较暴力，<strong>初始化失败重启APP</strong></p>
+<p>下载的X5内核存储在 <code>sd卡/tencent/tbs</code>，只会下载一次(即删除该目录，重启APP也不会重新下载，测试过程无数次恢复出厂设置)</p>
+<p>wifi条件下下载x5内核24M左右，耗时90秒左右</p>
+<pre><code>QbSdk.setDownloadWithoutWifi(true);//默认只允许在WiFi环境下载
+
+//监控内核初始化状态
+QbSdk.initX5Environment(sContext, new QbSdk.PreInitCallback() {
+    @Override
+    public void onCoreInitFinished() {
+        Logger.d(String.format(&quot;%s:onCoreInitFinished:&quot;, TAG));
+    }
+
+    /**
+     * X5内核初始化后回调，在onCoreInitFinished()之后
+     * @param isX5Core ，true表示X5内核加载成功。加载失败会切换到系统内核
+     */
+    @Override
+    public void onViewInitFinished(boolean isX5Core) {
+        mX5InitSuccess = b;
+        Logger.d(String.format(&quot;%s:onViewInitFinished:%b&quot;, TAG, b));
+        if (!b &amp;&amp; handler != null) {
+            handler.onInitErrot();
+        }
+    }
+});
+
+//监控内核下载状态
+QbSdk.setTbsListener(new TbsListener() {
+    @Override
+    public void onDownloadFinish(int i) {
+        Logger.d(String.format(&quot;%s:onDownloadFinish:%d&quot;, TAG, i));
+    }
+
+    @Override
+    public void onInstallFinish(int i) {
+        Logger.d(String.format(&quot;%s:onInstallFinish:%d&quot;, TAG, i));
+    }
+
+    @Override
+    public void onDownloadProgress(int i) {
+        Logger.d(String.format(&quot;%s:onDownloadProgress:%d&quot;, TAG, i));
+    }
+});
+</code></pre><h2 id="静态继承"><a href="#静态继承" class="headerlink" title="静态继承"></a>静态继承</h2><p>X5内核大小约24M，对App包大小产生一定量的增加</p>
+<p>如下<a href="http://soft.tbs.imtt.qq.com/17421/tbs_res_imtt_tbs_release_integrateWithX5core_43500SDK_43656Core.zip" target="_blank" rel="noopener">下载地址</a>是静态集成X5内核的方法</p>
+<p>1.导入jar包:</p>
+<pre><code>tbs_sdk_thirdapp_v3.5.0.1063_43500_staticwithdownload_withoutGame_obfs_20171011_195714.jar
+</code></pre><p>2.导入内核文件</p>
+<pre><code>将解压tbs_core_3.6.0.1108_043656_20171123_120752_static.apk得到的.so文件放入工程的src/mian/libs目录下。
+</code></pre><p>3.按照官网指引进行替换系统webview</p>
+<pre><code>https://x5.tencent.com/tbs/guide/sdkInit.html 参照官网“SDK集成步骤”中的：1、2、3、6、10
+</code></pre><p>打开webview前调用QbSdk.preinstallStaticTbs()。(建议在application的oncreate中异步线程中调用)。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/17/Android/阻止系统Media扫描指定文件夹/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2741,421 +2947,6 @@ open http://localhost:3000/
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/JS/ES6-对象的扩展/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/01/JS/ES6-对象的扩展/" itemprop="url">ES6-对象的扩展</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-01T10:11:20+08:00">
-                2018-08-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="属性简洁表示法"><a href="#属性简洁表示法" class="headerlink" title="属性简洁表示法"></a>属性简洁表示法</h1><p><strong>直接写入变量和函数，作为对象的属性和方法。</strong></p>
-<ul>
-<li>键值对同名。即属性的键名和值名相同<ul>
-<li>属性简写：省略 属性名和冒号</li>
-<li>方法简写：省略 冒号和function<ul>
-<li>方法的值是一个 Generator 函数，前面需要加上星号</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>简洁写法的属性名总是字符串</li>
-<li>属性名是字符串，直接取变量名;属性值是变量值</li>
-</ul>
-<p>实例</p>
-<pre><code>function people(name, age) {
-    return {
-        name: name,
-        age: age
-        getName: function() {
-            console.log(this.name)
-        }
-    };
-}
-
-function people(name, age) {
-    return {
-        name,
-        age
-        getName () {
-            console.log(this.name)
-        }
-    };
-}
-
-const obj = {
-  * m() {
-    yield &apos;hello world&apos;;
-  }
-};
-
-const foo = &apos;bar&apos;;
-const baz = {foo};
-baz // {foo: &quot;bar&quot;}//属性名是字符串，直接取变量名;属性值是变量值
-// 等同于
-const baz = {foo: foo};
-
-const obj = {
-  class () {}
-};
-// 等同于
-var obj = {
-  &apos;class&apos;: function() {}
-};
-</code></pre><h1 id="属性名表达式"><a href="#属性名表达式" class="headerlink" title="属性名表达式"></a>属性名表达式</h1><p>ES6 允许<strong>字面量定义对象(使用大括号)</strong>时，<strong>用表达式作为对象的属性名</strong> 即把表达式放在方括号内</p>
-<pre><code>let lastWord = &apos;last word&apos;;
-const a = {
-  &apos;first word&apos;: &apos;hello&apos;,
-  [lastWord]: &apos;world&apos;
-};
-a[&apos;first word&apos;] // &quot;hello&quot;
-a[lastWord] // &quot;world&quot;
-a[&apos;last word&apos;] // &quot;world&quot;
-</code></pre><p><strong>属性名表达式与简洁表示法，不能同时使用</strong>，会报错。</p>
-<pre><code>// 报错
-const foo = &apos;bar&apos;;
-const bar = &apos;abc&apos;;
-const baz = { [foo] };
-
-// 正确
-const foo = &apos;bar&apos;;
-const baz = { [foo]: &apos;abc&apos;};
-</code></pre><p><strong>属性名表达式是对象，默认情况下自动将对象转为字符串[object Object]</strong></p>
-<pre><code>const keyA = {a: 1};
-const keyB = {b: 2};
-const myObject = {
-  [keyA]: &apos;valueA&apos;,
-  [keyB]: &apos;valueB&apos;
-};
-myObject // Object {[object Object]: &quot;valueB&quot;}
-
-[keyA]和[keyB]得到的都是[object Object]
-所以[keyB]会把[keyA]覆盖掉，而myObject最后只有一个[object Object]属性
-</code></pre><h1 id="属性的可枚举性和遍历"><a href="#属性的可枚举性和遍历" class="headerlink" title="属性的可枚举性和遍历"></a>属性的可枚举性和遍历</h1><h2 id="可枚举性"><a href="#可枚举性" class="headerlink" title="可枚举性"></a>可枚举性</h2><h3 id="描述对象（Descriptor）"><a href="#描述对象（Descriptor）" class="headerlink" title="描述对象（Descriptor）"></a>描述对象（Descriptor）</h3><ul>
-<li>用来控制该属性的行为。</li>
-<li>对象的每个属性都有一个描述对象，</li>
-<li>获取该属性的描述对象 <code>Object.getOwnPropertyDescriptor()</code></li>
-</ul>
-<p>实例：描述对象</p>
-<pre><code>let obj = { foo: 123 };
-Object.getOwnPropertyDescriptor(obj, &apos;foo&apos;)
-//  {
-//    value: 123,
-//    writable: true,
-//    enumerable: true,
-//    configurable: true
-//  }
-</code></pre><h3 id="可枚举性-1"><a href="#可枚举性-1" class="headerlink" title="可枚举性"></a>可枚举性</h3><ul>
-<li><strong>描述对象的enumerable属性</strong></li>
-<li>最初目的，就是让某些属性可以规避掉for…in操作</li>
-</ul>
-<p><strong>目前，有四个操作会忽略enumerable为false的属性。</strong></p>
-<ul>
-<li>for…in循环：只遍历<strong>对象自身</strong>的和<strong>继承</strong>的<strong>可枚举</strong>的属性。</li>
-<li>Object.keys()：返回<strong>对象自身</strong>的所有<strong>可枚举</strong>的属性的键名。</li>
-<li>Object.assign()： 只拷贝<strong>对象自身</strong>的<strong>可枚举</strong>的属性。</li>
-<li>JSON.stringify()：只串行化<strong>对象自身</strong>的<strong>可枚举</strong>的属性。</li>
-</ul>
-<p>实例：toString和length属性不可枚举</p>
-<pre><code>Object.getOwnPropertyDescriptor(Object.prototype, &apos;toString&apos;).enumerable
-// false
-
-Object.getOwnPropertyDescriptor([], &apos;length&apos;).enumerable
-// false
-
-    上面代码中，toString和length属性的enumerable都是false，
-    因此for...in不会遍历到这两个继承自原型的属性。
-</code></pre><p><strong>ES6 规定，所有 Class 的原型的方法都是不可枚举的</strong></p>
-<p>Object.getOwnPropertyDescriptor(class {foo() {}}.prototype, ‘foo’).enumerable<br>// false<br>总的来说，操作中引入继承的属性会让问题复杂化，大多数时候，我们只关心对象自身的属性。所以，尽量不要用for…in循环，而用Object.keys()代替。</p>
-<h2 id="属性的遍历"><a href="#属性的遍历" class="headerlink" title="属性的遍历"></a>属性的遍历</h2><h3 id="五种遍历对象的属性的方法"><a href="#五种遍历对象的属性的方法" class="headerlink" title="五种遍历对象的属性的方法"></a>五种遍历对象的属性的方法</h3><p>ES6 一共有 5 种方法可以遍历对象的属性。</p>
-<h4 id="for…in"><a href="#for…in" class="headerlink" title="for…in"></a>for…in</h4><p>for…in循环遍历<strong>对象自身</strong>的和<strong>继承</strong>的<strong>可枚举属性</strong>（不含 Symbol 属性）。</p>
-<h4 id="Object-keys-obj"><a href="#Object-keys-obj" class="headerlink" title="Object.keys(obj)"></a>Object.keys(obj)</h4><p>Object.keys返回一个数组，包括<strong>对象自身</strong>的（不含继承的）所有<strong>可枚举</strong>属性（不含 Symbol 属性）的键名。</p>
-<h4 id="Object-getOwnPropertyNames-obj"><a href="#Object-getOwnPropertyNames-obj" class="headerlink" title="Object.getOwnPropertyNames(obj)"></a>Object.getOwnPropertyNames(obj)</h4><p>Object.getOwnPropertyNames返回一个数组，包含<strong>对象自身</strong>的所有属性（不含 Symbol 属性，但是包括不可枚举属性）的键名。</p>
-<h4 id="Object-getOwnPropertySymbols-obj"><a href="#Object-getOwnPropertySymbols-obj" class="headerlink" title="Object.getOwnPropertySymbols(obj)"></a>Object.getOwnPropertySymbols(obj)</h4><p>Object.getOwnPropertySymbols返回一个数组，包含<strong>对象自身</strong>的所有 <strong>Symbol</strong> 属性的键名。</p>
-<h4 id="Reflect-ownKeys-obj"><a href="#Reflect-ownKeys-obj" class="headerlink" title="Reflect.ownKeys(obj)"></a>Reflect.ownKeys(obj)</h4><p>Reflect.ownKeys返回一个数组，包含<strong>对象自身</strong>的所有键名，不管键名是 <strong>Symbol</strong> 或字符串，也不管是否可枚举。</p>
-<h3 id="属性遍历次序规则"><a href="#属性遍历次序规则" class="headerlink" title="属性遍历次序规则"></a>属性遍历次序规则</h3><p>以上的 5 种方法遍历对象的键名，都遵守同样的属性遍历次序规则。</p>
-<ul>
-<li>所有数值键，按照数值升序排列。</li>
-<li>所有字符串键，按照加入时间升序排列。</li>
-<li>所有 Symbol 键，按照加入时间升序排列。</li>
-</ul>
-<p>实例：</p>
-<pre><code>Reflect.ownKeys({ [Symbol()]:0, b:0, 10:0, 2:0, a:0 })
-// [&apos;2&apos;, &apos;10&apos;, &apos;b&apos;, &apos;a&apos;, Symbol()]
-上面代码中，Reflect.ownKeys方法返回一个数组，包含了参数对象的所有属性。这个数组的属性次序是这样的，首先是数值属性2和10，其次是字符串属性b和a，最后是 Symbol 属性。
-</code></pre><h1 id="方法的-name-属性"><a href="#方法的-name-属性" class="headerlink" title="方法的 name 属性"></a>方法的 name 属性</h1><p>对象方法也是函数，因此也有name属性，<strong>返回函数名</strong></p>
-<ul>
-<li>对象的方法使用了取值函数(getter)和存值函数(setter)，<ul>
-<li>name属性不在该方法上面</li>
-<li>在该方法的属性的描述对象的get和set属性上面</li>
-<li>返回值是方法名前加上get和set</li>
-</ul>
-</li>
-<li><p>两种特殊情况</p>
-<ul>
-<li>bind方法创造的函数<ul>
-<li>name属性返回bound加上原函数的名字；</li>
-</ul>
-</li>
-<li><p>Function构造函数创造的函数</p>
-<ul>
-<li>name属性返回anonymous<br>实例</li>
-</ul>
-<p>onst obj = {<br>get foo() {},<br>set foo(x) {}<br>};</p>
-<p>obj.foo.name<br>// TypeError: Cannot read property ‘name’ of undefined</p>
-<p>const descriptor = Object.getOwnPropertyDescriptor(obj, ‘foo’);<br>descriptor.get.name // “get foo”<br>descriptor.set.name // “set foo”</p>
-<p>(new Function()).name // “anonymous”</p>
-<p>var doSomething = function() {<br>// …<br>};<br>doSomething.bind().name // “bound doSomething”</p>
-</li>
-</ul>
-</li>
-</ul>
-<h1 id="Object-is"><a href="#Object-is" class="headerlink" title="Object.is()"></a>Object.is()</h1><p><strong>是否严格相等</strong></p>
-<p>比较两个值是否相等三种方法：</p>
-<ul>
-<li>相等运算符（==）<ul>
-<li>缺点：<ul>
-<li><strong>自动转换数据类型</strong></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>严格相等运算符（===）<ul>
-<li>缺点：<ul>
-<li>NaN不等于自身</li>
-<li>+0等于-0</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>is()<br>  -ES6 提出<ul>
-<li>“Same-value equality”（同值相等)算法</li>
-<li>两个值是否<strong>严格相等</strong><ul>
-<li>解决了严格比较运算符（===）的两个缺点</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h1 id="Object-assign"><a href="#Object-assign" class="headerlink" title="Object.assign()"></a>Object.assign()</h1><h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><p><strong>合并对象，将源对象的所有可枚举属性，复制到目标对象</strong></p>
-<pre><code>Object.assign(target, ... source)
-</code></pre><ul>
-<li><strong>浅拷贝</strong></li>
-<li><strong>属性覆盖</strong> 后面的属性会覆盖前面的属性<ul>
-<li>目标对象与源对象有同名属性</li>
-<li>多个源对象有同名属性</li>
-</ul>
-</li>
-<li>只有一个参数<ul>
-<li>直接返回该参数</li>
-</ul>
-</li>
-<li>参数不是对象，自动转成对象<ul>
-<li>非首参(源对象)<ul>
-<li>数值和布尔值，无效果<ul>
-<li>包装对象不产生可枚举属性</li>
-</ul>
-</li>
-<li>字符串，以数组形式拷入目标对象(属性名为元素索引)<ul>
-<li>包装对象产生可枚举属性</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>undefined和null无法转成对象<ul>
-<li>首参，会报错</li>
-<li>非首参，跳过</li>
-</ul>
-</li>
-<li><p>取值函数的处理</p>
-<ul>
-<li><p>求值后复制值<br>实例</p>
-<p>const target = { a: 1, b: 1 };<br>const source1 = { b: 2, c: 2 };<br>const source2 = { c: 3 };<br>Object.assign(target, source1, source2);<br>target // {a:1, b:2, c:3}</p>
-<p>const obj = {a: 1};<br>Object.assign(obj) === obj // true</p>
-<p>Object.assign(undefined) // 报错<br>let obj = {a: 1};<br>Object.assign(obj, undefined) === obj // true</p>
-</li>
-</ul>
-</li>
-</ul>
-<p>实例：字符串的处理，转为数组对象</p>
-<pre><code>const v1 = &apos;abc&apos;;
-const v2 = true;
-const v3 = 10;
-const obj = Object.assign({}, v1, v2, v3);
-console.log(obj); // { &quot;0&quot;: &quot;a&quot;, &quot;1&quot;: &quot;b&quot;, &quot;2&quot;: &quot;c&quot; }
-</code></pre><p>实例：数组对象的处理</p>
-<pre><code>Object.assign([1, 2, 3], [4, 5])
-// [4, 5, 3]
-    把数组视为属性名为 0、1、2 的对象
-    因此源数组的 0 号属性4覆盖了目标数组的 0 号属性1
-</code></pre><p>实例：取值函数的处理</p>
-<pre><code>const source = {
-  get foo() { return 1 }
-};
-const target = {};
-Object.assign(target, source)
-// { foo: 1 }
-</code></pre><h2 id="常见用途"><a href="#常见用途" class="headerlink" title="常见用途"></a>常见用途</h2><h3 id="合并对象-克隆对象"><a href="#合并对象-克隆对象" class="headerlink" title="合并对象/克隆对象"></a>合并对象/克隆对象</h3><h3 id="为对象添加属性"><a href="#为对象添加属性" class="headerlink" title="为对象添加属性"></a>为对象添加属性</h3><p>将x属性和y属性添加到Point类的对象实例</p>
-<p>class Point {<br>  constructor(x, y) {<br>    Object.assign(this, {x, y});<br>  }<br>}</p>
-<h3 id="为对象添加方法"><a href="#为对象添加方法" class="headerlink" title="为对象添加方法"></a>为对象添加方法</h3><pre><code>Object.assign(SomeClass.prototype, {
-  someMethod(arg1, arg2) {
-    ···
-  },
-  anotherMethod() {
-    ···
-  }
-});
-
-// 等同于下面的写法
-SomeClass.prototype.someMethod = function (arg1, arg2) {
-  ···
-};
-SomeClass.prototype.anotherMethod = function () {
-  ···
-};
-</code></pre><h3 id="为属性指定默认值"><a href="#为属性指定默认值" class="headerlink" title="为属性指定默认值"></a>为属性指定默认值</h3><p>EFAULTS对象是默认值，options对象是用户提供的参数</p>
-<p>Object.assign方法将DEFAULTS和options合并成一个新对象，如果两者有同名属性，则option的属性值会覆盖DEFAULTS的属性值</p>
-<pre><code>const DEFAULTS = {
-  logLevel: 0,
-  outputFormat: &apos;html&apos;
-};
-function processContent(options) {
-  options = Object.assign({}, DEFAULTS, options);
-  console.log(options);
-  // ...
-}
-</code></pre><h1 id="对象的扩展运算符"><a href="#对象的扩展运算符" class="headerlink" title="对象的扩展运算符"></a>对象的扩展运算符</h1><p>扩展运算符（<code>...</code>）</p>
-<h2 id="解构赋值"><a href="#解构赋值" class="headerlink" title="解构赋值"></a>解构赋值</h2><p><strong>解构赋值必须是最后一个参数</strong>，否则会报错。</p>
-<pre><code>let { x, y, ...z } = { x: 1, y: 2, a: 3, b: 4 };
-x // 1
-y // 2
-z // { a: 3, b: 4 }
-</code></pre><p><strong>变量声明</strong>语句之中，如果使用<strong>解构赋值</strong>，<strong>扩展运算符</strong>后面必须是一个<strong>变量</strong>名，而不能是一个解构赋值表达式</p>
-<p><strong>扩展运算符的解构赋值，只能复制对象自身的属性</strong>。 继承的属性无法复制</p>
-<pre><code>const o = Object.create({ x: 1, y: 2 });
-o.z = 3;
-let { x, ...newObj } = o;//这里的扩展运算符后只能是变量，所以引入了中间变量newObj
-let { y, z } = newObj;
-x // 1
-y // undefined
-z // 3
-
-变量x是单纯的解构赋值，所以可以读取对象o继承的属性；
-变量y和z是扩展运算符的解构赋值，只能读取对象o自身的属性
-    所以变量z可以赋值成功，变量y取不到值
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -3210,7 +3001,7 @@ z // 3
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-count">66</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
