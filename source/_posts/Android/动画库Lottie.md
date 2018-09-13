@@ -8,7 +8,7 @@ tags:
 
 Lottie 是一个可以解析AE( Adobe After Effects )上的插件Bodymovin导出的json文件(依赖png文件)实现在移动设备上渲染的动画库。
 
-**高效，文件体积小，展示效果好**。比gif体积小，效果好(AE导出gif有白边)
+**高效，文件体积小，展示效果好，控制灵活**。比gif体积小，效果好(AE导出gif有白边)，可以重复播放指定帧指定次数
 
 支持 Android（Jellybean/API16 及以上）和 ios
 

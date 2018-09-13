@@ -259,3 +259,66 @@ Go 语言虽然是静态编译型语言，但是它却拥有脚本化的语法�
 ## 日志 ##
 ## 用户权限 ##
 ## 集群 ##
+
+# demo #
+
+	public static void main(String[] args) {
+        try {
+            private String url = "nats://android:cKCOzJv2ywY20H8a@192.168.30.53:4222";
+            final Connection nc = Nats.connect(url);
+            // Simple Async Subscriber
+            nc.subscribe("foo", new MessageHandler() {
+                @Override
+                public void onMessage(Message msg) {
+                    System.out.printf("Received a message: %s\n", new String(msg.getData()));
+                }
+            });
+            // Simple Publisher
+            nc.publish("foo", "Hello World".getBytes());
+	
+            // Replies
+            nc.subscribe("help", new MessageHandler() {
+                @Override
+                public void onMessage(Message msg) {
+                    try {
+                        System.out.printf("Received a message: %s\n", new String(msg.getData()));
+                        nc.subscribe(msg.getReplyTo(), new MessageHandler() {
+                            @Override
+                            public void onMessage(Message msg) {
+                                System.out.printf("Received a message: %s\n", new String(msg.getData()));
+                            }
+                        });
+                        nc.publish(msg.getReplyTo(), "I can help!".getBytes());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            // Requests
+            Message msg = nc.request("help", "help me".getBytes(), 10000);
+	
+			//nc.close();
+	
+	
+            nc.subscribe("1.vote.ask", new MessageHandler() {
+                @Override
+                public void onMessage(Message msg) {
+                    System.out.printf("Received a message: %s\n", new String(msg.getData()));
+                }
+            });
+            nc.publish("1.vote.ask", "{\"code\":0,\"msg\":\"\",\"data\":{\"online_num\":{\"chatroom_id\":\"liveroom_262\",\"total_online_num\":1,\"detail_online_num\":[{\"team_id\":352,\"online_num\":1}]},\"vote\":null,\"connect\":null,\"timestamp\":1531884212049}}".getBytes());
+	
+            nc.subscribe("1.vote.data", new MessageHandler() {
+                @Override
+                public void onMessage(Message msg) {
+                    System.out.printf("Received a message: %s\n", new String(msg.getData()));
+                }
+            });
+            nc.publish("backend.vote.answer", "{\"data\":{\"display\":false,\"custom\":{\"class_id\":1,\"team_id\":1,\"vote_id\":1,\"answer\":\"B\"}}}".getBytes());
+            nc.publish("backend.vote.answer", "{\"data\":{\"display\":false,\"custom\":{\"class_id\":1,\"team_id\":2,\"vote_id\":1,\"answer\":\"B\"}}}".getBytes());
+            nc.publish("backend.vote.answer", "{\"data\":{\"display\":false,\"custom\":{\"class_id\":1,\"team_id\":3,\"vote_id\":1,\"answer\":\"B\"}}}".getBytes());
+	
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }

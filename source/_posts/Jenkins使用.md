@@ -1,7 +1,7 @@
 ---
 title: Jenkins使用
 date: 2018-05-14 14:43:56
-tags: Jenkins
+tags: CI
 ---
 
 # Jenkins #
