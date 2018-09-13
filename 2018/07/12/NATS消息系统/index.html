@@ -90,7 +90,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/07/12/NATS消息系统/NATS.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/12/NATS消息系统/1.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/12/NATS消息系统/2.png">
-<meta property="og:updated_time" content="2018-07-20T09:20:57.351Z">
+<meta property="og:updated_time" content="2018-09-13T04:57:48.503Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="NATS消息系统">
 <meta name="twitter:description" content="简单原理NATS的服务端监听了一个端口，并将此端口暴露在公网。所有客户端通过长连接连上这个IP的端口，可以相互实时传输消息，发布和订阅消息。 物理架构以下是发起连麦的一个例子，序号表示发生的顺序。 注：  req表示请求(有响应回执) sub表示订阅主题 pub表示发布广播。req和pub的时候可以带上消息、一般是一串JSON文本。 $classid.mic.request这种字符串是一个主题(频">
@@ -507,7 +507,67 @@ fs.file-max = 6815744
 * soft nofile 1024000
 * hard nofile 1024000
 # 重新ssh登陆后ulimit -n检查是否设置成功
-</code></pre><h2 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h2><h2 id="用户权限"><a href="#用户权限" class="headerlink" title="用户权限"></a>用户权限</h2><h2 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h2>
+</code></pre><h2 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h2><h2 id="用户权限"><a href="#用户权限" class="headerlink" title="用户权限"></a>用户权限</h2><h2 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h2><h1 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h1><pre><code>public static void main(String[] args) {
+    try {
+        private String url = &quot;nats://android:cKCOzJv2ywY20H8a@192.168.30.53:4222&quot;;
+        final Connection nc = Nats.connect(url);
+        // Simple Async Subscriber
+        nc.subscribe(&quot;foo&quot;, new MessageHandler() {
+            @Override
+            public void onMessage(Message msg) {
+                System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
+            }
+        });
+        // Simple Publisher
+        nc.publish(&quot;foo&quot;, &quot;Hello World&quot;.getBytes());
+
+        // Replies
+        nc.subscribe(&quot;help&quot;, new MessageHandler() {
+            @Override
+            public void onMessage(Message msg) {
+                try {
+                    System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
+                    nc.subscribe(msg.getReplyTo(), new MessageHandler() {
+                        @Override
+                        public void onMessage(Message msg) {
+                            System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
+                        }
+                    });
+                    nc.publish(msg.getReplyTo(), &quot;I can help!&quot;.getBytes());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        // Requests
+        Message msg = nc.request(&quot;help&quot;, &quot;help me&quot;.getBytes(), 10000);
+
+        //nc.close();
+
+
+        nc.subscribe(&quot;1.vote.ask&quot;, new MessageHandler() {
+            @Override
+            public void onMessage(Message msg) {
+                System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
+            }
+        });
+        nc.publish(&quot;1.vote.ask&quot;, &quot;{\&quot;code\&quot;:0,\&quot;msg\&quot;:\&quot;\&quot;,\&quot;data\&quot;:{\&quot;online_num\&quot;:{\&quot;chatroom_id\&quot;:\&quot;liveroom_262\&quot;,\&quot;total_online_num\&quot;:1,\&quot;detail_online_num\&quot;:[{\&quot;team_id\&quot;:352,\&quot;online_num\&quot;:1}]},\&quot;vote\&quot;:null,\&quot;connect\&quot;:null,\&quot;timestamp\&quot;:1531884212049}}&quot;.getBytes());
+
+        nc.subscribe(&quot;1.vote.data&quot;, new MessageHandler() {
+            @Override
+            public void onMessage(Message msg) {
+                System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
+            }
+        });
+        nc.publish(&quot;backend.vote.answer&quot;, &quot;{\&quot;data\&quot;:{\&quot;display\&quot;:false,\&quot;custom\&quot;:{\&quot;class_id\&quot;:1,\&quot;team_id\&quot;:1,\&quot;vote_id\&quot;:1,\&quot;answer\&quot;:\&quot;B\&quot;}}}&quot;.getBytes());
+        nc.publish(&quot;backend.vote.answer&quot;, &quot;{\&quot;data\&quot;:{\&quot;display\&quot;:false,\&quot;custom\&quot;:{\&quot;class_id\&quot;:1,\&quot;team_id\&quot;:2,\&quot;vote_id\&quot;:1,\&quot;answer\&quot;:\&quot;B\&quot;}}}&quot;.getBytes());
+        nc.publish(&quot;backend.vote.answer&quot;, &quot;{\&quot;data\&quot;:{\&quot;display\&quot;:false,\&quot;custom\&quot;:{\&quot;class_id\&quot;:1,\&quot;team_id\&quot;:3,\&quot;vote_id\&quot;:1,\&quot;answer\&quot;:\&quot;B\&quot;}}}&quot;.getBytes());
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+</code></pre>
       
     </div>
     
@@ -630,7 +690,7 @@ fs.file-max = 6815744
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">69</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -643,7 +703,7 @@ fs.file-max = 6815744
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">36</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -676,7 +736,7 @@ fs.file-max = 6815744
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简单原理"><span class="nav-number">1.</span> <span class="nav-text">简单原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#物理架构"><span class="nav-number">2.</span> <span class="nav-text">物理架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NATS集群起什么作用？"><span class="nav-number">2.1.</span> <span class="nav-text">NATS集群起什么作用？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么学生发起连麦是点对点req而不是发广播pub？"><span class="nav-number">2.2.</span> <span class="nav-text">为什么学生发起连麦是点对点req而不是发广播pub？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设计原则"><span class="nav-number">2.3.</span> <span class="nav-text">设计原则</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#性能测试"><span class="nav-number">3.</span> <span class="nav-text">性能测试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#各端使用方法"><span class="nav-number">4.</span> <span class="nav-text">各端使用方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#前端"><span class="nav-number">4.1.</span> <span class="nav-text">前端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#C"><span class="nav-number">4.2.</span> <span class="nav-text">C++</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java"><span class="nav-number">4.3.</span> <span class="nav-text">Java</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Android"><span class="nav-number">4.3.1.</span> <span class="nav-text">Android</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常见问题"><span class="nav-number">4.3.2.</span> <span class="nav-text">常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#重复收到消息"><span class="nav-number">4.3.2.1.</span> <span class="nav-text">重复收到消息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重复收到自己reply-to-request的消息"><span class="nav-number">4.3.2.2.</span> <span class="nav-text">重复收到自己reply to request的消息</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#异常处理"><span class="nav-number">5.</span> <span class="nav-text">异常处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#slow-consumer"><span class="nav-number">5.1.</span> <span class="nav-text">slow consumer</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装-搭建-启动"><span class="nav-number">6.</span> <span class="nav-text">安装/搭建/启动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Go语言环境与nast服务端"><span class="nav-number">6.1.</span> <span class="nav-text">安装Go语言环境与nast服务端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置文件"><span class="nav-number">6.2.</span> <span class="nav-text">配置文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#性能优化"><span class="nav-number">6.3.</span> <span class="nav-text">性能优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内核参数调整"><span class="nav-number">6.3.1.</span> <span class="nav-text">内核参数调整</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日志"><span class="nav-number">6.4.</span> <span class="nav-text">日志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用户权限"><span class="nav-number">6.5.</span> <span class="nav-text">用户权限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群"><span class="nav-number">6.6.</span> <span class="nav-text">集群</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简单原理"><span class="nav-number">1.</span> <span class="nav-text">简单原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#物理架构"><span class="nav-number">2.</span> <span class="nav-text">物理架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NATS集群起什么作用？"><span class="nav-number">2.1.</span> <span class="nav-text">NATS集群起什么作用？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么学生发起连麦是点对点req而不是发广播pub？"><span class="nav-number">2.2.</span> <span class="nav-text">为什么学生发起连麦是点对点req而不是发广播pub？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设计原则"><span class="nav-number">2.3.</span> <span class="nav-text">设计原则</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#性能测试"><span class="nav-number">3.</span> <span class="nav-text">性能测试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#各端使用方法"><span class="nav-number">4.</span> <span class="nav-text">各端使用方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#前端"><span class="nav-number">4.1.</span> <span class="nav-text">前端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#C"><span class="nav-number">4.2.</span> <span class="nav-text">C++</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java"><span class="nav-number">4.3.</span> <span class="nav-text">Java</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Android"><span class="nav-number">4.3.1.</span> <span class="nav-text">Android</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常见问题"><span class="nav-number">4.3.2.</span> <span class="nav-text">常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#重复收到消息"><span class="nav-number">4.3.2.1.</span> <span class="nav-text">重复收到消息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重复收到自己reply-to-request的消息"><span class="nav-number">4.3.2.2.</span> <span class="nav-text">重复收到自己reply to request的消息</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#异常处理"><span class="nav-number">5.</span> <span class="nav-text">异常处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#slow-consumer"><span class="nav-number">5.1.</span> <span class="nav-text">slow consumer</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装-搭建-启动"><span class="nav-number">6.</span> <span class="nav-text">安装/搭建/启动</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Go语言环境与nast服务端"><span class="nav-number">6.1.</span> <span class="nav-text">安装Go语言环境与nast服务端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置文件"><span class="nav-number">6.2.</span> <span class="nav-text">配置文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#性能优化"><span class="nav-number">6.3.</span> <span class="nav-text">性能优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内核参数调整"><span class="nav-number">6.3.1.</span> <span class="nav-text">内核参数调整</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日志"><span class="nav-number">6.4.</span> <span class="nav-text">日志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用户权限"><span class="nav-number">6.5.</span> <span class="nav-text">用户权限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群"><span class="nav-number">6.6.</span> <span class="nav-text">集群</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#demo"><span class="nav-number">7.</span> <span class="nav-text">demo</span></a></li></ol></div>
             
 
           </div>

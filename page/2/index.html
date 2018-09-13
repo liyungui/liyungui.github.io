@@ -262,6 +262,1142 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/02/JS/ES6-class/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/02/JS/ES6-class/" itemprop="url">ES6-class</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-02T10:34:20+08:00">
+                2018-08-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="定义和使用"><a href="#定义和使用" class="headerlink" title="定义和使用"></a>定义和使用</h1><ul>
+<li><strong>语法糖</strong>。更像面向对象编程的语法而已</li>
+<li><strong>本质是函数</strong>。可以看作构造函数的另一种写法<ul>
+<li>但是<strong>只能通过new调用</strong></li>
+</ul>
+</li>
+<li>属性。<ul>
+<li>默认定义在原型上</li>
+<li>可以显式定义在其本身<ul>
+<li>即定义在this对象上</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>方法定义前不需要function关键字<ul>
+<li>类内定义的方法，都是不可枚举的</li>
+</ul>
+</li>
+<li><strong>constructor()</strong><ul>
+<li>类的默认方法<ul>
+<li>没有显式定义，自动生成一个空实现</li>
+</ul>
+</li>
+<li>new对象实例时，自动调用该方法</li>
+<li>默认返回实例对象。不需要显式返回<ul>
+<li>可以强制return其他对象</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>严格模式</strong><ul>
+<li>类和模块的内部，默认就是严格模式</li>
+<li>所有的代码，其实都是运行在模块之中，所以 ES6 实际上把整个语言升级到了严格模式。</li>
+</ul>
+</li>
+<li><strong>所有实例共享一个原型对象</strong></li>
+<li><strong>不存在变量提升</strong>。 先定义，后使用<ul>
+<li>此规定能保证子类在父类之后定义</li>
+</ul>
+</li>
+</ul>
+<p>实例：</p>
+<pre><code>class Point {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+  toString() {
+    return &apos;(&apos; + this.x + &apos;, &apos; + this.y + &apos;)&apos;;
+  }
+}
+
+typeof Point // &quot;function&quot;
+Point === Point.prototype.constructor // true
+
+Object.keys(Point.prototype)
+// []
+Object.getOwnPropertyNames(Point.prototype)
+// [&quot;constructor&quot;,&quot;toString&quot;]
+
+point.hasOwnProperty(&apos;x&apos;) // true
+point.hasOwnProperty(&apos;y&apos;) // true
+point.hasOwnProperty(&apos;toString&apos;) // false
+point.__proto__.hasOwnProperty(&apos;toString&apos;) // true
+</code></pre><p>实例：所有实例共享一个原型对象</p>
+<pre><code>var p1 = new Point(2,3);
+var p2 = new Point(3,2);
+p1.__proto__ === p2.__proto__
+//true
+</code></pre><h2 id="匿名类"><a href="#匿名类" class="headerlink" title="匿名类"></a>匿名类</h2><pre><code>let person = new class {
+  constructor(name) {
+    this.name = name;
+  }
+
+  sayName() {
+    console.log(this.name);
+  }
+}(&apos;张三&apos;);
+person.sayName(); // &quot;张三&quot;
+</code></pre><h2 id="私有属性"><a href="#私有属性" class="headerlink" title="私有属性"></a>私有属性</h2><p><strong>ES6 不支持私有属性</strong></p>
+<h3 id="现有方案"><a href="#现有方案" class="headerlink" title="现有方案"></a>现有方案</h3><h4 id="约定前缀下划线表示私有"><a href="#约定前缀下划线表示私有" class="headerlink" title="约定前缀下划线表示私有"></a>约定前缀下划线表示私有</h4><h4 id="将方法移出模块"><a href="#将方法移出模块" class="headerlink" title="将方法移出模块"></a>将方法移出模块</h4><p>因为模块内部的所有方法都是对外可见</p>
+<pre><code>class Widget {
+  foo (baz) {
+    bar.call(this, baz);
+  }
+}
+function bar(baz) {
+  return this.snaf = baz;
+}
+bar实际上成为了当前模块的私有方法
+</code></pre><h4 id="命名为一个Symbol值"><a href="#命名为一个Symbol值" class="headerlink" title="命名为一个Symbol值"></a>命名为一个Symbol值</h4><p>利用Symbol值的唯一性</p>
+<pre><code>const bar = Symbol(&apos;bar&apos;);
+const snaf = Symbol(&apos;snaf&apos;);
+export default class myClass{
+  [bar](baz) {
+    return this[snaf] = baz;
+  }
+};
+
+bar和snaf都是Symbol值，导致第三方无法获取到它们
+因此达到了私有方法和私有属性的效果
+</code></pre><h3 id="私有属性的提案"><a href="#私有属性的提案" class="headerlink" title="私有属性的提案"></a>私有属性的提案</h3><p><strong>使用#前缀表示私有属性</strong></p>
+<ul>
+<li>没有采用private关键字，是因为 JavaScript 是动态语言，使用独立的符号似乎是唯一的可靠方法</li>
+</ul>
+<p>实例</p>
+<pre><code>class Foo {
+  #a;
+  #b;
+  #sum() { return #a + #b; }
+  constructor(a, b) { #a = a; #b = b; }
+}
+</code></pre><h1 id="静态方法"><a href="#静态方法" class="headerlink" title="静态方法"></a>静态方法</h1><ul>
+<li>方法前，加上static关键字</li>
+<li>直接通过类来调用</li>
+<li>不会被实例继承<ul>
+<li>在实例上调用静态方法，会抛出一个不存在该方法错误</li>
+</ul>
+</li>
+<li>静态方法中this关键字指的是类</li>
+<li>可以被子类继承</li>
+</ul>
+<p>ES6 明确规定，Class 内部只有静态方法，<strong>没有静态属性</strong></p>
+<h1 id="new-target-属性"><a href="#new-target-属性" class="headerlink" title="new.target 属性"></a>new.target 属性</h1><p><strong>返回new命令作用于的构造函数</strong></p>
+<ul>
+<li><strong>返回值就是当前类</strong>。子类继承父类时，返回<strong>子类</strong><ul>
+<li><strong>类中</strong>调用：类严格等于构造函数。类本质是函数，是构造函数的另一种写法</li>
+<li><strong>函数中</strong>调用：函数也是对象。</li>
+</ul>
+</li>
+<li>构造函数不是通过new命令调用的，new.target会返回<strong>undefined</strong></li>
+</ul>
+<p>实例</p>
+<pre><code>function Person(name) {
+  if (new.target === Person) {
+    this.name = name;
+  } else {
+    throw new Error(&apos;必须使用 new 命令生成实例&apos;);
+  }
+}
+
+class Rectangle {
+  constructor(length, width) {
+    console.log(new.target === Rectangle); //true
+    this.length = length;
+    this.width = width;
+  }
+}
+
+class Square extends Rectangle {
+  constructor(length) { //false。返回的是子类
+    super(length, length);
+  }
+}    
+</code></pre><h1 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h1><h2 id="extends"><a href="#extends" class="headerlink" title="extends"></a>extends</h2><p><strong>通过extends关键字实现继承</strong></p>
+<ul>
+<li>必须在constructor()中调用super方法</li>
+<li>调用super之后，才可以使用this关键字</li>
+</ul>
+<h2 id="Object-getPrototypeOf"><a href="#Object-getPrototypeOf" class="headerlink" title="Object.getPrototypeOf()"></a>Object.getPrototypeOf()</h2><p><strong>获取父类</strong></p>
+<pre><code>Object.getPrototypeOf(ColorPoint) === Point
+// true
+</code></pre><h1 id="原生构造函数的继承"><a href="#原生构造函数的继承" class="headerlink" title="原生构造函数的继承"></a>原生构造函数的继承</h1><h2 id="原生构造函数"><a href="#原生构造函数" class="headerlink" title="原生构造函数"></a>原生构造函数</h2><p><strong>语言内置的构造函数，通常用来生成数据结构</strong></p>
+<p>大致有下面这些。</p>
+<ul>
+<li>Object()</li>
+<li>Boolean()</li>
+<li>Number()</li>
+<li>String()</li>
+<li>Array()</li>
+<li>Date()</li>
+<li>Function()</li>
+<li>RegExp()</li>
+<li>Error()</li>
+</ul>
+<h2 id="继承的实现"><a href="#继承的实现" class="headerlink" title="继承的实现"></a>继承的实现</h2><p>ES5 的继承，实质是<strong>先创造子类的实例对象this</strong>，然后再将父类的方法添加到this上面（Parent.apply(this)）。</p>
+<p>ES6 的继承机制完全不同，实质是<strong>新建父类的实例对象this</strong>（所以必须先调用super方法），然后再用子类的构造函数修改this</p>
+<h2 id="原生构造函数的继承-1"><a href="#原生构造函数的继承-1" class="headerlink" title="原生构造函数的继承"></a>原生构造函数的继承</h2><h3 id="ES5无法继承"><a href="#ES5无法继承" class="headerlink" title="ES5无法继承"></a>ES5无法继承</h3><p>子类无法获得原生构造函数的内部属性，通过Array.apply()或者分配给原型对象都不行。原生构造函数会忽略apply方法传入的this，也就是说，原生构造函数的this无法绑定，导致拿不到内部属性。</p>
+<p>ES5 是先新建子类的实例对象this，再将父类的属性添加到子类上，由于父类的内部属性无法获取，导致无法继承原生的构造函数。</p>
+<h3 id="ES6允许继承原生构造函数"><a href="#ES6允许继承原生构造函数" class="headerlink" title="ES6允许继承原生构造函数"></a>ES6允许继承原生构造函数</h3><p><strong>继承Object的子类，有一个行为差异。</strong></p>
+<p>ES6 改变了Object构造函数的行为，一旦发现Object方法不是通过new Object()这种形式调用，Object构造函数会忽略参数。</p>
+<pre><code>class NewObj extends Object{
+  constructor(){
+    super(...arguments);
+  }
+}
+var o = new NewObj({attr: true});
+o.attr === true  // false
+</code></pre><h1 id="Mixin-模式的实现"><a href="#Mixin-模式的实现" class="headerlink" title="Mixin 模式的实现"></a>Mixin 模式的实现</h1><p><strong>Mixin 指的是多个对象合成一个新的对象，新对象具有各个组成成员的接口</strong></p>
+<p>实例：最简单实现</p>
+<pre><code>const a = {
+  a: &apos;a&apos;
+};
+const b = {
+  b: &apos;b&apos;
+};
+const c = {...a, ...b}; // {a: &apos;a&apos;, b: &apos;b&apos;}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/JS/ES6-字符串的扩展/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/01/JS/ES6-字符串的扩展/" itemprop="url">ES6-字符串的扩展</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-01T17:11:20+08:00">
+                2018-08-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Unicode-表示法"><a href="#Unicode-表示法" class="headerlink" title="Unicode 表示法"></a>Unicode 表示法</h1><p>JavaScript 内部，字符以 <strong>UTF-16</strong> 的格式储存，<strong>每个字符固定为2个字节</strong></p>
+<p>Unicode 码点大于0xFFFF的字符，需要4个字节储存，JavaScript 会认为它们是两个字符</p>
+<p>JavaScript</p>
+<ul>
+<li>用<strong>\uxxxx</strong>形式表示一个字符<ul>
+<li>只限于码点在\u0000~\uFFFF之间的字符。</li>
+</ul>
+</li>
+<li>超出范围的字符，必须用<strong>两个双字节</strong>的形式表示。</li>
+</ul>
+<p><strong>ES6将码点放入大括号，支持全码点</strong></p>
+<p><strong>大括号表示法与四字节的 UTF-16 编码是等价的</strong></p>
+<pre><code>&quot;\u0061&quot; // &quot;a&quot;
+
+&quot;\u20BB7&quot; // &quot; 7&quot;。 
+    JavaScript 会理解成\u20BB+7。
+    由于\u20BB是一个不可打印字符，所以只会显示一个空格，后面跟着一个7。
+
+&quot;\uD842\uDFB7&quot; // &quot;𠮷&quot;
+
+&quot;\u{20BB7}&quot; // &quot;𠮷&quot;
+
+&apos;\u{1F680}&apos; === &apos;\uD83D\uDE80&apos; // true
+    大括号表示法与四字节的 UTF-16 编码是等价的
+</code></pre><p>这样共有 6 种方法可以表示一个字符</p>
+<pre><code>&apos;\z&apos; === &apos;z&apos;  // true
+&apos;\172&apos; === &apos;z&apos; // true
+&apos;\x7A&apos; === &apos;z&apos; // true
+&apos;\u007A&apos; === &apos;z&apos; // true
+&apos;\u{7A}&apos; === &apos;z&apos; // true
+</code></pre><h1 id="codePointAt"><a href="#codePointAt" class="headerlink" title="codePointAt()"></a>codePointAt()</h1><p>对于这种4个字节的字符，JavaScript 不能正确处理</p>
+<ul>
+<li>字符串长度会误判为2</li>
+<li>charAt方法无法读取整个字符</li>
+<li>charCodeAt方法只能分别返回前两个字节和后两个字节的值</li>
+</ul>
+<p>ES6 提供了codePointAt方法，能够正确处理 4 个字节储存的字符，返回一个字符的十进制码点。</p>
+<pre><code>let s = &apos;𠮷a&apos;;
+s.codePointAt(0).toString(16) // &quot;20bb7&quot;
+s.codePointAt(2).toString(16) // &quot;61&quot;
+</code></pre><h1 id="String-fromCodePoint"><a href="#String-fromCodePoint" class="headerlink" title="String.fromCodePoint"></a>String.fromCodePoint</h1><p>弥补了String.fromCharCode方法的不足(不能识别大于0xFFFF的码点)。</p>
+<p>作用正好与codePointAt方法相反</p>
+<h1 id="字符串的遍历器接口"><a href="#字符串的遍历器接口" class="headerlink" title="字符串的遍历器接口"></a>字符串的遍历器接口</h1><p>ES6 为字符串添加了遍历器接口，使得字符串可以被 <code>for...of</code> 循环遍历</p>
+<p>最大的优点是可以识别大于0xFFFF的码点</p>
+<pre><code>for (let codePoint of &apos;foo&apos;) {
+  console.log(codePoint)
+}
+// &quot;f&quot;
+// &quot;o&quot;
+// &quot;o&quot;
+</code></pre><h1 id="at"><a href="#at" class="headerlink" title="at()"></a>at()</h1><p>charAt()不能识别码点大于0xFFFF的字符</p>
+<pre><code>&apos;𠮷&apos;.charAt(0) // &quot;\uD842&quot;
+&apos;𠮷&apos;.at(0) // &quot;𠮷&quot;
+</code></pre><h1 id="normalize"><a href="#normalize" class="headerlink" title="normalize()"></a>normalize()</h1><p>许多欧洲语言有<strong>语调符号和重音符号</strong>。</p>
+<p>为了表示它们，Unicode 提供了两种方法。在<strong>视觉和语义上都等价</strong></p>
+<ul>
+<li><strong>直接提供</strong>带重音符号的字符<ul>
+<li>比如Ǒ（\u01D1）。</li>
+</ul>
+</li>
+<li><strong>提供合成</strong>符号（combining character），即原字符与重音符号的合成，两个字符合成一个字符，<ul>
+<li>比如O（\u004F）和ˇ（\u030C）合成Ǒ（\u004F\u030C）</li>
+</ul>
+</li>
+</ul>
+<p>JavaScript不能识别，<strong>将合成字符视为两个字符</strong></p>
+<p>ES6 提供<strong>normalize()</strong>，用来将字符的不同表示方法统一为同样的形式，这称为 <strong>Unicode 正规化</strong></p>
+<ul>
+<li>目前不能识别三个或三个以上字符的合成<ul>
+<li>只能使用正则表达式，通过 Unicode 编号区间判断</li>
+</ul>
+</li>
+<li>接受一个参数来指定normalize的方式<ul>
+<li><strong>NFC</strong>，<strong>默认</strong>参数<ul>
+<li>“标准等价合成”（Normalization Form Canonical Composition）</li>
+<li>视觉和语义上等价。</li>
+</ul>
+</li>
+<li><strong>NFD</strong><ul>
+<li>“标准等价分解”（Normalization Form Canonical Decomposition）</li>
+</ul>
+</li>
+<li><strong>NFKC</strong><ul>
+<li>“兼容等价合成”（Normalization Form Compatibility Composition），</li>
+<li>语义上等价，但视觉上不等价，比如“囍”和“喜喜”。（这只是用来举例，normalize方法不能识别中文。）</li>
+</ul>
+</li>
+<li><strong>NFKD</strong><ul>
+<li>“兼容等价分解”（Normalization Form Compatibility Decomposition</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>canonical    英[kəˈnɒnɪkl] 权威的</p>
+<h1 id="includes-startsWith-endsWith"><a href="#includes-startsWith-endsWith" class="headerlink" title="includes(), startsWith(), endsWith()"></a>includes(), startsWith(), endsWith()</h1><p>第二个参数(可省略)，表示开始搜索的位置</p>
+<ul>
+<li>从第n个位置</li>
+<li>endsWith，前n个字符</li>
+</ul>
+<p>实例</p>
+<pre><code>let s = &apos;Hello world!&apos;;
+s.startsWith(&apos;world&apos;, 6) // true
+s.includes(&apos;Hello&apos;, 6) // false
+s.endsWith(&apos;Hello&apos;, 5) // true
+</code></pre><h1 id="repeat"><a href="#repeat" class="headerlink" title="repeat()"></a>repeat()</h1><p>将原字符串重复n次，返回一个新字符串</p>
+<pre><code>&apos;hello&apos;.repeat(2) // &quot;hellohello&quot;
+&apos;na&apos;.repeat(0) // &quot;&quot;
+</code></pre><h1 id="padStart-，padEnd"><a href="#padStart-，padEnd" class="headerlink" title="padStart()，padEnd()"></a>padStart()，padEnd()</h1><p>补全长度</p>
+<p>两个参数</p>
+<ul>
+<li>第一个参数用来指定字符串的<strong>最小长度</strong><ul>
+<li>原字符串的长度 &gt;= 最小长度，返回原字符串</li>
+<li>原字符串长度+补全字符串长度 &gt; 最小长度，截去超出位数的补全字符串</li>
+</ul>
+</li>
+<li>第二个参数是<strong>用来补全的字符串</strong><ul>
+<li>默认值为空格</li>
+</ul>
+</li>
+</ul>
+<p>实例</p>
+<pre><code>&apos;abc&apos;.padStart(10, &apos;0123456789&apos;)
+// &apos;0123456abc&apos;
+</code></pre><h1 id="matchAll"><a href="#matchAll" class="headerlink" title="matchAll()"></a>matchAll()</h1><p>返回一个正则表达式在当前字符串的所有匹配</p>
+<h1 id="模板字符串-template-string"><a href="#模板字符串-template-string" class="headerlink" title="模板字符串(template string)"></a>模板字符串(template string)</h1><p><strong>增强版</strong>的字符串，用<strong>反引号 `</strong> 标识。</p>
+<ul>
+<li>当作普通字符串</li>
+<li>定义多行字符串<ul>
+<li>所有的空格和缩进都会被保留在输出之中<ul>
+<li>不想要，可以使用trim方法消除</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>在字符串中嵌入变量。<ul>
+<li>变量名写在 <code>${}</code> 之中</li>
+<li>变量可以是任意的 JavaScript 表达式。本质就是执行JavaScript代码<ul>
+<li>运算</li>
+<li>对象属性</li>
+<li>函数调用</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>在模板字符串中使用反引号，则前面要用反斜杠转义</p>
+<pre><code>`User ${user.name} is not authorized to do ${action}.`;
+
+`Hello ${&apos;World&apos;}`
+// &quot;Hello World&quot;
+    本质就是执行JavaScript代码。字符串，将会原样输出
+</code></pre><p><strong>模板字符串能嵌套</strong></p>
+<h1 id="标签模板-tagged-template"><a href="#标签模板-tagged-template" class="headerlink" title="标签模板(tagged template)"></a>标签模板(tagged template)</h1><ul>
+<li>其实不是模板</li>
+<li>而是<strong>函数调用</strong>的一种特殊形式。<ul>
+<li>“标签”指的就是函数</li>
+<li>紧跟在后面的模板字符串就是它的参数。<ul>
+<li>模板字符里面有变量，会将模板字符串先处理成多个参数，再调用函数</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><ul>
+<li><strong>过滤 HTML 字符串，防止用户输入恶意内容</strong></li>
+<li><strong>国际化</strong>处理。多语言转换</li>
+</ul>
+<p>实例</p>
+<pre><code>let a = 5;
+let b = 10;
+tag`Hello ${ a + b } world ${ a * b }`;
+// 等同于
+tag([&apos;Hello &apos;, &apos; world &apos;, &apos;&apos;], 15, 50);
+
+    第一个参数是一个数组
+        该数组的成员是模板字符串中那些没有变量替换的部分
+    其他参数
+        模板字符串各个变量被替换后的值
+</code></pre><h1 id="String-raw"><a href="#String-raw" class="headerlink" title="String.raw()"></a>String.raw()</h1><p>返回 <strong>斜杠都被转义</strong>和<strong>变量都被替换</strong>的模板字符串</p>
+<pre><code>String.raw`Hi\n${2+3}!`;
+// 返回 &quot;Hi\\n5!&quot;
+
+String.raw`Hi\u000A!`;
+// 返回 &quot;Hi\\u000A!&quot;
+
+String.raw`Hi\\n`
+// 返回 &quot;Hi\\\\n&quot;
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/JS/Redux教程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/01/JS/Redux教程/" itemprop="url">Redux教程</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-01T15:41:20+08:00">
+                2018-08-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="基础使用"><a href="#基础使用" class="headerlink" title="基础使用"></a>基础使用</h1><h2 id="动机"><a href="#动机" class="headerlink" title="动机"></a>动机</h2><h3 id="让-state的变化变得可预测"><a href="#让-state的变化变得可预测" class="headerlink" title="让 state的变化变得可预测"></a>让 state的变化变得可预测</h3><p>随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state(状态)</p>
+<p>通过限制更新发生的时间和方式(三大原则)，让 state的变化变得可预测。</p>
+<h3 id="易于测试"><a href="#易于测试" class="headerlink" title="易于测试"></a>易于测试</h3><ul>
+<li>不需要模拟任何东西，因为它们都是纯函数。</li>
+<li>只需<strong>dispatch(action)，断言state变化</strong>，写测试就是这么简单</li>
+</ul>
+<h2 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h2><p>Redux核心概念没有任何魔法。两个普通JavaScript对象，一个普通JavaScript函数用来串联两个对象</p>
+<p>90% 的代码都是纯 JavaScript，没用 Redux、Redux API 和其它魔法。Redux 里有一些工具来简化这种模式，但是主要的想法是如何根据这些 action 对象来更新 state</p>
+<h3 id="state"><a href="#state" class="headerlink" title="state"></a>state</h3><p><strong>普通JavaScript对象，描述状态</strong></p>
+<p>实例：todo 应用的 state</p>
+<pre><code>{
+  todos: [{
+    id: 1
+    text: &apos;Eat food&apos;,
+    completed: true
+  }, {
+    id: 2
+    text: &apos;Exercise&apos;,
+    completed: false
+  }],
+  visibilityFilter: &apos;SHOW_COMPLETED&apos;
+}
+    visibilityFilter取值：SHOW_ALL,SHOW_ACTIVE
+</code></pre><h3 id="action"><a href="#action" class="headerlink" title="action"></a>action</h3><p><strong>普通JavaScript对象，描述已发生事件</strong></p>
+<ul>
+<li>必须使用一个字符串类型的 <code>type</code> 字段来表示将要执行的动作<ul>
+<li>实际开发中，type 会被定义成<strong>字符串常量</strong></li>
+</ul>
+</li>
+<li>大型应用建议使用单独的模块或文件来存放 action</li>
+<li><strong>尽量减少在 action 中传递的数据</strong></li>
+</ul>
+<p>实例</p>
+<pre><code>{ type: &apos;ADD_TODO&apos;, text: &apos;Go to swimming pool&apos; }
+{ type: &apos;TOGGLE_TODO&apos;, id: 1 }
+{ type: &apos;SET_VISIBILITY_FILTER&apos;, filter: &apos;SHOW_ALL&apos; }
+</code></pre><p>实例</p>
+<pre><code>const ADD_TODO = &apos;ADD_TODO&apos;
+
+import { ADD_TODO, REMOVE_TODO } from &apos;../actionTypes&apos;
+{ type: ADD_TODO, text: &apos;Build my first Redux app&apos; }
+</code></pre><h4 id="action-创建函数"><a href="#action-创建函数" class="headerlink" title="action 创建函数"></a>action 创建函数</h4><p>生成 action 的方法</p>
+<pre><code>let nextTodoId = 0
+export const addTodo = text =&gt; ({
+  type: &apos;ADD_TODO&apos;,
+  id: nextTodoId++,
+  text
+})
+</code></pre><h3 id="reducers"><a href="#reducers" class="headerlink" title="reducers"></a>reducers</h3><p><strong>普通JavaScript函数，描述action如何改变state</strong></p>
+<p><strong>接收 state 和 action，并返回新的 state</strong></p>
+<p><strong>是纯函数</strong>。保持 reducer 纯净非常重要，只单纯执行计算</p>
+<ul>
+<li><strong>相同的输入必须产生相同的输出</strong><ul>
+<li>只要传入参数相同，每次返回计算得到的 state 就一定相同</li>
+</ul>
+</li>
+<li><strong>不修改传入参数</strong></li>
+<li>不执行有副作用的操作<ul>
+<li>如 API 请求和路由跳转；<ul>
+<li>这些应该在 dispatch action 前发生</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>不调用非纯函数</strong><ul>
+<li>如 Date.now() 或 Math.random()。不能保证每次输出一致</li>
+</ul>
+</li>
+</ul>
+<p><strong>Redux 首次执行时，state 为 undefined，此时我们可借机设置并返回应用的初始 state</strong></p>
+<h4 id="根reducer"><a href="#根reducer" class="headerlink" title="根reducer"></a>根reducer</h4><ul>
+<li>调用你的一系列 reducer</li>
+<li>每个 reducer 处理 根据 key 筛选出 state 中的那部分数据</li>
+<li>将所有 reducer 的结果合并成一个大的对象 返回</li>
+</ul>
+<p>实际开发中，一般编写很多小reducer函数来分别管理 state 的一部分，再开发一个 根reducer 调用这些 reducer，实现管理整个应用的 state</p>
+<pre><code>function visibilityFilter(state = &apos;SHOW_ALL&apos;, action) {
+  switch (action.type) {
+    case &apos;SET_VISIBILITY_FILTER&apos;:
+      return action.filter
+    default:
+      return state
+  }
+}
+
+function todos(state = [], action) {
+    switch (action.type) {
+        case &apos;ADD_TODO&apos;:
+          return [
+            ...state,
+            {
+              id: action.id,
+              text: action.text,
+              completed: false
+            }
+          ]
+        case &apos;TOGGLE_TODO&apos;:
+          return state.map(todo =&gt;
+            (todo.id === action.id)
+              ? {...todo, completed: !todo.completed}
+              : todo
+          )
+        default:
+          return state
+      }
+}
+
+const initialState = {
+  visibilityFilter: VisibilityFilters.SHOW_ALL,
+  todos: []
+};
+
+function todoApp(state = initialState, action) {
+  return {
+    todos: todos(state.todos, action),
+    visibilityFilter: visibilityFilter(state.visibilityFilter, action)
+  };
+}
+</code></pre><h4 id="combineReducers-reducers"><a href="#combineReducers-reducers" class="headerlink" title="combineReducers(reducers)"></a>combineReducers(reducers)</h4><p><strong>生成一个根reducer函数</strong></p>
+<p>完全等价上面的todoApp()。</p>
+<pre><code>import { combineReducers } from &apos;redux&apos;
+const todoApp = combineReducers({
+  visibilityFilter,
+  todos
+})
+    使用了简写，因为键值对同名，省略key
+</code></pre><h5 id="最简洁写法"><a href="#最简洁写法" class="headerlink" title="最简洁写法"></a>最简洁写法</h5><p><strong>不推荐</strong>。会造成 reducer 爆炸，而且不合符开闭原则。</p>
+<p><strong>推荐每个reducer一个单独文件</strong></p>
+<ul>
+<li>将所有顶级的 reducer 放到一个独立的文件中</li>
+<li>通过 export 暴露出每个 reducer 函数</li>
+<li>使用 import * as reducers 得到一个以它们名字作为 key 的 object，可以直接传给combineReducers()</li>
+</ul>
+<p>实例：</p>
+<pre><code>import { combineReducers } from &apos;redux&apos;
+import * as reducers from &apos;./reducers&apos;
+
+const todoApp = combineReducers(reducers)
+</code></pre><h3 id="store"><a href="#store" class="headerlink" title="store"></a>store</h3><p><strong>Redux对象，联系Action和Reducer</strong></p>
+<ul>
+<li><strong>单一store</strong></li>
+<li><strong>单一 state tree</strong></li>
+</ul>
+<h4 id="store职责"><a href="#store职责" class="headerlink" title="store职责"></a>store职责</h4><ul>
+<li><strong>管理 state</strong>；<ul>
+<li>获取 state，getState()</li>
+<li>更新 state，dispatch(action)</li>
+</ul>
+</li>
+<li><strong>管理 state监听器</strong> 状态有更新，回调监听器<ul>
+<li>注册监听器，subscribe(listener)</li>
+<li>注销监听器，通过 subscribe(listener) 返回的函数来注销</li>
+</ul>
+</li>
+</ul>
+<h4 id="创建-store"><a href="#创建-store" class="headerlink" title="创建 store"></a>创建 store</h4><p><strong>createStore(reducer, [preloadedState], enhancer)</strong></p>
+<ul>
+<li>reducer<ul>
+<li>function，使用 combineReducers() 将多个 reducer 合并成为一个。</li>
+</ul>
+</li>
+<li>preloadedState<ul>
+<li>可选。 设置 state 初始状态</li>
+</ul>
+</li>
+<li>enhancer <ul>
+<li>可选。 function，是一个组合 store creator 的高阶函数，返回一个新的强化过的 store creator</li>
+</ul>
+</li>
+</ul>
+<p>实例：监听器管理</p>
+<pre><code>// subscribe() 返回一个函数用来注销监听器
+const unsubscribe = store.subscribe(() =&gt;
+  console.log(store.getState())
+)
+
+// 停止监听 state 更新
+unsubscribe();
+</code></pre><h3 id="严格的单向数据流"><a href="#严格的单向数据流" class="headerlink" title="严格的单向数据流"></a>严格的单向数据流</h3><p><strong>意味着数据都遵循相同的生命周期</strong></p>
+<h4 id="调用-store-dispatch-action"><a href="#调用-store-dispatch-action" class="headerlink" title="调用 store.dispatch(action)"></a>调用 store.dispatch(action)</h4><h4 id="Redux-store-调用传入的根-reducer-函数"><a href="#Redux-store-调用传入的根-reducer-函数" class="headerlink" title="Redux store 调用传入的根 reducer 函数"></a>Redux store 调用传入的根 reducer 函数</h4><p>createStore(reducer)时传入的，是根 reducer</p>
+<h4 id="Redux-store-保存了根-reducer-返回的完整-state-树"><a href="#Redux-store-保存了根-reducer-返回的完整-state-树" class="headerlink" title="Redux store 保存了根 reducer 返回的完整 state 树"></a>Redux store 保存了根 reducer 返回的完整 state 树</h4><p>现在，可以应用新的 state 来更新 UI</p>
+<p>如果你使用了 React Redux 这类的绑定库，这时就应该调用 component.setState(newState) 来更新 UI</p>
+<p>所有注册的监听器都将被调用</p>
+<h2 id="三大原则"><a href="#三大原则" class="headerlink" title="三大原则"></a>三大原则</h2><h3 id="单一数据源"><a href="#单一数据源" class="headerlink" title="单一数据源"></a>单一数据源</h3><p><strong>单一的 state tree: 整个应用的 state 被储存在一棵 object tree 中，并且这个 object tree 只存在于唯一一个 store 中。</strong></p>
+<pre><code>store.getState()
+</code></pre><h3 id="State-是只读的"><a href="#State-是只读的" class="headerlink" title="State 是只读的"></a>State 是只读的</h3><p><strong>唯一改变 state 的方法就是触发 action</strong></p>
+<pre><code>store.dispatch({
+  type: &apos;SET_VISIBILITY_FILTER&apos;,
+  filter: &apos;SHOW_COMPLETED&apos;
+})
+</code></pre><ul>
+<li>确保了视图和网络请求都不能直接修改 state<ul>
+<li>视图和网络请求只能表达想要修改的意图</li>
+</ul>
+</li>
+<li>所有的修改都被集中化处理，且严格按照一个接一个的顺序执行</li>
+<li><strong>action是store数据的唯一来源</strong></li>
+</ul>
+<h3 id="使用纯函数来执行修改"><a href="#使用纯函数来执行修改" class="headerlink" title="使用纯函数来执行修改"></a>使用纯函数来执行修改</h3><p><strong>编写 reducers 描述 action 如何改变 state tree </strong></p>
+<h2 id="搭配-React"><a href="#搭配-React" class="headerlink" title="搭配 React"></a>搭配 React</h2><p>Redux 和 React 之间没有关系。</p>
+<p>Redux 支持 React、Angular、Ember、jQuery 甚至纯 JavaScript。</p>
+<p>尽管如此，Redux 还是和 React 和 Deku 这类库搭配起来用最好</p>
+<ul>
+<li>这类库允许你以 state 函数的形式来描述界面</li>
+<li>Redux 通过 action 的形式来发起 state 变化。</li>
+</ul>
+<h3 id="安装-React-Redux"><a href="#安装-React-Redux" class="headerlink" title="安装 React Redux"></a>安装 React Redux</h3><p>Redux 默认并不包含 React 绑定库，需要单独安装</p>
+<pre><code>npm install --save react-redux
+</code></pre><h3 id="容器组件和展示组件"><a href="#容器组件和展示组件" class="headerlink" title="容器组件和展示组件"></a>容器组件和展示组件</h3><p><strong>将组件分为两类，更易于复用和维护</strong></p>
+<ul>
+<li>Container和Presentational Components</li>
+<li>Fat和Skinny</li>
+<li>Smart和Dumb</li>
+<li>Stateful和Pure</li>
+</ul>
+<p>甚至直接称为：</p>
+<ul>
+<li>Screens和Components</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>展示组件</th>
+<th>容器组件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>作用</td>
+<td>描述如何展现（骨架、样式）</td>
+<td>描述如何运行（数据来源获取、状态更新）</td>
+</tr>
+<tr>
+<td>状态</td>
+<td>一般没有。有UI状态而不是数据</td>
+<td>有。往往充当数据源，给其他组件提供数据和行为</td>
+</tr>
+<tr>
+<td>直接使用Redux</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>数据来源</td>
+<td>props</td>
+<td>监听 Redux state</td>
+</tr>
+<tr>
+<td>数据修改</td>
+<td>从 props 调用回调函数</td>
+<td>向 Redux 派发 actions</td>
+</tr>
+<tr>
+<td>创建方式</td>
+<td>手动，一般常用函数式无状态组件实现</td>
+<td>通常用 React Redux的connect() 生成</td>
+</tr>
+<tr>
+<td>示例</td>
+<td>Page，Sidebar，Story，List</td>
+<td>UserPage，FollowersSidebar，StoryContainer，FollowedUserList</td>
+</tr>
+</tbody>
+</table>
+<p><strong>展示组件只定义外观并不关心数据来源和如何改变。传入什么就渲染什么</strong></p>
+<p><strong>大部分的组件都应该是展示型的，但需要少数的几个容器组件把它们和 Redux store 连接起来</strong></p>
+<p><strong>有时偶尔混用 容器和展示。</strong> 比如 含有“Add”按钮的输入框</p>
+<h3 id="传入-Store"><a href="#传入-Store" class="headerlink" title="传入 Store"></a>传入 Store</h3><p><strong>容器组件需要使用store来获取state</strong>。有两种方法</p>
+<ul>
+<li>把store以 props 的形式传入到所有容器组件中。<ul>
+<li>太麻烦</li>
+<li>必须要用 store 把展示组件包裹一层</li>
+</ul>
+</li>
+<li><strong>使用 React Redux 组件 <code>&lt;Provider&gt;</code></strong> <ul>
+<li>不必显示地传递store，只需要在渲染根组件时使用即可</li>
+<li>让Provider内所有容器组件都可以访问 store</li>
+</ul>
+</li>
+</ul>
+<p>实例：index.js</p>
+<pre><code>let store = createStore(todoApp)
+
+render(
+  &lt;Provider store={store}&gt;
+    &lt;App /&gt;
+  &lt;/Provider&gt;,
+  document.getElementById(&apos;root&apos;)
+)
+
+    API：render(element,container)。实例是获取首页id为root的div
+</code></pre><h3 id="React-Redux的connect"><a href="#React-Redux的connect" class="headerlink" title="React Redux的connect()"></a>React Redux的connect()</h3><p><strong>容器组件 通常用 React Redux的connect() 生成</strong></p>
+<ul>
+<li><p>这个方法做了性能优化来避免很多不必要的重复渲染。</p>
+<ul>
+<li>不必为了性能而手动实现 React 性能优化建议 中的 shouldComponentUpdate()。</li>
+</ul>
+</li>
+<li><p>实现原理：使用 store.subscribe() 从 Redux state 树中读取部分数据，并通过 props 把这些数据提供给要渲染的组件</p>
+</li>
+</ul>
+<h3 id="实现容器组件"><a href="#实现容器组件" class="headerlink" title="实现容器组件"></a>实现容器组件</h3><p>容器组件管理数据(state)，涉及到<strong>读取和修改</strong></p>
+<ul>
+<li>读取数据后，需要把state映射到展示组件的props中<ul>
+<li>定义 <code>mapStateToProps()</code> 指定映射规则</li>
+</ul>
+</li>
+<li>修改数据是通过dispatch(action)实现，需要把action映射为期望注入展示组件的props中的回调方法<ul>
+<li>定义 <code>mapDispatchToProps()</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="实例：FilterLink"><a href="#实例：FilterLink" class="headerlink" title="实例：FilterLink"></a>实例：FilterLink</h4><ul>
+<li><strong>FilterLink</strong> 得到当前过滤器并渲染 Link<ul>
+<li><strong>Link</strong> 带有 callback 回调功能的链接<ul>
+<li>onClick() 当点击链接时会触发</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>代码</p>
+<pre><code>import { connect } from &apos;react-redux&apos;
+import { setVisibilityFilter } from &apos;../actions&apos;
+import Link from &apos;../components/Link&apos;
+
+const mapStateToProps = (state, ownProps) =&gt; ({
+  active: ownProps.filter === state.visibilityFilter
+})
+
+const mapDispatchToProps = (dispatch, ownProps) =&gt; ({
+  onClick: () =&gt; dispatch(setVisibilityFilter(ownProps.filter))
+})//点击发送SET_VISIBILITY_FILTER的action
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Link)
+</code></pre><h4 id="实例：VisibleTodoList"><a href="#实例：VisibleTodoList" class="headerlink" title="实例：VisibleTodoList"></a>实例：VisibleTodoList</h4><ul>
+<li><strong>VisibleTodoList</strong> 根据当前显示的状态来对 todo 列表进行过滤，并渲染 TodoList<ul>
+<li><strong>TodoList</strong> 用于显示 todos 列表。<ul>
+<li>todos: Array 以 { text, completed } 形式显示的 todo 项数组。</li>
+<li>onTodoClick(index: number) 当 todo 项被点击时调用的回调函数。</li>
+</ul>
+</li>
+<li><strong>Todo</strong> 一个 todo 项。<ul>
+<li>text: string 显示的文本内容。</li>
+<li>completed: boolean todo 项是否显示删除线。</li>
+<li>onClick() 当 todo 项被点击时调用的回调函数。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>代码</p>
+<pre><code>import { connect } from &apos;react-redux&apos;
+import { toggleTodo } from &apos;../actions&apos;
+import TodoList from &apos;../components/TodoList&apos;
+import { VisibilityFilters } from &apos;../actions&apos;
+
+const getVisibleTodos = (todos, filter) =&gt; {
+  switch (filter) {
+    case VisibilityFilters.SHOW_ALL:
+      return todos
+    case VisibilityFilters.SHOW_COMPLETED:
+      return todos.filter(t =&gt; t.completed)
+    case VisibilityFilters.SHOW_ACTIVE:
+      return todos.filter(t =&gt; !t.completed)
+    default:
+      throw new Error(&apos;Unknown filter: &apos; + filter)
+  }
+}
+
+const mapStateToProps = state =&gt; ({
+  todos: getVisibleTodos(state.todos, state.visibilityFilter)
+})
+
+const mapDispatchToProps = dispatch =&gt; ({
+  toggleTodo: id =&gt; dispatch(toggleTodo(id))
+})//点击发送TOGGLE_TODO的action
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TodoList)
+</code></pre><h4 id="reselect计算衍生数据"><a href="#reselect计算衍生数据" class="headerlink" title="reselect计算衍生数据"></a>reselect计算衍生数据</h4><p>如果你担心 mapStateToProps 创建新对象太过频繁，可以学习如何使用 reselect 来 计算衍生数据</p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><h3 id="Todos"><a href="#Todos" class="headerlink" title="Todos"></a>Todos</h3><pre><code>git clone https://github.com/reactjs/redux.git
+
+cd redux/examples/todos
+npm install
+npm start
+
+open http://localhost:3000/
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/JS/ES6-对象的扩展/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -3051,686 +4187,6 @@ objB.sayName();    //输出 &quot;John&quot;
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/27/RN/RN页面跳转/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/27/RN/RN页面跳转/" itemprop="url">RN页面跳转</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-27T10:48:26+08:00">
-                2018-07-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="React-Navigation"><a href="#React-Navigation" class="headerlink" title="React Navigation"></a><a href="https://reactnavigation.org/docs/en/getting-started.html" target="_blank" rel="noopener">React Navigation</a></h1><h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code>yarn add react-navigation
-</code></pre><h2 id="createStackNavigator"><a href="#createStackNavigator" class="headerlink" title="createStackNavigator()"></a>createStackNavigator()</h2><p>返回React component(包含路由配置)。可以直接将它输出为App.js的root component.</p>
-<h3 id="直接输出为App-js的root-component"><a href="#直接输出为App-js的root-component" class="headerlink" title="直接输出为App.js的root component"></a>直接输出为App.js的root component</h3><p>App.js</p>
-<pre><code>import { createStackNavigator } from &apos;react-navigation&apos;;
-
-class HomeScreen extends React.Component {
-  render() {
-    return (
-      &lt;View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}&gt;
-        &lt;Text&gt;Home Screen&lt;/Text&gt;
-      &lt;/View&gt;
-    );
-  }
-}
-
-export default createStackNavigator({
-  Home: {
-    screen: HomeScreen
-  },
-});
-</code></pre><h3 id="App-js渲染我们创建的component-包含路由配置"><a href="#App-js渲染我们创建的component-包含路由配置" class="headerlink" title="App.js渲染我们创建的component(包含路由配置)"></a>App.js渲染我们创建的component(包含路由配置)</h3><pre><code>const RootStack = createStackNavigator({
-  Home: {
-    screen: HomeScreen
-  },
-});
-
-export default class App extends React.Component {
-  render() {
-    return &lt;RootStack /&gt;;
-  }
-}
-</code></pre><h3 id="路由简写"><a href="#路由简写" class="headerlink" title="路由简写"></a>路由简写</h3><pre><code>const RootStack = createStackNavigator({
-  Home: {
-    screen: HomeScreen
-  },
-});
-
-const RootStack = createStackNavigator({
-  Home: HomeScreen
-});
-</code></pre><h3 id="添加第二个路由"><a href="#添加第二个路由" class="headerlink" title="添加第二个路由"></a>添加第二个路由</h3><p><strong>有两个或以上的路由时，需 <code>initialRouteName</code> 指定初始路由(第一个页面)</strong></p>
-<pre><code>class DetailsScreen extends React.Component {
-  render() {
-    return (
-      &lt;View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}&gt;
-        &lt;Text&gt;Details Screen&lt;/Text&gt;
-      &lt;/View&gt;
-    );
-  }
-}
-
-const RootStack = createStackNavigator(
-  {
-    Home: HomeScreen,
-    Details: DetailsScreen,
-  },
-  {
-    initialRouteName: &apos;Home&apos;,
-  }
-);
-</code></pre><h2 id="跳转"><a href="#跳转" class="headerlink" title="跳转"></a>跳转</h2><ul>
-<li>this.props.navigation.<strong>navigate</strong>(‘RouteName’)<ul>
-<li>进入指定页面。</li>
-<li>不会重复创建和push<ul>
-<li>若已在该页面，无操作</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>this.props.navigation.<strong>push</strong>(‘RouteName’)<ul>
-<li>进入指定页面。</li>
-<li>会重复创建和push<ul>
-<li>每次调用都会在最顶层加入该页面</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>this.props.navigation.<strong>goBack</strong>()<ul>
-<li>返回上一页面</li>
-</ul>
-</li>
-<li>this.props.navigation.<strong>popToTop</strong>()<ul>
-<li>回到第一个页面</li>
-</ul>
-</li>
-</ul>
-<p><strong>如果当前可返回，标题栏会自动展示返回箭头</strong></p>
-<h3 id="传参"><a href="#传参" class="headerlink" title="传参"></a>传参</h3><h4 id="使用API"><a href="#使用API" class="headerlink" title="使用API"></a>使用API</h4><pre><code>this.props.navigation.navigate(&apos;RouteName&apos;, {})
-this.props.navigation.push(&apos;RouteName&apos;, {})
-
-this.props.navigation.getParam(paramName, defaultValue).
-this.props.navigation.state.params 较少用。因为如果没有传参，该值为null。
-</code></pre><h4 id="使用社群包"><a href="#使用社群包" class="headerlink" title="使用社群包"></a>使用社群包</h4><p><a href="https://github.com/vonovak/react-navigation-props-mapper" target="_blank" rel="noopener">react-navigation-props-mapper</a> </p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/27/RN/RN网络请求/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/27/RN/RN网络请求/" itemprop="url">RN网络请求</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-27T10:31:15+08:00">
-                2018-07-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Fetch"><a href="#Fetch" class="headerlink" title="Fetch"></a>Fetch</h1><h2 id="使用XMLHttpRequest"><a href="#使用XMLHttpRequest" class="headerlink" title="使用XMLHttpRequest"></a>使用XMLHttpRequest</h2><p>React Native提供了和web标准一致的Fetch API，内置了XMLHttpRequest API(即俗称的ajax)</p>
-<pre><code>fetch(&apos;https://mywebsite.com/endpoint/&apos;, {
-  method: &apos;POST&apos;,
-  headers: {
-    &apos;Accept&apos;: &apos;application/json&apos;,
-    &apos;Content-Type&apos;: &apos;application/json&apos;,
-  },
-  body: JSON.stringify({
-    firstParam: &apos;yourValue&apos;,
-    secondParam: &apos;yourOtherValue&apos;,
-  })
-})
-</code></pre><p>Fetch 方法会返回一个Promise</p>
-<h2 id="使用其他的网络库"><a href="#使用其他的网络库" class="headerlink" title="使用其他的网络库"></a>使用其他的网络库</h2><p>一些基于XMLHttpRequest封装的第三方库也可以使用，例如frisbee或是axios等。但注意不能使用jQuery，因为jQuery中还使用了很多浏览器中才有而RN中没有的东西</p>
-<h1 id="WebSocket"><a href="#WebSocket" class="headerlink" title="WebSocket"></a>WebSocket</h1><p>React Native支持WebSocket</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/26/RN/RN布局/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/26/RN/RN布局/" itemprop="url">RN布局</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-26T16:21:21+08:00">
-                2018-07-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="属性-props"><a href="#属性-props" class="headerlink" title="属性 props"></a>属性 <code>props</code></h1><p>组件 <code>Image</code> 的属性 <code>source</code> 和 <code>style</code></p>
-<pre><code>render() {
-    let pic = {
-      uri: &apos;https://upload.wikimedia.org/wikipedia/commons/d/de/Bananavarieties.jpg&apos;
-    };
-    return (
-      &lt;Image source={pic} style={{width: 193, height: 110}} /&gt;
-    );
-}
-</code></pre><p>自定义组件使用属性</p>
-<pre><code>render() {
-    return (
-      &lt;Text&gt;Hello {this.props.name}!&lt;/Text&gt;
-    );
-}
-
-render() {
-    return (
-      &lt;View style={{alignItems: 'center'}}&gt;
-        &lt;Greeting name=&apos;Rexxar&apos; /&gt;
-        &lt;Greeting name=&apos;Jaina&apos; /&gt;
-        &lt;Greeting name=&apos;Valeera&apos; /&gt;
-      &lt;/View&gt;
-    );
-}
-</code></pre><h2 id="样式属性-style"><a href="#样式属性-style" class="headerlink" title="样式属性 style"></a>样式属性 <code>style</code></h2><h3 id="属性值"><a href="#属性值" class="headerlink" title="属性值"></a>属性值</h3><h4 id="普通的JavaScript对象"><a href="#普通的JavaScript对象" class="headerlink" title="普通的JavaScript对象"></a>普通的JavaScript对象</h4><p>最简单，最常用</p>
-<h4 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h4><p>数组中居后的样式对象优先级更高，这样可以间接实现样式的继承</p>
-<p>借鉴CSS中的“<strong>层叠</strong>”做法：即后声明的属性会<strong>覆盖</strong>先声明的同名属性</p>
-<h4 id="推荐：使用StyleSheet-create集中定义组件的样式"><a href="#推荐：使用StyleSheet-create集中定义组件的样式" class="headerlink" title="推荐：使用StyleSheet.create集中定义组件的样式"></a>推荐：使用StyleSheet.create集中定义组件的样式</h4><pre><code>const styles = StyleSheet.create({
-  bigblue: {
-    color: &apos;blue&apos;,
-    fontWeight: &apos;bold&apos;,
-    fontSize: 30,
-  },
-  red: {
-    color: &apos;red&apos;,
-  },
-});
-
-render() {
-    return (
-      &lt;View&gt;
-        &lt;Text style={styles.red}&gt;just red&lt;/Text&gt;
-        &lt;Text style={styles.bigblue}&gt;just bigblue&lt;/Text&gt;
-        &lt;Text style={[styles.bigblue, styles.red]}&gt;bigblue, then red&lt;/Text&gt;
-        &lt;Text style={[styles.red, styles.bigblue]}&gt;red, then bigblue&lt;/Text&gt;
-      &lt;/View&gt;
-    );
-}
-
-展示结果:
-    红色
-    大字蓝色
-    大字红色
-    大字蓝色
-</code></pre><h3 id="宽高"><a href="#宽高" class="headerlink" title="宽高"></a>宽高</h3><h4 id="固定宽高"><a href="#固定宽高" class="headerlink" title="固定宽高"></a>固定宽高</h4><pre><code>&lt;View style={{width: 50, height: 50, backgroundColor: 'powderblue'}} /&gt;
-</code></pre><h4 id="弹性（Flex）宽高"><a href="#弹性（Flex）宽高" class="headerlink" title="弹性（Flex）宽高"></a>弹性（Flex）宽高</h4><p><code>flex</code> 指定宽高占总宽高的比例，相当于 weight</p>
-<h1 id="状态-state"><a href="#状态-state" class="headerlink" title="状态 state"></a>状态 <code>state</code></h1><h2 id="props-和-state-的区别"><a href="#props-和-state-的区别" class="headerlink" title="props 和  state 的区别"></a><code>props</code> 和  <code>state</code> 的区别</h2><p><code>props</code> 一经指定，在被指定的组件的<strong>生命周期中不再改变</strong>。 </p>
-<p>对于需要<strong>改变</strong>的数据，我们需要使用 <code>state</code></p>
-<p>调用 <code>setState()</code> 修改状态</p>
-<p>实例：不停闪烁的文字。</p>
-<p>文字内容本身在组件创建时就已经指定好了，所以文字内容应该是一个prop。</p>
-<p>而文字的显示或隐藏的状态（快速的显隐切换就产生了闪烁的效果）则是随着时间变化的，因此这一状态应该写到state中。</p>
-<pre><code>class Blink extends Component {
-  constructor(props) {
-    super(props);
-    this.state = { showText: true };//初始化状态
-
-    // 每1000毫秒对showText状态做一次取反操作
-    setInterval(() =&gt; {
-      this.setState(previousState =&gt; {//会传入当前状态
-        return { showText: !previousState.showText };
-      });
-    }, 1000);
-  }
-
-  render() {
-    // 根据当前showText的值决定是否显示text内容。不展示时显示空字符串
-    let display = this.state.showText ? this.props.text : &apos; &apos;;
-    return (
-      &lt;Text&gt;{display}&lt;/Text&gt;
-    );
-  }
-}
-
-render() {
-    return (
-      &lt;View&gt;
-        &lt;Blink text=&apos;I love to blink&apos; /&gt;
-        &lt;Blink text=&apos;Yes blinking is so great&apos; /&gt;
-        &lt;Blink text=&apos;Why did they ever take this out of HTML&apos; /&gt;
-        &lt;Blink text=&apos;Look at me look at me look at me&apos; /&gt;
-      &lt;/View&gt;
-    );
-}
-</code></pre><p><strong>也可以使用一些“状态容器”比如Redux来统一管理数据流</strong></p>
-<h1 id="Flexbox布局"><a href="#Flexbox布局" class="headerlink" title="Flexbox布局"></a>Flexbox布局</h1><p>React Native中的Flexbox的工作原理和web上的CSS基本一致，当然也存在少许差异。</p>
-<ul>
-<li>flexDirection的默认值是column而不是row，</li>
-<li>flex只能指定一个数字值。</li>
-</ul>
-<h2 id="flexDirection"><a href="#flexDirection" class="headerlink" title="flexDirection"></a>flexDirection</h2><p><strong>方向</strong></p>
-<ul>
-<li>row。左右</li>
-<li>row-reverse。右左</li>
-<li>column。上下<strong>默认值</strong></li>
-<li>colum-reverse。下上右左</li>
-</ul>
-<h2 id="justifyContent-和-alignItems"><a href="#justifyContent-和-alignItems" class="headerlink" title="justifyContent 和 alignItems"></a>justifyContent 和 alignItems</h2><p><strong>子元素沿着主轴的排列方式</strong></p>
-<p><strong>子元素沿着次轴的排列方式</strong></p>
-<ul>
-<li>flex-start 起始对齐</li>
-<li>center 居中</li>
-<li>flex-end 末尾对齐</li>
-</ul>
-<p>以下只适用于主轴排列方式</p>
-<ul>
-<li>space-around 剩余空间均匀的分布在children<strong>周围</strong>(两边)。</li>
-<li>space-between 剩余空间均匀的分布在children<strong>之间</strong></li>
-</ul>
-<p>以下只适用于次轴排列方式</p>
-<ul>
-<li>stretch 撑满次轴。<strong>子元素在次轴方向上不能有固定的尺寸</strong>。</li>
-</ul>
-<h1 id="ListView"><a href="#ListView" class="headerlink" title="ListView"></a>ListView</h1><p>展示长列表数据的组件</p>
-<h2 id="FlatList"><a href="#FlatList" class="headerlink" title="FlatList"></a>FlatList</h2><p>特点：</p>
-<ul>
-<li>垂直的滚动列表，元素之间结构近似而仅数据不同</li>
-<li>元素个数可以增删</li>
-<li>优先渲染屏幕上可见的元素</li>
-</ul>
-<p>使用：</p>
-<p>FlatList组件必须的两个属性</p>
-<ul>
-<li>data 列表的数据源</li>
-<li>renderItem 逐个解析数据源，返回一个组件</li>
-</ul>
-<p>实例</p>
-<pre><code>const styles = StyleSheet.create({
-  container: {
-   flex: 1,
-   paddingTop: 22
-  },
-  item: {
-    padding: 10,
-    fontSize: 18,
-    height: 44,
-  },
-})
-
-render() {
-    return (
-      &lt;View style={styles.container}&gt;
-        &lt;FlatList
-          data={[
-            {key: &apos;Devin&apos;},
-            {key: &apos;Jackson&apos;},
-            {key: &apos;James&apos;},
-            {key: &apos;Joel&apos;},
-            {key: &apos;John&apos;},
-            {key: &apos;Jillian&apos;},
-            {key: &apos;Jimmy&apos;},
-            {key: &apos;Julie&apos;},
-          ]}
-          renderItem={({item}) =&gt; &lt;Text style={styles.item}&gt;{item.key}&lt;/Text&gt;}
-        /&gt;
-      &lt;/View&gt;
-    );
-}
-</code></pre><h2 id="SectionList"><a href="#SectionList" class="headerlink" title="SectionList"></a>SectionList</h2><p>特点：</p>
-<p>适用于需要分组的数据，也许还带有分组标签的</p>
-<p>使用：</p>
-<ul>
-<li>sections 列表的数据源，每个对象包含title和data</li>
-<li>renderItem 逐个解析数据源，每个data子元素返回一个组件</li>
-<li>renderSectionHeader 逐个解析数据源，返回一个组件</li>
-<li>keyExtractor</li>
-</ul>
-<p>实例</p>
-<pre><code>const styles = StyleSheet.create({
-  container: {
-   flex: 1,
-   paddingTop: 22
-  },
-  sectionHeader: {
-    paddingTop: 2,
-    paddingLeft: 10,
-    paddingRight: 10,
-    paddingBottom: 2,
-    fontSize: 14,
-    fontWeight: &apos;bold&apos;,
-    backgroundColor: &apos;rgba(247,247,247,1.0)&apos;,
-  },
-  item: {
-    padding: 10,
-    fontSize: 18,
-    height: 44,
-  },
-})
-
-render() {
-    return (
-      &lt;View style={styles.container}&gt;
-        &lt;SectionList
-          sections={[
-            {title: &apos;D&apos;, data: [&apos;Devin&apos;]},
-            {title: &apos;J&apos;, data: [&apos;Jackson&apos;, &apos;James&apos;, &apos;Jillian&apos;, &apos;Jimmy&apos;, &apos;Joel&apos;, &apos;John&apos;, &apos;Julie&apos;]},
-          ]}
-          renderItem={({item}) =&gt; &lt;Text style={styles.item}&gt;{item}&lt;/Text&gt;}
-          renderSectionHeader={({section}) =&gt; &lt;Text style={styles.sectionHeader}&gt;{section.title}&lt;/Text&gt;}
-          keyExtractor={(item, index) =&gt; index}
-        /&gt;
-      &lt;/View&gt;
-    );
-}
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -3785,7 +4241,7 @@ render() {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">69</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -3798,7 +4254,7 @@ render() {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">36</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

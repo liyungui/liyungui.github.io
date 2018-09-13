@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/gdb演示Android-ELF的GOT-Hook/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/xposed原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/gdb演示Android-ELF的GOT-Hook/" itemprop="url">Android Hook原理</a></h1>
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/xposed原理/" itemprop="url">xposed原理</a></h1>
         
 
         <div class="post-meta">
@@ -333,10 +333,505 @@
       
         
           
-            <p><a href="http://laokaddk.blog.51cto.com/368606/1168989/" target="_blank" rel="noopener">gdb演示Android ELF的GOT Hook</a> </p>
-<p>需要Android源码环境编译，GOT时还需要源码库下的Android库的符号信息（包括libmym.so）</p>
-<p>gdb ‘/home/liyunggui/桌面/testhook’</p>
-<p>Reading symbols from /home/liyunggui/桌面/testhook…(no debugging symbols found)…done. 可能是因为编译过程跟博文不同，导致调试信息丢失而找不到</p>
+            <p><a href="http://www.xuebuyuan.com/2141468.html" target="_blank" rel="noopener">Android Hook框架Xposed原理与源代码分析</a> </p>
+<h1 id="xposed"><a href="#xposed" class="headerlink" title="xposed"></a>xposed</h1><p>Cydia Substrate可以修改任何主进程的代码，不管是用Java还是C/C++（native代码）编写的。</p>
+<p>而Xposed（开源）只支持 HOOK app_process中的java函数</p>
+<p>Xposed框架是一款可以在不修改APK的情况下影响程序运行（修改系统）的框架服务，<br>通过替换/system/bin/app_process程序控制zygote进程，使得app_process在启动过程中会加载XposedBridge.jar这个jar包，从而完成对Zygote进程及其创建的Dalvik虚拟机的劫持。</p>
+<p>基于Xposed框架可以制作出许多功能强大的模块，且在功能不冲突的情况下同时运作。<br>此外，Xposed框架中的每一个库还可以单独下载使用，</p>
+<pre><code>如Per APP Setting（为每个应用设置单独的dpi或修改权限）、
+    Cydia、XPrivacy（防止隐私泄露）、
+    BootManager（开启自启动程序管理应用）对原生Launcher替换图标等应用或功能均基于此框架。
+</code></pre><p>Xposed框架是基于一个Android的本地服务应用XposedInstaller，与一个提供API 的jar文件来完成的。</p>
+<h1 id="xposed安装"><a href="#xposed安装" class="headerlink" title="xposed安装"></a>xposed安装</h1><p>安装使用Xposed框架我们需要完成以下几个步骤：</p>
+<h2 id="安装本地服务XposedInstalle-需要root权限"><a href="#安装本地服务XposedInstalle-需要root权限" class="headerlink" title="安装本地服务XposedInstalle(需要root权限)"></a>安装本地服务XposedInstalle(需要root权限)</h2><h3 id="下载-安装。"><a href="#下载-安装。" class="headerlink" title="下载 安装。"></a><a href="http://repo.xposed.info/module/de.robv.android.xposed.installer" target="_blank" rel="noopener">下载</a> 安装。</h3><h3 id="激活框架。"><a href="#激活框架。" class="headerlink" title="激活框架。"></a>激活框架。</h3><p>点击“安装/更新”就能完成框架的激活了。</p>
+<p>部分设备如果不支持直接写入的话，选择“安装方式”为在Recovery模式下自动安装即可</p>
+<p>由于国内的部分ROM对Xposed不兼容，Recovery模式可能会造成设备反复重启而无法正常启动</p>
+<p>安装后会启动Xposed的app_process，所以安装过程中会存在设备多次重新启动</p>
+<h1 id="xposed项目编码"><a href="#xposed项目编码" class="headerlink" title="xposed项目编码"></a>xposed项目编码</h1><h2 id="jar包依赖"><a href="#jar包依赖" class="headerlink" title="jar包依赖"></a>jar包依赖</h2><ul>
+<li><p>下载API库 XposedBridgeApi-.jar。</p>
+</li>
+<li><p>复制到lib目录（注意是lib目录，不是Android提供的libs目录）</p>
+</li>
+</ul>
+<p>如果直接将jar包放置到了libs目录下，很可能会产生<a href="http://forum.xda-developers.com/xposed/xposed-api-changelog-developer-news-t2714067" target="_blank" rel="noopener">错误</a>： </p>
+<pre><code>“IllegalAccessError: Class ref in pre-verified class resolved to unexpected  implementation” 
+</code></pre><p>估计Xposed作者在其框架内部也引用了BridgeApi，这样操作避免重复引用。</p>
+<h2 id="Manifest设置"><a href="#Manifest设置" class="headerlink" title="Manifest设置"></a>Manifest设置</h2><p>在AndroidManifest.xml文件中meta-data配置 插件名称与Api版本号</p>
+<pre><code>application  下
+&lt;meta-data  
+    android:name=&quot;xposedmodule&quot;  
+    android:value=&quot;true&quot; /&gt;  
+
+&lt;!-- 模块描述 载入model之后显示的描述信息--&gt;
+&lt;meta-data  
+    android:name=&quot;xposeddescription&quot;  
+    android:value=&quot;一个登陆劫持的样例&quot; /&gt;  
+
+&lt;!-- 最低版本号 --&gt;
+&lt;meta-data  
+    android:name=&quot;xposedminversion&quot;  
+    android:value=&quot;30&quot; /&gt;  
+</code></pre><h2 id="自定义hook类"><a href="#自定义hook类" class="headerlink" title="自定义hook类"></a>自定义hook类</h2><pre><code>package com.example.loginhook
+public class Main implements IXposedHookLoadPackage { //加载包的时候回调  
+    public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {  
+
+        // 包名不是 com.example.login 的应用 不hook
+        if (!lpparam.packageName.equals(&quot;com.example.login&quot;)) return;  
+
+         // Hook MainActivity中的isCorrectInfo(String,String)方法  
+        XposedHelpers.findAndHookMethod(&quot;com.example.login.MainActivity&quot;, lpparam.classLoader, &quot;isCorrectInfo&quot;, String.class,  
+        String.class, new XC_MethodHook() {  
+
+            @Override  
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {  
+                XposedBridge.log(&quot;开始劫持了~&quot;);  
+                XposedBridge.log(&quot;参数1 = &quot; + param.args[0]);  
+                XposedBridge.log(&quot;参数2 = &quot; + param.args[1]);  
+            }  
+
+            @Override  
+            protected void afterHookedMethod(MethodHookParam param) throws Throwable {  
+                XposedBridge.log(&quot;劫持结束了~&quot;);  
+                XposedBridge.log(&quot;参数1 = &quot; + param.args[0]);  
+                XposedBridge.log(&quot;参数2 = &quot; + param.args[1]);  
+
+            }  
+        });    
+    }  
+}
+</code></pre><h2 id="assets-xposed-init-声明主入口类"><a href="#assets-xposed-init-声明主入口类" class="headerlink" title="assets/xposed_init 声明主入口类."></a>assets/xposed_init 声明主入口类.</h2><p>这里我们的主入口类为 com.example.loginhook.Main</p>
+<h2 id="编译，安装xposed模块"><a href="#编译，安装xposed模块" class="headerlink" title="编译，安装xposed模块"></a>编译，安装xposed模块</h2><p>XpasedInstaller–模块选项中勾选待启用的模块让其正常的生效</p>
+<p>重启Android设备，进入XposedInstaller查看日志模块</p>
+<h1 id="关键api"><a href="#关键api" class="headerlink" title="关键api"></a>关键api</h1><p>hook主类入口接口</p>
+<pre><code>void handleLoadPackage(final LoadPackageParam lpparam) hook包加载 IXposedHookLoadPackage
+void initCmdApp(StartupParam startupParam) hook java程序初始化 IXposedHookCmdInit
+void handleInitPackageResources(InitPackageResourcesParam resparam) hook包资源初始化 IXposedHookInitPackageResources
+void initZygote(StartupParam startupParam) hook Zygote初始化 IXposedHookZygoteInit
+</code></pre><p>XposedHelpers hook方法等操作api</p>
+<pre><code>Unhook findAndHookMethod(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback)
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi-hook原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi-hook原理/" itemprop="url">adbi hook原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://blog.csdn.net/roland_sun/article/details/36049307" target="_blank" rel="noopener">Android平台下hook框架adbi的研究（下） </a></p>
+<h1 id="native函数hook原理"><a href="#native函数hook原理" class="headerlink" title="native函数hook原理"></a>native函数hook原理</h1><p><strong>native函数hook要解决两个问题</strong></p>
+<ol>
+<li>找到这个函数在内存中的位置</li>
+<li>修改函数偷梁换柱。</li>
+</ol>
+<p>读取“/proc/&lt;进程号&gt;/maps”内存映射文件，找到函数库的起始位置和路径。</p>
+<p>mprotect()为该库内存段加上可写（PROT_WRITE）属性</p>
+<p>打开库文件，解析出符号表，从符号表中找到目标函数（其后是偏移地址，加上库起始地址就是内存地址），接下来就是判断Arm与Thumb指令集，hook了。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/VirtualApp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/VirtualApp/" itemprop="url">VirtualApp</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://bbs.pediy.com/thread-216786.htm" target="_blank" rel="noopener">VirtualHook: 基于VirtualApp的Java代码hook工具</a></p>
+<p>在ART模式下安装Xposed，不仅要求root权限，而且需要替换大量的系统库，因此其使用门槛大幅提高。</p>
+<h1 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h1><p><a href="https://github.com/rk700/VirtualHook" target="_blank" rel="noopener">VirtualHook</a>是基于以下两个框架实现的：</p>
+<ol>
+<li><strong>VirtualApp</strong>，这是一套插件框架，允许应用以插件的方式运行在其构造的虚拟空间中，而无需实际安装应用。<strong>通过VirtualApp实现非root环境下注入窗口的添加</strong></li>
+<li><strong>YAHFA</strong>，这是一套hook框架，实现了ART环境下的Java方法hook</li>
+</ol>
+<h2 id="VirtualApp"><a href="#VirtualApp" class="headerlink" title="VirtualApp"></a><a href="https://github.com/asLody/VirtualApp" target="_blank" rel="noopener">VirtualApp</a></h2><p>hook就是在应用运行过程中，注入外部的代码，从而改变原有的执行流程。</p>
+<p>因此，应用中必须存在注入代码的窗口。</p>
+<p>Xposed便是这样做的：它修改了系统库，对所有应用在启动时添加了注入窗口。但是，这就需要具有root权限。</p>
+<p><a href="http://rk700.github.io/2017/03/15/virtualapp-basic/" target="_blank" rel="noopener">VirtualApp的工作原理</a>简而言之，它通过代理常用系统服务的方式，在系统服务层与应用层之间添加了一层虚拟空间，从而允许在不安装应用的情况下运行应用。特别地，VirtualApp本身并不需要root权限。</p>
+<p>利用VirtualApp提供的虚拟空间，我们就可以实现很多事情了。应用启动时，会初始化Application，此时会在应用所在的进程中调用bindApplication()。而VirtualApp重写了相关代码，那么我们就可以在把注入代码的窗口放在这里，从而实现应用启动时，加载外部的hook代码。</p>
+<p>所以，本文所说的非root权限hook应用，更准确来说，hook的是在VirtualApp中运行的应用。</p>
+<h2 id="YAHFA-Yet-Another-Hook-Framework-for-ART"><a href="#YAHFA-Yet-Another-Hook-Framework-for-ART" class="headerlink" title="YAHFA (Yet Another Hook Framework for ART)"></a><a href="https://github.com/rk700/YAHFA" target="_blank" rel="noopener">YAHFA (Yet Another Hook Framework for ART)</a></h2><p>我们调研了几款hook框架，包括Xposed, AndFix和Legend，但发现如果在这里使用的话，多少都存在一定的问题：</p>
+<ol>
+<li>Xposed需要进行大量的代码变更，过于复杂，而且方法执行的额外开销会增多</li>
+<li><a href="https://github.com/alibaba/AndFix" target="_blank" rel="noopener">AndFix</a>的代码量相对较小，但其进行了方法的全部替换，不支持原方法的调用；对于热修复来说也许影响不大，但对于逆向分析来说，很多时候我们是通过hook来插桩，所以原方法必须要备份以执行</li>
+<li><a href="https://github.com/asLody/legend" target="_blank" rel="noopener">Legend</a>与AndFix的实现方式基本一致，但试用后发现存在某些方法解析失败的问题</li>
+</ol>
+<p>于是，我们重新设计实现了一套hook框架YAHFA，专门用于这里的代码hook。<a href="http://rk700.github.io/2017/03/30/YAHFA-introduction/" target="_blank" rel="noopener">关于YAHFA的具体工作原理，可见这篇介绍</a>。</p>
+<p>至此，我们有了插件框架和hook框架，将其简单地集成，便得到了最终的hook工具，VirtualHook。其具有如下优点：</p>
+<ol>
+<li>支持ART模式，事实上也只支持ART，因为这就是其设计的出发点，DVM模式下用Xposed就OK了。</li>
+<li>无需root权限。由于我们是通过VirtualApp为应用添加代码注入窗口，所以不需要修改系统本身的库，因此不需要root权限，安装难度降低。</li>
+<li>轻量。YAHFA的工作目标，就是高效地运行hook。hook方法执行所带来的额外开销仅有2、3条机器指令，执行原方法时甚至没有额外的开销。</li>
+<li>方便。由于是在VirtualApp中完成hook，因此添加或删除hook插件后，不需要像Xposed那样重启设备，只需要退出目标应用再重新进入即可。</li>
+<li>精细。理论上来说，可以加载多个hook插件，甚至对不同应用使用不同hook插件。配合VirtualApp应用多开，能够更精细地控制hook的行为。</li>
+</ol>
+<h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><p>将hook apk保存到设备SD卡的指定位置 <code>/sdcard/io.virtualhook/patch.apk</code> 以待加载。</p>
+<p>随后启动VirutalHook，在VirutalHook中 添加并运行应用。</p>
+<h1 id="其他说明"><a href="#其他说明" class="headerlink" title="其他说明"></a>其他说明</h1><p>由于VirtualHook是VirtualApp与YAHFA的集成，因此其适用范围就是两者的交集：目前支持的系统是<strong>Android 5.1和6.0</strong>，支持的架构是<strong>armeabi和x86</strong>。由于VirtualHook的<strong>出发点是便于安全研究</strong>，因此适配度不是其考虑的主要问题</p>
+<p>特别地，对于加固应用的hook，目前使用上述的demoHookPlugin试验了360，腾讯，梆梆和爱加密。除了梆梆之外，其他加固的应用均可被hook（爱加密把非错误的日志打印全部重定向了，所以必须通过Log.e()打印日志）。<strong>梆梆加固的应用，在VirtualApp上无法运行</strong>，因此作为其下游的VirtualHook，目前对梆梆加固的应用也无法使用。希望能够有人研究解决这一问题。</p>
+<p>VirtualApp中自带了对native方法进行hook的功能，看雪上已经有利用该功能进行应用脱壳的实践了。后续可以将native hook一并整合起来，使VirtualHook的功能更强大</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/android-hook框架/xposed--Dalvik FrameWork/小米系统miui使用xposed框架/" itemprop="url">小米系统miui使用xposed框架</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.miui.com/thread-2973594-1-1.html" target="_blank" rel="noopener">解除系统对XPosed框架限制</a>    </p>
+<p>从9月23日开始，XPosed框架被系统限制，许多XP模块童鞋捉急。</p>
+<p>然而，高手在民间，不过几日，先是论坛许多miui优化包都放出XP框架可用，说明已破解，但从他们的包内确实找不出关键点。</p>
+<p>又一日，网友『尛』便爆出解决方法，赶脚试试，果然奏效，在这里再次感谢『尛』。</p>
+<p>发这帖是对 『尛』帖子的诠释，以下操作步骤仅为我的见解，不排除有比我更好的方法，希望能帮助到大家，祝基友国庆刷机愉快！</p>
+<p>先说主要的：</p>
+<ol>
+<li><p>请到官方17日的包内提取两个文件：app_process 和 libandroid_runtime.so</p>
+<pre><code>其位置分别在：system/Bin下 和 system/Lib/下（为什么要17日的包？因为17日的包好找，不是内测的基友也可以下载到哦）
+</code></pre></li>
+<li><p>下载你想刷的官方的最新包。</p>
+</li>
+<li><p>把提取的 app_process 和 libandroid_runtime.so 文件替换到新下载包的同目录下（就是提取时的目录），直接覆盖确认。</p>
+<pre><code>替换文件在PC上操作，不要解压rom包。双击rom包，拖曳文件到相应位置直接覆盖替换，无需改权限什么的。
+</code></pre></li>
+<li><p>刷机–成功！（注意：请使用论坛雯雯的rec2.8.5刷入，使用官方REC可能因签名问题失败)</p>
+<pre><code>推荐使用第三方rec刷包(雯雯2.8.5，论坛置顶，这个REC刷官方rom和ota都能成功，真乃刷机神器！)。
+</code></pre><p>楼主机型 ：2014011    HM1STD    红米1S3G移动版<br>其他机型自测，据我观察论坛大部分机型几乎都可使用。</p>
+</li>
+</ol>
+<p><strong>注意：请不要在手机系统上通过RE管理器直接替换文件，否则100%变砖！</strong></p>
+<p>我note 4g联通增强版就是在万恶的百度贴吧看教程用RE替换，然后变砖的。增强版刷机后资料全丢</p>
+<pre><code>http://en.miui.com/forum.php?mod=viewthread&amp;tid=176904&amp;highlight=Xposed Fix for Xposed restrictions on MIUI 7. KitKat Only (4.4.x)
+</code></pre><p>英国miui论坛提供的一个xposed apk，兼容4.4.x。note 4g联通增强版测试成功</p>
 
           
         
@@ -1282,406 +1777,6 @@ KeyIdentifier [
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/IDEA插件/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/17/IDEA插件/" itemprop="url">IDEA插件</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-17T10:42:05+08:00">
-                2018-05-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Custom-Postfix-Templates"><a href="#Custom-Postfix-Templates" class="headerlink" title="Custom Postfix Templates"></a>Custom Postfix Templates</h1><p><img src="https://user-gold-cdn.xitu.io/2018/5/6/16335f07097795ef?imageslim" alt=""></p>
-<h1 id="Git-Flow-Integration"><a href="#Git-Flow-Integration" class="headerlink" title="Git Flow Integration"></a>Git Flow Integration</h1><p>Git Flow插件，与IDEA集成。</p>
-<h1 id="GsonFormat"><a href="#GsonFormat" class="headerlink" title="GsonFormat"></a>GsonFormat</h1><p>JSON报文 –&gt; Java POJO 快速转换。</p>
-<h1 id="String-Manipulation"><a href="#String-Manipulation" class="headerlink" title="String Manipulation"></a>String Manipulation</h1><p>字符串格式风格快捷转换：大小写、驼峰、连接串等。</p>
-<h1 id="FindBugs"><a href="#FindBugs" class="headerlink" title="FindBugs"></a>FindBugs</h1><h1 id="Alibaba-Java-Coding-Guidelines"><a href="#Alibaba-Java-Coding-Guidelines" class="headerlink" title="Alibaba Java Coding Guidelines"></a>Alibaba Java Coding Guidelines</h1><p>阿里巴巴Java开发规约扫描插件。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/Chrome插件/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/17/Chrome插件/" itemprop="url">Chrome插件</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-17T10:36:09+08:00">
-                2018-05-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Surfingkeys"><a href="#Surfingkeys" class="headerlink" title="Surfingkeys"></a>Surfingkeys</h1><p>在Chrome上，可以摆脱掉烦人的鼠标了。Vimium 升级版，我的最爱。</p>
-<h1 id="Tampermonkey"><a href="#Tampermonkey" class="headerlink" title="Tampermonkey"></a>Tampermonkey</h1><p>油猴强大的脚本让你可以做很多很爽的事情。比如开车、百度网盘破解直接下载、VIP视频在线解析破解去广告等。</p>
-<h1 id="沙拉查词-网页划词翻译"><a href="#沙拉查词-网页划词翻译" class="headerlink" title="沙拉查词-网页划词翻译"></a>沙拉查词-网页划词翻译</h1><p>全能网页划词翻译，开放源码、功能丰富、超多词典、清爽快速、支持个性化设置<br>详细信息删除。<br>找了很久才找到的划词翻译软件，而且双击Ctrl还可以弹出查询翻译页面。用起来很爽。</p>
-<h1 id="掘金"><a href="#掘金" class="headerlink" title="掘金"></a>掘金</h1><p>新标签页托管给掘金，快速获得专业内容。掘金已成为一种习惯。</p>
-<h1 id="Imagus"><a href="#Imagus" class="headerlink" title="Imagus"></a>Imagus</h1><p>鼠标悬浮停留在图片上，自动弹出放大图片，不用再在新链接中打开看大图了。</p>
-<h1 id="oneTab"><a href="#oneTab" class="headerlink" title="oneTab"></a>oneTab</h1><p>标签页打开太多的时候，占用内存而且怕关掉后回头找不到？oneTab完美解决这个问题。<br>主要是用来缩减窗口，保存浏览记录。<br>为了省内存？Chrome越来越吃内存？加内存条才是根本的解决办法。</p>
-<h1 id="AutoPagerize"><a href="#AutoPagerize" class="headerlink" title="AutoPagerize"></a>AutoPagerize</h1><p>专门需要Google、百度，点击下一页很烦。AutoPagerize让我不再需要点下一页。</p>
-<h1 id="谷歌访问助手"><a href="#谷歌访问助手" class="headerlink" title="谷歌访问助手"></a>谷歌访问助手</h1><p>如果你只要访问个谷歌或者上谷歌商店的话，不需要突破围墙的话，装这个插件可以满足基本使用了。免费而且速度还行。<br>在我的酸酸乳被严打封锁期间，我是靠着这个插件熬下来的，且行且珍惜。良民万岁。</p>
-<h1 id="Proxy-SwitchyOmega"><a href="#Proxy-SwitchyOmega" class="headerlink" title="Proxy SwitchyOmega"></a>Proxy SwitchyOmega</h1><p>HTTP、SOCKS5代理插件，轻松快捷地管理和切换多个代理设置。用过段时间，挺好用的。</p>
-<h1 id="SwitchySharp"><a href="#SwitchySharp" class="headerlink" title="SwitchySharp"></a>SwitchySharp</h1><p>代理插件</p>
-<h1 id="LastPass"><a href="#LastPass" class="headerlink" title="LastPass"></a>LastPass</h1><p>省掉很多记密码的烦恼。</p>
-<h1 id="Insight-io-for-Github"><a href="#Insight-io-for-Github" class="headerlink" title="Insight.io for Github"></a>Insight.io for Github</h1><p>Github内看代码更方便，带高亮、跳转。</p>
-<h1 id="GitZip-for-github"><a href="#GitZip-for-github" class="headerlink" title="GitZip for github"></a>GitZip for github</h1><p>不想Clone整个项目，只想下载单个文件或者单个文件夹时，用这个。</p>
-<h1 id="Clear-Cache"><a href="#Clear-Cache" class="headerlink" title="Clear Cache"></a>Clear Cache</h1><p>一键清除缓存，可以少点很多步。</p>
-<h1 id="User-Agent-Switcher-for-Chrome"><a href="#User-Agent-Switcher-for-Chrome" class="headerlink" title="User-Agent Switcher for Chrome"></a>User-Agent Switcher for Chrome</h1><p>Chrome可以转换为别的浏览器进行访问，如IE、Safari、360甚至iOS、 Android等移动浏览器，方便用户进行测试。<br>​</p>
-<h1 id="Adblock-Plus"><a href="#Adblock-Plus" class="headerlink" title="Adblock Plus"></a>Adblock Plus</h1><p>网页去广告，不用uBlock Origin 的原因是它太强力，有时候把我博客的评论部分都杀掉了。</p>
-<h1 id="微博图床"><a href="#微博图床" class="headerlink" title="微博图床"></a>微博图床</h1><p>一键将页面中的图片上传到微博，微博是个好图床。我一般用微博图床来拿HTTPS图片。</p>
-<h1 id="扩展管理器（Extension-Manager）"><a href="#扩展管理器（Extension-Manager）" class="headerlink" title="扩展管理器（Extension Manager）"></a>扩展管理器（Extension Manager）</h1><p>一键管理所有扩展，快速开启/禁用、批量闪电管理，智能排序，右键卸载、锁定、选项配置，角标提醒，大小布局随心配。快捷、简单、安全。<br>当插件越来越多的时候，就需要个插件管理器了。这个管理器很方便，颜值不错。</p>
-<h1 id="IDM-Integration-Module"><a href="#IDM-Integration-Module" class="headerlink" title="IDM Integration Module"></a>IDM Integration Module</h1><p>接管Chrome下载，使用IDM下载。一般在安装IDM的时候会自动安装Chrome的扩展。</p>
-<h1 id="惠惠购物助手"><a href="#惠惠购物助手" class="headerlink" title="惠惠购物助手"></a>惠惠购物助手</h1><p>每逢剁手节的时候，都要打开这个看看历史价。</p>
-<h1 id="有道云网页剪报"><a href="#有道云网页剪报" class="headerlink" title="有道云网页剪报"></a>有道云网页剪报</h1><p>一键保存网页内容，保存到有道云笔记里，我有时候将这个作为类似书签使用。</p>
-<h1 id="Grammarly"><a href="#Grammarly" class="headerlink" title="Grammarly"></a>Grammarly</h1><p>Grammarly 可以实现实时语法检查，你边写它就边改，语法问题和修改意见会以标注的形式显示在文档的右侧，方便你去一一查看，而且在每条批注下面都会配有详细的解释，告诉你哪里错了，为什么要这样修改。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/windows工具/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/17/windows工具/" itemprop="url">windows工具</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-17T10:32:09+08:00">
-                2018-05-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="快速启动：WOX"><a href="#快速启动：WOX" class="headerlink" title="快速启动：WOX"></a>快速启动：WOX</h1><p>快速启动应用+文件搜索+各种实用插件（计算器、翻译、网页快速访问等）。我的最爱，没有它我几乎半残。<br>一开始从用altrun 然后试过Listary ，发现WOX  后，最为顺手，效率提升100%。</p>
-<h1 id="搜索工具：everything"><a href="#搜索工具：everything" class="headerlink" title="搜索工具：everything"></a>搜索工具：everything</h1><p>秒找电脑里的各种文件。与WOX完美集成。</p>
-<h1 id="下载：IDM"><a href="#下载：IDM" class="headerlink" title="下载：IDM"></a>下载：IDM</h1><p>多线程下载HTTP类文件下载利器，杠杠的。Chrome 内的下载都托管给了IDM，可下载百度云离线文件，突破下载速度限制。<br>做不到的BT 下载，使用迅雷下载或者Aria2 来配合处理即可。</p>
-<h1 id="截图：snipaste"><a href="#截图：snipaste" class="headerlink" title="截图：snipaste"></a>截图：snipaste</h1><p>开源、免费的国产截图神器。给我最大的感受是截图更方便，且比QQ截图工具清晰很多。</p>
-<h1 id="预览工具：QuickLook"><a href="#预览工具：QuickLook" class="headerlink" title="预览工具：QuickLook"></a>预览工具：QuickLook</h1><p>按下空格即可快速预览文件，微软商店内的免费应用。<br>之前用的seer，发现QuickLook 后，果断抛弃。</p>
-<h1 id="剪切板工具：Ditto"><a href="#剪切板工具：Ditto" class="headerlink" title="剪切板工具：Ditto"></a>剪切板工具：Ditto</h1><p>再也不用担心刚才复制的内容找不到了。</p>
-<h1 id="结构化笔记：workflowy"><a href="#结构化笔记：workflowy" class="headerlink" title="结构化笔记：workflowy"></a>结构化笔记：workflowy</h1><p>Make lists,not war.我常用于记录工作中的各种待办事项。</p>
-<h1 id="Markdown写作工具：Typora"><a href="#Markdown写作工具：Typora" class="headerlink" title="Markdown写作工具：Typora"></a>Markdown写作工具：Typora</h1><p>最好用的Markdown写作工具，所见即所得。</p>
-<h1 id="贴图工具：PicGo"><a href="#贴图工具：PicGo" class="headerlink" title="贴图工具：PicGo"></a>贴图工具：PicGo</h1><p>支持多种图床，功能强大。</p>
-<h1 id="看图工具：2345看图王"><a href="#看图工具：2345看图王" class="headerlink" title="看图工具：2345看图王"></a>看图工具：2345看图王</h1><p>虽然名字土鳖，国产软件，一贯的有流氓行为。但是看图是真好用，我能忍。233333.</p>
-<h1 id="压缩软件：BandZIP"><a href="#压缩软件：BandZIP" class="headerlink" title="压缩软件：BandZIP"></a>压缩软件：BandZIP</h1><h1 id="播放器：Splash"><a href="#播放器：Splash" class="headerlink" title="播放器：Splash"></a>播放器：Splash</h1><h1 id="录屏工具：LICEcap"><a href="#录屏工具：LICEcap" class="headerlink" title="录屏工具：LICEcap"></a>录屏工具：LICEcap</h1><p>比GifCam更好用。</p>
-<h1 id="数据库客户端：DataGrip"><a href="#数据库客户端：DataGrip" class="headerlink" title="数据库客户端：DataGrip"></a>数据库客户端：DataGrip</h1><p>一个客户端全搞定主流数据库。不用再装Navicat、plsql了。</p>
-<p>ps:DataGrip其实是IDEA里一个集成功能，被单独抽离出来成了一个独立产品。</p>
-<h1 id="SSH客户端：MobaXterm"><a href="#SSH客户端：MobaXterm" class="headerlink" title="SSH客户端：MobaXterm"></a>SSH客户端：MobaXterm</h1><p>集成SSH、SFTP、FTP等，一个全搞定。还可分屏等功能，好用。</p>
-<h1 id="终端工具：Cmder"><a href="#终端工具：Cmder" class="headerlink" title="终端工具：Cmder"></a>终端工具：Cmder</h1><p>丢弃掉Windows自带cmd窗口吧。</p>
-<h1 id="API工具：Postman"><a href="#API工具：Postman" class="headerlink" title="API工具：Postman"></a>API工具：Postman</h1><p>强大的API调试、Http请求的工具 。可自动同步个人请求记录。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1736,7 +1831,7 @@ KeyIdentifier [
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">69</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1749,7 +1844,7 @@ KeyIdentifier [
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">36</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

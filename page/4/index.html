@@ -262,6 +262,864 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/03/Flutter/Flutter布局/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/03/Flutter/Flutter布局/" itemprop="url">Flutter布局</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-03T17:00:29+08:00">
+                2018-07-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://docs.flutter.kim/" target="_blank" rel="noopener">Flutter中文文档</a> </p>
+<h1 id="Row-和-Column"><a href="#Row-和-Column" class="headerlink" title="Row 和 Column"></a>Row 和 Column</h1><p>行。水平方向上排列子widget</p>
+<p>列。垂直方向上排列子widget</p>
+<h2 id="对齐"><a href="#对齐" class="headerlink" title="对齐"></a>对齐</h2><h3 id="对齐方向"><a href="#对齐方向" class="headerlink" title="对齐方向"></a>对齐方向</h3><ul>
+<li>mainAxisAlignment <strong>主轴</strong></li>
+<li>crossAxisAlignment <strong>垂直轴</strong></li>
+</ul>
+<p>对于行，主轴水平，垂直轴垂直。对于列，主轴垂直，垂直轴水平。</p>
+<h3 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h3><ul>
+<li>start</li>
+<li>end</li>
+<li>center</li>
+<li>spaceBetween  剩余空间均匀的分布在children<strong>之间</strong></li>
+<li>spaceAround 剩余空间均匀的分布在children<strong>周围</strong>(两边)。</li>
+<li>spaceEvenly  剩余空间均匀的分布在children<strong>之间和周围</strong></li>
+</ul>
+<img src="/2018/07/03/Flutter/Flutter布局/space.png">
+<pre><code>body: new Row(
+  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  children: [
+    new Image.asset(
+      &apos;images/lake.jpg&apos;,
+      width: 100.0,
+      height: 100.0,
+      fit: BoxFit.cover,
+    ),
+    new Image.asset(
+      &apos;images/lake.jpg&apos;,
+      width: 100.0,
+      height: 100.0,
+      fit: BoxFit.cover,
+    ), new Image.asset(
+      &apos;images/lake.jpg&apos;,
+      width: 100.0,
+      height: 100.0,
+      fit: BoxFit.cover,
+    ),
+  ])),
+</code></pre><h1 id="Expanded"><a href="#Expanded" class="headerlink" title="Expanded"></a>Expanded</h1><p>只可用于Row、Column、Flex内，会被Expanded撑开，充满主轴可用空间</p>
+<p>如果多个子组件展开，可用空间会被其伸缩因子(可理解为比例,每个控件默认为1) <code>flex</code> 分割</p>
+<p>Row、Column、Flex到Expanded的路径必须只包括StatelessWidgets或StatefulWidgets组件</p>
+<pre><code>body: new Row(
+  children: [
+    new Image.asset(&apos;images/lake.jpg&apos;),
+    new Image.asset(&apos;images/lake.jpg&apos;),
+    new Image.asset(&apos;images/lake.jpg&apos;),
+  ])),
+</code></pre><p>当布局太大而不适合设备时，沿着受影响的边缘会出现黄黑条纹。例如，示例中的行对于设备的屏幕来说太宽了</p>
+<img src="/2018/07/03/Flutter/Flutter布局/out-width.png">
+<pre><code>body: new Row(children: [
+    new Expanded(
+      child: new Image.asset(&apos;images/lake.jpg&apos;),
+    ),
+    new Expanded(
+      child: new Image.asset(&apos;images/lake.jpg&apos;),
+    ),
+    new Expanded(
+      child: new Image.asset(&apos;images/lake.jpg&apos;),
+    ),
+  ])),
+</code></pre><img src="/2018/07/03/Flutter/Flutter布局/Expanded.png">
+<h1 id="Container"><a href="#Container" class="headerlink" title="Container"></a>Container</h1><p>绘制、定位、调整大小</p>
+<ul>
+<li>constraints : Additional constraints to apply to the child。 类型是 BoxConstraints</li>
+<li>decoration ： The decoration to paint behind the child。类型是Decoration</li>
+<li>foregroundDecoration ： The decoration to paint in front of the child</li>
+<li>transform ：The transformation matrix to apply before painting the container. 类型是 Matrix4</li>
+</ul>
+<p>示例</p>
+<pre><code>body: new Container(
+  constraints: new BoxConstraints.expand(
+    height:
+        Theme.of(context).textTheme.display1.fontSize * 1.1 + 200.0,
+  ),
+  padding: const EdgeInsets.all(8.0),
+  color: Colors.teal.shade700,
+  alignment: Alignment.center,
+  child: new Text(&apos;Hello World&apos;,
+      style: Theme
+          .of(context)
+          .textTheme
+          .display1
+          .copyWith(color: Colors.white)),
+  foregroundDecoration: new BoxDecoration(
+    image: new DecorationImage(
+      image: new NetworkImage(
+          &apos;http://img.zcool.cn/community/0142135541fe180000019ae9b8cf86.jpg@1280w_1l_2o_100sh.png&apos;),
+      centerSlice: new Rect.fromLTRB(270.0, 180.0, 1360.0, 730.0),
+    ),
+  ),
+  transform: new Matrix4.rotationZ(0.1),
+))
+</code></pre><h1 id="Scaffold"><a href="#Scaffold" class="headerlink" title="Scaffold"></a>Scaffold</h1><p>属性有：</p>
+<ul>
+<li>appBar 顶部bar</li>
+<li>body 中间内容</li>
+<li>bottomNavigationBar 底部导航</li>
+<li>persistentFooterButtons 底部按钮</li>
+<li>floatingActionButton 右下角悬浮按钮</li>
+<li>drawer 抽屉。 Swipes in from either left-to-right (TextDirection.ltr) or right-to-left (TextDirection.rtl) </li>
+<li>endDrawer 抽屉</li>
+</ul>
+<h1 id="MaterialApp"><a href="#MaterialApp" class="headerlink" title="MaterialApp"></a>MaterialApp</h1><ul>
+<li>title ： 任务管理窗口(历史堆栈)中所显示的应用名字</li>
+<li>theme ： 主题颜色</li>
+<li>color ： 主要颜色值（primary color），也就是安卓任务管理窗口中所显示的应用颜色</li>
+<li>home ： 默认显示的界面 Widget</li>
+<li>builder ： <ul>
+<li>类型是TransitionBuilder。<ul>
+<li>Widget TransitionBuilder(BuildContext context, Widget child)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>routes ： 多页面路由(跳转)规则。 <ul>
+<li>类型是 Map&lt;String, WidgetBuilder&gt;。<ul>
+<li>Widget WidgetBuilder(BuildContext context)</li>
+</ul>
+</li>
+<li>当使用 Navigator.pushNamed 来路由的时候<ul>
+<li>会在 routes 查找路由名字</li>
+<li>然后使用 对应的 WidgetBuilder 来构造一个带有页面切换动画的 MaterialPageRoute。</li>
+</ul>
+</li>
+<li>只有routes时，必须有Navigator.defaultRouteName(<code>/</code>)的入口。</li>
+<li>有 home，又有Navigator.defaultRouteName(<code>/</code>)的入口，就会出错，home冲突</li>
+<li>查找的路由在 routes 中不存在，则会通过 onGenerateRoute 来查找</li>
+</ul>
+</li>
+<li>initialRoute ：默认显示的路由名字，默认值为 Window.defaultRouteName。</li>
+<li>onGenerateRoute ： 生成路由的回调函数</li>
+<li>onLocaleChanged ： 系统修改语言的回调</li>
+<li>navigatorObservers ： 应用 Navigator 的监听器</li>
+<li>debugShowMaterialGrid ： 是否显示基础布局网格(调试 UI 的工具)</li>
+<li>showPerformanceOverlay ： 显示性能标签</li>
+<li>checkerboardRasterCacheImages 、showSemanticsDebugger、debugShowCheckedModeBanner 调试开关</li>
+</ul>
+<p>示例，注释掉home,使用routes</p>
+<pre><code>routes: &lt;String, WidgetBuilder&gt;{
+    Navigator.defaultRouteName: (context) =&gt; Scaffold(
+        appBar: AppBar(
+          title: Text(&apos;Flutter Title&apos;),
+        ),
+        body: new Container(
+          constraints: new BoxConstraints.expand(
+            height:
+                Theme.of(context).textTheme.display1.fontSize * 1.1 + 200.0,
+          ),
+          padding: const EdgeInsets.all(8.0),
+          color: Colors.teal.shade700,
+          alignment: Alignment.center,
+          child: new Text(&apos;Hello World&apos;,
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .display1
+                  .copyWith(color: Colors.white)),
+          foregroundDecoration: new BoxDecoration(
+            image: new DecorationImage(
+              image: new NetworkImage(
+                  &apos;http://img.zcool.cn/community/0142135541fe180000019ae9b8cf86.jpg@1280w_1l_2o_100sh.png&apos;),
+              centerSlice: new Rect.fromLTRB(270.0, 180.0, 1360.0, 730.0),
+            ),
+          ),
+          transform: new Matrix4.rotationZ(0.1),
+        ))
+  },
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/29/Dart/Dart教程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/29/Dart/Dart教程/" itemprop="url">Dart教程</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-29T15:00:04+08:00">
+                2018-06-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="A-basic-Dart-program"><a href="#A-basic-Dart-program" class="headerlink" title="A basic Dart program"></a>A basic Dart program</h1><pre><code>printInteger(int aNumber) {
+  print(&apos;The number is $aNumber.&apos;); // Print to console.
+}
+
+main() {//程序入口
+  var number = 42; // Declare and initialize a variable.
+  printInteger(number); // Call a function.
+}
+</code></pre><h1 id="Important-concepts"><a href="#Important-concepts" class="headerlink" title="Important concepts"></a>Important concepts</h1><ul>
+<li><strong>万物皆对象。包括 函数 null。</strong> <ul>
+<li><code>Object</code>是最顶层基类</li>
+<li>很多语言，函数都是一级对象(first-class objects)，如Ruby，Python</li>
+</ul>
+</li>
+<li>支持类型推断。虽然Dart是强类型语言</li>
+<li>支持泛型</li>
+<li>支持嵌套函数。create functions within functions (nested or local functions)</li>
+<li>下划线前缀表示private to its library。没有作用域关键字<code>public, protected, and private</code></li>
+<li>精确区分<code>表达式和语句块(expression and statement)</code></li>
+<li>The <code>new</code> keyword became optional in Dart 2. </li>
+</ul>
+<h1 id="Variables"><a href="#Variables" class="headerlink" title="Variables"></a>Variables</h1><pre><code>String name = &apos;Bob&apos;;
+var name = &apos;Bob&apos;;//自动推断，String类型。局部变量建议使用此方式
+dynamic name = &apos;Bob&apos;;//动态类型
+Object name = &apos;Bob&apos;;//同上
+</code></pre><ul>
+<li>变量保存引用</li>
+</ul>
+<h2 id="默认值"><a href="#默认值" class="headerlink" title="默认值"></a>默认值</h2><p>默认值为null。即使是数字类型，因为Dart万物皆对象</p>
+<h2 id="final-and-const"><a href="#final-and-const" class="headerlink" title="final and const"></a>final and const</h2><ul>
+<li>final<ul>
+<li>只允许赋值一次</li>
+</ul>
+</li>
+<li>const<ul>
+<li>编译时常量</li>
+<li>较弱的final</li>
+<li>成员变量不能声明为const</li>
+</ul>
+</li>
+</ul>
+<p>示例</p>
+<pre><code>final name = &apos;Bob&apos;; // Without a type annotation
+final String nickname = &apos;Bobby&apos;;
+</code></pre><h1 id="Built-in-types"><a href="#Built-in-types" class="headerlink" title="Built-in types"></a>Built-in types</h1><h2 id="num"><a href="#num" class="headerlink" title="num"></a>num</h2><ul>
+<li>int。最长 64 bits。转为JavaScript 最长54位</li>
+<li>double。 64位</li>
+</ul>
+<h2 id="Strings"><a href="#Strings" class="headerlink" title="Strings"></a>Strings</h2><ul>
+<li><code>var s = &#39;string interpolation&#39;;</code></li>
+<li><code>${s}</code> 引用字符串</li>
+<li><code>==</code> 比较内容是否一致</li>
+<li><code>+</code> 拼接字符串</li>
+<li><code>&#39;&#39;&#39;多行字符串&#39;&#39;&#39;</code></li>
+<li>raw String。 <code>var s = r&quot;In a raw string, even \n isn&#39;t special.&quot;;</code></li>
+</ul>
+<h2 id="bool"><a href="#bool" class="headerlink" title="bool"></a>bool</h2><h2 id="List"><a href="#List" class="headerlink" title="List"></a>List</h2><pre><code>var list = [1, 2, 3];
+list[0] = 1;
+</code></pre><h2 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h2><pre><code>var gifts = {
+  // Key:    Value
+  &apos;first&apos;: &apos;partridge&apos;,
+  &apos;second&apos;: &apos;turtledoves&apos;,
+  &apos;fifth&apos;: &apos;golden rings&apos;
+};
+gifts[&apos;first&apos;] = &apos;partridge&apos;;
+
+var nobleGases = {
+  2: &apos;helium&apos;,
+  10: &apos;neon&apos;,
+  18: &apos;argon&apos;,
+};
+nobleGases[2] = &apos;helium&apos;;
+</code></pre><h2 id="Runes"><a href="#Runes" class="headerlink" title="Runes"></a>Runes</h2><p>UTF-32 code points of a string</p>
+<h2 id="Symbol"><a href="#Symbol" class="headerlink" title="Symbol"></a>Symbol</h2><p>代表一个操作或者符号</p>
+<p>获取一个Symbol <code>#bar</code></p>
+<h1 id="Function"><a href="#Function" class="headerlink" title="Function"></a>Function</h1><pre><code>bool isNoble(int atomicNumber) {
+  return _nobleGases[atomicNumber] != null;
+}
+</code></pre><ul>
+<li>返回值可省略。不建议省略</li>
+<li>函数体只有一个表达式。简写<ul>
+<li><code>bool isNoble(int atomicNumber) =&gt; _nobleGases[atomicNumber] != null;</code></li>
+<li>The =&gt; notation is sometimes referred to as fat arrow syntax.</li>
+<li>Dart严格区分表达式和语句块，支持单表达式简写<ul>
+<li>if 语句块 不支持</li>
+<li>条件表达式 支持</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="Optional-parameters"><a href="#Optional-parameters" class="headerlink" title="Optional parameters"></a>Optional parameters</h2><h3 id="Optional-named-parameters"><a href="#Optional-named-parameters" class="headerlink" title="Optional named parameters"></a>Optional named parameters</h3><pre><code>void enableFlags({bool bold, bool hidden}) {
+  // ...
+}
+</code></pre><h3 id="Optional-positional-parameters"><a href="#Optional-positional-parameters" class="headerlink" title="Optional positional parameters"></a>Optional positional parameters</h3><pre><code>String say(String from, String msg, [String device]) {
+  var result = &apos;$from says $msg&apos;;
+  if (device != null) {
+    result = &apos;$result with a $device&apos;;
+  }
+  return result;
+}
+</code></pre><h3 id="Default-parameter-values-for-Optional-parameters"><a href="#Default-parameter-values-for-Optional-parameters" class="headerlink" title="Default parameter values for Optional parameters"></a>Default parameter values for Optional parameters</h3><p>默认值必须为 compile-time constants</p>
+<pre><code>void enableFlags({bool bold = false, bool hidden = false}) {
+  // ...
+}
+</code></pre><h2 id="The-main-function"><a href="#The-main-function" class="headerlink" title="The main() function"></a>The main() function</h2><p>入口函数</p>
+<ul>
+<li>returns void </li>
+<li>has an optional <code>List&lt;String&gt; parameter</code> for arguments</li>
+</ul>
+<h2 id="Functions-as-first-class-objects-函数作为对象"><a href="#Functions-as-first-class-objects-函数作为对象" class="headerlink" title="Functions as first-class objects 函数作为对象"></a>Functions as first-class objects 函数作为对象</h2><p>作为函数参数</p>
+<pre><code>void printElement(int element) {
+  print(element);
+}
+
+var list = [1, 2, 3];
+
+// Pass printElement as a parameter.
+list.forEach(printElement);
+</code></pre><p>作为变量值</p>
+<pre><code>var loudify = (msg) =&gt; &apos;!!! ${msg.toUpperCase()} !!!&apos;;
+assert(loudify(&apos;hello&apos;) == &apos;!!! HELLO !!!&apos;);
+匿名函数 + 简写
+</code></pre><h2 id="Anonymous-functions"><a href="#Anonymous-functions" class="headerlink" title="Anonymous functions"></a>Anonymous functions</h2><p>有时又称 closures</p>
+<pre><code>([[Type] param1[, …]]) { 
+  codeBlock; 
+}; 
+</code></pre><p>示例</p>
+<pre><code>var list = [&apos;apples&apos;, &apos;bananas&apos;, &apos;oranges&apos;];
+list.forEach((item) {
+  print(&apos;${list.indexOf(item)}: $item&apos;);
+});
+
+单表达式，简写
+list.forEach(
+    (item) =&gt; print(&apos;${list.indexOf(item)}: $item&apos;));
+</code></pre><h2 id="closures-闭包"><a href="#closures-闭包" class="headerlink" title="closures 闭包"></a>closures 闭包</h2><p>匿名函数的一种，匿名函数对象在变量作用域之外，访问变量。<strong>改变了变量作用域</strong></p>
+<pre><code>Function makeAdder(num addBy) {//闭包改变addBy的作用域
+  return (num i) =&gt; addBy + i;
+}
+
+void main() {
+  // Create a function that adds 2.
+  var add2 = makeAdder(2);
+
+  // Create a function that adds 4.
+  var add4 = makeAdder(4);
+
+  assert(add2(3) == 5);
+  assert(add4(3) == 7);
+}
+</code></pre><h1 id="Classes"><a href="#Classes" class="headerlink" title="Classes"></a>Classes</h1><h2 id="Instance-variables"><a href="#Instance-variables" class="headerlink" title="Instance variables"></a>Instance variables</h2><pre><code>class Point {
+  num x;
+  num y = 0;//创建对象就初始化这个成员变量值，before the constructor and its initializer list execute
+}
+
+void main() {
+  var point = Point();
+  point.x = 4; // Use the setter method for x.
+}
+</code></pre><ul>
+<li>所有成员变量 自动/隐式(implicit)生成 getter方法. </li>
+<li>Non-final成员变量 自动/隐式(implicit)生成  setter方法</li>
+</ul>
+<h2 id="Constructors"><a href="#Constructors" class="headerlink" title="Constructors"></a>Constructors</h2><ul>
+<li>和类名同名函数，自动调用父类的默认构造函数(如果没有手动调用父类其他构造函数)</li>
+<li>默认构造函数(unnamed, no-argument)。如果没有声明构造函数，会自动生成一个无参构造函数</li>
+<li>构造函数不会自动继承。可以手动复写</li>
+<li>初始化顺序<ul>
+<li>initializer list。用来初始化final成员变量很方便(handy)</li>
+<li>superclass’s no-arg constructor</li>
+<li>main class’s no-arg constructor</li>
+<li>构造函数body</li>
+</ul>
+</li>
+<li>先于自身构造函数执行的代码无法访问成员变量/成员方法/this。比如上面的：initializer list的赋值，传递给父类构造函数参数的值</li>
+</ul>
+<p>示例</p>
+<pre><code>class Point {
+  num x, y;
+
+  Point(num x, num y) {
+    this.x = x;//变量名冲突，所以加this.
+    this.y = y;
+  }
+}
+
+class Point {
+  num x, y;
+
+  Point(this.x, this.y);// Syntactic sugar for setting x and y, before the constructor body runs.
+}
+</code></pre><h3 id="Named-constructors"><a href="#Named-constructors" class="headerlink" title="Named constructors"></a>Named constructors</h3><pre><code>class Point {
+  num x, y;
+
+  Point(this.x, this.y);
+
+  // Named constructor
+  Point.origin() {
+    x = 0;
+    y = 0;
+  }
+}
+</code></pre><h3 id="Invoking-constructors"><a href="#Invoking-constructors" class="headerlink" title="Invoking constructors"></a>Invoking constructors</h3><h4 id="Invoking-a-non-default-superclass-constructor"><a href="#Invoking-a-non-default-superclass-constructor" class="headerlink" title="Invoking a non-default superclass constructor"></a>Invoking a non-default superclass constructor</h4><pre><code>构造函数：父类构造函数{
+}
+</code></pre><p>示例</p>
+<pre><code>class Person {
+  String firstName;
+
+  Person.fromJson(Map data) {
+    print(&apos;in Person&apos;);
+  }
+}
+
+class Employee extends Person {
+  Employee.fromJson(Map data) : super.fromJson(data) {
+    print(&apos;in Employee&apos;);
+  }
+}
+
+main() {
+  var emp = new Employee.fromJson({});
+}
+
+输出
+    in Person
+    in Employee
+</code></pre><p>示例2</p>
+<pre><code>class Employee extends Person {
+  Employee() : super.fromJson(getDefaultData());
+  // ···
+}
+</code></pre><h4 id="Redirecting-constructors"><a href="#Redirecting-constructors" class="headerlink" title="Redirecting constructors"></a>Redirecting constructors</h4><pre><code>class Point {
+  num x, y;
+
+  Point(this.x, this.y); // The main constructor for this class.
+
+  Point.alongXAxis(num x) : this(x, 0); // Delegates to the main constructor.
+}
+</code></pre><h3 id="Initializer-list"><a href="#Initializer-list" class="headerlink" title="Initializer list"></a>Initializer list</h3><pre><code>构造函数:Initializer1,Initializer2{
+}
+</code></pre><p>示例</p>
+<pre><code>Point.fromJson(Map&lt;String, num&gt; json)
+    : x = json[&apos;x&apos;],
+      y = json[&apos;y&apos;] {
+  print(&apos;In Point.fromJson(): ($x, $y)&apos;);
+}
+</code></pre><p>示例2：初始化final成员变量，很方便</p>
+<pre><code>import &apos;dart:math&apos;;
+
+class Point {
+  final num x;
+  final num y;
+  final num distanceFromOrigin;
+
+  Point(x, y)
+      : x = x,
+        y = y,
+        distanceFromOrigin = sqrt(x * x + y * y);
+}
+
+main() {
+  var p = new Point(3, 4);
+  print(p.distanceFromOrigin);
+}
+
+输出 5.0
+</code></pre><h3 id="Constant-constructors"><a href="#Constant-constructors" class="headerlink" title="Constant constructors"></a>Constant constructors</h3><p>define a const constructor and make sure that all instance variables are final</p>
+<pre><code>class ImmutablePoint {
+  static final ImmutablePoint origin =
+      const ImmutablePoint(0, 0);
+
+  final num x, y;
+
+  const ImmutablePoint(this.x, this.y);
+}
+</code></pre><h3 id="Factory-constructors"><a href="#Factory-constructors" class="headerlink" title="Factory constructors"></a>Factory constructors</h3><p>factory修饰构造函数，返回一个缓存对象或者子类对象</p>
+<pre><code>class Logger {
+  final String name;
+  bool mute = false;
+
+  // _cache is library-private
+  static final Map&lt;String, Logger&gt; _cache = &lt;String, Logger&gt;{};
+
+  factory Logger(String name) {
+    if (_cache.containsKey(name)) {
+      return _cache[name];
+    } else {
+      final logger = Logger._internal(name);
+      _cache[name] = logger;
+      return logger;
+    }
+  }
+
+  Logger._internal(this.name);
+
+  void log(String msg) {
+    if (!mute) print(msg);
+  }
+}
+</code></pre><h2 id="Using-class-members"><a href="#Using-class-members" class="headerlink" title="Using class members"></a>Using class members</h2><pre><code>var p = Point(2, 2);
+
+p.y = 3;// Set the value of the instance variable y.
+
+p?.y = 4;// If p is non-null, set its y value to 4.
+</code></pre><h1 id="mixins复用"><a href="#mixins复用" class="headerlink" title="mixins复用"></a><code>mixins</code>复用</h1><p>mixins是一种方便重用一个类的代码的方法。给类添加新的功能</p>
+<p>使用<code>with</code> 关键字来实现mixins的功能。</p>
+<pre><code>class Musician extends Performer with Musical {
+  // ...
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/27/Fresco使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/27/Fresco使用/" itemprop="url">Fresco使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-27T10:43:15+08:00">
+                2018-06-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="SimpleDraweeView实现圆形图片"><a href="#SimpleDraweeView实现圆形图片" class="headerlink" title="SimpleDraweeView实现圆形图片"></a>SimpleDraweeView实现圆形图片</h1><pre><code>LinearLayout.LayoutParams headPortraitQueueLayoutParams = new LinearLayout.LayoutParams(ResourcesManager.instance().dipToPx(20), ResourcesManager.instance().dipToPx(20));
+mQueueHeadPortrait = new SimpleDraweeView(context);
+mQueueHeadPortrait.setLayoutParams(headPortraitQueueLayoutParams);
+mQueueHeadPortrait.setHierarchy(buildGenericDraweeHierarchy());
+
+private GenericDraweeHierarchy buildGenericDraweeHierarchy() {
+    RoundingParams roundingParams = new RoundingParams();
+    roundingParams.setRoundAsCircle(true);//设置图像显示圆形，当我们同时设置图像显示为圆形图像和圆角图像时，只会显示为圆形图像
+    roundingParams.setBorderColor(Color.parseColor(&quot;#E9E9E9&quot;));//边框颜色
+    roundingParams.setBorderWidth(2f);//边框宽度
+    GenericDraweeHierarchyBuilder genericDraweeHierarchyBuilder = new GenericDraweeHierarchyBuilder(getResources());
+    return genericDraweeHierarchyBuilder
+            .setPlaceholderImage(ResourcesManager.instance().getDrawable(R.mipmap.ic_default_avatar_t))
+            .setPlaceholderImageScaleType(ScalingUtils.ScaleType.CENTER_INSIDE)
+            .setActualImageScaleType(ScalingUtils.ScaleType.CENTER_INSIDE)
+            .setFailureImage(ResourcesManager.instance().getDrawable(R.mipmap.ic_default_avatar_t))
+            .setFailureImageScaleType(ScalingUtils.ScaleType.CENTER_INSIDE)
+            .setRoundingParams(roundingParams)//圆形圆角设置
+            .build();
+}
+</code></pre><ul>
+<li>宽高不支持wrap-content(图片无法显示)，需设置精确值</li>
+<li>GenericDraweeHierarchy不能共用(共用的话，所有图片都展示成最后一个view的图片)</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/22/技术分享/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1066,6 +1924,20 @@ public static int calculateInSampleSize(BitmapFactory.Options options, int reqWi
             <h1 id="根据资源名获取资源id–getIdentifier"><a href="#根据资源名获取资源id–getIdentifier" class="headerlink" title="根据资源名获取资源id–getIdentifier()"></a>根据资源名获取资源id–getIdentifier()</h1><pre><code>int layoutId = getResources().getIdentifier(&quot;activity_main&quot;, &quot;layout&quot;, getPackageName());
 </code></pre><p>一般都是动态替换资源id时用到，可以有效避免定义资源Array。比如下例，动态展示连击1到连击9，超过9展示最佳连击</p>
 <pre><code>getResources().getIdentifier(comboNum &lt;= 9 ? &quot;combo_&quot; + comboNum : &quot;combo_best&quot;, &quot;drawable&quot;, getPackageName());
+</code></pre><h1 id="图片资源"><a href="#图片资源" class="headerlink" title="图片资源"></a>图片资源</h1><p>存放目录：<code>drawable</code> <code>mipmap</code></p>
+<p>支持格式：</p>
+<ul>
+<li>png</li>
+<li>xml</li>
+<li>gif</li>
+</ul>
+<p>使用：</p>
+<p>xml中：<code>@drawable/distraction</code> <code>@mipmap/distraction</code></p>
+<p>Java代码中：<code>R.drawable.distraction</code> <code>R.mipmap.distraction</code></p>
+<h1 id="音频资源"><a href="#音频资源" class="headerlink" title="音频资源"></a>音频资源</h1><p>存放目录：<code>raw</code></p>
+<p>使用：<code>R.raw.sound_connect_praise</code></p>
+<pre><code>SoundPool.load()
+SoundPool.play()
 </code></pre>
           
         
@@ -1651,628 +2523,6 @@ mainClassName = &apos;com.binwin20.testjava.Main&apos; // main() 的路径
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/AndroidManifest合并原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/24/AndroidManifest合并原理/" itemprop="url">AndroidManifest合并原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-24T18:44:53+08:00">
-                2018-05-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://mouxuejie.com/blog/2016-02-05/androidmanifest-merge/" target="_blank" rel="noopener">ss</a></p>
-<p><a href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn" target="_blank" rel="noopener">啊啊</a></p>
-<p>APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。</p>
-<p>清单合并工具通过遵循某些<strong>合并冲突启发式算法</strong>，和 <strong>合并首选项</strong>(通过特殊 XML 属性定义)，来合并各个文件中的所有 XML 元素 。</p>
-<h1 id="合并优先级"><a href="#合并优先级" class="headerlink" title="合并优先级"></a>合并优先级</h1><p><strong>从优先级最低的文件合并至优先级最高的文件</strong></p>
-<img src="/2018/05/24/AndroidManifest合并原理/manifest-merger_priority.png">
-<h2 id="库清单文件"><a href="#库清单文件" class="headerlink" title="库清单文件"></a>库清单文件</h2><p>多个库，则其清单优先级与依赖顺序（库出现在 Gradle dependencies 块中的顺序，由高到低）匹配</p>
-<h2 id="构建变体"><a href="#构建变体" class="headerlink" title="构建变体"></a>构建变体</h2><p>变体有多个源集，则其清单优先级如下(由高到低)：</p>
-<ul>
-<li>构建变体清单（如 src/demoDebug/）</li>
-<li>构建类型清单（如 src/debug/）</li>
-<li>产品定制清单（如 src/demo/）</li>
-</ul>
-<p>如果使用的是定制维度，清单优先级将与每个维度在 flavorDimensions 属性中的列示顺序(由高到低)对应。</p>
-<h1 id="合并冲突启发式算法"><a href="#合并冲突启发式算法" class="headerlink" title="合并冲突启发式算法"></a>合并冲突启发式算法</h1><h2 id="默认合并规则"><a href="#默认合并规则" class="headerlink" title="默认合并规则"></a>默认合并规则</h2><img src="/2018/05/24/AndroidManifest合并原理/merge.png">
-<h3 id="编码原则：不依赖于默认属性值"><a href="#编码原则：不依赖于默认属性值" class="headerlink" title="编码原则：不依赖于默认属性值"></a>编码原则：不依赖于默认属性值</h3><p>高优先级清单实际上依赖于属性的默认值而不需要声明，则可能会导致意外结果。</p>
-<p>例如，高优先级清单不声明android:launchMode 属性，则会使用 “standard” 的默认值；但如果低优先级清单声明此属性具有其他值，该值将应用于合并清单（替代默认值）。因此，您应该按期望明确定义每个属性。（每个属性的默认值都会记录在 <a href="https://developer.android.com/guide/topics/manifest/manifest-intro?hl=zh-cn" target="_blank" rel="noopener">Manifest reference</a> 中）。</p>
-<h2 id="合并工具为减少合并冲突的特殊规则"><a href="#合并工具为减少合并冲突的特殊规则" class="headerlink" title="合并工具为减少合并冲突的特殊规则"></a>合并工具为减少合并冲突的特殊规则</h2><ul>
-<li><code>&lt;manifest&gt;</code>元素的属性绝不合并—仅使用优先级最高的清单中的属性。</li>
-<li><code>&lt;uses-feature&gt;</code>元素 <code>&lt;uses-library&gt;</code>元素<code>android:required</code>属性 使用 <strong>OR</strong> 合并，因此如果出现冲突，系统将应用 “true” 并始终包括某个清单所需的功能或库。</li>
-<li><code>&lt;uses-sdk&gt;</code>元素始终使用较高优先级的清单中的值，但以下情况有些特殊：<ul>
-<li>minSdkVersion，低优先级清单的值 较高<ul>
-<li>默认，使用 低优先级清单的值</li>
-<li>应用 overrideLibrary 合并规则，使用 较高优先级的清单中的值</li>
-</ul>
-</li>
-<li>targetSdkVersion，低优先级清单的值 较低<ul>
-<li>合并工具将使用高优先级清单中的值</li>
-<li>但也会添加任何必要的系统权限，以确保所导入的库继续正常工作<ul>
-<li>适用于 较高的 Android 版本需要更多权限限制的情况。 如需了解有关此行为的详细信息，请参阅有关隐式系统权限的部分。</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><code>&lt;intent-filter&gt;</code>元素。 每个元素都被视为唯一元素，直接添加至合并清单中的常用父元素。</li>
-</ul>
-<h1 id="合并规则标记"><a href="#合并规则标记" class="headerlink" title="合并规则标记"></a>合并规则标记</h1><ul>
-<li>是什么：是一个 XML 属性</li>
-<li>作用：标记如何解决合并冲突和属性的首选项</li>
-<li>作用域：整个元素或元素的特定属性</li>
-<li>合并工具会在高优先级清单文件中寻找这些标记</li>
-<li>所有标记均属于 Android <code>tools</code> 命名空间，必须先在 <code>&lt;manifest&gt;</code>元素中声明此命名空间</li>
-</ul>
-<h2 id="元素-节点标记"><a href="#元素-节点标记" class="headerlink" title="元素/节点标记"></a>元素/节点标记</h2><p><strong>tools:node=”xx”</strong></p>
-<ul>
-<li><strong>merge</strong> <ul>
-<li>元素的默认行为</li>
-<li>合并所有属性以及所有嵌套元素。 例如：<code>&lt;activity&gt;</code> 嵌套 <code>&lt;intent-filter&gt;</code></li>
-</ul>
-</li>
-<li><strong>merge-only-attributes</strong><ul>
-<li>仅合并属性，不合并嵌套元素</li>
-</ul>
-</li>
-<li><strong>remove</strong></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/Android系统版本适配/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/24/Android系统版本适配/" itemprop="url">Android系统版本适配</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-24T18:40:36+08:00">
-                2018-05-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="FileProvider替代file-Uri"><a href="#FileProvider替代file-Uri" class="headerlink" title="FileProvider替代file://Uri"></a>FileProvider替代file://Uri</h1><p>不再允许在app中把file://Uri暴露给其他app，包括但不局限于通过Intent或ClipData 等方法</p>
-<p>Android7 提供了FileProvider，使用它生成content://Uri来替代file://Uri。</p>
-<h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>使用file://Uri会有一些风险，比如：</p>
-<ul>
-<li>文件是私有的，接收file://Uri的app无法访问该文件。</li>
-<li>Android6.0引入运行时权限，如果接收file://Uri的app没有申请READ_EXTERNAL_STORAGE权限，在读取文件时会引发崩溃。</li>
-</ul>
-<h2 id="FileProvider"><a href="#FileProvider" class="headerlink" title="FileProvider"></a>FileProvider</h2><p>manifest application节点下</p>
-<pre><code>&lt;provider
-    android:authorities=&quot;${applicationId}.fileProvider&quot;
-    android:exported=&quot;false&quot;
-    android:grantUriPermissions=&quot;true&quot;&gt;
-    &lt;meta-data
-        android:name=&quot;android.support.FILE_PROVIDER_PATHS&quot;
-        android:resource=&quot;@xml/provider_paths&quot;/&gt;
-&lt;/provider&gt;
-</code></pre><p>res/xml/provider_paths.xml 指定路径和转换规则</p>
-<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
-&lt;paths xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;
-    &lt;files-path name=&quot;cache_pdf&quot; path=&quot;cache/pdf/&quot;/&gt;
-    &lt;external-files-path name=&quot;external_cache_pdf&quot; path=&quot;cache/pdf/&quot;/&gt;
-    &lt;external-path name=&quot;external_image&quot; path=&quot;zywx/image/&quot;/&gt;
-&lt;/paths&gt;
-</code></pre><p>代码</p>
-<pre><code>//Uri photoOutputUri = Uri.fromFile(photoOutputFile);
-Uri photoOutputUri = FileProvider.getUriForFile(
-                    mContext,
-                    mActivity.getPackageName() + &quot;.fileprovider&quot;,
-                    photoOutputFile);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoOutputUri);
-</code></pre><h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>android.support.v4.content.FileProvider 类只可以在manifest中注册一次。就如同一个Activity只可以注册一次一样</p>
-<pre><code>Error:
-    Element provider#android.support.v4.content.FileProvider at AndroidManifest.xml:119:9-131:20 duplicated with element declared at AndroidManifest.xml:105:9-117:20
-</code></pre><p>一些第三方sdk为了适配android 7 也添加了这个节点</p>
-<p>解决方案：</p>
-<ul>
-<li>自定义类 继承自FileProvider</li>
-<li>使用合并规则替换resource为我们的xml，然后把第三方sdk中的路径配置copy到provider_paths.xml<ul>
-<li>如果 authorities 不一致，就是利用合并规则替换了，也会报错。因为第三方库java代码大概率写死了 authorities。<ul>
-<li>代码不要写死 authorities，从manifest动态获取</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h2><ul>
-<li><p>FileUriExposedException</p>
-<pre><code>android.os.FileUriExposedException: file:///storage/emulated/0/Android/data/com.zy.course.dev/1467180514061025%23kefuchannelapp54752/test_22616/video/1527152182117.mp4 exposed beyond app through Intent.getData()
-    at android.os.StrictMode.onFileUriExposed(StrictMode.java:1799)
-    at android.net.Uri.checkFileUriExposed(Uri.java:2346)
-</code></pre><ul>
-<li>解决方案：使用FileProvider代替Uri.fromFile</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li>java.lang.SecurityException: Provider must not be exported<ul>
-<li>解决方案：android:exported必须设置成false</li>
-</ul>
-</li>
-</ul>
-<ul>
-<li>Attempt to invoke virtual method ‘android.content.res.XmlResourceParser android.content.pm.PackageItemInfo.loadXmlMetaData(android.content.pm.PackageManager, java.lang.String)’ on a null object reference<ul>
-<li>解决方案：AndroidManifest.xml处的android:authorities必须跟 mActivity.getPackageName() + “.fileProvider” 一样</li>
-</ul>
-</li>
-</ul>
-<h1 id="AlarmManager"><a href="#AlarmManager" class="headerlink" title="AlarmManager"></a>AlarmManager</h1><h2 id="定时任务的最佳实践"><a href="#定时任务的最佳实践" class="headerlink" title="定时任务的最佳实践"></a>定时任务的最佳实践</h2><ul>
-<li>Handler 依赖于 Handler 所在的线程的，如果线程结束，就起不到定时任务的效果；</li>
-<li>Timer 手机关屏后长时间不使用，CPU 就会进入休眠模式。Timer 无法唤醒 CPU，定时任务就会失败</li>
-<li>AlarmManager 依赖 Android 系统服务，具备唤醒机制</li>
-</ul>
-<p>AlarmManager实质是一个全局的定时器，是Android中常用的一种系统级别的提示服务，在指定时间或周期性发送<code>PendingIntent</code>广播  启动其它组件（包括Activity,Service,BroadcastReceiver）</p>
-<h2 id="版本适配"><a href="#版本适配" class="headerlink" title="版本适配"></a>版本适配</h2><p>查阅 <a href="https://developer.android.google.cn/about/versions/android-4.4" target="_blank" rel="noopener">Android官网中关于 Android 4.4 变更</a>发现Google 为了追求系统省电，<code>set()</code> 或 <code>setRepeating()</code> 创建的闹铃将变得不准确。还要追求精准的闹钟定时任务，要使用 <code>setExact()</code> 方法</p>
-<p><a href="https://developer.android.google.cn/about/versions/marshmallow/android-6.0-changes" target="_blank" rel="noopener">查阅 Android官网中关于 Android 6.0 变更</a> ，发现在 Android 6.0 中引入了低电耗模式和应用待机模式，标准 AlarmManager 闹铃（包括 <code>setExact()</code> 和 <code>setWindow()</code>）推迟到下一维护时段。<br>如果您需要设置在低电耗模式下触发的闹铃，请使用 <code>setAndAllowWhileIdle()</code> 或 <code>setExactAndAllowWhileIdle()</code>。触发闹铃的时间间隔都不能超过 9 分钟</p>
-<pre><code>public static void setAlarmTimer(Context context, long triggerAtMillis,
-                                 String action, int AlarmManagerType, int alarmId, String tutorTeacherName) {
-    Intent myIntent = new Intent();
-    myIntent.putExtra(&quot;tutorTeacherName&quot;, tutorTeacherName);//闹铃广播可以传递数据
-    myIntent.setAction(action);
-    PendingIntent pendingIntent = PendingIntent.getBroadcast(context, alarmId, myIntent, 0);
-    AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-
-    if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M) {
-        alarmManager.setExactAndAllowWhileIdle(AlarmManagerType, triggerAtMillis, pendingIntent);
-    } else if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) {
-        alarmManager.setExact(AlarmManagerType, triggerAtMillis, pendingIntent);
-    } else {
-        alarmManager.set(AlarmManagerType, triggerAtMillis, pendingIntent);
-    }
-}
-
-public static void cancelAlarmTimer(Context context, String action) {
-    Intent myIntent = new Intent();
-    myIntent.setAction(action);
-    PendingIntent sender = PendingIntent.getBroadcast(context, 0, myIntent, 0);
-    AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-    alarm.cancel(sender);
-}
-</code></pre><p>广播接收者接收闹铃广播</p>
-<pre><code>public class AlarmReceiver extends BroadcastReceiver {
-    public final static String TIMER_ACTION_REPEATING = &quot;com.shensz.TIMER_ACTION_REPEATING&quot;;// 周期性的闹钟
-    public final static String TIMER_ACTION = &quot;com.shensz.TIMER_ACTION&quot;;// 定时闹钟
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(TIMER_ACTION_REPEATING)) {
-        } else if (intent.getAction().equals(TIMER_ACTION)) {
-            String tutorTeacherName = intent.getStringExtra(&quot;tutorTeacherName&quot;);
-            if (!TextUtils.isEmpty(tutorTeacherName)) {
-                sendNotification(context, tutorTeacherName);
-            }
-        }
-    }
-
-}
-</code></pre><p>注册广播接收者</p>
-<pre><code>    &lt;receiver android:name=&quot;com.shensz.course.module.main.AlarmReceiver&quot;&gt;
-    &lt;intent-filter&gt;
-        &lt;action android:name=&quot;com.shensz.TIMER_ACTION_REPEATING&quot; /&gt;
-        &lt;action android:name=&quot;com.shensz.TIMER_ACTION&quot; /&gt;
-    &lt;/intent-filter&gt;
-&lt;/receiver&gt;
-</code></pre><h2 id="int-type-和-long-triggerAtMillis"><a href="#int-type-和-long-triggerAtMillis" class="headerlink" title="int type 和 long triggerAtMillis"></a>int type 和 long triggerAtMillis</h2><p>这个需要注意文档的描述。不留神triggerAtMillis没有加上基准时间(根据type而不同)，就会发现广播都是马上触发(因为触发时间已过，所以马上发送广播)</p>
-<p>type：闹钟类型</p>
-<ul>
-<li>ELAPSED_REALTIME：<ul>
-<li>在指定的延时过后，发送广播，但不唤醒设备（闹钟在睡眠状态下不可用）。如果在系统休眠时闹钟触发，它将不会被传递，直到下一次设备唤醒。</li>
-<li>延时是要把系统启动到现在的时间SystemClock.elapsedRealtime()(基准时间)算进去的。</li>
-</ul>
-</li>
-<li>ELAPSED_REALTIME_WAKEUP：<ul>
-<li>同上，唯一区别就是 会唤醒设备</li>
-</ul>
-</li>
-<li>RTC：<ul>
-<li>当系统调用System.currentTimeMillis()方法返回的值等于triggerAtTime时，发送广播，但不唤醒设备。<ul>
-<li>可以设置系统时间触发闹铃广播</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>RTC_WAKEUP：<ul>
-<li>同上，唯一区别就是 会唤醒设备</li>
-</ul>
-</li>
-<li>POWER_OFF_WAKEUP：<ul>
-<li>闹钟在手机关机状态下也能正常进行提示功能，所以是5个状态中用的最多的状态之一</li>
-<li>该状态下闹钟也是用绝对时间，状态值为4；不过本状态好像受SDK版本影响，某些版本并不支持。</li>
-</ul>
-</li>
-</ul>
-<p>示例：</p>
-<pre><code>AlarmManager.RTC，System.currentTimeMillis()+10 * 60 * 1000
-AlarmManager.ELAPSED_REALTIME，SystemClock.elapsedRealtime()+10 * 60 * 1000
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android逆向/Android-Hook/Android-Hook原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android逆向/Android-Hook/Android-Hook原理/" itemprop="url">Android Hook原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.sanwho.com/248.html" target="_blank" rel="noopener">Android inline hook之原理分析篇 </a></p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left"></th>
-<th style="text-align:left">修改GOT</th>
-<th style="text-align:left">inLine</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">实现难易</td>
-<td style="text-align:left">比较容易，只需知道elf文件中调用外部符号的地址</td>
-<td style="text-align:left">比较难，需要分析函数实现汇编码，保持堆栈平衡</td>
-</tr>
-<tr>
-<td style="text-align:left">使用频率</td>
-<td style="text-align:left">基本都是用此方式</td>
-<td style="text-align:left"></td>
-</tr>
-<tr>
-<td style="text-align:left">功能强弱</td>
-<td style="text-align:left">比较弱，只能hookGOT调用方式（通过java层调用API真实实现代码）</td>
-<td style="text-align:left">很强大，能hookjni调用真实实现API的方式</td>
-</tr>
-<tr>
-<td style="text-align:left">R11</td>
-<td style="text-align:left">fp</td>
-<td style="text-align:left">桢指针</td>
-</tr>
-<tr>
-<td style="text-align:left">R12</td>
-<td style="text-align:left">ip</td>
-<td style="text-align:left">指令指针，内部过程调用寄存器</td>
-</tr>
-<tr>
-<td style="text-align:left">R13</td>
-<td style="text-align:left">sp</td>
-<td style="text-align:left">栈指针</td>
-</tr>
-<tr>
-<td style="text-align:left">R14</td>
-<td style="text-align:left">lr</td>
-<td style="text-align:left">返回地址，连接寄存器</td>
-</tr>
-<tr>
-<td style="text-align:left">R15</td>
-<td style="text-align:left">pc</td>
-<td style="text-align:left">程序计数器</td>
-</tr>
-</tbody>
-</table>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2327,7 +2577,7 @@ AlarmManager.ELAPSED_REALTIME，SystemClock.elapsedRealtime()+10 * 60 * 1000
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">69</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2340,7 +2590,7 @@ AlarmManager.ELAPSED_REALTIME，SystemClock.elapsedRealtime()+10 * 60 * 1000
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">35</span>
+                  <span class="site-state-item-count">36</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
