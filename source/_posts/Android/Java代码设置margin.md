@@ -3,8 +3,11 @@ title: Java代码设置margin
 date: 2018-08-31 18:22:53
 tags: 
 	- Android
----	
-		
+	- View
+---
+	
+api
+	
 	ViewGroup.MarginLayoutParams.setMargins(left, top, right, bottom)
 	
 	直接的子类有: 
