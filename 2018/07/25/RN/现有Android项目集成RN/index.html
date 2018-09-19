@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="首先阅读官方文档 集成到现有原生应用 初始化指定RN版本历史原因。之前RN开发由IOS端同学负责，用的是 0.48.4 react-native init rns --version 0.48.4 自定义js文件名和文件路径实际开发几乎不会用官方文档中的 app.js，也不会直接就放根目录下 历史原因。 js文件放在 ssz_rn_project\js\pages_live 文件夹。 js下还有">
+<meta name="description" content="首先阅读官方文档 集成到现有原生应用 关于加载RN资源包正常运行模式，优先加载 assets/index.android.bundle，加载失败加载 packager服务器的bundle到 assets Live Reload 和 Debug JS模式下，每次都是加载  packager服务器的bundle到 assets 编译并运行RN应用到两种方法 根目录 react-native run-a">
 <meta name="keywords" content="RN">
 <meta property="og:type" content="article">
 <meta property="og:title" content="现有Android项目集成RN">
 <meta property="og:url" content="http://yoursite.com/2018/07/25/RN/现有Android项目集成RN/index.html">
 <meta property="og:site_name" content="风">
-<meta property="og:description" content="首先阅读官方文档 集成到现有原生应用 初始化指定RN版本历史原因。之前RN开发由IOS端同学负责，用的是 0.48.4 react-native init rns --version 0.48.4 自定义js文件名和文件路径实际开发几乎不会用官方文档中的 app.js，也不会直接就放根目录下 历史原因。 js文件放在 ssz_rn_project\js\pages_live 文件夹。 js下还有">
+<meta property="og:description" content="首先阅读官方文档 集成到现有原生应用 关于加载RN资源包正常运行模式，优先加载 assets/index.android.bundle，加载失败加载 packager服务器的bundle到 assets Live Reload 和 Debug JS模式下，每次都是加载  packager服务器的bundle到 assets 编译并运行RN应用到两种方法 根目录 react-native run-a">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-09-13T05:53:41.801Z">
+<meta property="og:updated_time" content="2018-09-19T09:27:28.326Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="现有Android项目集成RN">
-<meta name="twitter:description" content="首先阅读官方文档 集成到现有原生应用 初始化指定RN版本历史原因。之前RN开发由IOS端同学负责，用的是 0.48.4 react-native init rns --version 0.48.4 自定义js文件名和文件路径实际开发几乎不会用官方文档中的 app.js，也不会直接就放根目录下 历史原因。 js文件放在 ssz_rn_project\js\pages_live 文件夹。 js下还有">
+<meta name="twitter:description" content="首先阅读官方文档 集成到现有原生应用 关于加载RN资源包正常运行模式，优先加载 assets/index.android.bundle，加载失败加载 packager服务器的bundle到 assets Live Reload 和 Debug JS模式下，每次都是加载  packager服务器的bundle到 assets 编译并运行RN应用到两种方法 根目录 react-native run-a">
 
 
 
@@ -331,6 +331,14 @@
 
       
         <p>首先阅读官方文档 <a href="https://reactnative.cn/docs/0.51/integration-with-existing-apps.html#content" target="_blank" rel="noopener">集成到现有原生应用</a></p>
+<h1 id="关于"><a href="#关于" class="headerlink" title="关于"></a>关于</h1><h2 id="加载RN资源包"><a href="#加载RN资源包" class="headerlink" title="加载RN资源包"></a>加载RN资源包</h2><p>正常运行模式，优先加载 <code>assets/index.android.bundle</code>，加载失败加载 <code>packager</code>服务器的bundle到 <code>assets</code></p>
+<p>Live Reload 和 Debug JS模式下，每次都是加载  <code>packager</code>服务器的bundle到 <code>assets</code></p>
+<h2 id="编译并运行RN应用到两种方法"><a href="#编译并运行RN应用到两种方法" class="headerlink" title="编译并运行RN应用到两种方法"></a>编译并运行RN应用到两种方法</h2><ul>
+<li>根目录 <code>react-native run-android</code></li>
+<li>根目录 <code>npm install</code> <code>yarn start</code> android目录 <code>./gradlew installDebug</code></li>
+</ul>
+<h2 id="小技巧"><a href="#小技巧" class="headerlink" title="小技巧"></a>小技巧</h2><p>APP和调试服务器并没有绑定。即任一APP都可以读取本地调试服务器的bundle</p>
+<p>如果某个工程无法运行调试，就可以直接开启 packager服务器，然后运行app，app会自动从packager服务器读取bundle，达到调试目的</p>
 <h1 id="初始化指定RN版本"><a href="#初始化指定RN版本" class="headerlink" title="初始化指定RN版本"></a>初始化指定RN版本</h1><p>历史原因。之前RN开发由IOS端同学负责，用的是 0.48.4</p>
 <pre><code>react-native init rns --version 0.48.4
 </code></pre><h1 id="自定义js文件名和文件路径"><a href="#自定义js文件名和文件路径" class="headerlink" title="自定义js文件名和文件路径"></a>自定义js文件名和文件路径</h1><p>实际开发几乎不会用官方文档中的 app.js，也不会直接就放根目录下</p>
@@ -472,8 +480,6 @@ project(&apos;:react-native-fs&apos;).projectDir = new File(&apos;../node_module
 include &apos;:react-native-fetch-blob&apos;
 project(&apos;:react-native-fetch-blob&apos;).projectDir = new File(&apos;../node_modules/react-native-fetch-blob/android&apos;)
 </code></pre><p>重新运行，调试成功</p>
-<h2 id="小技巧"><a href="#小技巧" class="headerlink" title="小技巧"></a>小技巧</h2><p>APP和调试服务器并没有绑定。即任一APP都可以读取本地调试服务器的bundle</p>
-<p>如果某个工程无法运行调试，就可以把js代码复制到sample project进行调试</p>
 
       
     </div>
@@ -643,7 +649,7 @@ project(&apos;:react-native-fetch-blob&apos;).projectDir = new File(&apos;../nod
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#初始化指定RN版本"><span class="nav-number">1.</span> <span class="nav-text">初始化指定RN版本</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#自定义js文件名和文件路径"><span class="nav-number">2.</span> <span class="nav-text">自定义js文件名和文件路径</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#运行有坑"><span class="nav-number">3.</span> <span class="nav-text">运行有坑</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#找不到AndroidManifest"><span class="nav-number">3.1.</span> <span class="nav-text">找不到AndroidManifest</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原因：RN默认的Android项目名称为app"><span class="nav-number">3.1.1.</span> <span class="nav-text">原因：RN默认的Android项目名称为app</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#找不到Activity"><span class="nav-number">3.2.</span> <span class="nav-text">找不到Activity</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原因1：Mainactivity不在清单文件里package的直接目录下"><span class="nav-number">3.2.1.</span> <span class="nav-text">原因1：Mainactivity不在清单文件里package的直接目录下</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原因2：清单文件里-package-和build-gradle里的-applicationId-不一致。"><span class="nav-number">3.2.2.</span> <span class="nav-text">原因2：清单文件里 package 和build.gradle里的 applicationId 不一致。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原因3：build-gradle-指定了-applicationIdSuffix"><span class="nav-number">3.2.3.</span> <span class="nav-text">原因3：build.gradle 指定了 applicationIdSuffix</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他错误"><span class="nav-number">3.3.</span> <span class="nav-text">其他错误</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原因1：没有连上开发服务器"><span class="nav-number">3.3.1.</span> <span class="nav-text">原因1：没有连上开发服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原因2：RN没有自动生成打包文件"><span class="nav-number">3.3.2.</span> <span class="nav-text">原因2：RN没有自动生成打包文件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#调试有坑"><span class="nav-number">4.</span> <span class="nav-text">调试有坑</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#多个react-native-node-module"><span class="nav-number">4.1.</span> <span class="nav-text">多个react-native node module</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#尝试删除-android-node-modules"><span class="nav-number">4.1.1.</span> <span class="nav-text">尝试删除 android\node_modules</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小技巧"><span class="nav-number">4.2.</span> <span class="nav-text">小技巧</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#关于"><span class="nav-number">1.</span> <span class="nav-text">关于</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#加载RN资源包"><span class="nav-number">1.1.</span> <span class="nav-text">加载RN资源包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译并运行RN应用到两种方法"><span class="nav-number">1.2.</span> <span class="nav-text">编译并运行RN应用到两种方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#小技巧"><span class="nav-number">1.3.</span> <span class="nav-text">小技巧</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#初始化指定RN版本"><span class="nav-number">2.</span> <span class="nav-text">初始化指定RN版本</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#自定义js文件名和文件路径"><span class="nav-number">3.</span> <span class="nav-text">自定义js文件名和文件路径</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#运行有坑"><span class="nav-number">4.</span> <span class="nav-text">运行有坑</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#找不到AndroidManifest"><span class="nav-number">4.1.</span> <span class="nav-text">找不到AndroidManifest</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原因：RN默认的Android项目名称为app"><span class="nav-number">4.1.1.</span> <span class="nav-text">原因：RN默认的Android项目名称为app</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#找不到Activity"><span class="nav-number">4.2.</span> <span class="nav-text">找不到Activity</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原因1：Mainactivity不在清单文件里package的直接目录下"><span class="nav-number">4.2.1.</span> <span class="nav-text">原因1：Mainactivity不在清单文件里package的直接目录下</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原因2：清单文件里-package-和build-gradle里的-applicationId-不一致。"><span class="nav-number">4.2.2.</span> <span class="nav-text">原因2：清单文件里 package 和build.gradle里的 applicationId 不一致。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原因3：build-gradle-指定了-applicationIdSuffix"><span class="nav-number">4.2.3.</span> <span class="nav-text">原因3：build.gradle 指定了 applicationIdSuffix</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他错误"><span class="nav-number">4.3.</span> <span class="nav-text">其他错误</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原因1：没有连上开发服务器"><span class="nav-number">4.3.1.</span> <span class="nav-text">原因1：没有连上开发服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原因2：RN没有自动生成打包文件"><span class="nav-number">4.3.2.</span> <span class="nav-text">原因2：RN没有自动生成打包文件</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#调试有坑"><span class="nav-number">5.</span> <span class="nav-text">调试有坑</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#多个react-native-node-module"><span class="nav-number">5.1.</span> <span class="nav-text">多个react-native node module</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#尝试删除-android-node-modules"><span class="nav-number">5.1.1.</span> <span class="nav-text">尝试删除 android\node_modules</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>

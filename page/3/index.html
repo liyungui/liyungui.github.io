@@ -1174,6 +1174,14 @@ render() {
         
           
             <p>首先阅读官方文档 <a href="https://reactnative.cn/docs/0.51/integration-with-existing-apps.html#content" target="_blank" rel="noopener">集成到现有原生应用</a></p>
+<h1 id="关于"><a href="#关于" class="headerlink" title="关于"></a>关于</h1><h2 id="加载RN资源包"><a href="#加载RN资源包" class="headerlink" title="加载RN资源包"></a>加载RN资源包</h2><p>正常运行模式，优先加载 <code>assets/index.android.bundle</code>，加载失败加载 <code>packager</code>服务器的bundle到 <code>assets</code></p>
+<p>Live Reload 和 Debug JS模式下，每次都是加载  <code>packager</code>服务器的bundle到 <code>assets</code></p>
+<h2 id="编译并运行RN应用到两种方法"><a href="#编译并运行RN应用到两种方法" class="headerlink" title="编译并运行RN应用到两种方法"></a>编译并运行RN应用到两种方法</h2><ul>
+<li>根目录 <code>react-native run-android</code></li>
+<li>根目录 <code>npm install</code> <code>yarn start</code> android目录 <code>./gradlew installDebug</code></li>
+</ul>
+<h2 id="小技巧"><a href="#小技巧" class="headerlink" title="小技巧"></a>小技巧</h2><p>APP和调试服务器并没有绑定。即任一APP都可以读取本地调试服务器的bundle</p>
+<p>如果某个工程无法运行调试，就可以直接开启 packager服务器，然后运行app，app会自动从packager服务器读取bundle，达到调试目的</p>
 <h1 id="初始化指定RN版本"><a href="#初始化指定RN版本" class="headerlink" title="初始化指定RN版本"></a>初始化指定RN版本</h1><p>历史原因。之前RN开发由IOS端同学负责，用的是 0.48.4</p>
 <pre><code>react-native init rns --version 0.48.4
 </code></pre><h1 id="自定义js文件名和文件路径"><a href="#自定义js文件名和文件路径" class="headerlink" title="自定义js文件名和文件路径"></a>自定义js文件名和文件路径</h1><p>实际开发几乎不会用官方文档中的 app.js，也不会直接就放根目录下</p>
@@ -1315,8 +1323,6 @@ project(&apos;:react-native-fs&apos;).projectDir = new File(&apos;../node_module
 include &apos;:react-native-fetch-blob&apos;
 project(&apos;:react-native-fetch-blob&apos;).projectDir = new File(&apos;../node_modules/react-native-fetch-blob/android&apos;)
 </code></pre><p>重新运行，调试成功</p>
-<h2 id="小技巧"><a href="#小技巧" class="headerlink" title="小技巧"></a>小技巧</h2><p>APP和调试服务器并没有绑定。即任一APP都可以读取本地调试服务器的bundle</p>
-<p>如果某个工程无法运行调试，就可以把js代码复制到sample project进行调试</p>
 
           
         
