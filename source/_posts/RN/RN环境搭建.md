@@ -5,6 +5,8 @@ tags:
 	- RN
 ---
 
+参考官方文档即可
+
 模拟器调试菜单
 
 	adb shell input keyevent 82

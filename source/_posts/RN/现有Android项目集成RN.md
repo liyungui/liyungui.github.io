@@ -7,6 +7,25 @@ tags:
 
 首先阅读官方文档 [集成到现有原生应用](https://reactnative.cn/docs/0.51/integration-with-existing-apps.html#content)
 
+# 关于 #
+
+## 加载RN资源包 ##
+
+正常运行模式，优先加载 `assets/index.android.bundle`，加载失败加载 `packager`服务器的bundle到 `assets`
+
+Live Reload 和 Debug JS模式下，每次都是加载  `packager`服务器的bundle到 `assets`
+
+## 编译并运行RN应用到两种方法 ##
+
+- 根目录 `react-native run-android`
+- 根目录 `npm install` `yarn start` android目录 `./gradlew installDebug `
+
+## 小技巧 ##
+
+APP和调试服务器并没有绑定。即任一APP都可以读取本地调试服务器的bundle
+
+如果某个工程无法运行调试，就可以直接开启 packager服务器，然后运行app，app会自动从packager服务器读取bundle，达到调试目的
+
 # 初始化指定RN版本 #
 
 历史原因。之前RN开发由IOS端同学负责，用的是 0.48.4
@@ -231,14 +250,6 @@ android\node_modules 是原来Android项目就有的。
 	project(':react-native-fetch-blob').projectDir = new File('../node_modules/react-native-fetch-blob/android')
 
 重新运行，调试成功
-
-## 小技巧 ##
-
-APP和调试服务器并没有绑定。即任一APP都可以读取本地调试服务器的bundle
-
-如果某个工程无法运行调试，就可以把js代码复制到sample project进行调试
-
-
 
 
 
