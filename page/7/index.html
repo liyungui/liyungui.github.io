@@ -2125,8 +2125,85 @@ public Subscription subscribe(Subscriber subscriber) {
 </code></pre></li>
 </ul>
 <h1 id="变换"><a href="#变换" class="headerlink" title="变换"></a>变换</h1><p><strong>将事件序列中的对象或整个序列，转换成不同的事件或事件序列</strong></p>
-<h2 id="API"><a href="#API" class="headerlink" title="API"></a>API</h2><h3 id="map"><a href="#map" class="headerlink" title="map()"></a>map()</h3><p><strong>一对一的转化</strong></p>
-<p>打印出一组学生的名字。每个学生只有一个名字</p>
+<h2 id="API"><a href="#API" class="headerlink" title="API"></a>API</h2><h3 id="map"><a href="#map" class="headerlink" title="map()"></a>map()</h3><ul>
+<li>返回的是 结果集</li>
+<li>只能一对一的转换<ul>
+<li>map返回的是结果集，不能直接使用from/just再次进行事件分发。只能for遍历。<ul>
+<li>RxJava 目的之一就是 剔除嵌套结构</li>
+</ul>
+</li>
+<li>执行流程：被订阅时每传递一个事件执行一次onNext方法</li>
+</ul>
+</li>
+</ul>
+<h3 id="flatMap"><a href="#flatMap" class="headerlink" title="flatMap()"></a>flatMap()</h3><ul>
+<li>返回的是 结果集的Observable</li>
+<li>可以一对多和多对多的转换<ul>
+<li>flatMap返回的是结果集Observable，可以直接使用from/just再次进行事件分发。</li>
+<li>执行流程：一般利用from/just进行一一分发，被订阅时将所有数据传递完毕汇总到一个Observable然后一一执行onNext方法</li>
+</ul>
+</li>
+</ul>
+<p><strong>flatMap() 的原理：</strong></p>
+<ol>
+<li>使用传入的事件对象创建一个 Observable 对象；</li>
+<li>并不发送这个 Observable, 而是将它激活，于是它开始发送事件；</li>
+<li>每一个创建出来的 Observable 发送的事件，都被汇入同一个 Observable ，而这个 Observable 负责将这些事件统一交给 Subscriber 的回调方法。</li>
+</ol>
+<p>把事件拆成了两级，通过一组新创建的 Observable 将初始的对象『铺平』之后通过统一路径分发了下去。</p>
+<h3 id="map和flatMap实例"><a href="#map和flatMap实例" class="headerlink" title="map和flatMap实例"></a>map和flatMap实例</h3><p><strong>实例1：</strong>执行流程的不同</p>
+<pre><code>Observable.just(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)
+    //使用map进行转换，参数1：转换前的类型，参数2：转换后的类型
+    .map(new Func1&lt;String, String&gt;() {
+        @Override
+        public String call(String i) {
+            String name = i;
+            Log.i(&quot;tag&quot;,&quot;map--1----&quot;+i);
+            return name;
+        }
+    })
+    .subscribe(new Action1&lt;String&gt;() {
+        @Override
+        public void call(String s) {
+            Log.i(&quot;tag&quot;,&quot;map--2----&quot;+s);
+           tv.setText(s);
+        }
+    });
+logcat信息
+11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--1----a
+11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--2----a
+11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--1----b
+11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--2----b
+11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--1----c
+11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--2----c
+
+--------------------------------------------------------------------------------
+
+ Observable.just(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)
+    .flatMap(new Func1&lt;String, Observable&lt;String&gt;&gt;() {
+        @Override
+        public Observable&lt;String&gt; call(String s) {
+            Log.i(&quot;tag&quot;, &quot;map--1----&quot; + s);
+            return Observable.just(s + &quot;!!!&quot;);
+        }
+    })
+    .subscribeOn(Schedulers.newThread())
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(new Action1&lt;String&gt;() {
+        @Override
+        public void call(String s) {
+            Log.i(&quot;tag&quot;, &quot;map--2----&quot; + s);
+            tv.setText(s);
+        }
+    });
+logcat信息：
+11-23 10:53:51.320 14442-14527/? I/tag: map--1----a
+11-23 10:53:51.320 14442-14527/? I/tag: map--1----b
+11-23 10:53:51.320 14442-14527/? I/tag: map--1----c
+11-23 10:53:51.340 14442-14442/? I/tag: map--2----a!!!
+11-23 10:53:51.340 14442-14442/? I/tag: map--2----b!!!
+11-23 10:53:51.340 14442-14442/? I/tag: map--2----c!!!
+</code></pre><p><strong>实例2：</strong>打印出一组学生的名字。每个学生只有一个名字</p>
 <pre><code>Student[] students = ...;
 Observable.from(students)
     .map(new Func1&lt;Student, String&gt;() {
@@ -2143,10 +2220,28 @@ Observable.from(students)
         ...
     });
 </code></pre><p><code>map()</code> 方法将参数中的 <code>Student</code> 对象转换成一个 <code>String</code> 对象后返回，而在经过 map() 方法后，事件的参数类型也由 Student 转为了 String</p>
-<h3 id="flatMap"><a href="#flatMap" class="headerlink" title="flatMap()"></a>flatMap()</h3><p><strong>一对多的转化</strong></p>
-<p><strong>flatMap() 返回的是 Observable 对象</strong></p>
-<p>打印出一组学生所修的所有课程的名称。每个学生有多个课程，把一个 Student 转化成多个 Course</p>
+<p><strong>实例3：</strong>打印出一组学生所修的所有课程的名称。每个学生有多个课程，把一个 Student 转化成多个 Course</p>
 <pre><code>Student[] students = ...;
+Observable.from(students)
+    .map(new Func1&lt;Student, List&lt;Course&gt;&gt;() {
+        @Override
+        public List&lt;Course&gt; call(Student student) {
+            //返回coursesList
+            return student.getCoursesList();
+        }
+    })
+    .subscribe(new Action1&lt;List&lt;Course&gt;&gt;() {
+        @Override
+        public void call(List&lt;Course&gt; courses) {
+            //遍历courses，输出cuouses的name
+            for (int i = 0; i &lt; courses.size(); i++) {
+                Log.i(TAG, courses.get(i).getName());
+            }
+        }
+    })
+
+--------------------------------------------------------------------------------
+
 Observable.from(students)
     .flatMap(new Func1&lt;Student, Observable&lt;Course&gt;&gt;() {
         @Override
@@ -2161,14 +2256,50 @@ Observable.from(students)
         }
         ...
     });
-</code></pre><p><strong>flatMap() 的原理：</strong></p>
-<ol>
-<li>使用传入的事件对象创建一个 Observable 对象；</li>
-<li>并不发送这个 Observable, 而是将它激活，于是它开始发送事件；</li>
-<li>每一个创建出来的 Observable 发送的事件，都被汇入同一个 Observable ，而这个 Observable 负责将这些事件统一交给 Subscriber 的回调方法。</li>
-</ol>
-<p>把事件拆成了两级，通过一组新创建的 Observable 将初始的对象『铺平』之后通过统一路径分发了下去。</p>
-<h3 id="throttleFirst"><a href="#throttleFirst" class="headerlink" title="throttleFirst()"></a>throttleFirst()</h3><p>在每次事件触发后的一定时间间隔内丢弃新的事件。常用作去抖动过滤，例如按钮的点击监听器，再也不怕用户手抖点开两个重复的界面啦。</p>
+</code></pre><p><strong>实例4：</strong> 合并两个网络请求。账号密码登录返回token，再用token请求返回user对象</p>
+<pre><code>//登录，获取token
+@GET(&quot;/login&quot;)
+public Observable&lt;String&gt; login(   
+    @Query(&quot;username&quot;) String username,
+    @Query(&quot;password&quot;) String password);
+//根据token获取用户信息
+@GET(&quot;/user&quot;)
+public Observable&lt;User&gt; getUser(
+    @Query(&quot;token&quot;) String token);
+
+service.login(&quot;11111&quot;, &quot;22222&quot;)
+    .flatMap(new Func1&lt;String, Observable&lt;User&gt;&gt;() {  //得到token后获取用户信息
+        @Override
+        public Observable&lt;User&gt; onNext(String token) {
+            return service.getUser(token);
+        })
+    .subscribeOn(Schedulers.newThread())//请求在新的线程中执行请求
+    .observeOn(Schedulers.io())         //请求完成后在io线程中执行
+    .doOnNext(new Action1&lt;User&gt;() {      //保存用户信息到本地
+         @Override
+         public void call(User userInfo) {
+             saveUserInfo(userInfo);
+         }
+     })
+    .observeOn(AndroidSchedulers.mainThread())//在主线程中执行
+    .subscribe(new Observer&lt;User&gt;() {
+        @Override
+        public void onNext(User user) {
+            //完成一次完整的登录请求
+            userView.setUser(user);
+        }
+
+        @Override
+        public void onCompleted() {
+
+        }
+
+        @Override
+        public void onError(Throwable error) {
+            //请求失败
+        }
+    });
+</code></pre><h3 id="throttleFirst"><a href="#throttleFirst" class="headerlink" title="throttleFirst()"></a>throttleFirst()</h3><p>在每次事件触发后的一定时间间隔内丢弃新的事件。常用作去抖动过滤，例如按钮的点击监听器，再也不怕用户手抖点开两个重复的界面啦。</p>
 <pre><code>RxView.clickEvents(button) .throttleFirst(500, TimeUnit.MILLISECONDS).subscribe(subscriber);
 </code></pre><h2 id="变换的原理：lift"><a href="#变换的原理：lift" class="headerlink" title="变换的原理：lift()"></a>变换的原理：lift()</h2><p><strong>实质：对事件序列的处理和再发送</strong></p>
 <pre><code>// 核心代码。
