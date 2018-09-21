@@ -382,9 +382,84 @@ subscribeOn() 和 observeOn() 都做了线程切换的工作（图中的 "schedu
 
 ###  map() ###
 
-**一对一的转化**
+- 返回的是 结果集
+- 只能一对一的转换
+	- map返回的是结果集，不能直接使用from/just再次进行事件分发。只能for遍历。
+		- RxJava 目的之一就是 剔除嵌套结构
+	- 执行流程：被订阅时每传递一个事件执行一次onNext方法
 
-打印出一组学生的名字。每个学生只有一个名字
+### flatMap() ###
+
+- 返回的是 结果集的Observable
+- 可以一对多和多对多的转换
+	- flatMap返回的是结果集Observable，可以直接使用from/just再次进行事件分发。
+	- 执行流程：一般利用from/just进行一一分发，被订阅时将所有数据传递完毕汇总到一个Observable然后一一执行onNext方法
+
+**flatMap() 的原理：**
+
+1. 使用传入的事件对象创建一个 Observable 对象；
+2. 并不发送这个 Observable, 而是将它激活，于是它开始发送事件；
+3. 每一个创建出来的 Observable 发送的事件，都被汇入同一个 Observable ，而这个 Observable 负责将这些事件统一交给 Subscriber 的回调方法。
+
+把事件拆成了两级，通过一组新创建的 Observable 将初始的对象『铺平』之后通过统一路径分发了下去。
+
+### map和flatMap实例
+
+**实例1：**执行流程的不同
+
+	Observable.just("a", "b", "c")
+        //使用map进行转换，参数1：转换前的类型，参数2：转换后的类型
+        .map(new Func1<String, String>() {
+            @Override
+            public String call(String i) {
+                String name = i;
+                Log.i("tag","map--1----"+i);
+                return name;
+            }
+        })
+        .subscribe(new Action1<String>() {
+            @Override
+            public void call(String s) {
+                Log.i("tag","map--2----"+s);
+               tv.setText(s);
+            }
+        });
+    logcat信息
+    11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--1----a
+    11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--2----a
+    11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--1----b
+    11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--2----b
+    11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--1----c
+    11-23 10:24:31.350 12902-12902/com.example.seele.retrofit I/tag: map--2----c
+
+	--------------------------------------------------------------------------------
+
+ 	Observable.just("a", "b", "c")
+        .flatMap(new Func1<String, Observable<String>>() {
+            @Override
+            public Observable<String> call(String s) {
+                Log.i("tag", "map--1----" + s);
+                return Observable.just(s + "!!!");
+            }
+        })
+        .subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<String>() {
+            @Override
+            public void call(String s) {
+                Log.i("tag", "map--2----" + s);
+                tv.setText(s);
+            }
+        });
+	logcat信息：
+	11-23 10:53:51.320 14442-14527/? I/tag: map--1----a
+	11-23 10:53:51.320 14442-14527/? I/tag: map--1----b
+	11-23 10:53:51.320 14442-14527/? I/tag: map--1----c
+	11-23 10:53:51.340 14442-14442/? I/tag: map--2----a!!!
+	11-23 10:53:51.340 14442-14442/? I/tag: map--2----b!!!
+	11-23 10:53:51.340 14442-14442/? I/tag: map--2----c!!!
+
+**实例2：**打印出一组学生的名字。每个学生只有一个名字
 
 	Student[] students = ...;
 	Observable.from(students)
@@ -404,15 +479,29 @@ subscribeOn() 和 observeOn() 都做了线程切换的工作（图中的 "schedu
 
 `map()` 方法将参数中的 `Student` 对象转换成一个 `String` 对象后返回，而在经过 map() 方法后，事件的参数类型也由 Student 转为了 String
 
-### flatMap() ###
-
-**一对多的转化**
-
-**flatMap() 返回的是 Observable 对象**
-
-打印出一组学生所修的所有课程的名称。每个学生有多个课程，把一个 Student 转化成多个 Course
+**实例3：**打印出一组学生所修的所有课程的名称。每个学生有多个课程，把一个 Student 转化成多个 Course
 
 	Student[] students = ...;
+	Observable.from(students)
+        .map(new Func1<Student, List<Course>>() {
+            @Override
+            public List<Course> call(Student student) {
+                //返回coursesList
+                return student.getCoursesList();
+            }
+        })
+        .subscribe(new Action1<List<Course>>() {
+            @Override
+            public void call(List<Course> courses) {
+                //遍历courses，输出cuouses的name
+                for (int i = 0; i < courses.size(); i++) {
+                    Log.i(TAG, courses.get(i).getName());
+                }
+            }
+        })
+	
+	--------------------------------------------------------------------------------
+
 	Observable.from(students)
 	    .flatMap(new Func1<Student, Observable<Course>>() {
 	        @Override
@@ -428,13 +517,50 @@ subscribeOn() 和 observeOn() 都做了线程切换的工作（图中的 "schedu
 		    ...
 		});
 
-**flatMap() 的原理：**
+**实例4：** 合并两个网络请求。账号密码登录返回token，再用token请求返回user对象
 
-1. 使用传入的事件对象创建一个 Observable 对象；
-2. 并不发送这个 Observable, 而是将它激活，于是它开始发送事件；
-3. 每一个创建出来的 Observable 发送的事件，都被汇入同一个 Observable ，而这个 Observable 负责将这些事件统一交给 Subscriber 的回调方法。
-
-把事件拆成了两级，通过一组新创建的 Observable 将初始的对象『铺平』之后通过统一路径分发了下去。
+	//登录，获取token
+	@GET("/login")
+	public Observable<String> login(   
+	    @Query("username") String username,
+	    @Query("password") String password);
+	//根据token获取用户信息
+	@GET("/user")
+	public Observable<User> getUser(
+	    @Query("token") String token);
+	
+	service.login("11111", "22222")
+		.flatMap(new Func1<String, Observable<User>>() {  //得到token后获取用户信息
+		    @Override
+		    public Observable<User> onNext(String token) {
+		        return service.getUser(token);
+		    })
+		.subscribeOn(Schedulers.newThread())//请求在新的线程中执行请求
+		.observeOn(Schedulers.io())         //请求完成后在io线程中执行
+		.doOnNext(new Action1<User>() {      //保存用户信息到本地
+		     @Override
+		     public void call(User userInfo) {
+		         saveUserInfo(userInfo);
+		     }
+		 })
+		.observeOn(AndroidSchedulers.mainThread())//在主线程中执行
+		.subscribe(new Observer<User>() {
+		    @Override
+		    public void onNext(User user) {
+		        //完成一次完整的登录请求
+		        userView.setUser(user);
+		    }
+		 
+		    @Override
+		    public void onCompleted() {
+		  
+		    }
+		 
+		    @Override
+		    public void onError(Throwable error) {
+		        //请求失败
+		    }
+		});
 
 ### throttleFirst() ###
 
