@@ -21,6 +21,7 @@ tags: RxJava
 # 引入依赖 #
 
 	compile "io.reactivex:rxjava:1.3.8"
+	compile "io.reactivex:rxandroid:1.0.1"
 
 # 原理简析 #
 
@@ -70,9 +71,57 @@ RxJava 规定，当不会再有新的事件发出时，需要触发 onCompleted(
 
 在事件处理过程中出异常时，onError() 会被触发，同时队列自动终止，不允许再有事件发出。
 
+**所有错误(包括 `Subscriber.onNext` 中的错误)都会回调 `Subscriber.onError()`**
+
 在一个正确运行的事件序列中, onCompleted() 和 onError() 有且只有一个，并且是事件序列中的最后一个。
 
 需要注意的是，onCompleted() 和 onError() 二者也是互斥的，即在队列中调用了其中一个，就不应该再调用另一个。
+
+#### 错误处理	
+
+	private void rxjava(Person person) {
+        Observable.just(person)
+                .map(new Func1<Person, String>() {
+                    @Override
+                    public String call(Person person) {
+                        return person.name;//NPE会回调onError
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<String>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e("lyg", "onError", e);
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        Toast.makeText(MainActivity.this, s.concat(" haha"), Toast.LENGTH_SHORT).show();//NPE会回调onError
+                    }
+                });
+    }
+    
+    rxjava(null);//调用
+    
+    错误日志
+    	E/lyg: onError
+         java.lang.NullPointerException: Attempt to read from field 'java.lang.String com.example.test.MainActivity$Person.name' on a null object reference
+             at com.example.test.MainActivity$3.call(MainActivity.java:47)
+             ......
+             Caused by: rx.exceptions.OnErrorThrowable$OnNextValue: OnError while emitting onNext value: null
+             at rx.internal.operators.OnSubscribeMap$MapSubscriber.onNext(OnSubscribeMap.java:73)
+
+		
+	如果将map 改为 return null; 即map中不触发NPE，让onNext触发NPE，也会回调onError
+		E/lyg: onError
+         java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.String java.lang.String.concat(java.lang.String)' on a null object reference
+             at com.example.test.MainActivity$2.onNext(MainActivity.java:63)
 
 # 基本实现API #
 
@@ -613,3 +662,49 @@ doOnEach操作符，他接收的是一个Observable参数，相当于doOnNext，
         });
 
 	mSubscription.unsubscribe();//取消轮询
+	                                                         
+# 实例
+
+封装Nats业务，connect() -- subject()/publish()/request()
+
+	//返回单例Connection
+	private Observable<Connection> connect() {
+        return Observable.just(mConnection)
+                .map(new Func1<Connection, Connection>() {
+                    @Override
+                    public Connection call(Connection connection) {
+                        try {
+                            if (mConnection == null) {
+                                synchronized (NATSManager.class) {
+                                    if (mConnection == null) {
+                                        mConnection = Nats.connect(url, getOptions());//耗时操作
+                                        if (mConnection != null) {
+                                            throw new Exception("mConnection is null");
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            Exceptions.propagate(e);
+                        }
+                        return mConnection;
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
+    }
+    
+	public void request(final String subject, final byte[] data, final long timeout, final RequestCallBack callBack) {
+        connect().map(new Func1<Connection, Message>() {
+            @Override
+            public Message call(Connection connection) {
+                try {
+                    return mConnection.request(subject, data, timeout);//耗时操作
+                } catch (Exception e) {
+                    Exceptions.propagate(e);
+                    return null;
+                }
+            }
+        }).subscribe(new Subscriber<Message>() {});
+    }
+	    
