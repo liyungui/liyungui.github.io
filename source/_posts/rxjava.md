@@ -233,31 +233,10 @@ RxJava 规定，当不会再有新的事件发出时，需要触发 onCompleted(
 - 将传入的数组或 Iterable 拆分成具体对象后，依次发送出来。 
 
 		tring[] words = {"Hello", "Hi", "Aloha"};
-		Observable observable = Observable.from(words);
+		Observable observable = Observable.from(words); 
 
-### 单纯切换线程 ###
 
-一般使用Rxjava都会用create、just、from进行传参操作，但有时候不需要传参只是想切换一下线程而已。
-
-有如下方法： 
-
-#### 使用Observer.create()，在onNext方法中传空值 ####
-
-	Observable
-        .create(new Observable.OnSubscribe<Object>() {
-            @Override
-            public void call(Subscriber<? super Object> subscriber) {
-                subscriber.onNext(null);
-            }
-        })
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe(new Action1<Object>() {
-            @Override
-            public void call(Object o) {
-            }
-        });
-
-#### 使用Observer.empty() ####
+### empty()/never() ###
 
 返回一个不向Observer发送任何条目而立即调用onCompleted()方法的Observable. 因此该方法不会调用onNext()和onError()
 
@@ -271,6 +250,74 @@ RxJava 规定，当不会再有新的事件发出时，需要触发 onCompleted(
             }
         })
         .subscribe();
+
+### error(Throwable exception)
+
+返回一个不向Observer发送任何条目而立即调用onError()方法的Observable.
+
+### never() ###
+
+返回一个不向Observer发送任何事件的Observable。一般仅用来测试
+
+### timer(long delay, TimeUnit unit)
+
+定时触发一次任务
+
+### interval(long initialDelay, long period, TimeUnit unit) ###
+
+轮询循环
+
+实例：10秒一次心跳请求
+
+	mSubscription = Observable.interval(0, 10, TimeUnit.SECONDS)
+        .observeOn(Schedulers.io())
+        .doOnNext(new Action1<Long>() {
+            @Override
+            public void call(Long aLong) {
+				//网络请求
+                NetService.getInstance().getBusinessService().liveHeartBeat(mClazzPlanId)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new SszSubscriber<LiveHeartBeatResultBean>(mCommandReceiver) {
+                            @Override
+                            protected void onSuccess(@NonNull LiveHeartBeatResultBean bean) {
+                                ...
+                            }
+                        });
+            }
+        })
+        .subscribe(new Observer<Long>() {
+
+            @Override
+            public void onCompleted() {
+            }
+
+            @Override
+            public void onError(Throwable e) {
+            }
+
+            @Override
+            public void onNext(Long aLong) {
+            }
+        });
+
+	mSubscription.unsubscribe();//取消轮询
+
+### `defer(Func0<Observable<T>> observableFactory)`
+
+**延迟：**在观察者订阅之前不创建这个Observable，为每一个观察者创建一个新的Observable(factory function决定如何创建)
+
+特别适用的场景就是需要观察从头消息
+
+### repeat(final long count)
+
+创建一个重复发出特定的数据项或序列的Observable
+
+### range(int start, int count)
+
+创建一个发出指定范围的整数序列的Observable
+
+
 
 ## 订阅 observable.subscribe(observer) ##
 
@@ -307,7 +354,7 @@ RxJava 的默认规则中，遵循的是**线程不变原则**。即不指定线
 - `Schedulers.computation()`: 计算所使用的 Scheduler。这个计算指的是 CPU 密集型计算，即不会被 I/O 等操作限制性能的操作，例如图形的计算。这个 Scheduler 使用的固定的线程池，大小为 CPU 核数。不要把 I/O 操作放在 computation() 中，否则 I/O 操作的等待时间会浪费 CPU。
 - `AndroidSchedulers.mainThread()`: 在 Android 主线程运行。Android专用的
 
-### 线程控制 ###
+### API ###
 
 `subscribeOn()`  指定被观察者`Observable`的线程/事件产生的线程
 
@@ -323,7 +370,23 @@ RxJava 的默认规则中，遵循的是**线程不变原则**。即不指定线
 	        }
 	    });
 
-### Scheduler原理 ###
+#### observeOn() delayError的坑
+
+`observeOn(Scheduler scheduler, boolean delayError)` delayError默认为false，onNext未消费时，直接丢弃，发射OnEror事件，导致一些偶发bug
+	
+实例：为了更好的用户体验，首先展示缓存数据，加载网络数据成功，展示网络数据
+
+	Observable<List<Feed>> fromNetwork = ...
+	Observable<List<Feed>> fromCache = ...
+	
+	Observable<List<Feed>> observable = Observable.concat(fromCache, fromNetwork)
+		.subscribeOn(Schedulers.io())       
+		.observeOn(AndroidSchedulers.mainThread());
+		.subscribe(...);
+		
+	bug：页面有时候会显示空白，即直接执行了OnEror
+
+### 原理 ###
 
 `subscribeOn()` 和 `observeOn()` 的内部实现，是 `lift()`
 
@@ -372,7 +435,6 @@ subscribeOn() 和 observeOn() 都做了线程切换的工作（图中的 "schedu
 		    .subscribeOn(AndroidSchedulers.mainThread()) // 指定主线程
 		    .observeOn(AndroidSchedulers.mainThread())
 		    .subscribe(subscriber);
-
 
 # 变换 #
 
@@ -562,6 +624,26 @@ subscribeOn() 和 observeOn() 都做了线程切换的工作（图中的 "schedu
 		    }
 		});
 
+### buffer()
+
+定期从Observable收集数据到一个集合，并将这些数据项打包发出，而不是一次发出一个
+
+### groupBy()
+
+将Observable分拆为一组Observable，将原始Observable发出的数据按Key分组，每一个Observable发出一组不同的数据项
+
+### scan() 
+
+— 对Observable发出的每一项数据应用一个函数，然后按顺序依次发出这些值
+
+### window()
+
+— 定期将来自Observable的数据分拆成一些Observable窗口，然后发出这些窗口，而不是每次发出一项。类似于Buffer，但Buffer发出的是数据，Window发出的是Observable，每一个Observable发出原始Observable的数据的一个子集
+
+### cast()
+
+ — 在发出数据之前强制将Observable发出的所有数据转换为指定类型 
+
 ### throttleFirst() ###
 
 在每次事件触发后的一定时间间隔内丢弃新的事件。常用作去抖动过滤，例如按钮的点击监听器，再也不怕用户手抖点开两个重复的界面啦。
@@ -639,6 +721,123 @@ RxJava不建议开发者自定义 Operator 来直接使用 lift()，而是建议
 
 使用 `compose()` 方法，`Observable` 可以利用传入的 `Transformer` 对象的 `call()` 方法直接对自身进行处理
 
+# 过滤
+
+选择性的过滤从Observable发射的数据
+
+## API
+
+	debounce() 防反跳，去抖 - 如果在特定的时间跨度已经过去而没有发出新数据项，则从Observable发出一个数据项
+	throttleFirst() 节流 - 在特定的时间跨度内，只发出该时间跨度内的第一个数据项
+	sample 抽样检查 — 在特定的时间跨度内只发出最新的数据。定期发射最新的数据，等于就是数据抽样，
+	distinct() 有区别的，去重 — 抑制Observable发出的重复数据
+	elementAt() — 取值取特定位置的那一项数据
+	ignoreElements() 忽略所有的数据 — 不从Observable发出任何数据项，但保留终止通知(onError或 onCompleted)
+	filter() 过滤 — 过滤掉没有通过断言测试的数据项，只发射通过测试的
+	first() — 只从Observable发出第一个数据项满足条件的第一个数据项
+	last() — 只发出Observable发出最后一条数据
+	skip() — 跳过由Observable发出的前n个数据项
+	skipLast() — 跳过由Observable发出的最末n个数据项
+	take() — 只发出由Observable发出的前n项数据
+	takeLast() — 只发出由Observable发出的最后n项数据
+
+# 组合
+
+将多个Observable组合成一个单一的Observable
+
+## API
+
+	merge - 合并后发射的数据是无序的
+	startWith(T...) - 在源Observable发射的数据前插入数据
+	concat - 按顺序发射(发射完一个Observable,然后另一个)
+	zip - 通过指定的函数将多个Observable的发射组合在一起，并根据此函数的结果为每个组合发出单个数据项
+	combineLatest - 通过指定的函数组合每个Observable发出的最新项，并基于此函数的结果发射事件
+	switch（切换） - 将一个发出Observable的Observable转换为另一个Observable，并逐个发射原来Observable最近发射的数据
+	join - 当在根据由另一Observable发射的项目定义的时间窗期间发出来自一个Observable的项目时，就将两个Observable发射的数据组合成一个并发射
+
+{% asset_img comnineLatest.png %}
+
+	String[] letters = new String[]{"A", "B", "C", "D", "E", "F", "G", "H"};
+	Observable<String> letterSequence = Observable.interval(120, TimeUnit.MILLISECONDS)
+	        .map(new Func1<Long, String>() {
+	            @Override
+	            public String call(Long position) {
+	                return letters[position.intValue()];
+	            }
+	        }).take(letters.length);
+	
+	Observable<Long> numberSequence = Observable.interval(200, TimeUnit.MILLISECONDS).take(5);
+	
+	Observable.zip(letterSequence, numberSequence, new Func2<String, Long, String>() {
+	    @Override
+	    public String call(String letter, Long number) {
+	        return letter + number;
+	    }
+	}).subscribe(new Observer<String>() {
+	    @Override
+	    public void onCompleted() {
+	        System.exit(0);
+	    }
+	
+	    @Override
+	    public void onError(Throwable e) {
+	        System.out.println("Error:" + e.getMessage());
+	    }
+	
+	    @Override
+	    public void onNext(String result) {
+	        System.out.print(result + " ");
+	    }
+	});
+	输出
+		A0 B1 C2 D3 E4
+
+# 错误处理
+从Observable的错误通知中恢复
+
+## API
+
+	retry() 重试 — 如果Observable发射了一个onError通知，重新订阅它，希望它将完成并没有错误
+	retryWhen()
+
+实例：实现接口错误重试机制
+
+	NetService.getInstance().doVote(voteId, choice)
+        .retryWhen(new RetryWithDelay(9, 3000))
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe()
+
+	public class RetryWithDelay implements Func1<Observable<? extends Throwable>, Observable<?>> {
+	    private final int maxRetries;
+	    private final int retryDelayMillis;
+	    private int retryCount;
+	
+	    public RetryWithDelay(int maxRetries, int retryDelayMillis) {
+	        this.maxRetries = maxRetries;
+	        this.retryDelayMillis = retryDelayMillis;
+	    }
+	
+	    @Override
+	    public Observable<?> call(Observable<? extends Throwable> attempts) {
+	        return attempts
+	                .flatMap(new Func1<Throwable, Observable<?>>() {
+	                    @Override
+	                    public Observable<?> call(Throwable throwable) {
+	                        if (++retryCount <= maxRetries) {
+	                            // When this Observable calls onNext, the original Observable will be retried (i.e. re-subscribed).
+	                            LogUtil.i("OkHttp", "get error, it will try after " + retryDelayMillis + " millisecond, retry count " + retryCount);
+	                            return Observable.timer(retryDelayMillis, TimeUnit.MILLISECONDS);
+	                        }
+	                        // Max retries hit. Just pass the error along.
+	                        return Observable.error(throwable);
+	                    }
+	                });
+	    }
+	}
+
+	服务器关闭开始测试
+
 # Do #
 
 Rxjava do系列操作符有多个，如doOnNext，doOnSubscribe，doOnUnsubscribe，doOnCompleted，doOnError，doOnTerminate和doOnEach
@@ -708,86 +907,6 @@ doOnEach操作符，他接收的是一个Observable参数，相当于doOnNext，
 	03-01 14:55:02.307 30368-30406/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call RxCachedThreadScheduler-1
 	03-01 14:55:02.307 30368-30406/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call RxCachedThreadScheduler-1
 	03-01 14:55:02.347 30368-30368/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call main
-
-# retryWhen #
-
-实现接口错误重试机制
-
-	NetService.getInstance().doVote(voteId, choice)
-        .retryWhen(new RetryWithDelay(9, 3000))
-        .subscribeOn(Schedulers.io())
-        .observeOn(AndroidSchedulers.mainThread())
-        .subscribe()
-
-	public class RetryWithDelay implements Func1<Observable<? extends Throwable>, Observable<?>> {
-	    private final int maxRetries;
-	    private final int retryDelayMillis;
-	    private int retryCount;
-	
-	    public RetryWithDelay(int maxRetries, int retryDelayMillis) {
-	        this.maxRetries = maxRetries;
-	        this.retryDelayMillis = retryDelayMillis;
-	    }
-	
-	    @Override
-	    public Observable<?> call(Observable<? extends Throwable> attempts) {
-	        return attempts
-	                .flatMap(new Func1<Throwable, Observable<?>>() {
-	                    @Override
-	                    public Observable<?> call(Throwable throwable) {
-	                        if (++retryCount <= maxRetries) {
-	                            // When this Observable calls onNext, the original Observable will be retried (i.e. re-subscribed).
-	                            LogUtil.i("OkHttp", "get error, it will try after " + retryDelayMillis + " millisecond, retry count " + retryCount);
-	                            return Observable.timer(retryDelayMillis, TimeUnit.MILLISECONDS);
-	                        }
-	                        // Max retries hit. Just pass the error along.
-	                        return Observable.error(throwable);
-	                    }
-	                });
-	    }
-	}
-
-服务器关闭开始测试
-
-# interval #
-
-轮询
-
-实例：10秒一次心跳请求
-
-	mSubscription = Observable.interval(0, 10, TimeUnit.SECONDS)
-        .observeOn(Schedulers.io())
-        .doOnNext(new Action1<Long>() {
-            @Override
-            public void call(Long aLong) {
-				//网络请求
-                NetService.getInstance().getBusinessService().liveHeartBeat(mClazzPlanId)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new SszSubscriber<LiveHeartBeatResultBean>(mCommandReceiver) {
-                            @Override
-                            protected void onSuccess(@NonNull LiveHeartBeatResultBean bean) {
-                                ...
-                            }
-                        });
-            }
-        })
-        .subscribe(new Observer<Long>() {
-
-            @Override
-            public void onCompleted() {
-            }
-
-            @Override
-            public void onError(Throwable e) {
-            }
-
-            @Override
-            public void onNext(Long aLong) {
-            }
-        });
-
-	mSubscription.unsubscribe();//取消轮询
 	                                                         
 # 实例
 
