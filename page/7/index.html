@@ -262,6 +262,129 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/开发效率工具/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/17/开发效率工具/" itemprop="url">开发效率工具</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-17T11:12:54+08:00">
+                2018-05-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="API工具：Postman"><a href="#API工具：Postman" class="headerlink" title="API工具：Postman"></a>API工具：Postman</h1><p>强大的API调试、Http请求的工具 。可自动同步个人请求记录。</p>
+<h1 id="API管理平台"><a href="#API管理平台" class="headerlink" title="API管理平台"></a>API管理平台</h1><p>Hitchhiker</p>
+<p>eoLinker</p>
+<p>apidocjs</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/IDEA插件/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2019,25 +2142,10 @@ public interface Subscription {
 </code></pre><h3 id="from-T-from-Iterable-lt-extends-T-gt"><a href="#from-T-from-Iterable-lt-extends-T-gt" class="headerlink" title="from(T[]) / from(Iterable&lt;? extends T&gt;)"></a><code>from(T[]) / from(Iterable&lt;? extends T&gt;)</code></h3><ul>
 <li><p>将传入的数组或 Iterable 拆分成具体对象后，依次发送出来。 </p>
 <pre><code>tring[] words = {&quot;Hello&quot;, &quot;Hi&quot;, &quot;Aloha&quot;};
-Observable observable = Observable.from(words);
+Observable observable = Observable.from(words); 
 </code></pre></li>
 </ul>
-<h3 id="单纯切换线程"><a href="#单纯切换线程" class="headerlink" title="单纯切换线程"></a>单纯切换线程</h3><p>一般使用Rxjava都会用create、just、from进行传参操作，但有时候不需要传参只是想切换一下线程而已。</p>
-<p>有如下方法： </p>
-<h4 id="使用Observer-create-，在onNext方法中传空值"><a href="#使用Observer-create-，在onNext方法中传空值" class="headerlink" title="使用Observer.create()，在onNext方法中传空值"></a>使用Observer.create()，在onNext方法中传空值</h4><pre><code>Observable
-    .create(new Observable.OnSubscribe&lt;Object&gt;() {
-        @Override
-        public void call(Subscriber&lt;? super Object&gt; subscriber) {
-            subscriber.onNext(null);
-        }
-    })
-    .observeOn(AndroidSchedulers.mainThread())
-    .subscribe(new Action1&lt;Object&gt;() {
-        @Override
-        public void call(Object o) {
-        }
-    });
-</code></pre><h4 id="使用Observer-empty"><a href="#使用Observer-empty" class="headerlink" title="使用Observer.empty()"></a>使用Observer.empty()</h4><p>返回一个不向Observer发送任何条目而立即调用onCompleted()方法的Observable. 因此该方法不会调用onNext()和onError()</p>
+<h3 id="empty-never"><a href="#empty-never" class="headerlink" title="empty()/never()"></a>empty()/never()</h3><p>返回一个不向Observer发送任何条目而立即调用onCompleted()方法的Observable. 因此该方法不会调用onNext()和onError()</p>
 <pre><code>Observable
     .empty()
     .observeOn(AndroidSchedulers.mainThread())
@@ -2048,7 +2156,49 @@ Observable observable = Observable.from(words);
         }
     })
     .subscribe();
-</code></pre><h2 id="订阅-observable-subscribe-observer"><a href="#订阅-observable-subscribe-observer" class="headerlink" title="订阅 observable.subscribe(observer)"></a>订阅 observable.subscribe(observer)</h2><p>subscribe() 这个方法有点怪：它看起来是 <code>observalbe</code> 订阅了 <code>observer / subscriber</code>，看起来就像 『杂志订阅了读者』 一样颠倒了对象关系</p>
+</code></pre><h3 id="error-Throwable-exception"><a href="#error-Throwable-exception" class="headerlink" title="error(Throwable exception)"></a>error(Throwable exception)</h3><p>返回一个不向Observer发送任何条目而立即调用onError()方法的Observable.</p>
+<h3 id="never"><a href="#never" class="headerlink" title="never()"></a>never()</h3><p>返回一个不向Observer发送任何事件的Observable。一般仅用来测试</p>
+<h3 id="timer-long-delay-TimeUnit-unit"><a href="#timer-long-delay-TimeUnit-unit" class="headerlink" title="timer(long delay, TimeUnit unit)"></a>timer(long delay, TimeUnit unit)</h3><p>定时触发一次任务</p>
+<h3 id="interval-long-initialDelay-long-period-TimeUnit-unit"><a href="#interval-long-initialDelay-long-period-TimeUnit-unit" class="headerlink" title="interval(long initialDelay, long period, TimeUnit unit)"></a>interval(long initialDelay, long period, TimeUnit unit)</h3><p>轮询循环</p>
+<p>实例：10秒一次心跳请求</p>
+<pre><code>mSubscription = Observable.interval(0, 10, TimeUnit.SECONDS)
+    .observeOn(Schedulers.io())
+    .doOnNext(new Action1&lt;Long&gt;() {
+        @Override
+        public void call(Long aLong) {
+            //网络请求
+            NetService.getInstance().getBusinessService().liveHeartBeat(mClazzPlanId)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new SszSubscriber&lt;LiveHeartBeatResultBean&gt;(mCommandReceiver) {
+                        @Override
+                        protected void onSuccess(@NonNull LiveHeartBeatResultBean bean) {
+                            ...
+                        }
+                    });
+        }
+    })
+    .subscribe(new Observer&lt;Long&gt;() {
+
+        @Override
+        public void onCompleted() {
+        }
+
+        @Override
+        public void onError(Throwable e) {
+        }
+
+        @Override
+        public void onNext(Long aLong) {
+        }
+    });
+
+mSubscription.unsubscribe();//取消轮询
+</code></pre><h3 id="defer-Func0-lt-Observable-lt-T-gt-gt-observableFactory"><a href="#defer-Func0-lt-Observable-lt-T-gt-gt-observableFactory" class="headerlink" title="defer(Func0&lt;Observable&lt;T&gt;&gt; observableFactory)"></a><code>defer(Func0&lt;Observable&lt;T&gt;&gt; observableFactory)</code></h3><p><strong>延迟：</strong>在观察者订阅之前不创建这个Observable，为每一个观察者创建一个新的Observable(factory function决定如何创建)</p>
+<p>特别适用的场景就是需要观察从头消息</p>
+<h3 id="repeat-final-long-count"><a href="#repeat-final-long-count" class="headerlink" title="repeat(final long count)"></a>repeat(final long count)</h3><p>创建一个重复发出特定的数据项或序列的Observable</p>
+<h3 id="range-int-start-int-count"><a href="#range-int-start-int-count" class="headerlink" title="range(int start, int count)"></a>range(int start, int count)</h3><p>创建一个发出指定范围的整数序列的Observable</p>
+<h2 id="订阅-observable-subscribe-observer"><a href="#订阅-observable-subscribe-observer" class="headerlink" title="订阅 observable.subscribe(observer)"></a>订阅 observable.subscribe(observer)</h2><p>subscribe() 这个方法有点怪：它看起来是 <code>observalbe</code> 订阅了 <code>observer / subscriber</code>，看起来就像 『杂志订阅了读者』 一样颠倒了对象关系</p>
 <p>这是为了 流式 API 的设计</p>
 <pre><code>// 注意：这是 subscribe() 的核心代码，将与性能、兼容性、扩展性有关的代码剔除了。
 public Subscription subscribe(Subscriber subscriber) {
@@ -2071,7 +2221,7 @@ public Subscription subscribe(Subscriber subscriber) {
 <li><code>Schedulers.computation()</code>: 计算所使用的 Scheduler。这个计算指的是 CPU 密集型计算，即不会被 I/O 等操作限制性能的操作，例如图形的计算。这个 Scheduler 使用的固定的线程池，大小为 CPU 核数。不要把 I/O 操作放在 computation() 中，否则 I/O 操作的等待时间会浪费 CPU。</li>
 <li><code>AndroidSchedulers.mainThread()</code>: 在 Android 主线程运行。Android专用的</li>
 </ul>
-<h3 id="线程控制"><a href="#线程控制" class="headerlink" title="线程控制"></a>线程控制</h3><p><code>subscribeOn()</code>  指定被观察者<code>Observable</code>的线程/事件产生的线程</p>
+<h3 id="API"><a href="#API" class="headerlink" title="API"></a>API</h3><p><code>subscribeOn()</code>  指定被观察者<code>Observable</code>的线程/事件产生的线程</p>
 <p><code>observeOn()</code>  指定观察者<code>Subscriber</code>的线程/事件消费的线程</p>
 <pre><code>Observable.just(1, 2, 3, 4)
     .subscribeOn(Schedulers.io()) // 指定 subscribe() 发生在 IO 线程
@@ -2082,7 +2232,18 @@ public Subscription subscribe(Subscriber subscriber) {
             Log.d(tag, &quot;number:&quot; + number);
         }
     });
-</code></pre><h3 id="Scheduler原理"><a href="#Scheduler原理" class="headerlink" title="Scheduler原理"></a>Scheduler原理</h3><p><code>subscribeOn()</code> 和 <code>observeOn()</code> 的内部实现，是 <code>lift()</code></p>
+</code></pre><h4 id="observeOn-delayError的坑"><a href="#observeOn-delayError的坑" class="headerlink" title="observeOn() delayError的坑"></a>observeOn() delayError的坑</h4><p><code>observeOn(Scheduler scheduler, boolean delayError)</code> delayError默认为false，onNext未消费时，直接丢弃，发射OnEror事件，导致一些偶发bug</p>
+<p>实例：为了更好的用户体验，首先展示缓存数据，加载网络数据成功，展示网络数据</p>
+<pre><code>Observable&lt;List&lt;Feed&gt;&gt; fromNetwork = ...
+Observable&lt;List&lt;Feed&gt;&gt; fromCache = ...
+
+Observable&lt;List&lt;Feed&gt;&gt; observable = Observable.concat(fromCache, fromNetwork)
+    .subscribeOn(Schedulers.io())       
+    .observeOn(AndroidSchedulers.mainThread());
+    .subscribe(...);
+
+bug：页面有时候会显示空白，即直接执行了OnEror
+</code></pre><h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p><code>subscribeOn()</code> 和 <code>observeOn()</code> 的内部实现，是 <code>lift()</code></p>
 <p>具体看图（不同颜色的箭头表示不同的线程）：</p>
 <img src="/2018/04/26/rxjava/subscribeOn.jpg">
 <img src="/2018/04/26/rxjava/observeOn.jpg">
@@ -2125,7 +2286,7 @@ public Subscription subscribe(Subscriber subscriber) {
 </code></pre></li>
 </ul>
 <h1 id="变换"><a href="#变换" class="headerlink" title="变换"></a>变换</h1><p><strong>将事件序列中的对象或整个序列，转换成不同的事件或事件序列</strong></p>
-<h2 id="API"><a href="#API" class="headerlink" title="API"></a>API</h2><h3 id="map"><a href="#map" class="headerlink" title="map()"></a>map()</h3><ul>
+<h2 id="API-1"><a href="#API-1" class="headerlink" title="API"></a>API</h2><h3 id="map"><a href="#map" class="headerlink" title="map()"></a>map()</h3><ul>
 <li>返回的是 结果集</li>
 <li>只能一对一的转换<ul>
 <li>map返回的是结果集，不能直接使用from/just再次进行事件分发。只能for遍历。<ul>
@@ -2299,7 +2460,12 @@ service.login(&quot;11111&quot;, &quot;22222&quot;)
             //请求失败
         }
     });
-</code></pre><h3 id="throttleFirst"><a href="#throttleFirst" class="headerlink" title="throttleFirst()"></a>throttleFirst()</h3><p>在每次事件触发后的一定时间间隔内丢弃新的事件。常用作去抖动过滤，例如按钮的点击监听器，再也不怕用户手抖点开两个重复的界面啦。</p>
+</code></pre><h3 id="buffer"><a href="#buffer" class="headerlink" title="buffer()"></a>buffer()</h3><p>定期从Observable收集数据到一个集合，并将这些数据项打包发出，而不是一次发出一个</p>
+<h3 id="groupBy"><a href="#groupBy" class="headerlink" title="groupBy()"></a>groupBy()</h3><p>将Observable分拆为一组Observable，将原始Observable发出的数据按Key分组，每一个Observable发出一组不同的数据项</p>
+<h3 id="scan"><a href="#scan" class="headerlink" title="scan()"></a>scan()</h3><p>— 对Observable发出的每一项数据应用一个函数，然后按顺序依次发出这些值</p>
+<h3 id="window"><a href="#window" class="headerlink" title="window()"></a>window()</h3><p>— 定期将来自Observable的数据分拆成一些Observable窗口，然后发出这些窗口，而不是每次发出一项。类似于Buffer，但Buffer发出的是数据，Window发出的是Observable，每一个Observable发出原始Observable的数据的一个子集</p>
+<h3 id="cast"><a href="#cast" class="headerlink" title="cast()"></a>cast()</h3><p> — 在发出数据之前强制将Observable发出的所有数据转换为指定类型 </p>
+<h3 id="throttleFirst"><a href="#throttleFirst" class="headerlink" title="throttleFirst()"></a>throttleFirst()</h3><p>在每次事件触发后的一定时间间隔内丢弃新的事件。常用作去抖动过滤，例如按钮的点击监听器，再也不怕用户手抖点开两个重复的界面啦。</p>
 <pre><code>RxView.clickEvents(button) .throttleFirst(500, TimeUnit.MILLISECONDS).subscribe(subscriber);
 </code></pre><h2 id="变换的原理：lift"><a href="#变换的原理：lift" class="headerlink" title="变换的原理：lift()"></a>变换的原理：lift()</h2><p><strong>实质：对事件序列的处理和再发送</strong></p>
 <pre><code>// 核心代码。
@@ -2363,7 +2529,103 @@ observable1.compose(liftAll).subscribe(subscriber1);
 observable2.compose(liftAll).subscribe(subscriber2);
 observable3.compose(liftAll).subscribe(subscriber3);
 </code></pre><p>使用 <code>compose()</code> 方法，<code>Observable</code> 可以利用传入的 <code>Transformer</code> 对象的 <code>call()</code> 方法直接对自身进行处理</p>
-<h1 id="Do"><a href="#Do" class="headerlink" title="Do"></a>Do</h1><p>Rxjava do系列操作符有多个，如doOnNext，doOnSubscribe，doOnUnsubscribe，doOnCompleted，doOnError，doOnTerminate和doOnEach</p>
+<h1 id="过滤"><a href="#过滤" class="headerlink" title="过滤"></a>过滤</h1><p>选择性的过滤从Observable发射的数据</p>
+<h2 id="API-2"><a href="#API-2" class="headerlink" title="API"></a>API</h2><pre><code>debounce() 防反跳，去抖 - 如果在特定的时间跨度已经过去而没有发出新数据项，则从Observable发出一个数据项
+throttleFirst() 节流 - 在特定的时间跨度内，只发出该时间跨度内的第一个数据项
+sample 抽样检查 — 在特定的时间跨度内只发出最新的数据。定期发射最新的数据，等于就是数据抽样，
+distinct() 有区别的，去重 — 抑制Observable发出的重复数据
+elementAt() — 取值取特定位置的那一项数据
+ignoreElements() 忽略所有的数据 — 不从Observable发出任何数据项，但保留终止通知(onError或 onCompleted)
+filter() 过滤 — 过滤掉没有通过断言测试的数据项，只发射通过测试的
+first() — 只从Observable发出第一个数据项满足条件的第一个数据项
+last() — 只发出Observable发出最后一条数据
+skip() — 跳过由Observable发出的前n个数据项
+skipLast() — 跳过由Observable发出的最末n个数据项
+take() — 只发出由Observable发出的前n项数据
+takeLast() — 只发出由Observable发出的最后n项数据
+</code></pre><h1 id="组合"><a href="#组合" class="headerlink" title="组合"></a>组合</h1><p>将多个Observable组合成一个单一的Observable</p>
+<h2 id="API-3"><a href="#API-3" class="headerlink" title="API"></a>API</h2><pre><code>merge - 合并后发射的数据是无序的
+startWith(T...) - 在源Observable发射的数据前插入数据
+concat - 按顺序发射(发射完一个Observable,然后另一个)
+zip - 通过指定的函数将多个Observable的发射组合在一起，并根据此函数的结果为每个组合发出单个数据项
+combineLatest - 通过指定的函数组合每个Observable发出的最新项，并基于此函数的结果发射事件
+switch（切换） - 将一个发出Observable的Observable转换为另一个Observable，并逐个发射原来Observable最近发射的数据
+join - 当在根据由另一Observable发射的项目定义的时间窗期间发出来自一个Observable的项目时，就将两个Observable发射的数据组合成一个并发射
+</code></pre><img src="/2018/04/26/rxjava/comnineLatest.png">
+<pre><code>String[] letters = new String[]{&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;, &quot;G&quot;, &quot;H&quot;};
+Observable&lt;String&gt; letterSequence = Observable.interval(120, TimeUnit.MILLISECONDS)
+        .map(new Func1&lt;Long, String&gt;() {
+            @Override
+            public String call(Long position) {
+                return letters[position.intValue()];
+            }
+        }).take(letters.length);
+
+Observable&lt;Long&gt; numberSequence = Observable.interval(200, TimeUnit.MILLISECONDS).take(5);
+
+Observable.zip(letterSequence, numberSequence, new Func2&lt;String, Long, String&gt;() {
+    @Override
+    public String call(String letter, Long number) {
+        return letter + number;
+    }
+}).subscribe(new Observer&lt;String&gt;() {
+    @Override
+    public void onCompleted() {
+        System.exit(0);
+    }
+
+    @Override
+    public void onError(Throwable e) {
+        System.out.println(&quot;Error:&quot; + e.getMessage());
+    }
+
+    @Override
+    public void onNext(String result) {
+        System.out.print(result + &quot; &quot;);
+    }
+});
+输出
+    A0 B1 C2 D3 E4
+</code></pre><h1 id="错误处理-1"><a href="#错误处理-1" class="headerlink" title="错误处理"></a>错误处理</h1><p>从Observable的错误通知中恢复</p>
+<h2 id="API-4"><a href="#API-4" class="headerlink" title="API"></a>API</h2><pre><code>retry() 重试 — 如果Observable发射了一个onError通知，重新订阅它，希望它将完成并没有错误
+retryWhen()
+</code></pre><p>实例：实现接口错误重试机制</p>
+<pre><code>NetService.getInstance().doVote(voteId, choice)
+    .retryWhen(new RetryWithDelay(9, 3000))
+    .subscribeOn(Schedulers.io())
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe()
+
+public class RetryWithDelay implements Func1&lt;Observable&lt;? extends Throwable&gt;, Observable&lt;?&gt;&gt; {
+    private final int maxRetries;
+    private final int retryDelayMillis;
+    private int retryCount;
+
+    public RetryWithDelay(int maxRetries, int retryDelayMillis) {
+        this.maxRetries = maxRetries;
+        this.retryDelayMillis = retryDelayMillis;
+    }
+
+    @Override
+    public Observable&lt;?&gt; call(Observable&lt;? extends Throwable&gt; attempts) {
+        return attempts
+                .flatMap(new Func1&lt;Throwable, Observable&lt;?&gt;&gt;() {
+                    @Override
+                    public Observable&lt;?&gt; call(Throwable throwable) {
+                        if (++retryCount &lt;= maxRetries) {
+                            // When this Observable calls onNext, the original Observable will be retried (i.e. re-subscribed).
+                            LogUtil.i(&quot;OkHttp&quot;, &quot;get error, it will try after &quot; + retryDelayMillis + &quot; millisecond, retry count &quot; + retryCount);
+                            return Observable.timer(retryDelayMillis, TimeUnit.MILLISECONDS);
+                        }
+                        // Max retries hit. Just pass the error along.
+                        return Observable.error(throwable);
+                    }
+                });
+    }
+}
+
+服务器关闭开始测试
+</code></pre><h1 id="Do"><a href="#Do" class="headerlink" title="Do"></a>Do</h1><p>Rxjava do系列操作符有多个，如doOnNext，doOnSubscribe，doOnUnsubscribe，doOnCompleted，doOnError，doOnTerminate和doOnEach</p>
 <p>do系列的作用是side effect, 不改变数据流。 如当onNext发生时，doOnNext会先被调用，经常用来做数据修正/转换。</p>
 <p>doOnEach操作符，他接收的是一个Observable参数，相当于doOnNext，doOnError，doOnCompleted综合体</p>
 <pre><code>final SimpleDateFormat sDateFormat = new SimpleDateFormat(&quot;yyyy-MM-dd    hh:mm:ss&quot;);
@@ -2419,76 +2681,6 @@ Observable.create(new Observable.OnSubscribe&lt;Person&gt;() {
 <pre><code>03-01 14:55:02.307 30368-30406/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call RxCachedThreadScheduler-1
 03-01 14:55:02.307 30368-30406/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call RxCachedThreadScheduler-1
 03-01 14:55:02.347 30368-30368/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call main
-</code></pre><h1 id="retryWhen"><a href="#retryWhen" class="headerlink" title="retryWhen"></a>retryWhen</h1><p>实现接口错误重试机制</p>
-<pre><code>NetService.getInstance().doVote(voteId, choice)
-    .retryWhen(new RetryWithDelay(9, 3000))
-    .subscribeOn(Schedulers.io())
-    .observeOn(AndroidSchedulers.mainThread())
-    .subscribe()
-
-public class RetryWithDelay implements Func1&lt;Observable&lt;? extends Throwable&gt;, Observable&lt;?&gt;&gt; {
-    private final int maxRetries;
-    private final int retryDelayMillis;
-    private int retryCount;
-
-    public RetryWithDelay(int maxRetries, int retryDelayMillis) {
-        this.maxRetries = maxRetries;
-        this.retryDelayMillis = retryDelayMillis;
-    }
-
-    @Override
-    public Observable&lt;?&gt; call(Observable&lt;? extends Throwable&gt; attempts) {
-        return attempts
-                .flatMap(new Func1&lt;Throwable, Observable&lt;?&gt;&gt;() {
-                    @Override
-                    public Observable&lt;?&gt; call(Throwable throwable) {
-                        if (++retryCount &lt;= maxRetries) {
-                            // When this Observable calls onNext, the original Observable will be retried (i.e. re-subscribed).
-                            LogUtil.i(&quot;OkHttp&quot;, &quot;get error, it will try after &quot; + retryDelayMillis + &quot; millisecond, retry count &quot; + retryCount);
-                            return Observable.timer(retryDelayMillis, TimeUnit.MILLISECONDS);
-                        }
-                        // Max retries hit. Just pass the error along.
-                        return Observable.error(throwable);
-                    }
-                });
-    }
-}
-</code></pre><p>服务器关闭开始测试</p>
-<h1 id="interval"><a href="#interval" class="headerlink" title="interval"></a>interval</h1><p>轮询</p>
-<p>实例：10秒一次心跳请求</p>
-<pre><code>mSubscription = Observable.interval(0, 10, TimeUnit.SECONDS)
-    .observeOn(Schedulers.io())
-    .doOnNext(new Action1&lt;Long&gt;() {
-        @Override
-        public void call(Long aLong) {
-            //网络请求
-            NetService.getInstance().getBusinessService().liveHeartBeat(mClazzPlanId)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new SszSubscriber&lt;LiveHeartBeatResultBean&gt;(mCommandReceiver) {
-                        @Override
-                        protected void onSuccess(@NonNull LiveHeartBeatResultBean bean) {
-                            ...
-                        }
-                    });
-        }
-    })
-    .subscribe(new Observer&lt;Long&gt;() {
-
-        @Override
-        public void onCompleted() {
-        }
-
-        @Override
-        public void onError(Throwable e) {
-        }
-
-        @Override
-        public void onNext(Long aLong) {
-        }
-    });
-
-mSubscription.unsubscribe();//取消轮询
 </code></pre><h1 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h1><p>封装Nats业务，connect() – subject()/publish()/request()</p>
 <pre><code>//返回单例Connection
 private Observable&lt;Connection&gt; connect() {
@@ -2619,7 +2811,7 @@ public void request(final String subject, final byte[] data, final long timeout,
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">69</span>
+                  <span class="site-state-item-count">70</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

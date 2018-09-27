@@ -262,6 +262,235 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/27/Flutter/Android内嵌混合Flutter-跨平台的渐进式解决方案/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/27/Flutter/Android内嵌混合Flutter-跨平台的渐进式解决方案/" itemprop="url">Android内嵌混合Flutter-跨平台的渐进式解决方案</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-27T11:00:04+08:00">
+                2018-09-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>Flutter工程只作为一个module引入工程，代码入侵极小，Android工程和Flutter工程都可以独立运行。</p>
+<p>可以只从一个view/一个页面开始来让Flutter参与到项目中去</p>
+<p>写此文时，GDD 2018已经结束，使用的是会上发布的preview 2版本，即<code>Flutter 0.8.2 • channel beta •</code></p>
+<h1 id="创建工程"><a href="#创建工程" class="headerlink" title="创建工程"></a>创建工程</h1><h2 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h2><pre><code>项目根目录
+    ├── 原生安卓工程 (android) AS打开此工程，可独立运行
+        ├── app module
+        ├── 其他 module
+    └── Flutter module (flutter_lib) AS打开此工程，可独立运行
+        ├── .android (纯Flutter工程flutter_app 没有.前缀)
+            ├── app 
+            ├── Flutter (纯Flutter工程flutter_app 没有该module)
+        ├── lib
+            ├── main.dart
+        ├── .ios (纯Flutter工程flutter_app 没有.前缀)
+</code></pre><table>
+<thead>
+<tr>
+<th>区别</th>
+<th>Flutter module工程中的Android工程</th>
+<th>纯Flutter应用工程中的Android工程</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文件夹名称</td>
+<td>.android</td>
+<td>android</td>
+</tr>
+<tr>
+<td>包含的module</td>
+<td>app和Flutter</td>
+<td>app</td>
+</tr>
+<tr>
+<td>说明</td>
+<td>app只提供了入口Activity，Flutter包含了插件扩展及原生工程调用的接口</td>
+<td>app包含入口Activity及插件扩展</td>
+</tr>
+<tr>
+<td>说明</td>
+<td>app供Flutter自身开发调试，Flutter作为module供Android原生调用</td>
+<td>app作为Android工程运行及打包</td>
+</tr>
+</tbody>
+</table>
+<h2 id="创建Android工程"><a href="#创建Android工程" class="headerlink" title="创建Android工程"></a>创建Android工程</h2><p>这里勾选上kotlin支持。准备用kotlin实现Android原生</p>
+<h2 id="创建Flutter-module"><a href="#创建Flutter-module" class="headerlink" title="创建Flutter module"></a>创建Flutter module</h2><p>flutter create -t module flutter_lib</p>
+<h2 id="引用Flutter-module"><a href="#引用Flutter-module" class="headerlink" title="引用Flutter module"></a>引用Flutter module</h2><p>android根目录 setting.gradle</p>
+<pre><code> //加入下面配置
+setBinding(new Binding([gradle: this]))
+evaluate(new File(
+        settingsDir.parentFile,
+        &apos;flutter_lib/.android/include_flutter.groovy&apos;
+))
+</code></pre><p>app的 build.gradle</p>
+<pre><code>...
+dependencies {
+    ...
+    // 加入下面配置
+    implementation project(&apos;:flutter&apos;)
+}    
+</code></pre><p>AS打开android工程，重新构建项目，即可成功的将Flutter加入Android工程(即生成 <code>根目录/flutter_lib/.android/Flutter</code>)。    </p>
+<h1 id="Android工程中使用Flutter组件"><a href="#Android工程中使用Flutter组件" class="headerlink" title="Android工程中使用Flutter组件"></a>Android工程中使用Flutter组件</h1><p>Flutter提供了两种方式让Android工程来引用组件</p>
+<ul>
+<li><p>一种是View</p>
+<p>  <code>FlutterView createView(Activity activity, final Lifecycle lifecycle, final String initialRoute)</code></p>
+</li>
+<li><p>一种是Fragment</p>
+<p>  <code>FlutterFragment createFragment(String initialRoute)</code></p>
+</li>
+</ul>
+<h2 id="实例：作为页面的根View"><a href="#实例：作为页面的根View" class="headerlink" title="实例：作为页面的根View"></a>实例：作为页面的根View</h2><pre><code>class MainActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        val flutterView = Flutter.createView(this@MainActivity, lifecycle, &quot;route1&quot;)
+        val layout = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        val layout = FrameLayout.LayoutParams(600, 1200)
+        addContentView(flutterView, layout)
+    }
+}
+</code></pre><h3 id="setContentView然后addContentView的原因–防止启动黑屏"><a href="#setContentView然后addContentView的原因–防止启动黑屏" class="headerlink" title="setContentView然后addContentView的原因–防止启动黑屏"></a>setContentView然后addContentView的原因–防止启动黑屏</h3><p><strong>设置FlutterView加载完成之前展示给用户的界面。</strong> 当然大部分情况下用户根本感知不到这个界面Flutter就已经加载完成了，但我们仍需要它</p>
+<ul>
+<li>虽然FLutter的加载速度非常快，但是这个过程依然存在</li>
+<li>如果没有这个界面的话在Activity的加载过程会出现一个黑色的闪屏，用户体验差</li>
+<li>debug模式下Flutter的加载速度并不是非常快，这个界面可以给开发人员看<ul>
+<li>实际测试发现，即使这样处理，在测试机上debug有黑色闪屏，release正常<ul>
+<li>可能测试机太渣，直接新建一个helloworld工程(kotlin)冷启动都会有明显白屏</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="Flutter工程中根据route创建组件"><a href="#Flutter工程中根据route创建组件" class="headerlink" title="Flutter工程中根据route创建组件"></a>Flutter工程中根据route创建组件</h1><p>可以通过window的全局变量中获取到当前的routeName，这个值正是上面通过原生工程传给Flutter的标识，有了这个标识就可以简单的做判断来进行不同的组件创建了：<br>import ‘dart:ui’;<br>import ‘package:flutter/material.dart’;</p>
+<p>void main() =&gt; runApp(_widgetForRoute(window.defaultRouteName));</p>
+<p>//根据不同的标识创建不同的组件给原生工程调用<br>Widget _widgetForRoute(String route) {<br>  switch (route) {<br>    case ‘route1’:<br>      return SomeWidget(…);<br>    case ‘route2’:<br>      return SomeOtherWidget(…);<br>    default:<br>      return Center(<br>        child: Text(‘Unknown route: $route’, textDirection: TextDirection.ltr),<br>      );<br>  }<br>}</p>
+<h1 id="让Flutter模块支持热加载"><a href="#让Flutter模块支持热加载" class="headerlink" title="让Flutter模块支持热加载"></a>让Flutter模块支持热加载</h1><p>项目根目录/flutter_lib下执行</p>
+<pre><code>flutter attach
+</code></pre><p>代码执行后，监听服务会等待并监听debug应用中flutter的状态</p>
+<p>然后AS中以正常方式调试运行android，当flutter的view或Fragment激活时会触发文件同步。</p>
+<p>终端输出如下</p>
+<pre><code>Waiting for a connection from Flutter on Le X620...
+Done.
+Syncing files to device Le X620...                           2.3s
+🔥  To hot reload changes while running, press &quot;r&quot;. To hot restart (and rebuild state), press &quot;R&quot;.
+An Observatory debugger and profiler on Le X620 is available at: http://127.0.0.1:61500/
+For a more detailed help message, press &quot;h&quot;. To detach, press &quot;d&quot;; to quit, press &quot;q&quot;.
+</code></pre><p>修改flutter工程中的dart代码文件，保存后在<strong>终端中</strong>点击r键即可进行热加载，R键进行热重启。</p>
+<h1 id="签名打包"><a href="#签名打包" class="headerlink" title="签名打包"></a>签名打包</h1><p>常规打包操作即可</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/13/Travis-CI-使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2039,308 +2268,6 @@ console.log(B); // 3
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/02/JS/ES6-数组的扩展/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/02/JS/ES6-数组的扩展/" itemprop="url">ES6-数组的扩展</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-02T10:57:20+08:00">
-                2018-08-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="扩展运算符"><a href="#扩展运算符" class="headerlink" title="扩展运算符"></a>扩展运算符</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
-<li>三个点 <code>...</code></li>
-<li>rest 参数的逆运算</li>
-<li>将数组转为<strong>逗号分隔的参数序列</strong></li>
-</ul>
-<h2 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h2><h3 id="函数调用"><a href="#函数调用" class="headerlink" title="函数调用"></a>函数调用</h3><p>主要用于<strong>函数调用</strong>。 </p>
-<pre><code>function add(x, y) {
-  return x + y;
-}
-const numbers = [4, 38];
-add(...numbers) // 42
-</code></pre><p>扩展运算符与正常的函数参数结合使用，非常灵活。</p>
-<pre><code>console.log(1, ...[2, 3, 4], 5)
-// 1 2 3 4 5
-</code></pre><h3 id="表达式"><a href="#表达式" class="headerlink" title="表达式"></a>表达式</h3><p>扩展运算符后面还可以放置<strong>表达式</strong></p>
-<pre><code>const arr = [
-  ...(x &gt; 0 ? [&apos;a&apos;] : []),
-  &apos;b&apos;,
-];
-</code></pre><h3 id="替代函数的-apply-方法"><a href="#替代函数的-apply-方法" class="headerlink" title="替代函数的 apply 方法"></a>替代函数的 apply 方法</h3><p>不再需要apply方法，将数组转为函数的参数</p>
-<pre><code>// ES5 的写法
-function f(x, y, z) {
-  // ...
-}
-var args = [0, 1, 2];
-f.apply(null, args);
-
-// ES6的写法
-function f(x, y, z) {
-  // ...
-}
-let args = [0, 1, 2];
-f(...args);
-</code></pre><h3 id="复制数组和合并数组"><a href="#复制数组和合并数组" class="headerlink" title="复制数组和合并数组"></a>复制数组和合并数组</h3><p>实例：克隆数组a1</p>
-<pre><code>//ES5 只能用变通方法来复制数组。
-const a1 = [1, 2];
-const a2 = a1.concat();
-a2[0] = 2;
-a1 // [1, 2]
-
-//ES6简便写法
-const a1 = [1, 2];
-// 写法一
-const a2 = [...a1];
-// 写法二
-const [...a2] = a1;
-</code></pre><p>实例：合并数组</p>
-<pre><code>const arr1 = [&apos;a&apos;, &apos;b&apos;];
-const arr2 = [&apos;c&apos;];
-const arr3 = [&apos;d&apos;, &apos;e&apos;];
-
-// ES5 的合并数组
-arr1.concat(arr2, arr3);
-// [ &apos;a&apos;, &apos;b&apos;, &apos;c&apos;, &apos;d&apos;, &apos;e&apos; ]
-
-// ES6 的合并数组
-[...arr1, ...arr2, ...arr3]
-// [ &apos;a&apos;, &apos;b&apos;, &apos;c&apos;, &apos;d&apos;, &apos;e&apos; ]
-</code></pre><p><strong>注意</strong>：扩展运算符和concat都是<strong>浅拷贝</strong></p>
-<h3 id="与解构赋值结合"><a href="#与解构赋值结合" class="headerlink" title="与解构赋值结合"></a>与解构赋值结合</h3><p>实例：与解构赋值结合起来，用于生成数组</p>
-<pre><code>// ES5
-a = list[0], rest = list.slice(1)
-// ES6
-[a, ...rest] = list
-</code></pre><p>注意：<strong>扩展运算符用于数组赋值，只能放在参数的最后一位</strong>，否则会报错</p>
-<h3 id="将Iterator-接口对象转为真正的数组"><a href="#将Iterator-接口对象转为真正的数组" class="headerlink" title="将Iterator 接口对象转为真正的数组"></a>将Iterator 接口对象转为真正的数组</h3><p><strong>扩展运算符内部调用的是数据结构的 Iterator 接口</strong>，只要具有 Iterator 接口的对象，都可以使用扩展运算符</p>
-<h4 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h4><p><strong>能够正确识别四个字节的 Unicode 字符</strong></p>
-<pre><code>[...&apos;hello&apos;]
-// [ &quot;h&quot;, &quot;e&quot;, &quot;l&quot;, &quot;l&quot;, &quot;o&quot; ]
-</code></pre><h4 id="Map-和-Set-结构"><a href="#Map-和-Set-结构" class="headerlink" title="Map 和 Set 结构"></a>Map 和 Set 结构</h4><h4 id="Generator-函数"><a href="#Generator-函数" class="headerlink" title="Generator 函数"></a>Generator 函数</h4><h1 id="Array-from"><a href="#Array-from" class="headerlink" title="Array.from()"></a>Array.from()</h1><p><strong>将两类对象转为数组</strong>：</p>
-<ul>
-<li><strong>类似数组的对象</strong>(array-like object)<ul>
-<li>必须<strong>有length属性</strong></li>
-</ul>
-</li>
-<li><strong>可遍历的对象</strong>(iterable object)<ul>
-<li><strong>Iterator 接口对象</strong><ul>
-<li>包括 ES6 新增的数据结构 Set 和 Map</li>
-<li>扩展运算符只支持这一种对象转真正数组</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>实例：类似数组的对象转为真正的数组</p>
-<pre><code>let arrayLike = {
-    &apos;0&apos;: &apos;a&apos;,
-    &apos;1&apos;: &apos;b&apos;,
-    &apos;2&apos;: &apos;c&apos;,
-    length: 3
-};
-
-// ES5的写法
-var arr1 = [].slice.call(arrayLike); // [&apos;a&apos;, &apos;b&apos;, &apos;c&apos;]
-
-// ES6的写法
-let arr2 = Array.from(arrayLike); // [&apos;a&apos;, &apos;b&apos;, &apos;c&apos;]
-</code></pre><p><strong>第二个参数</strong>，作用类似于数组的<strong>map</strong>方法，用来对每个元素进行处理，将处理后的值放入返回的数组</p>
-<pre><code>Array.from([1, 2, 3], (x) =&gt; x * x)
-// [1, 4, 9]
-Array.from([1, 2, 3]).map((x) =&gt; x * x);
-</code></pre><p>如果map函数里面用到了this关键字，还可以传入Array.from的<strong>第三个参数</strong>，用来<strong>绑定this</strong>。</p>
-<h1 id="Array-of"><a href="#Array-of" class="headerlink" title="Array.of()"></a>Array.of()</h1><p><strong>将一组值转换为数组</strong>。主要目的：弥补数组构造函数行为差异问题，<strong>统一数组创建行为</strong></p>
-<pre><code>Array() // []
-Array(3) // [, , ,]
-Array(3, 11, 8) // [3, 11, 8]
-
-Array.of() // []
-Array.of(3) // [3]
-Array.of(3, 11, 8) // [3,11,8]
-</code></pre><h1 id="copyWithin"><a href="#copyWithin" class="headerlink" title="copyWithin()"></a>copyWithin()</h1><p>将指定位置的成员复制到其他位置(覆盖原有成员)，然后返回当前数组</p>
-<pre><code>copyWithin(target, start = 0, end = this.length)
-    负值，表示倒数。从-1开始
-    正值，顺数，从0开始
-    start,end是前开后闭区间。即最后位置=end位置-1
-</code></pre><p>实例：</p>
-<pre><code>[1, 2, 3, 4, 5].copyWithin(0, 3)
-// [4, 5, 3, 4, 5]
-
-// 将3号位复制到0号位
-[1, 2, 3, 4, 5].copyWithin(0, 3, 4)
-// [4, 2, 3, 4, 5]
-
-// -2相当于3号位，-1相当于4号位
-[1, 2, 3, 4, 5].copyWithin(0, -2, -1)
-// [4, 2, 3, 4, 5]
-</code></pre><h1 id="find-和-findIndex"><a href="#find-和-findIndex" class="headerlink" title="find() 和 findIndex()"></a>find() 和 findIndex()</h1><p>find()返回<strong>第一个</strong>符合条件的数组成员。没有符合条件的成员返回<strong>undefined</strong></p>
-<p>findIndex()返回<strong>第一个</strong>符合条件的数组成员的位置。没有符合条件的成员返回<strong>-1</strong>。</p>
-<p>这两个方法都<strong>可以发现NaN</strong>，弥补了数组的indexOf方法的不足</p>
-<ul>
-<li>两个参数<ul>
-<li>一个回调函数<ul>
-<li>可以接受三个参数(后两个可以省略)，依次为<ul>
-<li>当前的值</li>
-<li>当前的位置</li>
-<li>原数组。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>一个对象。可省略<ul>
-<li>绑定回调函数的this对象</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>所有数组成员依次执行该回调函数</li>
-<li>直到找出第一个返回值为true的成员</li>
-<li>然后返回该成员/成员的位置</li>
-</ul>
-<p>实例：</p>
-<pre><code>[1, 4, -5, 10].find((n) =&gt; n &lt; 0)
-// -5
-
-[1, 5, 10, 15].find(function(value, index, arr) {
-  return value &gt; 9;
-}) // 10
-</code></pre><h1 id="fill"><a href="#fill" class="headerlink" title="fill()"></a>fill()</h1><p>使用给定值，填充一个数组</p>
-<pre><code>fill(target, start = 0, end = this.length)
-    前开后闭区间
-    如果填充的类型为对象，那么被赋值的是同一个内存地址的对象，而不是深拷贝对象
-</code></pre><p>实例</p>
-<pre><code>[&apos;a&apos;, &apos;b&apos;, &apos;c&apos;].fill(7)
-// [7, 7, 7]
-
-let arr = new Array(3).fill({name: &quot;Mike&quot;});
-arr[0].name = &quot;Ben&quot;;
-arr
-// [{name: &quot;Ben&quot;}, {name: &quot;Ben&quot;}, {name: &quot;Ben&quot;}]
-</code></pre><h1 id="entries-，keys-和-values"><a href="#entries-，keys-和-values" class="headerlink" title="entries()，keys() 和 values()"></a>entries()，keys() 和 values()</h1><p>返回一个<strong>遍历器对象</strong>，用于遍历数组</p>
-<p><strong>数组的键名就是索引值</strong></p>
-<h1 id="includes"><a href="#includes" class="headerlink" title="includes()"></a>includes()</h1><p>某个数组是否包含给定的值。</p>
-<p><strong>支持NaN</strong></p>
-<pre><code>includes(target, start = 0)
-    负数，倒数，从-1开始
-</code></pre><p>实例</p>
-<pre><code>[1, 2, 3].includes(2)     // true
-[1, 2, NaN].includes(NaN) // true
-</code></pre><h1 id="空位"><a href="#空位" class="headerlink" title="空位"></a>空位</h1><p><strong>空位，数组的某一个位置没有任何值(等于undefined，依然是有值的)</strong></p>
-<p>Array构造函数返回的数组都是空位</p>
-<pre><code>Array(3) // [, , ,]
-</code></pre><p><strong>空位的处理规则非常不统一，避免出现空位</strong></p>
-<p>遍历，查找等数组操作，对空位处理不统一，有跳过的，有转为undefined的</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2395,7 +2322,7 @@ arr
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">69</span>
+                  <span class="site-state-item-count">70</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
