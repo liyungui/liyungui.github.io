@@ -20,12 +20,23 @@ Live Reload 和 Debug JS模式下，每次都是加载  `packager`服务器的bu
 - 根目录 `react-native run-android`
 - 根目录 `npm install` `yarn start` android目录 `./gradlew installDebug `
 
-## 小技巧 ##
+## 调试小技巧 ##
 
 APP和调试服务器并没有绑定。即任一APP都可以读取本地调试服务器的bundle
 
 如果某个工程无法运行调试，就可以直接开启 packager服务器，然后运行app，app会自动从packager服务器读取bundle，达到调试目的
 
+## 连接不上本地调试服务器
+
+表现：报红，而且终端也发现不走加载进度条。只有 `Loading dependency graph, done.` 正常情况下，显示done后，连接上手机，就会走加载进度条
+
+adb devices 确定已经连接上adb
+
+	adb reverse tcp:8081 tcp:8081
+	连接成功，Chrome自动打开http://localhost:8081/debugger-ui。状态如下
+		Status: Debugger session #0 active.
+	
+	
 # 初始化指定RN版本 #
 
 历史原因。之前RN开发由IOS端同学负责，用的是 0.48.4
