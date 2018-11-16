@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Android," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="参考 com.android.support:support-v4 v4包 com.android.support:support-compat v4 compat包 com.android.support:appcompat-v7 v7 compat包 为什么提供 向后兼容 提供不适合打包进framework的功能 Android官方对App开发提供了推荐设计，希望Android应用都有相对一致">
+<meta name="keywords" content="Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Support Library详细介绍">
+<meta property="og:url" content="http://yoursite.com/2018/11/15/Android-Support-Library详细介绍/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="参考 com.android.support:support-v4 v4包 com.android.support:support-compat v4 compat包 com.android.support:appcompat-v7 v7 compat包 为什么提供 向后兼容 提供不适合打包进framework的功能 Android官方对App开发提供了推荐设计，希望Android应用都有相对一致">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2018/11/15/Android-Support-Library详细介绍/v4包依赖关系.png">
+<meta property="og:updated_time" content="2018-11-16T08:57:42.989Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android Support Library详细介绍">
+<meta name="twitter:description" content="参考 com.android.support:support-v4 v4包 com.android.support:support-compat v4 compat包 com.android.support:appcompat-v7 v7 compat包 为什么提供 向后兼容 提供不适合打包进framework的功能 Android官方对App开发提供了推荐设计，希望Android应用都有相对一致">
+<meta name="twitter:image" content="http://yoursite.com/2018/11/15/Android-Support-Library详细介绍/v4包依赖关系.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/15/Android-Support-Library详细介绍/"/>
+
+
+
+
+
+  <title>Android Support Library详细介绍 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/15/Android-Support-Library详细介绍/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android Support Library详细介绍</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-15T10:48:25+08:00">
+                2018-11-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><a href="https://www.jianshu.com/p/a5aa5f209895" target="_blank" rel="noopener">参考</a></p>
+<pre><code>com.android.support:support-v4 v4包
+com.android.support:support-compat v4 compat包
+com.android.support:appcompat-v7 v7 compat包
+</code></pre><h1 id="为什么提供"><a href="#为什么提供" class="headerlink" title="为什么提供"></a>为什么提供</h1><ul>
+<li>向后兼容</li>
+<li>提供不适合打包进framework的功能<ul>
+<li>Android官方对App开发提供了推荐设计，希望Android应用都有相对一致的交互设计来减少用户的使用成本，希望三方App类似系统应用从而完美融入到Android生态系统中。但是这都仅仅是推荐，不要求开发者一定要这样，如果有这种需求就可以使用官方支持包提供的这些功能，避免重复造轮子。如支持包中的DrawerLayout、Snackbar等类都是这种情况。</li>
+</ul>
+</li>
+<li>支持不同形态的设备<ul>
+<li>通过使用支持包来在不同形态设备上提供功能，如手机、电视、可穿戴设备等。</li>
+</ul>
+</li>
+</ul>
+<p>各个依赖包可以在 <code>&lt;sdk&gt;/extras/android/support/</code>文件夹下查看，如果该路径下没有，打开SDK Tools更新SDK即可。</p>
+<h1 id="V4-Support-Libraries"><a href="#V4-Support-Libraries" class="headerlink" title="V4 Support Libraries"></a>V4 Support Libraries</h1><h2 id="引入整个v4包"><a href="#引入整个v4包" class="headerlink" title="引入整个v4包"></a>引入整个v4包</h2><pre><code>com.android.support:support-v4
+</code></pre><p>Android Support Library <strong>24.2.0</strong>及之后的版本中，为了增强效率和减小APK的大小起见，Android将V4包<strong>拆分成5个包</strong></p>
+<ul>
+<li>v4 compat library <code>compile &#39;com.android.support:support-compat:24.2.1&#39;</code></li>
+<li>v4 core-utils library <code>compile &#39;com.android.support:support-core-utils:24.2.1&#39;</code></li>
+<li>v4 core-ui library <code>compile &#39;com.android.support:support-core-ui:24.2.1&#39;</code></li>
+<li>v4 media-compat library <code>compile &#39;com.android.support:support-media-compat:24.2.1&#39;</code></li>
+<li>v4 fragment library <code>compile &#39;com.android.support:support-fragment:24.2.1&#39;</code><br>  跟fragment相关部分，V4这个子库依赖了其他4个子库，所以我们一旦依赖这个库就会自动导入其他4个子库</li>
+</ul>
+<p>考虑到V4的向后兼容，工程中依赖V4这个依赖包时默认是包含拆分后的5个包的</p>
+<p>为了节省APK大小，建议在开发过程中根据实际情况依赖对应的V4包，移除不必要的V4包。</p>
+<p>拆包并不一定代表能够真的解决问题，V4各子包的依赖关系如下，可见即使拆包之后，要用到V4中的某个API时，依赖包并没有减小多少：</p>
+<img src="/2018/11/15/Android-Support-Library详细介绍/v4包依赖关系.png">
+<h1 id="V7-Support-Libraries"><a href="#V7-Support-Libraries" class="headerlink" title="V7 Support Libraries"></a>V7 Support Libraries</h1><p>最初发布时就以各个独立库的形式发布的。</p>
+<h2 id="v7-appcompat-library"><a href="#v7-appcompat-library" class="headerlink" title="v7 appcompat library"></a>v7 appcompat library</h2><p>这个包支持对Action Bar接口的设计模式、Material Design接口的实现等，核心类有ActionBar、AppCompatActivity、AppCompatDialog、ShareActionProvider等，在AS中的依赖方式如下：</p>
+<pre><code>compile &apos;com.android.support:appcompat-v7:24.2.1&apos;
+</code></pre><p>注意：这个包需要依赖android-support-v4。</p>
+<h2 id="v7-cardview-library"><a href="#v7-cardview-library" class="headerlink" title="v7 cardview library"></a>v7 cardview library</h2><p>支持cardview控件，使用Material Design语言设计，卡片式的信息展示，在电视App中有广泛的使用，在AS中的依赖方式如下：</p>
+<pre><code>compile &apos;com.android.support:cardview-v7:24.2.1&apos;
+</code></pre><h2 id="v7-gridlayout-library"><a href="#v7-gridlayout-library" class="headerlink" title="v7 gridlayout library"></a>v7 gridlayout library</h2><p>一个支持GridLayout布局的support包，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:gridlayout-v7:24.2.1
+</code></pre><h2 id="v7-mediarouter-library"><a href="#v7-mediarouter-library" class="headerlink" title="v7 mediarouter library"></a>v7 mediarouter library</h2><p>一个用于设备间音频、视频交换显示的support包，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:mediarouter-v7:24.2.1
+</code></pre><h2 id="v7-palette-library"><a href="#v7-palette-library" class="headerlink" title="v7 palette library"></a>v7 palette library</h2><p>该库提供了palette类，使用这个类可以很方便提取出图片中主题色。比如在音乐App中，从音乐专辑封面图片中提取出专辑封面图片的主题色，然后将播放界面的背景色设置为封面的主题色，随着播放音乐的改变，播放界面的背景色也会巧妙的跟着改变，从而提供更好的用户体验。，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:palette-v7:24.2.1
+</code></pre><h2 id="v7-recyclerview-library"><a href="#v7-recyclerview-library" class="headerlink" title="v7 recyclerview library"></a>v7 recyclerview library</h2><p>核心类是RecyclerView，用于替换ListView、GridView，具体可以查阅RecyclerView方面的资料，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:recyclerview-v7:24.2.1
+</code></pre><h2 id="v7-Preference-Support-Library"><a href="#v7-Preference-Support-Library" class="headerlink" title="v7 Preference Support Library"></a>v7 Preference Support Library</h2><p>一个用于支持各种控件存储配置数据的support包，比如CheckBoxPreference和ListPreference，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:preference-v7:24.2.1
+</code></pre><h1 id="V8-Support-Library"><a href="#V8-Support-Library" class="headerlink" title="V8 Support Library"></a>V8 Support Library</h1><p>V8 Support Library支持的最低SDK版本是Android 2.3即API Level 9。</p>
+<h2 id="v8-renderscript-library"><a href="#v8-renderscript-library" class="headerlink" title="v8 renderscript library"></a>v8 renderscript library</h2><p>一个用于渲染脚本的support包，在AS中按照如下方式配置即可正常使用：</p>
+<pre><code>defaultConfig {
+    renderscriptTargetApi 18
+    renderscriptSupportModeEnabled true
+}
+</code></pre><h1 id="V13-Support-Library"><a href="#V13-Support-Library" class="headerlink" title="V13 Support Library"></a>V13 Support Library</h1><p>这个包的作用主要是为Android3.2（API Level 13）及以上的系统提供更多地Framgnet特性支持，使用它的原因在于，android-support-v4中虽然也对Fragment做了支持，由于要兼容低版本，导致他是自行实现的 Fragment 效果，在高版本的 Fragment 的一些特性丢失了，而对于 v13以上的 sdk 版本，我们可以使用更加有效，特性更多的代码，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:support-v13:24.2.1
+</code></pre><h1 id="Multidex-Support-Library"><a href="#Multidex-Support-Library" class="headerlink" title="Multidex Support Library"></a>Multidex Support Library</h1><p>该support包用于使用多dex技术编译APP，当一个应用的方法数超过65536个时需要使用multidex配置，关于multidex的更多信息，可以参见如何编译超过65K方法数的应用，在AS中的依赖方式如下：</p>
+<pre><code>compile &apos;com.android.support:multidex:1.0.0&apos;
+</code></pre><h1 id="Annotations-Support-Library"><a href="#Annotations-Support-Library" class="headerlink" title="Annotations Support Library"></a>Annotations Support Library</h1><p>一个支持注解的support包，在AS中的依赖方式如下：</p>
+<pre><code>compile &apos;com.android.support:support-annotations:24.2.1&apos;
+</code></pre><h1 id="Design-Support-Library"><a href="#Design-Support-Library" class="headerlink" title="Design Support Library"></a>Design Support Library</h1><p>一个用于支持Design Patterns的support包，它提供了Material Desgin设计风格的控件，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:design:24.2.1
+</code></pre><h1 id="Custom-Tabs-Support-Library"><a href="#Custom-Tabs-Support-Library" class="headerlink" title="Custom Tabs Support Library"></a>Custom Tabs Support Library</h1><p>一个提供了在应用中添加和管理custom tabs的support包，在Google IO 2015中有介绍，在AS中的依赖方式如下：</p>
+<pre><code>compile &apos;com.android.support:customtabs:24.2.1&apos;
+</code></pre><h1 id="Percent-Support-Library"><a href="#Percent-Support-Library" class="headerlink" title="Percent Support Library"></a>Percent Support Library</h1><p>一个提供了百分比布局的support包，通过这个包可以实现百分比布局，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:percent:24.2.1
+</code></pre><h1 id="AndroidX"><a href="#AndroidX" class="headerlink" title="AndroidX"></a>AndroidX</h1><p>如果使用support为27.1.1的相关依赖库时。可能需要所有相关的support 库都为27.1.1。如果其中有bug的话，可能需要所有的都去升级，存在一个绑定关系，而且正式版的发布周期也很长。</p>
+<p>通过AndroidX，可以<strong>实时</strong>实现特性和修复bug，升级<strong>个别</strong>依赖，不需要对使用的所有其他库进行更新。</p>
+<p>为了给开发者一定迁移的时间，所以28.0.0的稳定版本还是采用android.support。但是所有后续的功能版本都将采用androidx。</p>
+<h2 id="迁移"><a href="#迁移" class="headerlink" title="迁移"></a>迁移</h2><p>Android Studio 3.2 Canary中添加了一键迁移的功能 <code>Refactor -&gt; Migrate to AndroidX</code></p>
+<p>首先你的gradle版本至少为3.2.0以上，以及compileSdkVersion为28以上。</p>
+<pre><code>classpath &apos;com.android.tools.build:gradle:3.2.0+&apos;
+</code></pre><p>如果你是一个新项目，如果使用AndroidX相关依赖，需要在gradle.properties文件里添加配置：</p>
+<pre><code>android.useAndroidX=true
+android.enableJetifier=true
+</code></pre><p>如果你想使用AndroidX，但是之前的不迁移，可以这样配置：</p>
+<pre><code>android.useAndroidX=true
+android.enableJetifier=false
+</code></pre><h1 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h1><h2 id="找不到-android-support-v4-util-ArraySet"><a href="#找不到-android-support-v4-util-ArraySet" class="headerlink" title="找不到 android.support.v4.util.ArraySet"></a>找不到 android.support.v4.util.ArraySet</h2><p>指定v7版本为27。24版本是的v7包中的v4是没有该类的</p>
+<h2 id="找不到-android-support-v4-animation-AnimatorCompatHelper"><a href="#找不到-android-support-v4-animation-AnimatorCompatHelper" class="headerlink" title="找不到 android.support.v4.animation.AnimatorCompatHelper"></a>找不到 android.support.v4.animation.AnimatorCompatHelper</h2><p>在support包 24,25都有</p>
+<p>在support包26的时候这个类没有了。</p>
+<p>网上的修复方案：</p>
+<pre><code>configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details -&gt;
+        def requested = details.requested
+        if (requested.group == &apos;com.android.support&apos;) {
+            if (!requested.name.startsWith(&quot;multidex&quot;)) {
+                details.useVersion &apos;24.1.0&apos;
+            }
+        }
+    }
+}
+</code></pre><p>由于项目需要27的一些类，不能改低版本</p>
+<p><strong>解决方案：复制相关类</strong></p>
+<p>建包 android.support.v4.animation（在目录 main-&gt;java 文件夹下开始建包名）</p>
+<p>在电脑中安装的sdk的目录下搜索 AnimatorCompatHelper，右键，跳转到所在文件夹，复制所有相关java文件到刚刚新建的文件包下即可</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"><i class="fa fa-tag"></i> Android</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/14/Android中View的绘制/" rel="next" title="Android中View的绘制.md">
+                <i class="fa fa-chevron-left"></i> Android中View的绘制.md
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#为什么提供"><span class="nav-number">1.</span> <span class="nav-text">为什么提供</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#V4-Support-Libraries"><span class="nav-number">2.</span> <span class="nav-text">V4 Support Libraries</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引入整个v4包"><span class="nav-number">2.1.</span> <span class="nav-text">引入整个v4包</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#V7-Support-Libraries"><span class="nav-number">3.</span> <span class="nav-text">V7 Support Libraries</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#v7-appcompat-library"><span class="nav-number">3.1.</span> <span class="nav-text">v7 appcompat library</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v7-cardview-library"><span class="nav-number">3.2.</span> <span class="nav-text">v7 cardview library</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v7-gridlayout-library"><span class="nav-number">3.3.</span> <span class="nav-text">v7 gridlayout library</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v7-mediarouter-library"><span class="nav-number">3.4.</span> <span class="nav-text">v7 mediarouter library</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v7-palette-library"><span class="nav-number">3.5.</span> <span class="nav-text">v7 palette library</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v7-recyclerview-library"><span class="nav-number">3.6.</span> <span class="nav-text">v7 recyclerview library</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#v7-Preference-Support-Library"><span class="nav-number">3.7.</span> <span class="nav-text">v7 Preference Support Library</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#V8-Support-Library"><span class="nav-number">4.</span> <span class="nav-text">V8 Support Library</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#v8-renderscript-library"><span class="nav-number">4.1.</span> <span class="nav-text">v8 renderscript library</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#V13-Support-Library"><span class="nav-number">5.</span> <span class="nav-text">V13 Support Library</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Multidex-Support-Library"><span class="nav-number">6.</span> <span class="nav-text">Multidex Support Library</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Annotations-Support-Library"><span class="nav-number">7.</span> <span class="nav-text">Annotations Support Library</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Design-Support-Library"><span class="nav-number">8.</span> <span class="nav-text">Design Support Library</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Custom-Tabs-Support-Library"><span class="nav-number">9.</span> <span class="nav-text">Custom Tabs Support Library</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Percent-Support-Library"><span class="nav-number">10.</span> <span class="nav-text">Percent Support Library</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AndroidX"><span class="nav-number">11.</span> <span class="nav-text">AndroidX</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#迁移"><span class="nav-number">11.1.</span> <span class="nav-text">迁移</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#常见问题"><span class="nav-number">12.</span> <span class="nav-text">常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#找不到-android-support-v4-util-ArraySet"><span class="nav-number">12.1.</span> <span class="nav-text">找不到 android.support.v4.util.ArraySet</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#找不到-android-support-v4-animation-AnimatorCompatHelper"><span class="nav-number">12.2.</span> <span class="nav-text">找不到 android.support.v4.animation.AnimatorCompatHelper</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
