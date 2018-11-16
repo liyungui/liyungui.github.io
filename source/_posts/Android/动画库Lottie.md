@@ -69,5 +69,15 @@ Lottie 是一个可以解析AE( Adobe After Effects )上的插件Bodymovin导出
 	LottieAnimationView.playAnimation();//播放动画
 	LottieAnimationView.addAnimatorListener(Animator.AnimatorListener）//监听动画状态
 
+# 注意事项
 
+- 可能会v4包冲突
+		
+	移除lottie的v4包
+		
+			compile ("com.airbnb.android:lottie:2.6.1"){exclude group: "com.android.support.v4"}
+			
+- 保持v7依赖的版本为27
+
+	v7的24版本带的v4包，找不到 android.support.v4.util.ArraySet
 
