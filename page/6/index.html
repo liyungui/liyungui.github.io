@@ -262,6 +262,168 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/06/Android/动画库Lottie/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/06/Android/动画库Lottie/" itemprop="url">动画库Lottie</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-06T16:18:53+08:00">
+                2018-09-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>Lottie 是一个可以解析AE( Adobe After Effects )上的插件Bodymovin导出的json文件(依赖png文件)实现在移动设备上渲染的动画库。</p>
+<p>优点：</p>
+<p><strong>开发高效，文件体积小，展示效果好，性能消耗小，控制灵活，服务器更新动画，跨平台</strong>。比gif体积小，效果好(AE导出gif有白边)，可以重复播放指定帧指定次数</p>
+<p>缺陷：</p>
+<p>系统版本有要求。支持 Android(Jellybean/API16 及以上)，ios(8.0)，RN</p>
+<p>不支持交互动画。只能播放类型动画</p>
+<p><a href="https://github.com/airbnb/lottie-android" target="_blank" rel="noopener">github</a></p>
+<p><a href="http://airbnb.io/lottie/android/android.html" target="_blank" rel="noopener">官方文档</a></p>
+<h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><h2 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h2><pre><code>compile &apos;com.airbnb.android:lottie:2.6.0&apos;
+</code></pre><h2 id="xml"><a href="#xml" class="headerlink" title="xml"></a>xml</h2><pre><code>&lt;com.airbnb.lottie.LottieAnimationView
+ android:id=&quot;@+id/animation_view&quot;
+ android:layout_width=&quot;wrap_content&quot;
+ android:layout_height=&quot;wrap_content&quot;
+ app:lottie_fileName=&quot;hello-world.json&quot;
+ app:lottie_loop=&quot;true&quot;
+ app:lottie_autoPlay=&quot;true&quot; /&gt;
+</code></pre><h2 id="资源目录"><a href="#资源目录" class="headerlink" title="资源目录"></a>资源目录</h2><p> Lottie animations can load animations from:</p>
+<ul>
+<li>A json animation in src/main/res/raw.</li>
+<li>A json file in src/main/assets.</li>
+<li>A zip file in src/main/assets. See images docs for more info.</li>
+<li>A url to a json or zip file.</li>
+<li>A json string. The source can be from anything including your own network stack.</li>
+<li>An InputStream to either a json file or a zip file.</li>
+</ul>
+<p>依赖图片存放目录</p>
+<ul>
+<li>src/main/assets/image. image可以是其他名字</li>
+</ul>
+<p>示例json文件放于 raw 目录，图片放于 assets/image</p>
+<h2 id="设置依赖图片目录"><a href="#设置依赖图片目录" class="headerlink" title="设置依赖图片目录"></a>设置依赖图片目录</h2><p><strong>必须设置</strong>，否则报错</p>
+<pre><code>LottieAnimationView.setImageAssetsFolder(&quot;image/&quot;);
+</code></pre><p>至此，动画<strong>成功显示</strong>在界面上了</p>
+<h2 id="API控制"><a href="#API控制" class="headerlink" title="API控制"></a>API控制</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">LottieAnimationView.setMinAndMaxFrame(<span class="number">0</span>, <span class="number">34</span>);</span><br><span class="line"></span><br><span class="line">LottieAnimationView.setRepeatMode(LottieDrawable.RESTART);</span><br><span class="line">LottieAnimationView.setRepeatCount(<span class="number">0</span>);</span><br><span class="line">	<span class="comment">//0，表示不重复</span></span><br><span class="line">	<span class="comment">//LottieDrawable.INFINITE，无限重复</span></span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">LottieAnimationView.playAnimation();<span class="comment">//播放动画</span></span><br><span class="line"></span><br><span class="line">LottieAnimationView.addAnimatorListener(Animator.AnimatorListener）<span class="comment">//监听动画状态</span></span><br><span class="line">LottieAnimationView.removeAllAnimatorListeners();</span><br><span class="line"></span><br><span class="line">LottieAnimationView.addAnimatorUpdateListener(ValueAnimator.AnimatorUpdateListener)<span class="comment">//监听播放进度</span></span><br><span class="line">LottieAnimationView.removeAllUpdateListeners() <span class="comment">//慎用，会导致动画无法播放</span></span><br><span class="line">LottieAnimationView.removeUpdateListener(ValueAnimator.AnimatorUpdateListener)</span><br><span class="line"></span><br><span class="line"><span class="comment">//播放进度回调中</span></span><br><span class="line">animation.getAnimatedValue() 返回进度[<span class="number">0</span>,<span class="number">1</span>]</span><br><span class="line">animation.getAnimatedFraction() 返回进度[minFrame,maxFrame]。如果没设置，也是返回[<span class="number">0</span>,<span class="number">1</span>]</span><br></pre></td></tr></table></figure>
+<h1 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h1><ul>
+<li><p>可能会v4包冲突</p>
+<p>  移除lottie的v4包</p>
+<pre><code>compile (&quot;com.airbnb.android:lottie:2.6.1&quot;){exclude group: &quot;com.android.support.v4&quot;}
+</code></pre></li>
+<li><p>保持v7依赖的版本为27</p>
+<p>  v7的24版本带的v4包，找不到 android.support.v4.util.ArraySet</p>
+</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/31/Android/Java代码设置margin/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2123,322 +2285,6 @@ arr
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/02/JS/ES6-class/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/02/JS/ES6-class/" itemprop="url">ES6-class</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-02T10:34:20+08:00">
-                2018-08-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="定义和使用"><a href="#定义和使用" class="headerlink" title="定义和使用"></a>定义和使用</h1><ul>
-<li><strong>语法糖</strong>。更像面向对象编程的语法而已</li>
-<li><strong>本质是函数</strong>。可以看作构造函数的另一种写法<ul>
-<li>但是<strong>只能通过new调用</strong></li>
-</ul>
-</li>
-<li>属性。<ul>
-<li>默认定义在原型上</li>
-<li>可以显式定义在其本身<ul>
-<li>即定义在this对象上</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>方法定义前不需要function关键字<ul>
-<li>类内定义的方法，都是不可枚举的</li>
-</ul>
-</li>
-<li><strong>constructor()</strong><ul>
-<li>类的默认方法<ul>
-<li>没有显式定义，自动生成一个空实现</li>
-</ul>
-</li>
-<li>new对象实例时，自动调用该方法</li>
-<li>默认返回实例对象。不需要显式返回<ul>
-<li>可以强制return其他对象</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>严格模式</strong><ul>
-<li>类和模块的内部，默认就是严格模式</li>
-<li>所有的代码，其实都是运行在模块之中，所以 ES6 实际上把整个语言升级到了严格模式。</li>
-</ul>
-</li>
-<li><strong>所有实例共享一个原型对象</strong></li>
-<li><strong>不存在变量提升</strong>。 先定义，后使用<ul>
-<li>此规定能保证子类在父类之后定义</li>
-</ul>
-</li>
-</ul>
-<p>实例：</p>
-<pre><code>class Point {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-  toString() {
-    return &apos;(&apos; + this.x + &apos;, &apos; + this.y + &apos;)&apos;;
-  }
-}
-
-typeof Point // &quot;function&quot;
-Point === Point.prototype.constructor // true
-
-Object.keys(Point.prototype)
-// []
-Object.getOwnPropertyNames(Point.prototype)
-// [&quot;constructor&quot;,&quot;toString&quot;]
-
-point.hasOwnProperty(&apos;x&apos;) // true
-point.hasOwnProperty(&apos;y&apos;) // true
-point.hasOwnProperty(&apos;toString&apos;) // false
-point.__proto__.hasOwnProperty(&apos;toString&apos;) // true
-</code></pre><p>实例：所有实例共享一个原型对象</p>
-<pre><code>var p1 = new Point(2,3);
-var p2 = new Point(3,2);
-p1.__proto__ === p2.__proto__
-//true
-</code></pre><h2 id="匿名类"><a href="#匿名类" class="headerlink" title="匿名类"></a>匿名类</h2><pre><code>let person = new class {
-  constructor(name) {
-    this.name = name;
-  }
-
-  sayName() {
-    console.log(this.name);
-  }
-}(&apos;张三&apos;);
-person.sayName(); // &quot;张三&quot;
-</code></pre><h2 id="私有属性"><a href="#私有属性" class="headerlink" title="私有属性"></a>私有属性</h2><p><strong>ES6 不支持私有属性</strong></p>
-<h3 id="现有方案"><a href="#现有方案" class="headerlink" title="现有方案"></a>现有方案</h3><h4 id="约定前缀下划线表示私有"><a href="#约定前缀下划线表示私有" class="headerlink" title="约定前缀下划线表示私有"></a>约定前缀下划线表示私有</h4><h4 id="将方法移出模块"><a href="#将方法移出模块" class="headerlink" title="将方法移出模块"></a>将方法移出模块</h4><p>因为模块内部的所有方法都是对外可见</p>
-<pre><code>class Widget {
-  foo (baz) {
-    bar.call(this, baz);
-  }
-}
-function bar(baz) {
-  return this.snaf = baz;
-}
-bar实际上成为了当前模块的私有方法
-</code></pre><h4 id="命名为一个Symbol值"><a href="#命名为一个Symbol值" class="headerlink" title="命名为一个Symbol值"></a>命名为一个Symbol值</h4><p>利用Symbol值的唯一性</p>
-<pre><code>const bar = Symbol(&apos;bar&apos;);
-const snaf = Symbol(&apos;snaf&apos;);
-export default class myClass{
-  [bar](baz) {
-    return this[snaf] = baz;
-  }
-};
-
-bar和snaf都是Symbol值，导致第三方无法获取到它们
-因此达到了私有方法和私有属性的效果
-</code></pre><h3 id="私有属性的提案"><a href="#私有属性的提案" class="headerlink" title="私有属性的提案"></a>私有属性的提案</h3><p><strong>使用#前缀表示私有属性</strong></p>
-<ul>
-<li>没有采用private关键字，是因为 JavaScript 是动态语言，使用独立的符号似乎是唯一的可靠方法</li>
-</ul>
-<p>实例</p>
-<pre><code>class Foo {
-  #a;
-  #b;
-  #sum() { return #a + #b; }
-  constructor(a, b) { #a = a; #b = b; }
-}
-</code></pre><h1 id="静态方法"><a href="#静态方法" class="headerlink" title="静态方法"></a>静态方法</h1><ul>
-<li>方法前，加上static关键字</li>
-<li>直接通过类来调用</li>
-<li>不会被实例继承<ul>
-<li>在实例上调用静态方法，会抛出一个不存在该方法错误</li>
-</ul>
-</li>
-<li>静态方法中this关键字指的是类</li>
-<li>可以被子类继承</li>
-</ul>
-<p>ES6 明确规定，Class 内部只有静态方法，<strong>没有静态属性</strong></p>
-<h1 id="new-target-属性"><a href="#new-target-属性" class="headerlink" title="new.target 属性"></a>new.target 属性</h1><p><strong>返回new命令作用于的构造函数</strong></p>
-<ul>
-<li><strong>返回值就是当前类</strong>。子类继承父类时，返回<strong>子类</strong><ul>
-<li><strong>类中</strong>调用：类严格等于构造函数。类本质是函数，是构造函数的另一种写法</li>
-<li><strong>函数中</strong>调用：函数也是对象。</li>
-</ul>
-</li>
-<li>构造函数不是通过new命令调用的，new.target会返回<strong>undefined</strong></li>
-</ul>
-<p>实例</p>
-<pre><code>function Person(name) {
-  if (new.target === Person) {
-    this.name = name;
-  } else {
-    throw new Error(&apos;必须使用 new 命令生成实例&apos;);
-  }
-}
-
-class Rectangle {
-  constructor(length, width) {
-    console.log(new.target === Rectangle); //true
-    this.length = length;
-    this.width = width;
-  }
-}
-
-class Square extends Rectangle {
-  constructor(length) { //false。返回的是子类
-    super(length, length);
-  }
-}    
-</code></pre><h1 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h1><h2 id="extends"><a href="#extends" class="headerlink" title="extends"></a>extends</h2><p><strong>通过extends关键字实现继承</strong></p>
-<ul>
-<li>必须在constructor()中调用super方法</li>
-<li>调用super之后，才可以使用this关键字</li>
-</ul>
-<h2 id="Object-getPrototypeOf"><a href="#Object-getPrototypeOf" class="headerlink" title="Object.getPrototypeOf()"></a>Object.getPrototypeOf()</h2><p><strong>获取父类</strong></p>
-<pre><code>Object.getPrototypeOf(ColorPoint) === Point
-// true
-</code></pre><h1 id="原生构造函数的继承"><a href="#原生构造函数的继承" class="headerlink" title="原生构造函数的继承"></a>原生构造函数的继承</h1><h2 id="原生构造函数"><a href="#原生构造函数" class="headerlink" title="原生构造函数"></a>原生构造函数</h2><p><strong>语言内置的构造函数，通常用来生成数据结构</strong></p>
-<p>大致有下面这些。</p>
-<ul>
-<li>Object()</li>
-<li>Boolean()</li>
-<li>Number()</li>
-<li>String()</li>
-<li>Array()</li>
-<li>Date()</li>
-<li>Function()</li>
-<li>RegExp()</li>
-<li>Error()</li>
-</ul>
-<h2 id="继承的实现"><a href="#继承的实现" class="headerlink" title="继承的实现"></a>继承的实现</h2><p>ES5 的继承，实质是<strong>先创造子类的实例对象this</strong>，然后再将父类的方法添加到this上面（Parent.apply(this)）。</p>
-<p>ES6 的继承机制完全不同，实质是<strong>新建父类的实例对象this</strong>（所以必须先调用super方法），然后再用子类的构造函数修改this</p>
-<h2 id="原生构造函数的继承-1"><a href="#原生构造函数的继承-1" class="headerlink" title="原生构造函数的继承"></a>原生构造函数的继承</h2><h3 id="ES5无法继承"><a href="#ES5无法继承" class="headerlink" title="ES5无法继承"></a>ES5无法继承</h3><p>子类无法获得原生构造函数的内部属性，通过Array.apply()或者分配给原型对象都不行。原生构造函数会忽略apply方法传入的this，也就是说，原生构造函数的this无法绑定，导致拿不到内部属性。</p>
-<p>ES5 是先新建子类的实例对象this，再将父类的属性添加到子类上，由于父类的内部属性无法获取，导致无法继承原生的构造函数。</p>
-<h3 id="ES6允许继承原生构造函数"><a href="#ES6允许继承原生构造函数" class="headerlink" title="ES6允许继承原生构造函数"></a>ES6允许继承原生构造函数</h3><p><strong>继承Object的子类，有一个行为差异。</strong></p>
-<p>ES6 改变了Object构造函数的行为，一旦发现Object方法不是通过new Object()这种形式调用，Object构造函数会忽略参数。</p>
-<pre><code>class NewObj extends Object{
-  constructor(){
-    super(...arguments);
-  }
-}
-var o = new NewObj({attr: true});
-o.attr === true  // false
-</code></pre><h1 id="Mixin-模式的实现"><a href="#Mixin-模式的实现" class="headerlink" title="Mixin 模式的实现"></a>Mixin 模式的实现</h1><p><strong>Mixin 指的是多个对象合成一个新的对象，新对象具有各个组成成员的接口</strong></p>
-<p>实例：最简单实现</p>
-<pre><code>const a = {
-  a: &apos;a&apos;
-};
-const b = {
-  b: &apos;b&apos;
-};
-const c = {...a, ...b}; // {a: &apos;a&apos;, b: &apos;b&apos;}
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2493,7 +2339,7 @@ const c = {...a, ...b}; // {a: &apos;a&apos;, b: &apos;b&apos;}
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">118</span>
+                  <span class="site-state-item-count">119</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2515,7 +2361,7 @@ const c = {...a, ...b}; // {a: &apos;a&apos;, b: &apos;b&apos;}
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">48</span>
+                  <span class="site-state-item-count">49</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

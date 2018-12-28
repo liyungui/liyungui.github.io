@@ -262,6 +262,218 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/27/RN/RN页面跳转/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/27/RN/RN页面跳转/" itemprop="url">RN页面跳转</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-27T10:48:26+08:00">
+                2018-07-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="React-Navigation"><a href="#React-Navigation" class="headerlink" title="React Navigation"></a><a href="https://reactnavigation.org/docs/en/getting-started.html" target="_blank" rel="noopener">React Navigation</a></h1><h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code>yarn add react-navigation
+</code></pre><h2 id="createStackNavigator"><a href="#createStackNavigator" class="headerlink" title="createStackNavigator()"></a>createStackNavigator()</h2><p>返回React component(包含路由配置)。可以直接将它输出为App.js的root component.</p>
+<h3 id="直接输出为App-js的root-component"><a href="#直接输出为App-js的root-component" class="headerlink" title="直接输出为App.js的root component"></a>直接输出为App.js的root component</h3><p>App.js</p>
+<pre><code>import { createStackNavigator } from &apos;react-navigation&apos;;
+
+class HomeScreen extends React.Component {
+  render() {
+    return (
+      &lt;View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}&gt;
+        &lt;Text&gt;Home Screen&lt;/Text&gt;
+      &lt;/View&gt;
+    );
+  }
+}
+
+export default createStackNavigator({
+  Home: {
+    screen: HomeScreen
+  },
+});
+</code></pre><h3 id="App-js渲染我们创建的component-包含路由配置"><a href="#App-js渲染我们创建的component-包含路由配置" class="headerlink" title="App.js渲染我们创建的component(包含路由配置)"></a>App.js渲染我们创建的component(包含路由配置)</h3><pre><code>const RootStack = createStackNavigator({
+  Home: {
+    screen: HomeScreen
+  },
+});
+
+export default class App extends React.Component {
+  render() {
+    return &lt;RootStack /&gt;;
+  }
+}
+</code></pre><h3 id="路由简写"><a href="#路由简写" class="headerlink" title="路由简写"></a>路由简写</h3><pre><code>const RootStack = createStackNavigator({
+  Home: {
+    screen: HomeScreen
+  },
+});
+
+const RootStack = createStackNavigator({
+  Home: HomeScreen
+});
+</code></pre><h3 id="添加第二个路由"><a href="#添加第二个路由" class="headerlink" title="添加第二个路由"></a>添加第二个路由</h3><p><strong>有两个或以上的路由时，需 <code>initialRouteName</code> 指定初始路由(第一个页面)</strong></p>
+<pre><code>class DetailsScreen extends React.Component {
+  render() {
+    return (
+      &lt;View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}&gt;
+        &lt;Text&gt;Details Screen&lt;/Text&gt;
+      &lt;/View&gt;
+    );
+  }
+}
+
+const RootStack = createStackNavigator(
+  {
+    Home: HomeScreen,
+    Details: DetailsScreen,
+  },
+  {
+    initialRouteName: &apos;Home&apos;,
+  }
+);
+</code></pre><h2 id="跳转"><a href="#跳转" class="headerlink" title="跳转"></a>跳转</h2><ul>
+<li>this.props.navigation.<strong>navigate</strong>(‘RouteName’)<ul>
+<li>进入指定页面。</li>
+<li>不会重复创建和push<ul>
+<li>若已在该页面，无操作</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>this.props.navigation.<strong>push</strong>(‘RouteName’)<ul>
+<li>进入指定页面。</li>
+<li>会重复创建和push<ul>
+<li>每次调用都会在最顶层加入该页面</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>this.props.navigation.<strong>goBack</strong>()<ul>
+<li>返回上一页面</li>
+</ul>
+</li>
+<li>this.props.navigation.<strong>popToTop</strong>()<ul>
+<li>回到第一个页面</li>
+</ul>
+</li>
+</ul>
+<p><strong>如果当前可返回，标题栏会自动展示返回箭头</strong></p>
+<h3 id="传参"><a href="#传参" class="headerlink" title="传参"></a>传参</h3><h4 id="使用API"><a href="#使用API" class="headerlink" title="使用API"></a>使用API</h4><pre><code>this.props.navigation.navigate(&apos;RouteName&apos;, {})
+this.props.navigation.push(&apos;RouteName&apos;, {})
+
+this.props.navigation.getParam(paramName, defaultValue).
+this.props.navigation.state.params 较少用。因为如果没有传参，该值为null。
+</code></pre><h4 id="使用社群包"><a href="#使用社群包" class="headerlink" title="使用社群包"></a>使用社群包</h4><p><a href="https://github.com/vonovak/react-navigation-props-mapper" target="_blank" rel="noopener">react-navigation-props-mapper</a> </p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/27/RN/RN网络请求/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2675,292 +2887,6 @@ Widget getRow(int i) {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/03/Flutter/Flutter布局/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/03/Flutter/Flutter布局/" itemprop="url">Flutter布局</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-03T17:00:29+08:00">
-                2018-07-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="https://docs.flutter.kim/" target="_blank" rel="noopener">Flutter中文文档</a> </p>
-<h1 id="Row-和-Column"><a href="#Row-和-Column" class="headerlink" title="Row 和 Column"></a>Row 和 Column</h1><p>行。水平方向上排列子widget</p>
-<p>列。垂直方向上排列子widget</p>
-<h2 id="对齐"><a href="#对齐" class="headerlink" title="对齐"></a>对齐</h2><h3 id="对齐方向"><a href="#对齐方向" class="headerlink" title="对齐方向"></a>对齐方向</h3><ul>
-<li>mainAxisAlignment <strong>主轴</strong></li>
-<li>crossAxisAlignment <strong>垂直轴</strong></li>
-</ul>
-<p>对于行，主轴水平，垂直轴垂直。对于列，主轴垂直，垂直轴水平。</p>
-<h3 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h3><ul>
-<li>start</li>
-<li>end</li>
-<li>center</li>
-<li>spaceBetween  剩余空间均匀的分布在children<strong>之间</strong></li>
-<li>spaceAround 剩余空间均匀的分布在children<strong>周围</strong>(两边)。</li>
-<li>spaceEvenly  剩余空间均匀的分布在children<strong>之间和周围</strong></li>
-</ul>
-<img src="/2018/07/03/Flutter/Flutter布局/space.png">
-<pre><code>body: new Row(
-  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  children: [
-    new Image.asset(
-      &apos;images/lake.jpg&apos;,
-      width: 100.0,
-      height: 100.0,
-      fit: BoxFit.cover,
-    ),
-    new Image.asset(
-      &apos;images/lake.jpg&apos;,
-      width: 100.0,
-      height: 100.0,
-      fit: BoxFit.cover,
-    ), new Image.asset(
-      &apos;images/lake.jpg&apos;,
-      width: 100.0,
-      height: 100.0,
-      fit: BoxFit.cover,
-    ),
-  ])),
-</code></pre><h1 id="Expanded"><a href="#Expanded" class="headerlink" title="Expanded"></a>Expanded</h1><p>只可用于Row、Column、Flex内，会被Expanded撑开，充满主轴可用空间</p>
-<p>如果多个子组件展开，可用空间会被其伸缩因子(可理解为比例,每个控件默认为1) <code>flex</code> 分割</p>
-<p>Row、Column、Flex到Expanded的路径必须只包括StatelessWidgets或StatefulWidgets组件</p>
-<pre><code>body: new Row(
-  children: [
-    new Image.asset(&apos;images/lake.jpg&apos;),
-    new Image.asset(&apos;images/lake.jpg&apos;),
-    new Image.asset(&apos;images/lake.jpg&apos;),
-  ])),
-</code></pre><p>当布局太大而不适合设备时，沿着受影响的边缘会出现黄黑条纹。例如，示例中的行对于设备的屏幕来说太宽了</p>
-<img src="/2018/07/03/Flutter/Flutter布局/out-width.png">
-<pre><code>body: new Row(children: [
-    new Expanded(
-      child: new Image.asset(&apos;images/lake.jpg&apos;),
-    ),
-    new Expanded(
-      child: new Image.asset(&apos;images/lake.jpg&apos;),
-    ),
-    new Expanded(
-      child: new Image.asset(&apos;images/lake.jpg&apos;),
-    ),
-  ])),
-</code></pre><img src="/2018/07/03/Flutter/Flutter布局/Expanded.png">
-<h1 id="Container"><a href="#Container" class="headerlink" title="Container"></a>Container</h1><p>绘制、定位、调整大小</p>
-<ul>
-<li>constraints : Additional constraints to apply to the child。 类型是 BoxConstraints</li>
-<li>decoration ： The decoration to paint behind the child。类型是Decoration</li>
-<li>foregroundDecoration ： The decoration to paint in front of the child</li>
-<li>transform ：The transformation matrix to apply before painting the container. 类型是 Matrix4</li>
-</ul>
-<p>示例</p>
-<pre><code>body: new Container(
-  constraints: new BoxConstraints.expand(
-    height:
-        Theme.of(context).textTheme.display1.fontSize * 1.1 + 200.0,
-  ),
-  padding: const EdgeInsets.all(8.0),
-  color: Colors.teal.shade700,
-  alignment: Alignment.center,
-  child: new Text(&apos;Hello World&apos;,
-      style: Theme
-          .of(context)
-          .textTheme
-          .display1
-          .copyWith(color: Colors.white)),
-  foregroundDecoration: new BoxDecoration(
-    image: new DecorationImage(
-      image: new NetworkImage(
-          &apos;http://img.zcool.cn/community/0142135541fe180000019ae9b8cf86.jpg@1280w_1l_2o_100sh.png&apos;),
-      centerSlice: new Rect.fromLTRB(270.0, 180.0, 1360.0, 730.0),
-    ),
-  ),
-  transform: new Matrix4.rotationZ(0.1),
-))
-</code></pre><h1 id="Scaffold"><a href="#Scaffold" class="headerlink" title="Scaffold"></a>Scaffold</h1><p>属性有：</p>
-<ul>
-<li>appBar 顶部bar</li>
-<li>body 中间内容</li>
-<li>bottomNavigationBar 底部导航</li>
-<li>persistentFooterButtons 底部按钮</li>
-<li>floatingActionButton 右下角悬浮按钮</li>
-<li>drawer 抽屉。 Swipes in from either left-to-right (TextDirection.ltr) or right-to-left (TextDirection.rtl) </li>
-<li>endDrawer 抽屉</li>
-</ul>
-<h1 id="MaterialApp"><a href="#MaterialApp" class="headerlink" title="MaterialApp"></a>MaterialApp</h1><ul>
-<li>title ： 任务管理窗口(历史堆栈)中所显示的应用名字</li>
-<li>theme ： 主题颜色</li>
-<li>color ： 主要颜色值（primary color），也就是安卓任务管理窗口中所显示的应用颜色</li>
-<li>home ： 默认显示的界面 Widget</li>
-<li>builder ： <ul>
-<li>类型是TransitionBuilder。<ul>
-<li>Widget TransitionBuilder(BuildContext context, Widget child)</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>routes ： 多页面路由(跳转)规则。 <ul>
-<li>类型是 Map&lt;String, WidgetBuilder&gt;。<ul>
-<li>Widget WidgetBuilder(BuildContext context)</li>
-</ul>
-</li>
-<li>当使用 Navigator.pushNamed 来路由的时候<ul>
-<li>会在 routes 查找路由名字</li>
-<li>然后使用 对应的 WidgetBuilder 来构造一个带有页面切换动画的 MaterialPageRoute。</li>
-</ul>
-</li>
-<li>只有routes时，必须有Navigator.defaultRouteName(<code>/</code>)的入口。</li>
-<li>有 home，又有Navigator.defaultRouteName(<code>/</code>)的入口，就会出错，home冲突</li>
-<li>查找的路由在 routes 中不存在，则会通过 onGenerateRoute 来查找</li>
-</ul>
-</li>
-<li>initialRoute ：默认显示的路由名字，默认值为 Window.defaultRouteName。</li>
-<li>onGenerateRoute ： 生成路由的回调函数</li>
-<li>onLocaleChanged ： 系统修改语言的回调</li>
-<li>navigatorObservers ： 应用 Navigator 的监听器</li>
-<li>debugShowMaterialGrid ： 是否显示基础布局网格(调试 UI 的工具)</li>
-<li>showPerformanceOverlay ： 显示性能标签</li>
-<li>checkerboardRasterCacheImages 、showSemanticsDebugger、debugShowCheckedModeBanner 调试开关</li>
-</ul>
-<p>示例，注释掉home,使用routes</p>
-<pre><code>routes: &lt;String, WidgetBuilder&gt;{
-    Navigator.defaultRouteName: (context) =&gt; Scaffold(
-        appBar: AppBar(
-          title: Text(&apos;Flutter Title&apos;),
-        ),
-        body: new Container(
-          constraints: new BoxConstraints.expand(
-            height:
-                Theme.of(context).textTheme.display1.fontSize * 1.1 + 200.0,
-          ),
-          padding: const EdgeInsets.all(8.0),
-          color: Colors.teal.shade700,
-          alignment: Alignment.center,
-          child: new Text(&apos;Hello World&apos;,
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .display1
-                  .copyWith(color: Colors.white)),
-          foregroundDecoration: new BoxDecoration(
-            image: new DecorationImage(
-              image: new NetworkImage(
-                  &apos;http://img.zcool.cn/community/0142135541fe180000019ae9b8cf86.jpg@1280w_1l_2o_100sh.png&apos;),
-              centerSlice: new Rect.fromLTRB(270.0, 180.0, 1360.0, 730.0),
-            ),
-          ),
-          transform: new Matrix4.rotationZ(0.1),
-        ))
-  },
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -3015,7 +2941,7 @@ Widget getRow(int i) {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">118</span>
+                  <span class="site-state-item-count">119</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -3037,7 +2963,7 @@ Widget getRow(int i) {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">48</span>
+                  <span class="site-state-item-count">49</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
