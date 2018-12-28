@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Flutter," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="export 命令设置或显示环境变量 语　　法：export [-fnp][变量名称]=[变量设置值]  一个变量创建时，不会自动地为在它之后创建的shell进程所知。  export可以向shell执行的脚本传递变量的值。  title: Linux设置环境变量date: 2018-12-20 08:59:53categories:  电脑使用tags: Linux   三种实现方法设置环境变量">
+<meta name="keywords" content="Flutter">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux设置环境变量">
+<meta property="og:url" content="http://yoursite.com/2018/12/16/电脑使用/linux/Linux设置环境变量/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="export 命令设置或显示环境变量 语　　法：export [-fnp][变量名称]=[变量设置值]  一个变量创建时，不会自动地为在它之后创建的shell进程所知。  export可以向shell执行的脚本传递变量的值。  title: Linux设置环境变量date: 2018-12-20 08:59:53categories:  电脑使用tags: Linux   三种实现方法设置环境变量">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-12-28T06:50:02.020Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux设置环境变量">
+<meta name="twitter:description" content="export 命令设置或显示环境变量 语　　法：export [-fnp][变量名称]=[变量设置值]  一个变量创建时，不会自动地为在它之后创建的shell进程所知。  export可以向shell执行的脚本传递变量的值。  title: Linux设置环境变量date: 2018-12-20 08:59:53categories:  电脑使用tags: Linux   三种实现方法设置环境变量">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/16/电脑使用/linux/Linux设置环境变量/"/>
+
+
+
+
+
+  <title>Linux设置环境变量 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/16/电脑使用/linux/Linux设置环境变量/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Linux设置环境变量</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-16T11:35:29+08:00">
+                2018-12-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="export-命令"><a href="#export-命令" class="headerlink" title="export 命令"></a>export 命令</h1><p><strong>设置或显示环境变量</strong></p>
+<p>语　　法：<code>export [-fnp][变量名称]=[变量设置值]</code></p>
+<p> 一个变量创建时，不会自动地为在它之后创建的shell进程所知。</p>
+<p> export可以向shell执行的脚本传递变量的值。</p>
+<hr>
+<p>title: Linux设置环境变量<br>date: 2018-12-20 08:59:53<br>categories:</p>
+<ul>
+<li>电脑使用<br>tags:</li>
+<li>Linux</li>
+</ul>
+<hr>
+<h1 id="三种实现方法设置环境变量"><a href="#三种实现方法设置环境变量" class="headerlink" title="三种实现方法设置环境变量"></a>三种实现方法设置环境变量</h1><h2 id="终端中直接使用-export-–-临时变量"><a href="#终端中直接使用-export-–-临时变量" class="headerlink" title="终端中直接使用 export – 临时变量"></a>终端中直接使用 export – 临时变量</h2><p>直接使用 export 设置的变量都是临时变量，退出当前的 shell ，该变量定义的值便失效了</p>
+<h2 id="修改-etc-profile"><a href="#修改-etc-profile" class="headerlink" title="修改 /etc/profile"></a>修改 /etc/profile</h2><pre><code>sudo gedit  /etc/profile
+</code></pre><p>在文件末尾添加</p>
+<pre><code>export JAVA_HOME=/usr/lib/jdk1.8.0_45
+
+export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib:$CLASSPATH 多值间用冒号连接
+
+export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH 别忘记最后加上原来的$PATH，否则就把先前的环境变量覆盖了
+</code></pre><p>保存退出</p>
+<p>使其生效</p>
+<pre><code>sudo source /etc/profile 
+
+提示找不到source命令则需要切换到root用户执行 source /etc/profile
+</code></pre><p>此时只有执行过 sudo source /etc/profile 命令的终端所在的线程才可以使用 Java 环境变量，而其他线程则还不可以。</p>
+<p>重启之后则都可以了</p>
+<h2 id="修改-bashrc-文件-–-当前用户-shell-下生效"><a href="#修改-bashrc-文件-–-当前用户-shell-下生效" class="headerlink" title="修改 .bashrc 文件 – 当前用户 shell 下生效"></a>修改 .bashrc 文件 – 当前用户 shell 下生效</h2><h1 id="环境变量切换"><a href="#环境变量切换" class="headerlink" title="环境变量切换"></a>环境变量切换</h1><pre><code>export JAVA_6_HOME=/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home
+export JAVA_7_HOME=/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home
+export JAVA_8_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home
+
+#创建默认的jdk版本
+export JAVA_HOME=$JAVA_6_HOME
+
+#创建alias命令，实现动态切换
+alias jdk8=&apos;export JAVA_HOME=$JAVA_8_HOME&apos;
+alias jdk7=&apos;export JAVA_HOME=$JAVA_7_HOME&apos;
+alias jdk6=&apos;export JAVA_HOME=$JAVA_6_HOME&apos;
+</code></pre><p>保存并退出编辑器</p>
+<p>在terminal中输入命令：<code>source .bash_profile</code> 使配置生效</p>
+<p>验证配置与切换</p>
+<pre><code>在terminal中 
+    输入  jdk6
+    再输入java -version 查看当前版本即可实现动态切换，        jdk7，jdk8同样。
+</code></pre><h1 id="Mac系统环境变量，加载顺序"><a href="#Mac系统环境变量，加载顺序" class="headerlink" title="Mac系统环境变量，加载顺序"></a>Mac系统环境变量，加载顺序</h1><ul>
+<li>系统级别<ul>
+<li>/etc/profile</li>
+<li>/etc/paths </li>
+</ul>
+</li>
+<li>用户级别<ul>
+<li>~/.bash_profile </li>
+<li>~/.bash_login </li>
+<li>~/.profile 以上3个按照从前往后的顺序读取，读取到一个就停止</li>
+<li>~/.bashrc bash shell打开的时候载入的</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Flutter/" rel="tag"><i class="fa fa-tag"></i> Flutter</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/16/Flutter/Flutter错误集锦/" rel="next" title="Flutter错误集锦">
+                <i class="fa fa-chevron-left"></i> Flutter错误集锦
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/20/电脑使用/wireShark 过滤规则/" rel="prev" title="wireShark 过滤规则">
+                wireShark 过滤规则 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">118</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">48</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#export-命令"><span class="nav-number">1.</span> <span class="nav-text">export 命令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三种实现方法设置环境变量"><span class="nav-number">2.</span> <span class="nav-text">三种实现方法设置环境变量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#终端中直接使用-export-–-临时变量"><span class="nav-number">2.1.</span> <span class="nav-text">终端中直接使用 export – 临时变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改-etc-profile"><span class="nav-number">2.2.</span> <span class="nav-text">修改 /etc/profile</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改-bashrc-文件-–-当前用户-shell-下生效"><span class="nav-number">2.3.</span> <span class="nav-text">修改 .bashrc 文件 – 当前用户 shell 下生效</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#环境变量切换"><span class="nav-number">3.</span> <span class="nav-text">环境变量切换</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Mac系统环境变量，加载顺序"><span class="nav-number">4.</span> <span class="nav-text">Mac系统环境变量，加载顺序</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

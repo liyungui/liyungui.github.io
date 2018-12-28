@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ORM," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="使用步骤 application中初始化框架  x.Ext.init(this);//初始化xutils  获取DbManager.DaoConfig 对象 DaoConfig daoConfig=XUtil.getDaoConfig();//默认DaoConfig  获取DbManager对象，操作数据库的对象 DbManager db = x.getDb(daoConfig);    数据库里">
+<meta name="keywords" content="ORM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="XUtils3使用">
+<meta property="og:url" content="http://yoursite.com/2018/12/21/数据库/sql/XUtils3使用/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="使用步骤 application中初始化框架  x.Ext.init(this);//初始化xutils  获取DbManager.DaoConfig 对象 DaoConfig daoConfig=XUtil.getDaoConfig();//默认DaoConfig  获取DbManager对象，操作数据库的对象 DbManager db = x.getDb(daoConfig);    数据库里">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-12-28T06:50:02.020Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="XUtils3使用">
+<meta name="twitter:description" content="使用步骤 application中初始化框架  x.Ext.init(this);//初始化xutils  获取DbManager.DaoConfig 对象 DaoConfig daoConfig=XUtil.getDaoConfig();//默认DaoConfig  获取DbManager对象，操作数据库的对象 DbManager db = x.getDb(daoConfig);    数据库里">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/21/数据库/sql/XUtils3使用/"/>
+
+
+
+
+
+  <title>XUtils3使用 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/21/数据库/sql/XUtils3使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">XUtils3使用</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-21T09:00:53+08:00">
+                2018-12-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="使用步骤"><a href="#使用步骤" class="headerlink" title="使用步骤"></a>使用步骤</h1><ol>
+<li><p>application中初始化框架 </p>
+<pre><code>x.Ext.init(this);//初始化xutils
+</code></pre></li>
+<li><p>获取DbManager.DaoConfig 对象</p>
+<pre><code>DaoConfig daoConfig=XUtil.getDaoConfig();//默认DaoConfig
+</code></pre></li>
+<li><p>获取DbManager对象，<strong>操作数据库的对象</strong></p>
+<pre><code>DbManager db = x.getDb(daoConfig); 
+</code></pre></li>
+</ol>
+<p>数据库里表的创建的时间，在涉及到这张表的操作时，会先判断当前的表是否存在，如果不存在，创建一张表，如果存在，进行相应的CRUD操作</p>
+<pre><code>DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
+        .setDbName(dbName)
+        .setDbVersion(1)
+        .setDbOpenListener(new DbManager.DbOpenListener() {
+            @Override
+            public void onDbOpened(DbManager db) {
+                db.getDatabase().enableWriteAheadLogging();// 开启WAL, 对写入加速提升巨大
+            }
+        })
+        .setDbUpgradeListener(new DbManager.DbUpgradeListener() {
+            @Override
+            public void onUpgrade(DbManager db, int oldVersion, int newVersion) {
+            }
+        });
+
+dbManager = x.getDb(daoConfig);
+</code></pre><h2 id="DbManager操作"><a href="#DbManager操作" class="headerlink" title="DbManager操作"></a>DbManager操作</h2><ol>
+<li>getDaoConfig 获取数据库的配置信息 </li>
+<li>getDatabase 获取数据库实例 </li>
+<li><p>saveBindingId、saveOrUpdate、save 插入数据的3个方法(保存数据) </p>
+<pre><code>如果主键id是自增长模式
+save完，object的id不改变（还是默认0），只有数据库中id自增长了
+saveBindingId，obje的id会自动赋值为数据库中的id值
+saveOrUpdate，判断id，如果一致就update，否则save
+</code></pre></li>
+<li>replace 只有存在唯一索引时才有用 慎重 </li>
+<li>delete操作的4种方法(删除数据) </li>
+<li>update操作的2种方法(修改数据) </li>
+<li>find操作6种方法(查询数据) </li>
+<li>dropTable 删除表 </li>
+<li>addColumn 添加一列 </li>
+<li>dropDb 删除数据库</li>
+</ol>
+<h2 id="必须有主键"><a href="#必须有主键" class="headerlink" title="必须有主键"></a>必须有主键</h2><p><strong>没有主键构建sql会报空指针</strong></p>
+<pre><code>@Column(name = &quot;id&quot;, isId = true)
+public long id;
+</code></pre><p><strong>主键默认自动增长，无法赋值。若要赋值，将自动增长属性设为false</strong></p>
+<pre><code>@Column(name = &quot;taskId&quot;, isId = true, autoGen = false, property = &quot;UNIQUE&quot;)
+public int taskId;
+</code></pre><h2 id="除了主键，至少需要另外一个列"><a href="#除了主键，至少需要另外一个列" class="headerlink" title="除了主键，至少需要另外一个列"></a>除了主键，至少需要另外一个列</h2><pre><code>Caused by: android.database.sqlite.SQLiteException: near &quot;)&quot;: syntax error (code 1): , while compiling: CREATE TABLE IF NOT EXISTS &quot;followedquestion&quot; ( &quot;_id&quot;INTEGER PRIMARY KEY, )
+</code></pre><p>看到这个异常，逗号，想到可能是需要主键外的另一个列，加了一列，果然可以</p>
+<h2 id="多条件查询"><a href="#多条件查询" class="headerlink" title="多条件查询"></a>多条件查询</h2><pre><code>communityMessage = DBHelp.getInstance().getDbManager().selector(CommunityMessage.class).where(&quot;communityId&quot;, &quot;=&quot;, communityId).and(WhereBuilder.b(&quot;atUserId&quot;, &quot;=&quot;, UserData.getUserId()).or(&quot;atUserId&quot;, &quot;=&quot;, -1)).limit(1).orderBy(orderByColumName, true).findFirst();
+
+查找CommunityMessage表中指定communityId，而且(atUserId=本人id或=-1)的一条消息
+</code></pre><h2 id="实体支持继承"><a href="#实体支持继承" class="headerlink" title="实体支持继承"></a>实体支持继承</h2><p>实体 Animal</p>
+<pre><code>@Table(name = &quot;animal&quot;)
+public class Animal implements Serializable {
+    @Column(name = &quot;id&quot;, isId = true, autoGen = true)
+    protected long id;
+
+    @Column(name = &quot;name&quot;)
+    protected String name;
+
+    @Column(name = &quot;type&quot;)
+    private String type;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+}
+</code></pre><p>实体 Dog extends Animal</p>
+<pre><code>@Table(name = &quot;dog&quot;)
+public class Dog extends Animal {
+    @Column(name = &quot;age&quot;)
+    private int age;
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+}
+</code></pre><p>代码</p>
+<pre><code>DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
+        .setDbName(&quot;test.db&quot;)
+        .setDbVersion(1)
+        .setDbOpenListener(new DbManager.DbOpenListener() {
+            @Override
+            public void onDbOpened(DbManager db) {
+                db.getDatabase().enableWriteAheadLogging();// 开启WAL, 对写入加速提升巨大
+            }
+        });
+DbManager dbManager = x.getDb(daoConfig);
+
+Animal animal = new Animal();//存入Animal表
+animal.setName(&quot;animal&quot;);
+animal.setType(&quot;small&quot;);
+
+Dog dog = new Dog();//存入Dog表
+dog.setName(&quot;dog&quot;);
+dog.setAge(13);
+dog.setType(&quot;big&quot;);
+
+Animal animalDog = new Dog();//存入Dog表
+animalDog.setName(&quot;animalDog&quot;);
+animalDog.setType(&quot;big&quot;);
+
+try {
+    dbManager.save(animal);
+    dbManager.save(animalDog);
+    dbManager.save(dog);
+
+    List&lt;Animal&gt; animals = dbManager.findAll(Animal.class);
+    for (Animal a :
+            animals) {
+        Log.d(&quot;lyg&quot;, a.getName() + &quot; &quot; + a.getType());
+    }
+
+
+    List&lt;Dog&gt; dogs = dbManager.findAll(Dog.class);
+    for (Dog d :
+            dogs) {
+        Log.d(&quot;lyg&quot;, d.getName() + &quot; &quot; + d.getType() + &quot; &quot; + d.getAge());
+    }
+
+} catch (DbException e) {
+    e.printStackTrace();
+}
+</code></pre><p>结果：</p>
+<pre><code>10-25 09:24:17.979 30810-30810/com.xuehu365.test D/lyg: animal small
+10-25 09:24:17.979 30810-30810/com.xuehu365.test D/lyg: animalDog big 0
+10-25 09:24:17.979 30810-30810/com.xuehu365.test D/lyg: dog big 13
+</code></pre><p>结论：</p>
+<pre><code>能多态将实体存入正确的表中。
+父类中所有字段都能继承下来（包括private字段）
+</code></pre><h1 id="常见错误"><a href="#常见错误" class="headerlink" title="常见错误"></a>常见错误</h1><h2 id="删除对象id为空异常"><a href="#删除对象id为空异常" class="headerlink" title="删除对象id为空异常"></a>删除对象id为空异常</h2><p>this entity’s id value is null</p>
+<p>报错如下：</p>
+<pre><code>org.xutils.ex.DbException: this entity[class com.xuehu365.xuehu.model.BroadcastMessage]&apos;s id value is null
+       at org.xutils.db.sqlite.SqlInfoBuilder.buildDeleteSqlInfo(SqlInfoBuilder.java:128)
+       at org.xutils.db.DbManagerImpl.delete(DbManagerImpl.java:253)
+    at com.xuehu365.xuehu.utils.DBHelp.delete(DBHelp.java:103)
+</code></pre><p>查看源码：</p>
+<pre><code>public static SqlInfo buildDeleteSqlInfo(TableEntity&lt;?&gt; table, Object entity) throws DbException {
+    SqlInfo result = new SqlInfo();
+
+    ColumnEntity id = table.getId();
+    Object idValue = id.getColumnValue(entity);
+
+    if (idValue == null) {
+        throw new DbException(&quot;this entity[&quot; + table.getEntityType() + &quot;]&apos;s id value is null&quot;);
+    }
+    StringBuilder builder = new StringBuilder(&quot;DELETE FROM &quot;);
+    builder.append(&quot;\&quot;&quot;).append(table.getName()).append(&quot;\&quot;&quot;);
+    builder.append(&quot; WHERE &quot;).append(WhereBuilder.b(id.getName(), &quot;=&quot;, idValue));
+
+    result.setSql(builder.toString());
+
+    return result;
+}
+</code></pre><p>原因：</p>
+<pre><code>是从服务器返回的message对象，并没有id字段（json解析值为null）
+</code></pre><p>解决方案：</p>
+<pre><code>先用该对象的msgId从数据库查询到message对象，然后再调用delete方法
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ORM/" rel="tag"><i class="fa fa-tag"></i> ORM</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/20/web/php/CodeIgniter框架使用/" rel="next" title="CodeIgniter框架使用">
+                <i class="fa fa-chevron-left"></i> CodeIgniter框架使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/21/数据库/sql/Android ORM 框架/" rel="prev" title="Android ORM框架">
+                Android ORM框架 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">118</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">48</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#使用步骤"><span class="nav-number">1.</span> <span class="nav-text">使用步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#DbManager操作"><span class="nav-number">1.1.</span> <span class="nav-text">DbManager操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#必须有主键"><span class="nav-number">1.2.</span> <span class="nav-text">必须有主键</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#除了主键，至少需要另外一个列"><span class="nav-number">1.3.</span> <span class="nav-text">除了主键，至少需要另外一个列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多条件查询"><span class="nav-number">1.4.</span> <span class="nav-text">多条件查询</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实体支持继承"><span class="nav-number">1.5.</span> <span class="nav-text">实体支持继承</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#常见错误"><span class="nav-number">2.</span> <span class="nav-text">常见错误</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#删除对象id为空异常"><span class="nav-number">2.1.</span> <span class="nav-text">删除对象id为空异常</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

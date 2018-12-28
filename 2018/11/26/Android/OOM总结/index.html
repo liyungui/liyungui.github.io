@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Android," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="常规OOM–Java堆内存不够导致的OOMjava.lang.OutOfMemoryError:      Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM 下面是几个关于Android官方声明内存限制阈值的API： ActivityManager.getMemoryClass()：">
+<meta name="keywords" content="Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OOM总结">
+<meta property="og:url" content="http://yoursite.com/2018/11/26/Android/OOM总结/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="常规OOM–Java堆内存不够导致的OOMjava.lang.OutOfMemoryError:      Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM 下面是几个关于Android官方声明内存限制阈值的API： ActivityManager.getMemoryClass()：">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-12-28T06:50:02.004Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="OOM总结">
+<meta name="twitter:description" content="常规OOM–Java堆内存不够导致的OOMjava.lang.OutOfMemoryError:      Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM 下面是几个关于Android官方声明内存限制阈值的API： ActivityManager.getMemoryClass()：">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/26/Android/OOM总结/"/>
+
+
+
+
+
+  <title>OOM总结 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/26/Android/OOM总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">OOM总结</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-26T11:36:53+08:00">
+                2018-11-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="常规OOM–Java堆内存不够导致的OOM"><a href="#常规OOM–Java堆内存不够导致的OOM" class="headerlink" title="常规OOM–Java堆内存不够导致的OOM"></a>常规OOM–Java堆内存不够导致的OOM</h1><pre><code>java.lang.OutOfMemoryError: 
+    Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM
+</code></pre><p>下面是几个关于Android官方声明内存限制阈值的API：</p>
+<pre><code>ActivityManager.getMemoryClass()：     虚拟机java堆大小的上限，分配对象时突破这个大小就会OOM
+ActivityManager.getLargeMemoryClass()：manifest中设置largeheap=true时虚拟机java堆的上限
+Runtime.getRuntime().maxMemory() ：    当前虚拟机实例的内存使用上限，为上述两者之一
+Runtime.getRuntime().totalMemory() ：  当前已经申请的内存，包括已经使用的和还没有使用的
+Runtime.getRuntime().freeMemory() ：   上一条中已经申请但是尚未使用的那部分。那么已经申请并且正在使用的部分used=totalMemory() - freeMemory()
+ActivityManager.MemoryInfo.totalMem:   设备总内存
+ActivityManager.MemoryInfo.availMem:   设备当前可用内存
+/proc/meminfo                                           记录设备的内存信息
+</code></pre><p> <strong>通常认为OOM发生是由于java堆内存不够用了</strong>，即</p>
+<pre><code>Runtime.getRuntime().maxMemory()这个指标满足不了申请堆内存大小时
+</code></pre><p>这种OOM可以非常方便的验证（比如: 通过new byte[]的方式尝试申请超过阈值maxMemory()的堆内存）</p>
+<h2 id="图片消耗内存计算"><a href="#图片消耗内存计算" class="headerlink" title="图片消耗内存计算"></a>图片消耗内存计算</h2><pre><code>Bitmap.Config.ALPHA_8：只有透明度，8位。
+Bitmap.Config.ARGB_4444：16位。显示图片不清楚
+Bitmap.Config.ARGB_8888：32位。Bitmap默认，最占空间
+Bitmap.Config.RGB_565：16位。性能优化最常使用
+
+2000*2000*4 bytes =15M
+</code></pre><h2 id="Bitmap是否需要调用-recycle"><a href="#Bitmap是否需要调用-recycle" class="headerlink" title="Bitmap是否需要调用 recycle()"></a>Bitmap是否需要调用 recycle()</h2><p>Bitmap需调用 recycle() 是历史问题，在 Android 3.0之前，Bitmap 的图片数据是在底层C中处理的，因此在 Android3.0 之前 recycle() 是应该调用的</p>
+<p>现在在 Bitmap 置 null 后图片数据会被GC回收。 </p>
+<h1 id="不可思议的OOM"><a href="#不可思议的OOM" class="headerlink" title="不可思议的OOM"></a><a href="https://www.jianshu.com/p/e574f0ffdb42" target="_blank" rel="noopener">不可思议的OOM</a></h1><p><strong>特征：崩溃时java堆内存和设备物理内存都充足</strong></p>
+<p><strong>关键字：</strong></p>
+<p><code>Could not allocate JNI Env</code>, <code>pthread_create failed</code></p>
+<h2 id="OOM-一"><a href="#OOM-一" class="headerlink" title="OOM 一"></a>OOM 一</h2><pre><code>java.lang.OutOfMemoryError: 
+    Could not allocate JNI Env
+
+在Android6.0，Android7.0上各个机型均有发生
+
+文件描述符(FD)数受限导致创建线程时JNIENV创建不成功
+</code></pre><h2 id="OOM-二"><a href="#OOM-二" class="headerlink" title="OOM 二"></a>OOM 二</h2><pre><code>java.lang.OutOfMemoryError: 
+    pthread_create (1040KB stack) failed: Out of memory
+在Android7.0及以上的华为手机（EmotionUI_5.0及以上）
+
+线程数受限导致创建线程时clone failed
+
+Threads上限: 500
+</code></pre><h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><p>基于Android6.0的代码进行简单分析</p>
+<p>Android虚拟机最终抛出OutOfMemoryError的代码位于 <code>/art/runtime/thread.cc</code></p>
+<pre><code>void Thread::ThrowOutOfMemoryError(const char* msg)
+参数msg携带了OOM时的错误信息
+</code></pre><p>        <br>搜索代码可以发现以下几个地方调用了上述方法抛出OutOfMemoryError错误</p>
+<p><strong>第一个地方是堆操作时</strong></p>
+<p>Java堆OOM</p>
+<pre><code>系统源码文件：
+    /art/runtime/gc/heap.cc
+函数：
+    void Heap::ThrowOutOfMemoryError(Thread* self, size_t byte_count, AllocatorType allocator_type)
+抛出时的错误信息：
+    oss &lt;&lt; &quot;Failed to allocate a &quot; &lt;&lt; byte_count &lt;&lt; &quot; byte allocation with &quot; &lt;&lt; total_bytes_free  &lt;&lt; &quot; free bytes and &quot; &lt;&lt; PrettySize(GetFreeMemoryUntilOOME()) &lt;&lt; &quot; until OOM&quot;;
+</code></pre><p>这种抛出的其实就是堆内存不够用的时候，即前面提到的申请堆内存大小超过了Runtime.getRuntime().maxMemory()</p>
+<p><strong>第二个地方是创建线程时</strong></p>
+<p>线程创建时OOM</p>
+<pre><code>系统源码文件：
+    /art/runtime/thread.cc
+函数：
+    void Thread::CreateNativeThread(JNIEnv* env, jobject java_peer, size_t stack_size, bool is_daemon)
+抛出时的错误信息：
+    &quot;Could not allocate JNI Env&quot;
+  或者
+    StringPrintf(&quot;pthread_create (%s stack) failed: %s&quot;, PrettySize(stack_size).c_str(), strerror(pthread_create_result)));
+</code></pre><p>对比错误信息，可以知道我们遇到的OOM崩溃就是这个时机，即创建线程的时候（Thread::CreateNativeThread）产生的。</p>
+<h1 id="导致OOM发生的原因"><a href="#导致OOM发生的原因" class="headerlink" title="导致OOM发生的原因"></a>导致OOM发生的原因</h1><p>综上，可以导致OOM的原因有以下几种：</p>
+<ul>
+<li>文件描述符(fd)数目超限，即proc/pid/fd下文件数目突破/proc/pid/limits中的限制。可能的发生场景有：<br>短时间内大量请求导致socket的fd数激增，大量（重复）打开文件等</li>
+<li>线程数超限，即proc/pid/status中记录的线程数（threads项）突破/proc/sys/kernel/threads-max中规定的最大线程数。可能的发生场景有：<br>app内多线程使用不合理，如多个不共享线程池的OKhttpclient等等</li>
+<li>传统的java堆内存超限，即申请堆内存大小超过了 Runtime.getRuntime().maxMemory()</li>
+<li>（低概率）32位系统进程逻辑空间被占满导致OOM.</li>
+<li>其他</li>
+</ul>
+<h1 id="监控措施"><a href="#监控措施" class="headerlink" title="监控措施"></a>监控措施</h1><p>可以利用linux的inotify机制进行监控:</p>
+<pre><code>watch /proc/pid/fd来监控app打开文件的情况,
+watch /proc/pid/task来监控线程使用情况．
+</code></pre><h1 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h1><p><a href="https://github.com/piece-the-world/OOMDemo" target="_blank" rel="noopener">POC(Proof of concept) 代码</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"><i class="fa fa-tag"></i> Android</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/20/Android/BadTokenException异常修复/" rel="next" title="BadTokenException异常修复">
+                <i class="fa fa-chevron-left"></i> BadTokenException异常修复
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/06/Android/Mac运行Windows程序/" rel="prev" title="Mac运行Windows程序">
+                Mac运行Windows程序 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">118</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">48</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#常规OOM–Java堆内存不够导致的OOM"><span class="nav-number">1.</span> <span class="nav-text">常规OOM–Java堆内存不够导致的OOM</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#图片消耗内存计算"><span class="nav-number">1.1.</span> <span class="nav-text">图片消耗内存计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bitmap是否需要调用-recycle"><span class="nav-number">1.2.</span> <span class="nav-text">Bitmap是否需要调用 recycle()</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#不可思议的OOM"><span class="nav-number">2.</span> <span class="nav-text">不可思议的OOM</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#OOM-一"><span class="nav-number">2.1.</span> <span class="nav-text">OOM 一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OOM-二"><span class="nav-number">2.2.</span> <span class="nav-text">OOM 二</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#源码分析"><span class="nav-number">3.</span> <span class="nav-text">源码分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#导致OOM发生的原因"><span class="nav-number">4.</span> <span class="nav-text">导致OOM发生的原因</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#监控措施"><span class="nav-number">5.</span> <span class="nav-text">监控措施</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Demo"><span class="nav-number">6.</span> <span class="nav-text">Demo</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

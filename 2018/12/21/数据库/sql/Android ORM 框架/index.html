@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="ORM," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="orm 原理 特性 Module定义 初始化灵活 配置数据库     OrmLite 注解反射 OrmLiteSqliteOpenHelper创建数据库 @DatabaseTable(tableName = “accounts”) √ OrmLiteSqliteOpenHelper创建数据库时   SugarORM 注解反射 实践中提示找不到表 直接继承特定类/@Table注解 提供appl">
+<meta name="keywords" content="ORM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android ORM框架">
+<meta property="og:url" content="http://yoursite.com/2018/12/21/数据库/sql/Android ORM 框架/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="orm 原理 特性 Module定义 初始化灵活 配置数据库     OrmLite 注解反射 OrmLiteSqliteOpenHelper创建数据库 @DatabaseTable(tableName = “accounts”) √ OrmLiteSqliteOpenHelper创建数据库时   SugarORM 注解反射 实践中提示找不到表 直接继承特定类/@Table注解 提供appl">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-12-28T06:50:02.020Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android ORM框架">
+<meta name="twitter:description" content="orm 原理 特性 Module定义 初始化灵活 配置数据库     OrmLite 注解反射 OrmLiteSqliteOpenHelper创建数据库 @DatabaseTable(tableName = “accounts”) √ OrmLiteSqliteOpenHelper创建数据库时   SugarORM 注解反射 实践中提示找不到表 直接继承特定类/@Table注解 提供appl">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/21/数据库/sql/Android ORM 框架/"/>
+
+
+
+
+
+  <title>Android ORM框架 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/21/数据库/sql/Android ORM 框架/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android ORM框架</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-21T09:01:53+08:00">
+                2018-12-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <table>
+<thead>
+<tr>
+<th>orm</th>
+<th>原理</th>
+<th>特性</th>
+<th>Module定义</th>
+<th>初始化灵活</th>
+<th>配置数据库</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OrmLite</td>
+<td>注解反射</td>
+<td>OrmLiteSqliteOpenHelper创建数据库</td>
+<td>@DatabaseTable(tableName = “accounts”)</td>
+<td>√</td>
+<td>OrmLiteSqliteOpenHelper创建数据库时</td>
+</tr>
+<tr>
+<td>SugarORM</td>
+<td>注解反射</td>
+<td>实践中提示找不到表</td>
+<td>直接继承特定类/@Table注解</td>
+<td>提供application</td>
+<td>meta-data</td>
+</tr>
+<tr>
+<td>Active Android</td>
+<td>注解反射</td>
+<td></td>
+<td>×直接继承特定类</td>
+<td>提供application/自定义初始化</td>
+<td>meta-data</td>
+</tr>
+<tr>
+<td>Realm</td>
+<td>注解反射</td>
+<td>基于C++，直接运行在设备硬件上，高性能</td>
+<td>×直接继承特定类</td>
+<td>√</td>
+<td>代码灵活配置</td>
+</tr>
+<tr>
+<td>xutils的dbutils</td>
+<td>注解反射</td>
+<td>可继承父类字段，泛框架，apk体积大</td>
+<td>可继承父类字段</td>
+<td>√</td>
+<td>代码灵活配置</td>
+</tr>
+<tr>
+<td>GreenDAO</td>
+<td>代码模板生成</td>
+<td>Java工程生成dao，高性能，繁琐不灵活</td>
+<td>无法继承父类字段，可继承接口方法</td>
+<td>√</td>
+<td></td>
+</tr>
+<tr>
+<td>DBFlow</td>
+<td>注解apt预编译</td>
+<td>apt预编译，高性能，无缝支持多个数据库</td>
+<td>直接继承特定类/实现Model接口</td>
+<td>application中/其他Context(Activity)中初始化也将只有Application的context</td>
+<td>static final字段</td>
+</tr>
+<tr>
+<td>SQLBrite</td>
+<td></td>
+<td>响应式数据库</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="1-OrmLite-注解反射"><a href="#1-OrmLite-注解反射" class="headerlink" title="1. OrmLite 注解反射"></a>1. OrmLite 注解反射</h2><p>OrmLite 是 Java ORM。支持JDBC连接，Spring以及Android平台。</p>
+<p>语法中广泛使用了注解（Annotation）。</p>
+<h2 id="2-SugarORM-注解反射"><a href="#2-SugarORM-注解反射" class="headerlink" title="2. SugarORM 注解反射"></a>2. SugarORM 注解反射</h2><pre><code>http://satyan.github.io/sugar/getting-started.html
+</code></pre><p>SugarORM 是 Android 平台专用ORM。提供简单易学的APIs。可以很容易的处理1对1和1对多的关系型数据，并通过3个函数save(), delete() 和 find() (或者 findById()) 来简化CRUD基本操作。</p>
+<p>github开源的jar包导入Android studio 识别出错，eclipse使用正常</p>
+<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>通过AndroidManifest.xml meta-data标签配置 数据库名称、版本</p>
+<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><ol>
+<li>AndroidManifest.xml application 是 <code>com.orm.SugarApp</code>或它的子类</li>
+</ol>
+<h3 id="Moudle"><a href="#Moudle" class="headerlink" title="Moudle"></a>Moudle</h3><ol>
+<li>Moudle 必须含有 default constructor.</li>
+<li><p>Moudle 两种定义方式</p>
+<pre><code>直接 extends SugarRecord
+@Table注解，同时 Moudle 必须含有 private Long id field
+</code></pre></li>
+</ol>
+<h2 id="3-GreenDAO-代码模板生成"><a href="#3-GreenDAO-代码模板生成" class="headerlink" title="3. GreenDAO 代码模板生成"></a>3. GreenDAO 代码模板生成</h2><p><strong>快</strong>：当性能很重要时（数据访问频繁），GreenDao是一个很快的解决方案，它能够支持数千条记录的CRUD每秒，和OrmLite相比，GreenDAO要快几乎4.5倍。</p>
+<p><strong>小</strong>：GreenDAO小于100KB，所以对于应用程序APK的大小影响很小。</p>
+<p><strong>繁</strong>：必须使用Java工程（代码模板）生成dao，学习成本高</p>
+<p><strong>死</strong>：生成的dao固定，不方便修改。增加功能需要重新运行Java工程生成dao，这同时导致我们添加到dao类的自定义方法（非模板生成）被覆盖</p>
+<h2 id="4-Active-Android-注解反射"><a href="#4-Active-Android-注解反射" class="headerlink" title="4. Active Android 注解反射"></a>4. Active Android 注解反射</h2><h3 id="配置-1"><a href="#配置-1" class="headerlink" title="配置"></a>配置</h3><p>通过AndroidManifest.xml meta-data标签配置 数据库名称、版本</p>
+<h3 id="初始化-1"><a href="#初始化-1" class="headerlink" title="初始化"></a>初始化</h3><ol>
+<li><p>AndroidManifest.xml application 是 <code>com.activeandroid.app.Application</code>或它的子类</p>
+</li>
+<li><p>自定义初始化</p>
+<pre><code>ActiveAndroid.initialize(this);//方法一
+
+Configuration dbConfiguration = new Configuration.Builder(this).setDatabaseName(&quot;xxx.db&quot;).create();
+ActiveAndroid.initialize(dbConfiguration);//方法二
+</code></pre></li>
+</ol>
+<h3 id="Moudle-1"><a href="#Moudle-1" class="headerlink" title="Moudle"></a>Moudle</h3><ol>
+<li>Moudle 必须含有 default constructor.</li>
+<li><p>Moudle 一种定义方式</p>
+<pre><code>extends  Model
+</code></pre></li>
+</ol>
+<h2 id="5-Realm-注解反射"><a href="#5-Realm-注解反射" class="headerlink" title="5. Realm 注解反射"></a>5. Realm 注解反射</h2><pre><code>https://realm.io/
+http://www.tuicool.com/articles/V7ZFvuB Realm for Android快速入门教程
+</code></pre><p>基于C++编写，直接运行在你的设备硬件上（不需要被解释），因此运行很快。</p>
+<p>开源跨平台</p>
+<h3 id="创建一个Realm"><a href="#创建一个Realm" class="headerlink" title="创建一个Realm"></a>创建一个Realm</h3><p>一个Realm相当于一个SQLite数据库。它有一个与之对应的文件，一旦创建将持久保存在安卓的文件系统中。</p>
+<p>要创建一个新的Realm，你可以在任意Activity中调用静态方法Realm.getInstance。</p>
+<pre><code>Realm myRealm = Realm.getInstance(context); //创建default.realm的Realm文件
+
+Realm myOtherRealm = Realm.getInstance(
+            new RealmConfiguration.Builder(context)
+                    .name(&quot;myOtherRealm.realm&quot;)
+                    .build()
+);//自定义文件名的realm文件
+</code></pre><h3 id="创建一个RealmObject"><a href="#创建一个RealmObject" class="headerlink" title="创建一个RealmObject"></a>创建一个RealmObject</h3><p>继承RealmObject</p>
+<h3 id="Realm实战总结"><a href="#Realm实战总结" class="headerlink" title="Realm实战总结"></a>Realm实战总结</h3><pre><code>Realm实战总结---Android http://blog.csdn.net/javine/article/details/51016754
+</code></pre><ol>
+<li><p>model类必须extends RealmObject,所有属性必须用private修饰</p>
+</li>
+<li><p>model中支持基本数据结构：boolean, byte, short, ìnt, long, float, double, String, Dateand byte[]</p>
+</li>
+<li><p>若要使用List必须用RealmList<t>，或者继承RealmList</t></p>
+</li>
+<li><p>与Retrofit2.*一起使用，通过Gson来解析Json数据并直接生成RealmObject，可参考如下写法：</p>
+<pre><code>Gson gson = new GsonBuilder()  
+.setExclusionStrategies(new ExclusionStrategy() {  
+    @Override  
+    public boolean shouldSkipField(FieldAttributes f) {  
+        return f.getDeclaringClass().equals(RealmObject.class);//跳过RealmObject类型字段不解析  
+    }  
+
+    @Override  
+    public boolean shouldSkipClass(Class&lt;?&gt; clazz) {  
+        return false;  
+    }  
+})  
+.create();  
+
+// Configure Retrofit to use the proper GSON converter  
+RestAdapter restAdapter = new RestAdapter.Builder()  
+    .setEndpoint(&quot;https://api.github.com&quot;)  
+    .addConverterFactory(GsonConverterFactory.create(gson))  
+    .build();  
+
+GitHubService service = restAdapter.create(GitHubService.class);
+</code></pre></li>
+<li><p>使用@PrimaryKey 注释的成员变量，在保存时不能为null，但在执行保存的transaction之前可以是null。</p>
+</li>
+<li><p>以PrimaryKey为索引，如果要保存的数据中的primaryKey是新的则保存一条新数据，否则更新原有数据</p>
+</li>
+</ol>
+<h3 id="realm-坑"><a href="#realm-坑" class="headerlink" title="realm 坑"></a>realm 坑</h3><pre><code>http://www.open-open.com/lib/view/open1453185177792.html 为什么我不再使用Realm
+</code></pre><ol>
+<li><p>必须直接继承自RealmObject。这阻碍我们利用数据模型中的任意类型的继承。所有属性必须用private修饰</p>
+</li>
+<li><p>不能定义除setters 和 getters之外的实例方法。如果你想重写equals 或者toString`那么你就别想了。这样导致的另外一个后果就是我们只能局限于使用标记接口模式（marker interfaces） (注解也是可以的 )。</p>
+</li>
+<li><p>setters 和 getters方法只是为Realm替换自己实现的代理方法。它不能操作数据，跑出异常，或者打印日志。</p>
+</li>
+<li><p>必须保证存在一个空的构造函数。如果你想用一个builder 或者工厂方法来作为实例化的唯一途径，那么这种限制就成了一个问题。</p>
+</li>
+<li><p>数据类型限制。所有的基本数据类型以及它们的封装类型都能支持，包括String, Date, 和byte[]`。但是对于其它类型，为了被持久化，必须继承自RealmObject。Lists可以用RealmList来支持。如果我们想使用枚举而不是int，是没有办法的（使用@IntDef注解）。我们还不能使用集合类型，比如Set和Map。</p>
+</li>
+</ol>
+<h3 id="Realm多线程中的那些坑"><a href="#Realm多线程中的那些坑" class="headerlink" title="Realm多线程中的那些坑"></a>Realm多线程中的那些坑</h3><pre><code>Realm多线程中的那些坑... http://blog.csdn.net/javine/article/details/51040110
+</code></pre><ol>
+<li><p>RealmObject自带线程保护功能，只能在创建它的线程中访问，在子线程中不能访问。</p>
+<p> 也就是说，如果你在主线程中new了一个RealmObject对象 user，那么在子线程中是访问不了user对象的。要想在子线程中访问，必须先将user存入Ream中，然后在子线程中query出来。</p>
+</li>
+<li><p>如果Realm关闭，所有查询得到的RealmObject都不能使用了。</p>
+<p> 如果想在子线程中去查询数据，然后在主线程中使用是无法做到的。所以Realm提供的异步查询就很重要了…</p>
+</li>
+<li><p>如果想在Realm.close()之后继续操作查询得到的对象，只能复制一份数据传出来。</p>
+<p> Realm开发者是为了它的一个特色功能Auto-Update，即自动更新查询到的数据，<br> 特意让查询得到的数据与数据库中的数据保持了同步，所以Realm一关，外面的数据也用不了。<br> 而且，这个Auto-update暂时还无法关闭，stackOverFlow上有说以后可能会提供关闭这个功能的方法。</p>
+</li>
+<li><p>如果直接修改或删除query得到的数据，必须在transaction中完成…</p>
+<p> 也就是说，你根本不能把query返回的对象，当成普通对象去赋值或删除，如果想要直接操作…ok，把对象copy一份传出来…</p>
+</li>
+</ol>
+<h3 id="初次使用Realm踩到的坑"><a href="#初次使用Realm踩到的坑" class="headerlink" title="初次使用Realm踩到的坑"></a>初次使用Realm踩到的坑</h3><pre><code>初次使用Realm踩到的坑 http://www.jianshu.com/p/92c6337f3129
+</code></pre><ol>
+<li><p>Realm对象只能在创建它的线程中使用</p>
+<p> 按照以前的思路, 我在自己的 Application 类中添加了一个静态字段以及一个方法用来全局获取到数据库</p>
+<pre><code>public class MyApp extends Application {
+    private static Realm mRealm;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        RealmConfiguration configuration = new RealmConfiguration.Builder(this).build();
+        Realm.setDefaultConfiguration(configuration);
+        mRealm = Realm.getDefaultInstance();
+    }
+
+    public static Realm getRealm() {
+        return mRealm;
+    }
+}
+</code></pre><p> 一旦在不是创建 Application 的线程中使用就会抛出异常:</p>
+<pre><code>Caused by: java.lang.IllegalStateException: Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.
+</code></pre></li>
+</ol>
+<p>正确的做法是在需要的时候再使用 Realm.getDefaultInstance() 获取到Realm实例</p>
+<h2 id="6-SQLBrite-响应式数据库"><a href="#6-SQLBrite-响应式数据库" class="headerlink" title="6. SQLBrite 响应式数据库"></a>6. SQLBrite 响应式数据库</h2><p>Square 的 Jake Wharton 大神的，响应式数据库</p>
+<p>关注如何在数据变化时更简便的获取到通知。当你不想用ContentProvider，只想简单监听SQLite表增删改的数据变更时可以试试它</p>
+<h2 id="7-xutils的dbutils-注解反射"><a href="#7-xutils的dbutils-注解反射" class="headerlink" title="7. xutils的dbutils 注解反射"></a>7. xutils的dbutils 注解反射</h2><p>xutils框架太泛，包含网络请求、图片加载、view注入等，太泛不精，怕出现问题</p>
+<p>优势：支持Module继承</p>
+<h2 id="8-DBFlow-注解预编译"><a href="#8-DBFlow-注解预编译" class="headerlink" title="8. DBFlow 注解预编译"></a>8. DBFlow 注解预编译</h2><pre><code>https://github.com/Raizlabs/DBFlow
+</code></pre><p>注解 + apt预编译，高性能。</p>
+<h3 id="Module"><a href="#Module" class="headerlink" title="Module"></a>Module</h3><ol>
+<li>直接 extends BaseModel，不灵活</li>
+<li>implement Model，麻烦</li>
+</ol>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ORM/" rel="tag"><i class="fa fa-tag"></i> ORM</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/21/数据库/sql/XUtils3使用/" rel="next" title="XUtils3使用">
+                <i class="fa fa-chevron-left"></i> XUtils3使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/21/数据库/sql/GreenDAO使用/" rel="prev" title="GreenDAO使用">
+                GreenDAO使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">118</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">48</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-OrmLite-注解反射"><span class="nav-number">1.</span> <span class="nav-text">1. OrmLite 注解反射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-SugarORM-注解反射"><span class="nav-number">2.</span> <span class="nav-text">2. SugarORM 注解反射</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置"><span class="nav-number">2.1.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化"><span class="nav-number">2.2.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Moudle"><span class="nav-number">2.3.</span> <span class="nav-text">Moudle</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-GreenDAO-代码模板生成"><span class="nav-number">3.</span> <span class="nav-text">3. GreenDAO 代码模板生成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Active-Android-注解反射"><span class="nav-number">4.</span> <span class="nav-text">4. Active Android 注解反射</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置-1"><span class="nav-number">4.1.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初始化-1"><span class="nav-number">4.2.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Moudle-1"><span class="nav-number">4.3.</span> <span class="nav-text">Moudle</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-Realm-注解反射"><span class="nav-number">5.</span> <span class="nav-text">5. Realm 注解反射</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建一个Realm"><span class="nav-number">5.1.</span> <span class="nav-text">创建一个Realm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建一个RealmObject"><span class="nav-number">5.2.</span> <span class="nav-text">创建一个RealmObject</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Realm实战总结"><span class="nav-number">5.3.</span> <span class="nav-text">Realm实战总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#realm-坑"><span class="nav-number">5.4.</span> <span class="nav-text">realm 坑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Realm多线程中的那些坑"><span class="nav-number">5.5.</span> <span class="nav-text">Realm多线程中的那些坑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初次使用Realm踩到的坑"><span class="nav-number">5.6.</span> <span class="nav-text">初次使用Realm踩到的坑</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-SQLBrite-响应式数据库"><span class="nav-number">6.</span> <span class="nav-text">6. SQLBrite 响应式数据库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-xutils的dbutils-注解反射"><span class="nav-number">7.</span> <span class="nav-text">7. xutils的dbutils 注解反射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-DBFlow-注解预编译"><span class="nav-number">8.</span> <span class="nav-text">8. DBFlow 注解预编译</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Module"><span class="nav-number">8.1.</span> <span class="nav-text">Module</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

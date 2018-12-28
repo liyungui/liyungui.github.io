@@ -87,10 +87,12 @@
 <meta property="og:site_name" content="风">
 <meta property="og:description" content="本文档适用于Android开发人员，可以将您现有的Android知识应用于使用Flutter构建移动应用程序。您可以将此文档用作Flutter开发的一个开端 ViewWidget = Android中的View在Flutter中，Widget相当于Android的View。 Widget与View不同之处 绘制 Widget仅支持一帧，并且每一帧上Flutter框架都会创建一个Widget实例树(">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-11-16T08:57:43.041Z">
+<meta property="og:image" content="http://yoursite.com/2018/07/04/Flutter/Flutter-for-Android-开发者/event-loop.png">
+<meta property="og:updated_time" content="2018-12-28T06:50:02.012Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Flutter for Android 开发者">
 <meta name="twitter:description" content="本文档适用于Android开发人员，可以将您现有的Android知识应用于使用Flutter构建移动应用程序。您可以将此文档用作Flutter开发的一个开端 ViewWidget = Android中的View在Flutter中，Widget相当于Android的View。 Widget与View不同之处 绘制 Widget仅支持一帧，并且每一帧上Flutter框架都会创建一个Widget实例树(">
+<meta name="twitter:image" content="http://yoursite.com/2018/07/04/Flutter/Flutter-for-Android-开发者/event-loop.png">
 
 
 
@@ -836,112 +838,61 @@ Widget getRow(int i) {
 }
 </code></pre><h1 id="异步UI"><a href="#异步UI" class="headerlink" title="异步UI"></a>异步UI</h1><p>Dart是单线程执行模型(默认在主UI线程中运行)，并由事件循环驱动</p>
 <p>支持Isolates、事件循环和异步编程。 </p>
-<h2 id="异步函数"><a href="#异步函数" class="headerlink" title="异步函数"></a>异步函数</h2><p>将函数声明为异步函数 <code>async</code>，并在该函数中等待 <code>await</code> 这个耗时任务返回即可。Dart的事件循环将负责其余的事情</p>
+<h2 id="异步函数–async和await"><a href="#异步函数–async和await" class="headerlink" title="异步函数–async和await"></a>异步函数–async和await</h2><p>将函数声明为异步函数 <code>async</code>，并在该函数中等待 <code>await</code> 这个耗时任务返回即可。Dart的事件循环将负责其余的事情</p>
 <p>声明异步函数的方式需要注意，是将  <code>async</code> 放在 函数体{} 前面</p>
-<p>示例：<strong>异步加载数据并将其显示在ListView中</strong></p>
-<pre><code>import &apos;package:flutter/material.dart&apos;;
-import &apos;dart:convert&apos;;
-import &apos;package:http/http.dart&apos; as http;
-
-  List widgets = [];
-
-  @override
-  void initState() {
-    super.initState();
-    loadData();
-  }
-
-  getBodyChild() {
-    return new ListView.builder(
-        itemCount: widgets.length,
-        itemBuilder: (BuildContext context, int position) {
-          return getRow(position);
-        });
-  }
-
-  Widget getRow(int i) {
-    return new Padding(
-        padding: new EdgeInsets.all(10.0),
-        child: new Text(&quot;Row ${widgets[i][&quot;title&quot;]}&quot;)
-    );
-  }
-
-  loadData() async {
-    String dataURL = &quot;https://jsonplaceholder.typicode.com/posts&quot;;
-    http.Response response = await http.get(dataURL);
-    setState(() {
-      widgets = JSON.decode(response.body);
-    });
-  }
-</code></pre><h2 id="Isolates"><a href="#Isolates" class="headerlink" title="Isolates"></a>Isolates</h2><p>isolates    英[‘aɪsəleɪts]    使隔离;使分离;</p>
-<p>有时您可能需要处理大量数据，导致UI可能会挂起。</p>
-<p>在这种情况下，通过使用Isolates，可以利用多个CPU内核来执行耗时或计算密集型任务。</p>
-<p>Isolates是一个独立的执行线程，它运行时不会与主线程共享任何内存。这意味着你不能从该线程访问变量或通过调用setState来更新你的UI。</p>
-<p>示例：<strong>Isolate与主线程通信和共享数据以更新UI(带进度指示器)</strong></p>
-<pre><code>import &apos;package:flutter/material.dart&apos;;
-import &apos;dart:convert&apos;;
-import &apos;package:http/http.dart&apos; as http;
-import &apos;dart:async&apos;;
-import &apos;dart:isolate&apos;;
-
-  getBodyChild() {
-    if (widgets.length == 0) {
-      return new Center(child: new CircularProgressIndicator());//LoadingDialog
-    } else {
-      return new ListView.builder(
-          itemCount: widgets.length,
-          itemBuilder: (BuildContext context, int position) {
-            return getRow(position);
-          });
-    }
-  }
-
-  Widget getRow(int i) {
-    return new Padding(
-        padding: new EdgeInsets.all(10.0),
-        child: new Text(&quot;Row ${widgets[i][&quot;title&quot;]}&quot;)
-    );
-  }
-
-  loadData() async {
-    ReceivePort receivePort = new ReceivePort();
-    await Isolate.spawn(dataLoader, receivePort.sendPort);
-
-    // The &apos;echo&apos; isolate sends it&apos;s SendPort as the first message
-    SendPort sendPort = await receivePort.first;
-
-    List msg = await sendReceive(sendPort, &quot;https://jsonplaceholder.typicode.com/posts&quot;);
-
-    setState(() {
-      widgets = msg;
-    });
-  }
-
-// the entry point for the isolate
-  static dataLoader(SendPort sendPort) async {
-    // Open the ReceivePort for incoming messages.
-    ReceivePort port = new ReceivePort();
-
-    // Notify any other isolates what port this isolate listens to.
-    sendPort.send(port.sendPort);
-
-    await for (var msg in port) {
-      String data = msg[0];
-      SendPort replyTo = msg[1];
-
-      String dataURL = data;
-      http.Response response = await http.get(dataURL);
-      // Lots of JSON to parse
-      replyTo.send(JSON.decode(response.body));
-    }
-  }
-
-  Future sendReceive(SendPort port, msg) {
-    ReceivePort response = new ReceivePort();
-    port.send([msg, response.sendPort]);
-    return response.first;
-  }
-</code></pre><h1 id="Flutter-packages"><a href="#Flutter-packages" class="headerlink" title="Flutter packages"></a>Flutter packages</h1><h2 id="使用-packages"><a href="#使用-packages" class="headerlink" title="使用 packages"></a>使用 packages</h2><p><a href="https://pub.dartlang.org/packages/location" target="_blank" rel="noopener">GPS插件</a></p>
+<ul>
+<li>await关键字可以获取async函数返回值</li>
+<li>await关键字必须在async函数内部使用</li>
+</ul>
+<h3 id="示例：异步加载数据并将其显示在ListView中"><a href="#示例：异步加载数据并将其显示在ListView中" class="headerlink" title="示例：异步加载数据并将其显示在ListView中"></a>示例：<strong>异步加载数据并将其显示在ListView中</strong></h3><p>添加http依赖</p>
+<pre><code>pubspec.yaml文件
+    dependencies:
+        http: &apos;&gt;=0.11.3+12&apos;
+</code></pre><p>代码</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">'package:flutter/material.dart'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'dart:convert'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'package:http/http.dart'</span> <span class="keyword">as</span> http;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">List</span> widgets = [];</span><br><span class="line">	</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> initState() &#123;</span><br><span class="line">    <span class="keyword">super</span>.initState();</span><br><span class="line">    loadData();</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  getBodyChild() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ListView.builder(</span><br><span class="line">        itemCount: widgets.length,</span><br><span class="line">        itemBuilder: (BuildContext context, <span class="built_in">int</span> position) &#123;</span><br><span class="line">          <span class="keyword">return</span> getRow(position);</span><br><span class="line">        &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  Widget getRow(<span class="built_in">int</span> i) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Padding(</span><br><span class="line">        padding: <span class="keyword">new</span> EdgeInsets.all(<span class="number">10.0</span>),</span><br><span class="line">        child: <span class="keyword">new</span> Text(<span class="string">"Row <span class="subst">$&#123;widgets[i][<span class="string">"title"</span>]&#125;</span>"</span>)</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  loadData() <span class="keyword">async</span> &#123;</span><br><span class="line">    <span class="built_in">String</span> dataURL = <span class="string">"https://jsonplaceholder.typicode.com/posts"</span>;</span><br><span class="line">    http.Response response = <span class="keyword">await</span> http.<span class="keyword">get</span>(dataURL);</span><br><span class="line">    setState(() &#123;</span><br><span class="line">      widgets = JSON.decode(response.body);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>HTTP的get请求返回值为<code>Future&lt;String&gt;</code>类型</p>
+<h2 id="Dart进程-线程机制–Isolates"><a href="#Dart进程-线程机制–Isolates" class="headerlink" title="Dart进程/线程机制–Isolates"></a>Dart进程/线程机制–Isolates</h2><p>isolates    英[‘aɪsəleɪts]    使隔离;使分离;</p>
+<p>Dart进程/线程机制，名叫isolate。</p>
+<p>APP的启动入口main函数就是一个isolate</p>
+<p>Isolates是一个独立的执行线程，线程之间无法直接共享内存，只能通过isolate API进行通信。所以子线程不能访问类变量或通过调用setState来更新UI。</p>
+<p>示例：<strong>Isolate与主线程通信共享数据更新UI(带进度指示器)</strong></p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">'package:flutter/material.dart'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'dart:convert'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'package:http/http.dart'</span> <span class="keyword">as</span> http;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'dart:async'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'dart:isolate'</span>;</span><br><span class="line"></span><br><span class="line">  getBodyChild() &#123;</span><br><span class="line">    <span class="keyword">if</span> (widgets.length == <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> Center(child: <span class="keyword">new</span> CircularProgressIndicator());<span class="comment">//LoadingDialog</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> ListView.builder(</span><br><span class="line">          itemCount: widgets.length,</span><br><span class="line">          itemBuilder: (BuildContext context, <span class="built_in">int</span> position) &#123;</span><br><span class="line">            <span class="keyword">return</span> getRow(position);</span><br><span class="line">          &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  Widget getRow(<span class="built_in">int</span> i) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Padding(</span><br><span class="line">        padding: <span class="keyword">new</span> EdgeInsets.all(<span class="number">10.0</span>),</span><br><span class="line">        child: <span class="keyword">new</span> Text(<span class="string">"Row <span class="subst">$&#123;widgets[i][<span class="string">"title"</span>]&#125;</span>"</span>)</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  loadData() <span class="keyword">async</span> &#123;</span><br><span class="line">    ReceivePort receivePort = <span class="keyword">new</span> ReceivePort();</span><br><span class="line">    <span class="keyword">await</span> Isolate.spawn(dataLoader, receivePort.sendPort);</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// The 'echo' isolate sends it's SendPort as the first message</span></span><br><span class="line">    SendPort sendPort = <span class="keyword">await</span> receivePort.first;</span><br><span class="line">	</span><br><span class="line">    <span class="built_in">List</span> msg = <span class="keyword">await</span> sendReceive(sendPort, <span class="string">"https://jsonplaceholder.typicode.com/posts"</span>);</span><br><span class="line">	</span><br><span class="line">    setState(() &#123;</span><br><span class="line">      widgets = msg;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line"><span class="comment">// the entry point for the isolate</span></span><br><span class="line">  <span class="keyword">static</span> dataLoader(SendPort sendPort) <span class="keyword">async</span> &#123;</span><br><span class="line">    <span class="comment">// Open the ReceivePort for incoming messages.</span></span><br><span class="line">    ReceivePort port = <span class="keyword">new</span> ReceivePort();</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// Notify any other isolates what port this isolate listens to.</span></span><br><span class="line">    sendPort.send(port.sendPort);</span><br><span class="line">	</span><br><span class="line">    <span class="keyword">await</span> <span class="keyword">for</span> (<span class="keyword">var</span> msg <span class="keyword">in</span> port) &#123;</span><br><span class="line">      <span class="built_in">String</span> data = msg[<span class="number">0</span>];</span><br><span class="line">      SendPort replyTo = msg[<span class="number">1</span>];</span><br><span class="line">	</span><br><span class="line">      <span class="built_in">String</span> dataURL = data;</span><br><span class="line">      http.Response response = <span class="keyword">await</span> http.<span class="keyword">get</span>(dataURL);</span><br><span class="line">      <span class="comment">// Lots of JSON to parse</span></span><br><span class="line">      replyTo.send(JSON.decode(response.body));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  Future sendReceive(SendPort port, msg) &#123;</span><br><span class="line">    ReceivePort response = <span class="keyword">new</span> ReceivePort();</span><br><span class="line">    port.send([msg, response.sendPort]);</span><br><span class="line">    <span class="keyword">return</span> response.first;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Future"><a href="#Future" class="headerlink" title="Future"></a>Future</h2><h3 id="线程消息循环机制"><a href="#线程消息循环机制" class="headerlink" title="线程消息循环机制"></a>线程消息循环机制</h3><img src="/2018/07/04/Flutter/Flutter-for-Android-开发者/event-loop.png">
+<p>Dart线程中消息循环机制（event loop）有两个队列（event queue和microtask queue）</p>
+<ul>
+<li><strong>event queue</strong><ul>
+<li>所有外来的事件都会先放入event queue中排队等待执行。<ul>
+<li>事件：I/O，mouse events，drawing events，timers，isolate之间的message等 </li>
+</ul>
+</li>
+<li>好比机场的公共排队大厅。</li>
+</ul>
+</li>
+<li><strong>microtask queue</strong><ul>
+<li>只在当前isolate的任务队列中排队</li>
+<li>优先级高于event queue</li>
+<li>好比机场里的某个VIP候机室，总是VIP用户先登机了，才开放公共排队入口。</li>
+<li>实际提供了一种插队机制</li>
+<li>当事件循环正在处理microtask的时候，event queue会被堵塞。这时候app就无法进行UI绘制，响应鼠标事件和I/O等事件</li>
+</ul>
+</li>
+</ul>
+<p>当main方法执行完毕退出后，event loop就会以FIFO(先进先出)的顺序执行microtask，当所有microtask执行完后它会从event queue中取事件并执行。如此反复，直到两个队列都为空</p>
+<h3 id="Future是event"><a href="#Future是event" class="headerlink" title="Future是event"></a>Future是event</h3><p>每创建一个Future就会把这个Future扔进event queue中排队等候安检~</p>
+<p>Http的get函数、RefreshIndicator的onRefresh函数是event。</p>
+<p>被await标记的句柄也是一个event</p>
+<h3 id="为什么要用Future"><a href="#为什么要用Future" class="headerlink" title="为什么要用Future"></a>为什么要用Future</h3><p>用async和await组合，即可向event queue中插入event实现异步操作</p>
+<p>为什么还要用Future呢？</p>
+<ul>
+<li>定义Flutter函数时，可以指定其运行结果<strong>返回值类型</strong>，以提高代码的<strong>可读性</strong></li>
+<li>最主要的功能就是提供了<strong>链式调用</strong><ul>
+<li>链式调用解决两大问题：明确代码执行的依赖关系和实现异常捕获</li>
+</ul>
+</li>
+</ul>
+<p>实例代码</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Future.then(funA()).then(funB());   <span class="comment">// 明确表现出了后者依赖前者设置的变量值</span></span><br><span class="line"> </span><br><span class="line">  <span class="keyword">new</span> Future.then(funA()).then((_) &#123;<span class="keyword">new</span> Future(funB())&#125;);    <span class="comment">//还可以这样用</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">//链式调用，捕获异常</span></span><br><span class="line">  <span class="keyword">new</span> Future.then(funA(),onError: (e) &#123; handleError(e); &#125;).then(funB(),onError: (e) &#123; handleError(e); &#125;)</span><br></pre></td></tr></table></figure>
+<h1 id="Flutter-packages"><a href="#Flutter-packages" class="headerlink" title="Flutter packages"></a>Flutter packages</h1><h2 id="使用-packages"><a href="#使用-packages" class="headerlink" title="使用 packages"></a>使用 packages</h2><p><a href="https://pub.dartlang.org/packages/location" target="_blank" rel="noopener">GPS插件</a></p>
 <p><a href="https://pub.dartlang.org/packages/image_picker" target="_blank" rel="noopener">相机插件</a></p>
 <p>Packages会被发布到了 <a href="https://pub.dartlang.org/" target="_blank" rel="noopener">Pub</a> 包仓库.</p>
 <h3 id="使用步骤"><a href="#使用步骤" class="headerlink" title="使用步骤"></a>使用步骤</h3><ul>
@@ -1039,7 +990,7 @@ import &apos;dart:isolate&apos;;
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/07/11/获取View坐标/" rel="prev" title="获取View坐标">
+              <a href="/2018/07/11/Android/获取View坐标/" rel="prev" title="获取View坐标">
                 获取View坐标 <i class="fa fa-chevron-right"></i>
               </a>
             
@@ -1122,12 +1073,21 @@ import &apos;dart:isolate&apos;;
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">75</span>
+                  <span class="site-state-item-count">118</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
             
 
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
             
 
             
@@ -1135,7 +1095,7 @@ import &apos;dart:isolate&apos;;
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">36</span>
+                  <span class="site-state-item-count">48</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -1168,7 +1128,7 @@ import &apos;dart:isolate&apos;;
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#View"><span class="nav-number">1.</span> <span class="nav-text">View</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Widget-Android中的View"><span class="nav-number">1.1.</span> <span class="nav-text">Widget = Android中的View</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Widget与View不同之处"><span class="nav-number">1.1.1.</span> <span class="nav-text">Widget与View不同之处</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何布局"><span class="nav-number">1.2.</span> <span class="nav-text">如何布局</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何更新widget"><span class="nav-number">1.3.</span> <span class="nav-text">如何更新widget</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Widget如何创建子Widget"><span class="nav-number">1.3.1.</span> <span class="nav-text">Widget如何创建子Widget</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何在布局中添加或删除组件Widget"><span class="nav-number">1.4.</span> <span class="nav-text">如何在布局中添加或删除组件Widget</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动画"><span class="nav-number">1.5.</span> <span class="nav-text">动画</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Canvas-draw-paint"><span class="nav-number">1.6.</span> <span class="nav-text">Canvas draw/paint</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义-Widget"><span class="nav-number">1.7.</span> <span class="nav-text">自定义 Widget</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Intent"><span class="nav-number">2.</span> <span class="nav-text">Intent</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flutter中切换屏幕"><span class="nav-number">2.1.</span> <span class="nav-text">Flutter中切换屏幕</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理Android传入的Intent"><span class="nav-number">2.2.</span> <span class="nav-text">处理Android传入的Intent</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flutter实现startActivityForResult"><span class="nav-number">2.3.</span> <span class="nav-text">Flutter实现startActivityForResult</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PopupRoute"><span class="nav-number">2.4.</span> <span class="nav-text">PopupRoute</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Custom-routes"><span class="nav-number">2.5.</span> <span class="nav-text">Custom routes</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Activity-和-Fragment"><span class="nav-number">3.</span> <span class="nav-text">Activity 和 Fragment</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#生命周期"><span class="nav-number">3.1.</span> <span class="nav-text">生命周期</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#资源"><span class="nav-number">4.</span> <span class="nav-text">资源</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#图片"><span class="nav-number">4.1.</span> <span class="nav-text">图片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#依赖：Android-Gradle-vs-Flutter-pubspec-yaml"><span class="nav-number">4.2.</span> <span class="nav-text">依赖：Android Gradle vs Flutter pubspec.yaml</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#触摸事件处理"><span class="nav-number">5.</span> <span class="nav-text">触摸事件处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Widget支持事件监听"><span class="nav-number">5.1.</span> <span class="nav-text">Widget支持事件监听</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Widget不支持事件监听-–-GestureDetector"><span class="nav-number">5.2.</span> <span class="nav-text">Widget不支持事件监听 – GestureDetector</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Listview-amp-Adapter"><span class="nav-number">6.</span> <span class="nav-text">Listview &amp; Adapter</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#动态更新ListView"><span class="nav-number">6.1.</span> <span class="nav-text">动态更新ListView</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#新建ListView：setState中创建一个新的List"><span class="nav-number">6.1.1.</span> <span class="nav-text">新建ListView：setState中创建一个新的List</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新建ListView-Builder：推荐使用"><span class="nav-number">6.1.2.</span> <span class="nav-text">新建ListView.Builder：推荐使用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#异步UI"><span class="nav-number">7.</span> <span class="nav-text">异步UI</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#异步函数"><span class="nav-number">7.1.</span> <span class="nav-text">异步函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Isolates"><span class="nav-number">7.2.</span> <span class="nav-text">Isolates</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Flutter-packages"><span class="nav-number">8.</span> <span class="nav-text">Flutter packages</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用-packages"><span class="nav-number">8.1.</span> <span class="nav-text">使用 packages</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用步骤"><span class="nav-number">8.1.1.</span> <span class="nav-text">使用步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#管理包依赖和版本"><span class="nav-number">8.1.2.</span> <span class="nav-text">管理包依赖和版本</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Package-versions"><span class="nav-number">8.1.2.1.</span> <span class="nav-text">Package versions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#更新依赖包"><span class="nav-number">8.1.2.2.</span> <span class="nav-text">更新依赖包</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#管理包依赖"><span class="nav-number">8.1.2.3.</span> <span class="nav-text">管理包依赖</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开发Packages"><span class="nav-number">8.2.</span> <span class="nav-text">开发Packages</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Package-介绍"><span class="nav-number">8.2.1.</span> <span class="nav-text">Package 介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Package-结构"><span class="nav-number">8.2.1.1.</span> <span class="nav-text">Package 结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Package-类型"><span class="nav-number">8.2.1.2.</span> <span class="nav-text">Package 类型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#开发Dart包"><span class="nav-number">8.2.2.</span> <span class="nav-text">开发Dart包</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#View"><span class="nav-number">1.</span> <span class="nav-text">View</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Widget-Android中的View"><span class="nav-number">1.1.</span> <span class="nav-text">Widget = Android中的View</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Widget与View不同之处"><span class="nav-number">1.1.1.</span> <span class="nav-text">Widget与View不同之处</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何布局"><span class="nav-number">1.2.</span> <span class="nav-text">如何布局</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何更新widget"><span class="nav-number">1.3.</span> <span class="nav-text">如何更新widget</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Widget如何创建子Widget"><span class="nav-number">1.3.1.</span> <span class="nav-text">Widget如何创建子Widget</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何在布局中添加或删除组件Widget"><span class="nav-number">1.4.</span> <span class="nav-text">如何在布局中添加或删除组件Widget</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动画"><span class="nav-number">1.5.</span> <span class="nav-text">动画</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Canvas-draw-paint"><span class="nav-number">1.6.</span> <span class="nav-text">Canvas draw/paint</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义-Widget"><span class="nav-number">1.7.</span> <span class="nav-text">自定义 Widget</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Intent"><span class="nav-number">2.</span> <span class="nav-text">Intent</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Flutter中切换屏幕"><span class="nav-number">2.1.</span> <span class="nav-text">Flutter中切换屏幕</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理Android传入的Intent"><span class="nav-number">2.2.</span> <span class="nav-text">处理Android传入的Intent</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Flutter实现startActivityForResult"><span class="nav-number">2.3.</span> <span class="nav-text">Flutter实现startActivityForResult</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PopupRoute"><span class="nav-number">2.4.</span> <span class="nav-text">PopupRoute</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Custom-routes"><span class="nav-number">2.5.</span> <span class="nav-text">Custom routes</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Activity-和-Fragment"><span class="nav-number">3.</span> <span class="nav-text">Activity 和 Fragment</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#生命周期"><span class="nav-number">3.1.</span> <span class="nav-text">生命周期</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#资源"><span class="nav-number">4.</span> <span class="nav-text">资源</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#图片"><span class="nav-number">4.1.</span> <span class="nav-text">图片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#依赖：Android-Gradle-vs-Flutter-pubspec-yaml"><span class="nav-number">4.2.</span> <span class="nav-text">依赖：Android Gradle vs Flutter pubspec.yaml</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#触摸事件处理"><span class="nav-number">5.</span> <span class="nav-text">触摸事件处理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Widget支持事件监听"><span class="nav-number">5.1.</span> <span class="nav-text">Widget支持事件监听</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Widget不支持事件监听-–-GestureDetector"><span class="nav-number">5.2.</span> <span class="nav-text">Widget不支持事件监听 – GestureDetector</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Listview-amp-Adapter"><span class="nav-number">6.</span> <span class="nav-text">Listview &amp; Adapter</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#动态更新ListView"><span class="nav-number">6.1.</span> <span class="nav-text">动态更新ListView</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#新建ListView：setState中创建一个新的List"><span class="nav-number">6.1.1.</span> <span class="nav-text">新建ListView：setState中创建一个新的List</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新建ListView-Builder：推荐使用"><span class="nav-number">6.1.2.</span> <span class="nav-text">新建ListView.Builder：推荐使用</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#异步UI"><span class="nav-number">7.</span> <span class="nav-text">异步UI</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#异步函数–async和await"><span class="nav-number">7.1.</span> <span class="nav-text">异步函数–async和await</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#示例：异步加载数据并将其显示在ListView中"><span class="nav-number">7.1.1.</span> <span class="nav-text">示例：异步加载数据并将其显示在ListView中</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dart进程-线程机制–Isolates"><span class="nav-number">7.2.</span> <span class="nav-text">Dart进程/线程机制–Isolates</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Future"><span class="nav-number">7.3.</span> <span class="nav-text">Future</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#线程消息循环机制"><span class="nav-number">7.3.1.</span> <span class="nav-text">线程消息循环机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Future是event"><span class="nav-number">7.3.2.</span> <span class="nav-text">Future是event</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么要用Future"><span class="nav-number">7.3.3.</span> <span class="nav-text">为什么要用Future</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Flutter-packages"><span class="nav-number">8.</span> <span class="nav-text">Flutter packages</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用-packages"><span class="nav-number">8.1.</span> <span class="nav-text">使用 packages</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用步骤"><span class="nav-number">8.1.1.</span> <span class="nav-text">使用步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#管理包依赖和版本"><span class="nav-number">8.1.2.</span> <span class="nav-text">管理包依赖和版本</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Package-versions"><span class="nav-number">8.1.2.1.</span> <span class="nav-text">Package versions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#更新依赖包"><span class="nav-number">8.1.2.2.</span> <span class="nav-text">更新依赖包</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#管理包依赖"><span class="nav-number">8.1.2.3.</span> <span class="nav-text">管理包依赖</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开发Packages"><span class="nav-number">8.2.</span> <span class="nav-text">开发Packages</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Package-介绍"><span class="nav-number">8.2.1.</span> <span class="nav-text">Package 介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Package-结构"><span class="nav-number">8.2.1.1.</span> <span class="nav-text">Package 结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Package-类型"><span class="nav-number">8.2.1.2.</span> <span class="nav-text">Package 类型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#开发Dart包"><span class="nav-number">8.2.2.</span> <span class="nav-text">开发Dart包</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
