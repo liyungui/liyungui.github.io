@@ -1,4 +1,11 @@
-[cmd更换默认编码](http://blog.csdn.net/iway_lch/article/details/50408796)
+---
+title: cmd更换默认编码为utf8
+date: 2018-12-28 15:09:53
+categories:
+  - 电脑使用
+tags:
+  - Windows
+---
 
 以下是几种常用的编码: 
 
