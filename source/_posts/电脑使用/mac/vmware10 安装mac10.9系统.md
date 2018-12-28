@@ -5,7 +5,7 @@ categories:
   - 电脑使用
 tags:
   - Mac
-  -VMware10
+  - VMware10
 ---
 
 ## vmware10 安装mac10.9系统 ##
