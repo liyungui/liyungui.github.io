@@ -8,9 +8,15 @@ tags:
 
 Lottie 是一个可以解析AE( Adobe After Effects )上的插件Bodymovin导出的json文件(依赖png文件)实现在移动设备上渲染的动画库。
 
-**高效，文件体积小，展示效果好，控制灵活**。比gif体积小，效果好(AE导出gif有白边)，可以重复播放指定帧指定次数
+优点：
 
-支持 Android（Jellybean/API16 及以上）和 ios
+**开发高效，文件体积小，展示效果好，性能消耗小，控制灵活，服务器更新动画，跨平台**。比gif体积小，效果好(AE导出gif有白边)，可以重复播放指定帧指定次数
+
+缺陷：
+
+系统版本有要求。支持 Android(Jellybean/API16 及以上)，ios(8.0)，RN
+
+不支持交互动画。只能播放类型动画
 
 [github](https://github.com/airbnb/lottie-android)
 
@@ -59,16 +65,28 @@ Lottie 是一个可以解析AE( Adobe After Effects )上的插件Bodymovin导出
 
 ## API控制 ##
 
-	LottieAnimationView.setMinAndMaxFrame(0, 34);
-	
-	LottieAnimationView.setRepeatCount(0);
-		0，表示不重复
-		LottieDrawable.INFINITE，无限重复
-		
-	
-	LottieAnimationView.playAnimation();//播放动画
-	LottieAnimationView.addAnimatorListener(Animator.AnimatorListener）//监听动画状态
+```java
+LottieAnimationView.setMinAndMaxFrame(0, 34);
 
+LottieAnimationView.setRepeatMode(LottieDrawable.RESTART);
+LottieAnimationView.setRepeatCount(0);
+	//0，表示不重复
+	//LottieDrawable.INFINITE，无限重复
+	
+	
+LottieAnimationView.playAnimation();//播放动画
+
+LottieAnimationView.addAnimatorListener(Animator.AnimatorListener）//监听动画状态
+LottieAnimationView.removeAllAnimatorListeners();
+
+LottieAnimationView.addAnimatorUpdateListener(ValueAnimator.AnimatorUpdateListener)//监听播放进度
+LottieAnimationView.removeAllUpdateListeners() //慎用，会导致动画无法播放
+LottieAnimationView.removeUpdateListener(ValueAnimator.AnimatorUpdateListener)
+
+//播放进度回调中
+animation.getAnimatedValue() 返回进度[0,1]
+animation.getAnimatedFraction() 返回进度[minFrame,maxFrame]。如果没设置，也是返回[0,1]
+```
 # 注意事项
 
 - 可能会v4包冲突

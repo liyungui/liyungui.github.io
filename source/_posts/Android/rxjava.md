@@ -855,7 +855,8 @@ doOnEach操作符，他接收的是一个Observable参数，相当于doOnNext，
             Person person = new Person(201);
             subscriber.onNext(person);
         }
-    }).subscribeOn(Schedulers.io()) //指定耗时进程
+    })
+    .subscribeOn(Schedulers.io()) //指定耗时进程
     .observeOn(Schedulers.newThread()) //指定doOnNext执行线程是新线程
     .doOnNext(new Action1<Person>() {
         @Override
@@ -869,7 +870,8 @@ doOnEach操作符，他接收的是一个Observable参数，相当于doOnNext，
                 e.printStackTrace();
             }
         }
-    }).observeOn(AndroidSchedulers.mainThread())//指定最后观察者在主线程
+    })
+    .observeOn(AndroidSchedulers.mainThread())//指定最后观察者在主线程.
     .subscribe(new Action1<Person>() {
         @Override
         public void call(Person person) {
@@ -899,14 +901,21 @@ doOnEach操作符，他接收的是一个Observable参数，相当于doOnNext，
             }
         }
     });
+    
+    把耗时操作放在一个新worker中
+    不需要用observeOn指定doOnNext执行线程是新线程
 
-不需要在用observeOn指定在新线程就可以实现
+
 
 执行结果：
 
 	03-01 14:55:02.307 30368-30406/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call RxCachedThreadScheduler-1
 	03-01 14:55:02.307 30368-30406/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call RxCachedThreadScheduler-1
 	03-01 14:55:02.347 30368-30368/com.example.myrxlearn I/System.out: 2016-03-01    02:55:02 call main
+	
+# 异常
+
+	Exceptions.propagate(e);
 	                                                         
 # 实例
 

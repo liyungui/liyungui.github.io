@@ -619,124 +619,192 @@ Dart是单线程执行模型(默认在主UI线程中运行)，并由事件循环
 
 支持Isolates、事件循环和异步编程。 
 
-## 异步函数 ##
+## 异步函数--async和await ##
 
 将函数声明为异步函数 `async`，并在该函数中等待 `await` 这个耗时任务返回即可。Dart的事件循环将负责其余的事情
 
 声明异步函数的方式需要注意，是将  `async` 放在 函数体{} 前面
 
-示例：**异步加载数据并将其显示在ListView中**
+- await关键字可以获取async函数返回值
+- await关键字必须在async函数内部使用
+			
+### 示例：**异步加载数据并将其显示在ListView中**
 
-	import 'package:flutter/material.dart';
-	import 'dart:convert';
-	import 'package:http/http.dart' as http;
+添加http依赖
 
-	  List widgets = [];
-	
-	  @override
-	  void initState() {
-	    super.initState();
-	    loadData();
-	  }
-	
-	  getBodyChild() {
-	    return new ListView.builder(
-	        itemCount: widgets.length,
-	        itemBuilder: (BuildContext context, int position) {
-	          return getRow(position);
-	        });
-	  }
-	
-	  Widget getRow(int i) {
-	    return new Padding(
-	        padding: new EdgeInsets.all(10.0),
-	        child: new Text("Row ${widgets[i]["title"]}")
-	    );
-	  }
-	
-	  loadData() async {
-	    String dataURL = "https://jsonplaceholder.typicode.com/posts";
-	    http.Response response = await http.get(dataURL);
-	    setState(() {
-	      widgets = JSON.decode(response.body);
-	    });
-	  }
+	pubspec.yaml文件
+		dependencies:
+			http: '>=0.11.3+12'
+			
+代码
 
-## Isolates ##
+```dart
+import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+  List widgets = [];
+	
+  @override
+  void initState() {
+    super.initState();
+    loadData();
+  }
+	
+  getBodyChild() {
+    return new ListView.builder(
+        itemCount: widgets.length,
+        itemBuilder: (BuildContext context, int position) {
+          return getRow(position);
+        });
+  }
+	
+  Widget getRow(int i) {
+    return new Padding(
+        padding: new EdgeInsets.all(10.0),
+        child: new Text("Row ${widgets[i]["title"]}")
+    );
+  }
+	
+  loadData() async {
+    String dataURL = "https://jsonplaceholder.typicode.com/posts";
+    http.Response response = await http.get(dataURL);
+    setState(() {
+      widgets = JSON.decode(response.body);
+    });
+  }
+```
+
+HTTP的get请求返回值为`Future<String>`类型
+
+## Dart进程/线程机制--Isolates ##
 
 isolates	英['aɪsəleɪts]	使隔离;使分离;
 
-有时您可能需要处理大量数据，导致UI可能会挂起。
+Dart进程/线程机制，名叫isolate。
 
-在这种情况下，通过使用Isolates，可以利用多个CPU内核来执行耗时或计算密集型任务。
+APP的启动入口main函数就是一个isolate
 
-Isolates是一个独立的执行线程，它运行时不会与主线程共享任何内存。这意味着你不能从该线程访问变量或通过调用setState来更新你的UI。
+Isolates是一个独立的执行线程，线程之间无法直接共享内存，只能通过isolate API进行通信。所以子线程不能访问类变量或通过调用setState来更新UI。
 
-示例：**Isolate与主线程通信和共享数据以更新UI(带进度指示器)**
+示例：**Isolate与主线程通信共享数据更新UI(带进度指示器)**
 
-	import 'package:flutter/material.dart';
-	import 'dart:convert';
-	import 'package:http/http.dart' as http;
-	import 'dart:async';
-	import 'dart:isolate';
+```dart
+import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:isolate';
 
-	  getBodyChild() {
-	    if (widgets.length == 0) {
-	      return new Center(child: new CircularProgressIndicator());//LoadingDialog
-	    } else {
-	      return new ListView.builder(
-	          itemCount: widgets.length,
-	          itemBuilder: (BuildContext context, int position) {
-	            return getRow(position);
-	          });
-	    }
-	  }
+  getBodyChild() {
+    if (widgets.length == 0) {
+      return new Center(child: new CircularProgressIndicator());//LoadingDialog
+    } else {
+      return new ListView.builder(
+          itemCount: widgets.length,
+          itemBuilder: (BuildContext context, int position) {
+            return getRow(position);
+          });
+    }
+  }
 	
-	  Widget getRow(int i) {
-	    return new Padding(
-	        padding: new EdgeInsets.all(10.0),
-	        child: new Text("Row ${widgets[i]["title"]}")
-	    );
-	  }
+  Widget getRow(int i) {
+    return new Padding(
+        padding: new EdgeInsets.all(10.0),
+        child: new Text("Row ${widgets[i]["title"]}")
+    );
+  }
 	
-	  loadData() async {
-	    ReceivePort receivePort = new ReceivePort();
-	    await Isolate.spawn(dataLoader, receivePort.sendPort);
+  loadData() async {
+    ReceivePort receivePort = new ReceivePort();
+    await Isolate.spawn(dataLoader, receivePort.sendPort);
 	
-	    // The 'echo' isolate sends it's SendPort as the first message
-	    SendPort sendPort = await receivePort.first;
+    // The 'echo' isolate sends it's SendPort as the first message
+    SendPort sendPort = await receivePort.first;
 	
-	    List msg = await sendReceive(sendPort, "https://jsonplaceholder.typicode.com/posts");
+    List msg = await sendReceive(sendPort, "https://jsonplaceholder.typicode.com/posts");
 	
-	    setState(() {
-	      widgets = msg;
-	    });
-	  }
+    setState(() {
+      widgets = msg;
+    });
+  }
 	
-	// the entry point for the isolate
-	  static dataLoader(SendPort sendPort) async {
-	    // Open the ReceivePort for incoming messages.
-	    ReceivePort port = new ReceivePort();
+// the entry point for the isolate
+  static dataLoader(SendPort sendPort) async {
+    // Open the ReceivePort for incoming messages.
+    ReceivePort port = new ReceivePort();
 	
-	    // Notify any other isolates what port this isolate listens to.
-	    sendPort.send(port.sendPort);
+    // Notify any other isolates what port this isolate listens to.
+    sendPort.send(port.sendPort);
 	
-	    await for (var msg in port) {
-	      String data = msg[0];
-	      SendPort replyTo = msg[1];
+    await for (var msg in port) {
+      String data = msg[0];
+      SendPort replyTo = msg[1];
 	
-	      String dataURL = data;
-	      http.Response response = await http.get(dataURL);
-	      // Lots of JSON to parse
-	      replyTo.send(JSON.decode(response.body));
-	    }
-	  }
+      String dataURL = data;
+      http.Response response = await http.get(dataURL);
+      // Lots of JSON to parse
+      replyTo.send(JSON.decode(response.body));
+    }
+  }
 	
-	  Future sendReceive(SendPort port, msg) {
-	    ReceivePort response = new ReceivePort();
-	    port.send([msg, response.sendPort]);
-	    return response.first;
-	  }
+  Future sendReceive(SendPort port, msg) {
+    ReceivePort response = new ReceivePort();
+    port.send([msg, response.sendPort]);
+    return response.first;
+  }
+```
+
+## Future
+
+### 线程消息循环机制
+
+{% asset_img event-loop.png %}
+
+Dart线程中消息循环机制（event loop）有两个队列（event queue和microtask queue）
+
+- **event queue**
+	- 所有外来的事件都会先放入event queue中排队等待执行。
+		- 事件：I/O，mouse events，drawing events，timers，isolate之间的message等 
+	- 好比机场的公共排队大厅。
+- **microtask queue**
+	- 只在当前isolate的任务队列中排队
+	- 优先级高于event queue
+	- 好比机场里的某个VIP候机室，总是VIP用户先登机了，才开放公共排队入口。
+	- 实际提供了一种插队机制
+	- 当事件循环正在处理microtask的时候，event queue会被堵塞。这时候app就无法进行UI绘制，响应鼠标事件和I/O等事件
+	
+当main方法执行完毕退出后，event loop就会以FIFO(先进先出)的顺序执行microtask，当所有microtask执行完后它会从event queue中取事件并执行。如此反复，直到两个队列都为空
+
+### Future是event
+
+每创建一个Future就会把这个Future扔进event queue中排队等候安检~
+
+Http的get函数、RefreshIndicator的onRefresh函数是event。
+
+被await标记的句柄也是一个event
+
+
+### 为什么要用Future
+
+用async和await组合，即可向event queue中插入event实现异步操作
+
+为什么还要用Future呢？
+
+- 定义Flutter函数时，可以指定其运行结果**返回值类型**，以提高代码的**可读性**
+- 最主要的功能就是提供了**链式调用**
+	- 链式调用解决两大问题：明确代码执行的依赖关系和实现异常捕获
+
+实例代码
+
+```dart
+new Future.then(funA()).then(funB());   // 明确表现出了后者依赖前者设置的变量值
+ 
+  new Future.then(funA()).then((_) {new Future(funB())});    //还可以这样用
+
+  //链式调用，捕获异常
+  new Future.then(funA(),onError: (e) { handleError(e); }).then(funB(),onError: (e) { handleError(e); }) 
+```
 
 # Flutter packages #
 
