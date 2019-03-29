@@ -89,7 +89,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/05/07/Android/Android端架构_单Activity的View栈模式/framework.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/07/Android/Android端架构_单Activity的View栈模式/sequence.png">
-<meta property="og:updated_time" content="2018-12-28T07:12:41.862Z">
+<meta property="og:updated_time" content="2019-03-29T11:16:21.971Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android端架构_单Activity模式">
 <meta name="twitter:description" content="架构存在的必要本架构带来的好处是：  单Activity模式，脱离系统限制： Android界面之间的切换要依赖系统的Activity 切换过程和动画不可控制 一个界面的生命周期也无法掌握（做一个缓存都很困难） 界面之间的逻辑交互和信息传递麻烦且不清晰。     分层分责，更符合OOP原则： 可读性：划分层次，各司其职，清晰明了。 复用性：基础设施可以快速复用。 扩展性：隔离了业务逻辑和基础设施，">
@@ -398,9 +398,16 @@
 </ul>
 <h1 id="鸟瞰"><a href="#鸟瞰" class="headerlink" title="鸟瞰"></a>鸟瞰</h1><h2 id="核心类图"><a href="#核心类图" class="headerlink" title="核心类图"></a>核心类图</h2><img src="/2018/05/07/Android/Android端架构_单Activity的View栈模式/framework.png">
 <p>核心类BaseController，以它为中心所控制的各种Manager（UiManager、StateManager、UserManager、PersonManager），Manager也许会靠一些Service（NetService、StorageService、StatisticsService）支撑它。</p>
-<h2 id="Screen是如何添加到屏幕中的"><a href="#Screen是如何添加到屏幕中的" class="headerlink" title="Screen是如何添加到屏幕中的"></a>Screen是如何添加到屏幕中的</h2><pre><code>MainActivity.onCreate() --&gt; MainController.onCreate() --&gt; BaseStateManager.inTurnBackAllAndSetTopState()
---&gt; BaseState.handleForwardEnter() --&gt; StateMain.forwardEnter() --&gt; StateMain.showScreen()
---&gt; MainController.receiveCommand() --&gt; MainUiManager.receiveCommand() --&gt; BaseFrameView.pushScreen() 调用 BaseFrameView.this.addView(screen);
+<h2 id="Screen是如何添加到屏幕中的"><a href="#Screen是如何添加到屏幕中的" class="headerlink" title="Screen是如何添加到屏幕中的"></a>Screen是如何添加到屏幕中的</h2><pre><code>MainActivity.onCreate() 
+--&gt; MainController.onCreate() 
+--&gt; mStateManager.inTurnBackAllAndSetTopState(StateMain.getInstance(), null, null);
+--&gt; state.handleForwardEnter(mController, this, null, params, result);
+--&gt; StateMain.forwardEnter() 
+--&gt; StateMain.showScreen()
+--&gt; MainController.receiveCommand() 
+--&gt; MainUiManager.receiveCommand() 
+--&gt; mFrameView.pushScreen(screen);
+--&gt; BaseFrameView.this.addView(screen);
 </code></pre><p>MainController</p>
 <pre><code>private void confirmState() {
     mStateManager.inTurnBackAllAndSetTopState(StateMain.getInstance(), null, null);
@@ -861,7 +868,7 @@ public boolean receiveCommand(int commandId, IContainer params, IContainer resul
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">119</span>
+                  <span class="site-state-item-count">171</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -872,7 +879,7 @@ public boolean receiveCommand(int commandId, IContainer params, IContainer resul
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -883,7 +890,7 @@ public boolean receiveCommand(int commandId, IContainer params, IContainer resul
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">50</span>
+                  <span class="site-state-item-count">56</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -936,7 +943,7 @@ public boolean receiveCommand(int commandId, IContainer params, IContainer resul
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

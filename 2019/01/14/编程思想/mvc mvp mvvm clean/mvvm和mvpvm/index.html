@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="编程思想," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="MVVM    http://mp.weixin.qq.com/s?__biz=MzA4MjU5NTY0NA==&amp;amp;mid=401410759&amp;amp;idx=1&amp;amp;sn=89f0e3ddf9f21f6a5d4de4388ef2c32f#rd 教你认清MVC，MVP和MVVM http://android.jobbole.com/82942/ MVPVM in Action http:">
+<meta name="keywords" content="编程思想">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MVVM和MVPVM">
+<meta property="og:url" content="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/mvvm和mvpvm/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="MVVM    http://mp.weixin.qq.com/s?__biz=MzA4MjU5NTY0NA==&amp;amp;mid=401410759&amp;amp;idx=1&amp;amp;sn=89f0e3ddf9f21f6a5d4de4388ef2c32f#rd 教你认清MVC，MVP和MVVM http://android.jobbole.com/82942/ MVPVM in Action http:">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-03-29T11:16:22.079Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MVVM和MVPVM">
+<meta name="twitter:description" content="MVVM    http://mp.weixin.qq.com/s?__biz=MzA4MjU5NTY0NA==&amp;amp;mid=401410759&amp;amp;idx=1&amp;amp;sn=89f0e3ddf9f21f6a5d4de4388ef2c32f#rd 教你认清MVC，MVP和MVVM http://android.jobbole.com/82942/ MVPVM in Action http:">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/mvvm和mvpvm/"/>
+
+
+
+
+
+  <title>MVVM和MVPVM | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/mvvm和mvpvm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">MVVM和MVPVM</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:10:56+08:00">
+                2019-01-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程思想/" itemprop="url" rel="index">
+                    <span itemprop="name">编程思想</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <pre><code>MVVM    http://mp.weixin.qq.com/s?__biz=MzA4MjU5NTY0NA==&amp;mid=401410759&amp;idx=1&amp;sn=89f0e3ddf9f21f6a5d4de4388ef2c32f#rd
+教你认清MVC，MVP和MVVM http://android.jobbole.com/82942/
+MVPVM in Action http://blog.zhaiyifan.cn/2016/03/16/android-new-project-from-0-p3/
+官方文档 http://developer.android.com/intl/zh-cn/tools/data-binding/guide.html
+</code></pre><p>mvvm解决的问题就是我们开发中 findViewById 手工设置view数据。关键技术是 <strong>数据绑定框</strong>架（Data Binding Library）。其他的跟mvc模型一样，存在Activity兼具V和C，导致代码过重。</p>
+<p>Google的数据绑定框架（Data Binding Library）其语法和使用方式和 JSP 中的 EL 表达式非常类似,而且提供丰富的扩展功能</p>
+<h2 id="Data-Binding-Library"><a href="#Data-Binding-Library" class="headerlink" title="Data Binding Library"></a>Data Binding Library</h2><p><strong>配置环境</strong></p>
+<pre><code>Gradle 1.3.0-betal 1 以上
+Android Studio 1.3 以上
+更新 Android Support repository
+更新 Android Support library
+</code></pre><p>Android Studio 2.0 已经内置了该框架的支持，app目录（module目录）下的build.gradle文件，添加下面的内容</p>
+<pre><code>android {
+    ....
+    dataBinding {
+        enabled = true
+    }
+}
+</code></pre><p><strong>布局layou文件，&lt; layout&gt;&lt; data&gt;&lt; variable&gt;，绑定数据和事件</strong></p>
+<pre><code>&lt;layout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;&gt;
+
+    &lt;data&gt;
+        &lt;variable
+            name=&quot;user&quot;
+            type=&quot;com.example.testbind.User&quot;/&gt;
+        &lt;variable
+            name=&quot;handlers&quot;
+            type=&quot;com.example.testbind.Handlers&quot;/&gt;
+    &lt;/data&gt;
+
+    &lt;RelativeLayout
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot;
+        android:paddingBottom=&quot;@dimen/activity_vertical_margin&quot;
+        android:paddingLeft=&quot;@dimen/activity_horizontal_margin&quot;
+        android:paddingRight=&quot;@dimen/activity_horizontal_margin&quot;
+        android:paddingTop=&quot;@dimen/activity_vertical_margin&quot;
+        tools:context=&quot;com.example.testbind.MainActivity&quot;&gt;
+        &lt;TextView
+            android:layout_width=&quot;wrap_content&quot;
+            android:layout_height=&quot;wrap_content&quot;
+            android:text=&quot;@{user.name}&quot; //private name 也可以这样写，只有User类符合javaBean规范
+            android:onClick=&quot;@{handlers.onClick}&quot; /&gt;  //函数也是不用()的
+    &lt;/RelativeLayout&gt;
+&lt;/layout&gt;
+</code></pre><p><strong>自定义Class（VM）</strong></p>
+<pre><code>public class User extends BaseObservable {
+    private String name;
+    @Bindable   
+    public String getName() {//get方法有@Bindable，编译阶段会生成BR.[property name]。另外xml&lt; variable&gt;定义的变量也会生成BR.[property name]。
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+        notifyPropertyChanged(BR.name);
+    }
+}
+public interface Handlers {
+    public void onClick(View view); //必须和onClick方法签名一致
+}
+</code></pre><p><strong>Activity文件中，DataBindingUtil绑定V和VM</strong></p>
+<pre><code>protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+    final User user = new User();
+    user.setName(&quot;lili&quot;);
+    binding.setUser(user);
+    binding.setHandlers(new Handlers() {
+        @Override
+        public void onClick(View view) {
+            Toast.makeText(MainActivity.this,&quot;hh&quot;,Toast.LENGTH_SHORT).show();
+            user.setName(&quot;haha&quot;);
+        }
+    });
+}
+</code></pre><p><strong>通过id找view</strong></p>
+<p>databinding会自动为定义了id的view生成binding成员变量，使用非常方便。</p>
+<pre><code>&lt;EditText
+    android:id=&quot;@+id/etPhone&quot; ...
+&lt;EditText
+        android:id=&quot;@+id/et_phone&quot; ...
+都会生成在binding类中生成etPhone变量（驼峰命名，xml即使有snake命名也会替换成驼峰命名）
+    private LoginActivityBinding binding;
+    binding.etPhone.getText().toString();
+</code></pre><h2 id="更新界面"><a href="#更新界面" class="headerlink" title="更新界面"></a>更新界面</h2><p><strong>方案一、数据类继承BaseObservable，调用notifyPropertyChanged</strong></p>
+<p><strong>数据类继承BaseObservable</strong>，然后通过<strong>调用notifyPropertyChanged</strong>方法来通知界面属性改变</p>
+<p>在需要通知的属性的get方法上加上@Bindable，这样编译阶段会生成BR.[property name]，然后使用这个调用<strong>notifyPropertyChanged</strong>()就可以通知界面刷新了（<strong>一般封装在set方法中，这样调用set方法就能刷新界面了</strong>。参照上例）。</p>
+<p>如果你的数据绑定类不能继承BaseObservable，那你就只能自己实现Observable接口，可以参考BaseObservable的实现。</p>
+<p><strong>方案二、ObservableField，调用ObservableField的set方法</strong></p>
+<p>Data Binding Library提供了便利类ObservableField, ObservableBoolean, ObservableByte, ObservableChar, ObservableShort, ObservableInt, ObservableLong, ObservableFloat, ObservableDouble, 和 ObservableParcelable，基本上涵盖了各种我们需要的类型。<strong>调用ObservableField的set方法</strong>时，Data Binding Library就会自动的帮我们通知界面刷新了</p>
+<pre><code>public class User {
+    private ObservableField&lt;String&gt; name; //ObservableField
+    public ObservableField&lt;String&gt; getName() {
+        return name;
+    }
+    public void setName(ObservableField&lt;String&gt; name) {
+        this.name = name;
+    }
+}
+
+ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+User user = new User();
+final ObservableField&lt;String&gt;  name = new ObservableField&lt;String&gt;(); //有set和get方法
+name.set(&quot;lili&quot;);
+user.setName(name);
+binding.setUser(user);
+binding.setHandlers(new Handlers() {
+    @Override
+    public void onClick(View view) {
+        Toast.makeText(MainActivity.this,&quot;hh&quot;,Toast.LENGTH_SHORT).show();
+       name.set(&quot;hahaha&quot;); //调用ObservableField的set方法，自动更新界面
+    }
+});
+</code></pre><h2 id="绑定AdapterView-–-binding-collection-adapter"><a href="#绑定AdapterView-–-binding-collection-adapter" class="headerlink" title="绑定AdapterView – binding-collection-adapter"></a>绑定AdapterView – binding-collection-adapter</h2><p>使用官方API进行AdapterView绑定不方便，下面就来介绍一个比较好用的库binding-collection-adapter</p>
+<pre><code>Github地址：https://github.com/evant/binding-collection-adapter
+</code></pre><p><code>build.gradle</code>文件(module目录下）里面dependencies添加</p>
+<pre><code>compile &apos;me.tatarka:bindingcollectionadapter:0.16&apos; 
+如果你要是用RecyclerView，还需要添加
+compile &apos;me.tatarka:bindingcollectionadapter-recyclerview:0.16&apos;
+</code></pre><p><strong>item 布局文件（必须先建，因为Activity布局文件需要ViewModel，ViewModel需要item布局文件）</strong></p>
+<pre><code>&lt;layout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;&gt;
+    &lt;data&gt;
+        &lt;variable name=&quot;item&quot; type=&quot;String&quot;/&gt;
+    &lt;/data&gt;
+    &lt;TextView
+        android:id=&quot;@+id/text&quot;
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:text=&quot;@{item}&quot;/&gt;
+&lt;/layout&gt;
+</code></pre><p><strong>ViewModel文件</strong></p>
+<pre><code>public class ViewModel {
+  public final ObservableList&lt;String&gt; items = new ObservableArrayList&lt;&gt;();
+  public final ItemView itemView = ItemView.of(com.example.bindadapter.BR.item, R.layout.item);
+}
+</code></pre><p><strong>Activity布局文件 – app:items、app:itemView、app:layoutManager</strong></p>
+<p>Then bind it to the collection view with <code>app:items</code> and <code>app:itemView</code>. There are also some convience factories to attach a LayoutManager to a RecyclerView with <code>app:layoutManager</code>.</p>
+<pre><code>&lt;layout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;&gt;
+    &lt;data&gt;
+      &lt;variable name=&quot;viewModel&quot; type=&quot;com.example.ViewModel&quot;/&gt; 
+      &lt;import type=&quot;me.tatarka.bindingcollectionadapter.LayoutManagers&quot; /&gt; //RecyclerView需要
+    &lt;/data&gt;
+
+    &lt;ListView
+      android:layout_width=&quot;match_parent&quot;
+      android:layout_height=&quot;match_parent&quot;
+      app:items=&quot;@{viewModel.items}&quot;
+      app:itemView=&quot;@{viewModel.itemView}&quot;/&gt;
+
+    &lt;android.support.v7.widget.RecyclerView
+      android:layout_width=&quot;match_parent&quot;
+      android:layout_height=&quot;match_parent&quot;
+      app:layoutManager=&quot;@{LayoutManagers.linear()}&quot;
+      app:items=&quot;@{viewModel.items}&quot;
+      app:itemView=&quot;@{viewModel.itemView}&quot;/&gt;
+
+    &lt;android.support.v4.view.ViewPager
+      android:layout_width=&quot;match_parent&quot;
+      android:layout_height=&quot;match_parent&quot;
+      app:items=&quot;@{viewModel.items}&quot;
+      app:itemView=&quot;@{viewModel.itemView}&quot;/&gt;
+
+    &lt;Spinner
+      android:layout_width=&quot;match_parent&quot;
+      android:layout_height=&quot;match_parent&quot;
+      app:items=&quot;@{viewModel.items}&quot;
+      app:itemView=&quot;@{viewModel.itemView}&quot;
+      app:dropDownItemView=&quot;@{viewModel.dropDownItemView}&quot;/&gt;
+&lt;/layout&gt;
+</code></pre><p><strong>Activity文件</strong></p>
+<pre><code>ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+ViewModel viewModel = new ViewModel();
+binding.setViewModel(viewModel);
+for (int i = 0; i &lt; 20; i++) {
+    viewModel.items.add(&quot;&quot; + i);//自动刷新界面20次
+}
+</code></pre><h2 id="Multiple-View-Types"><a href="#Multiple-View-Types" class="headerlink" title="Multiple View Types"></a>Multiple View Types</h2><p>多种样式的布局，那么就需要把<code>ItemView</code>换成<code>ItemViewSelector</code></p>
+<pre><code>public final ItemViewSelector&lt;String&gt; itemView = new BaseItemViewSelector&lt;String&gt;() {
+    @Override
+    public void select(ItemView itemView, int position, String item) {
+        itemView.set(BR.item, position == 0 ? R.layout.item_header : R.layout.item);
+    }
+    @Override
+    public int viewTypeCount() {
+      return 2;
+    }
+};
+</code></pre><ul>
+<li><p>select方法会被多次重复调用，不要处理复杂逻辑</p>
+</li>
+<li><p>viewTypeCount方法仅ListView需要复写，RecyclerView 和 ViewPager 不需要</p>
+</li>
+<li><p>不需要绑定变量到itemView布局中（如静态header/footer等），可以使用 <code>ItemView.BINDING_VARIABLE_NONE</code> 做绑定变量</p>
+</li>
+</ul>
+<h2 id="自定义属性绑定-–-绑定ListView-EmptyView"><a href="#自定义属性绑定-–-绑定ListView-EmptyView" class="headerlink" title="自定义属性绑定 – 绑定ListView EmptyView"></a>自定义属性绑定 – 绑定ListView EmptyView</h2><p>正常情况下，Data Binding Library会根据属性名去找对应的set/get方法。如上面的android:text=”@{user.name}”、app:items=”@{viewModel.items}”。</p>
+<p>但是我们有时候需要自定义一些属性，Data Binding Library也提供了很便利的方法让我们来实现。比如我们想在layout文件里面设置ListView的emptyView</p>
+<p><strong>Activity布局文件</strong></p>
+<pre><code>&lt;layout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;&gt;
+    &lt;data&gt;
+        &lt;variable
+            name=&quot;viewModel&quot;
+            type=&quot;com.example.databinding.viewmodel.ViewAlbumsViewModel&quot;/&gt;
+    &lt;/data&gt;
+    &lt;LinearLayout
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;match_parent&quot;
+        android:paddingLeft=&quot;10dp&quot;
+        android:paddingRight=&quot;10dp&quot;
+        android:orientation=&quot;vertical&quot;&gt;
+        &lt;ListView
+            android:layout_width=&quot;fill_parent&quot;
+            android:layout_height=&quot;0px&quot;
+            android:layout_weight=&quot;1.0&quot;
+            app:items=&quot;@{viewModel.albums}&quot;
+            app:itemView=&quot;@{viewModel.itemView}&quot;
+            app:emptyView=&quot;@{@id/empty_view}&quot; //引用了下面定义的TextView。注意这种引用方法
+            android:onItemClick=&quot;@{viewModel.viewAlbum}&quot;
+            android:id=&quot;@+id/albumListView&quot;/&gt;
+        &lt;TextView
+            android:id=&quot;@+id/empty_view&quot; //EmptyView，定义了id
+            android:layout_width=&quot;fill_parent&quot;
+            android:layout_height=&quot;0px&quot;
+            android:layout_weight=&quot;1.0&quot;
+            android:gravity=&quot;center&quot;
+            android:text=&quot;@string/albums_list_empty&quot; /&gt;
+    &lt;/LinearLayout&gt;
+&lt;/layout&gt;
+</code></pre><p><strong>实现代码</strong></p>
+<pre><code>@BindingAdapter(&quot;emptyView&quot;)
+public static &lt;T&gt; void setEmptyView(AdapterView adapterView, int viewId) {
+    View rootView = adapterView.getRootView();
+    View emptyView = rootView.findViewById(viewId);
+    if (emptyView != null) {
+        adapterView.setEmptyView(emptyView);
+    }
+}
+</code></pre><p>第二个参数int viewId就是app:emptyView属性传进来的值，上面的layout可以看出来它就是R.id.empty_view，然后通过id找到控件，然后调用AdapterView原始的setEmptyView来设置</p>
+<h2 id="标准MVVM实例"><a href="#标准MVVM实例" class="headerlink" title="标准MVVM实例"></a>标准MVVM实例</h2><pre><code>MVVM设计模式及实例--查询 IP 地址归属地 https://github.com/celesteshire/MVVMDemo
+</code></pre><p><strong>XML</strong></p>
+<pre><code>&lt;layout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;
+  &lt;data&gt;
+    &lt;variable
+        name=&quot;viewModel&quot;
+        type=&quot;com.shire.mvvmdemo.viewModel.MainViewModel&quot;
+        /&gt;
+  &lt;/data&gt;
+  &lt;RelativeLayout
+      android:layout_width=&quot;match_parent&quot;
+      android:layout_height=&quot;match_parent&quot;
+      android:paddingBottom=&quot;@dimen/activity_vertical_margin&quot;
+      android:paddingLeft=&quot;@dimen/activity_horizontal_margin&quot;
+      android:paddingRight=&quot;@dimen/activity_horizontal_margin&quot;
+      android:paddingTop=&quot;@dimen/activity_vertical_margin&quot;
+      &gt;
+
+    &lt;EditText
+        android:id=&quot;@+id/et_ip&quot;
+        android:layout_width=&quot;200dp&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:hint=&quot;IP地址&quot;
+        /&gt;
+    &lt;Button
+        android:id=&quot;@+id/btn_search&quot;
+        android:layout_width=&quot;200dp&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_toRightOf=&quot;@id/et_ip&quot;
+        android:onClick=&quot;@{viewModel.search}&quot;
+        android:text=&quot;查询&quot;
+        /&gt;
+    &lt;TextView
+        android:id=&quot;@+id/tv_msg&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_below=&quot;@id/et_ip&quot;
+        /&gt;
+    &lt;ProgressBar
+        android:id=&quot;@+id/pb_load&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;
+        android:layout_below=&quot;@id/btn_search&quot;
+        android:layout_toLeftOf=&quot;@id/btn_search&quot;
+        android:visibility=&quot;gone&quot;
+        style=&quot;?android:attr/progressBarStyleSmall&quot;
+        /&gt;
+  &lt;/RelativeLayout&gt;
+&lt;/layout&gt;
+</code></pre><p><strong>M</strong></p>
+<pre><code>public class SearchModel {
+    public void getIPaddressInfo(final String ipAddress, final onSearchListener onSearchListener) {
+    ...
+}
+
+public interface onSearchListener {
+  void onSuccess(IPAddress ipAddress);
+  void onError();
+}
+</code></pre><p><strong>VM</strong></p>
+<pre><code>public  class MainViewModel implements onSearchListener {
+  private ActivityMainBinding binding;
+  private SearchModel searchModel = new SearchModel();
+  private Handler handler;
+
+  public MainViewModel(ActivityMainBinding binding) {
+    this.binding = binding;
+    handler = new Handler(Looper.getMainLooper());
+  }
+
+  public void search(View view) {
+    binding.pbLoad.setVisibility(View.VISIBLE);
+    searchModel.getIPaddressInfo(binding.etIp.getText().toString().trim(), this);
+  }
+
+  @Override public void onSuccess(final IPAddress ipAddress) {
+    handler.post(new Runnable() {
+      @Override public void run() {
+        binding.pbLoad.setVisibility(View.GONE);
+        binding.tvMsg.setText(ipAddress.toString());
+      }
+    });
+  }
+
+  @Override public void onError() {
+    handler.post(new Runnable() {
+      @Override public void run() {
+        binding.pbLoad.setVisibility(View.GONE);
+        binding.tvMsg.setText(&quot;查询失败&quot;);
+      }
+    });
+  }
+}
+</code></pre><p><strong>VM中不能持有Context对象（否则死的很惨）。解决方案是：持有View的引用，事件总线机制框架EvenBus之类</strong></p>
+<pre><code>再见Presenter，你好ViewModel http://www.apkbus.com/thread-245056-1-1.html
+AndroidViewModel框架 https://github.com/inloop/AndroidViewModel
+</code></pre><p><strong>Activity</strong></p>
+<pre><code>ActivityMainBinding binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+binding.setViewModel(new MainViewModel(binding));
+</code></pre><h2 id="MVP-MVVM-不足"><a href="#MVP-MVVM-不足" class="headerlink" title="MVP MVVM 不足"></a>MVP MVVM 不足</h2><p><strong>MVP</strong></p>
+<p>MVP的问题在于，使用接口去连接view层和presenter层，这就导致一个逻辑复杂的页面，接口会有很多，十几二十个都不足为奇。维护接口的成本就会非常的大。</p>
+<p>这个问题的解决方案就是你得根据自己的业务逻辑去斟酌着写接口。你可以定义一些基类接口，把一些公共的逻辑，比如网络请求成功失败，toast等等放在里面，之后你再定义新的接口的时候可以继承自那些基类，这样会好不少。</p>
+<p><strong>MVVM</strong></p>
+<p>MVVM的问题呢，其实和MVC有一点像。data binding框架解决了数据绑定的问题，但是ViewModel引用了View，从而导致ViewModel无法重用于其他View，view层还是会过重。（最上面的例子中，Activity中实现VM，VM有Activity引用）</p>
+<h2 id="mvpvm"><a href="#mvpvm" class="headerlink" title="mvpvm"></a>mvpvm</h2><pre><code>https://github.com/googlesamples/android-architecture/tree/todo-databinding
+</code></pre><p>View数据绑定VM，View事件绑定Presenter。</p>
+<pre><code>&lt;data&gt;
+    &lt;variable
+        name=&quot;task&quot;
+        type=&quot;com.example.android.architecture.blueprints.todoapp.data.Task&quot; /&gt;
+
+    &lt;variable
+        name=&quot;presenter&quot;
+        type=&quot;com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailContract.Presenter&quot; /&gt;
+&lt;/data&gt;
+</code></pre><p><strong>MVPVM: Model</strong></p>
+<p>domain logic在这层</p>
+<p><strong>MVPVM: View</strong></p>
+<p>View对ViewModel不需要了解太多，这样才能保持两者的解耦，两者之间的协议只需要：</p>
+<pre><code>ViewModel支持View需要展示的properties。
+View实现了ViewModel的观察者模式接口（如Listener）。
+</code></pre><p>所以这里ViewModel到View是一条虚线，而不是MVVM中的双向实线</p>
+<p><strong>MVPVM: Presenter</strong></p>
+<p>Presenter到ViewModel是有耦合的，因为Presenter需要把model更新到ViewModel中，也就是map行为，然后调用View的对应接口进行binding。</p>
+<p>Presenter是MVPVM中唯一不需要解耦的，它紧紧地与View、ViewModel、Model层耦合。如果你的Presenter被多个View重用了，那你可能需要考虑它是不是更应该作为一个module，比如（第三方）登陆。</p>
+<p><strong>MVPVM: ViewModel</strong></p>
+<p>大部分ViewModel一般没有field，而是通过暴露get方法来让data binding找到对应要显示的property，get方法中直接调用持有的model的对应属性get方法</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/编程思想/" rel="tag"><i class="fa fa-tag"></i> 编程思想</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/14/编程思想/mvc mvp mvvm clean/mvvm 布局嵌套 databinding/" rel="next" title="MVVM布局嵌套dataBinding">
+                <i class="fa fa-chevron-left"></i> MVVM布局嵌套dataBinding
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/14/编程思想/mvc mvp mvvm clean/mvvm databinding xml 常用表达式/" rel="prev" title="MVVM dataBinding 常用表达式">
+                MVVM dataBinding 常用表达式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">171</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Data-Binding-Library"><span class="nav-number">1.</span> <span class="nav-text">Data Binding Library</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更新界面"><span class="nav-number">2.</span> <span class="nav-text">更新界面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绑定AdapterView-–-binding-collection-adapter"><span class="nav-number">3.</span> <span class="nav-text">绑定AdapterView – binding-collection-adapter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Multiple-View-Types"><span class="nav-number">4.</span> <span class="nav-text">Multiple View Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义属性绑定-–-绑定ListView-EmptyView"><span class="nav-number">5.</span> <span class="nav-text">自定义属性绑定 – 绑定ListView EmptyView</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#标准MVVM实例"><span class="nav-number">6.</span> <span class="nav-text">标准MVVM实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MVP-MVVM-不足"><span class="nav-number">7.</span> <span class="nav-text">MVP MVVM 不足</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mvpvm"><span class="nav-number">8.</span> <span class="nav-text">mvpvm</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

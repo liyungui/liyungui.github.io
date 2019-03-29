@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="风">
 <meta property="og:description" content="方法一:view.getDrawingCache()适用于View显示在界面上的情况。可以被完全遮挡住，只要android:visibility=”visible”就可以 public Bitmap convertViewToBitmap(View view){      view.setDrawingCacheEnabled(true); ////启用DrawingCache      view">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-12-28T07:12:41.910Z">
+<meta property="og:updated_time" content="2019-03-29T11:16:22.047Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="View转为Bitmap">
 <meta name="twitter:description" content="方法一:view.getDrawingCache()适用于View显示在界面上的情况。可以被完全遮挡住，只要android:visibility=”visible”就可以 public Bitmap convertViewToBitmap(View view){      view.setDrawingCacheEnabled(true); ////启用DrawingCache      view">
@@ -365,7 +365,15 @@
     view.draw(canvas);  
     return bitmap;  
 }
-</code></pre><h2 id="View没有显示在界面上的情况"><a href="#View没有显示在界面上的情况" class="headerlink" title="View没有显示在界面上的情况"></a>View没有显示在界面上的情况</h2><p>通过java代码创建的或者inflate创建的View，是获取不到Bitmap的。</p>
+
+public static Bitmap loadBitmapFromView(View v) {
+ Bitmap b = Bitmap.createBitmap( v.getLayoutParams().width, v.getLayoutParams().height, Bitmap.Config.ARGB_8888);                
+ Canvas c = new Canvas(b);
+ v.layout(0, 0, v.getLayoutParams().width, v.getLayoutParams().height);
+ v.draw(c);
+ return b;
+</code></pre><p>}</p>
+<h2 id="View没有显示在界面上的情况"><a href="#View没有显示在界面上的情况" class="headerlink" title="View没有显示在界面上的情况"></a>View没有显示在界面上的情况</h2><p>通过java代码创建的或者inflate创建的View，是获取不到Bitmap的。</p>
 <p>因为View在添加到容器中之前并没有得到实际的大小，需要先指定View的大小</p>
 <pre><code>public static Bitmap convertViewToBitmap(View view) {  
     layoutView(view);//必须measure和layout。否则宽高都为0，报错 java.lang.IllegalArgumentException: width and height must be &gt; 0
@@ -513,7 +521,7 @@ private void layoutView(View v) {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">119</span>
+                  <span class="site-state-item-count">171</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -524,7 +532,7 @@ private void layoutView(View v) {
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -535,7 +543,7 @@ private void layoutView(View v) {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">50</span>
+                  <span class="site-state-item-count">56</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -588,7 +596,7 @@ private void layoutView(View v) {
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

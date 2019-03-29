@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Java," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="注释是给人看的提示信息 注解是给程序看的提示信息  注解就像程序中的一个小标记,我们可以根据有没有这个标记,有这个标记属性的值是什么,来控制我们程序进行不同的处理 注解3种基本类型a.标记注释    --没有变量，只有名称标识。例如 @annotation b.单一值注释  --在标记注释的基础上提供一段数据。如 @annotation(&amp;quot;data&amp;quot;)">
+<meta name="keywords" content="Java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="注解">
+<meta property="og:url" content="http://yoursite.com/2019/03/27/java基础/注解/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="注释是给人看的提示信息 注解是给程序看的提示信息  注解就像程序中的一个小标记,我们可以根据有没有这个标记,有这个标记属性的值是什么,来控制我们程序进行不同的处理 注解3种基本类型a.标记注释    --没有变量，只有名称标识。例如 @annotation b.单一值注释  --在标记注释的基础上提供一段数据。如 @annotation(&amp;quot;data&amp;quot;)">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-03-29T11:16:22.067Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="注解">
+<meta name="twitter:description" content="注释是给人看的提示信息 注解是给程序看的提示信息  注解就像程序中的一个小标记,我们可以根据有没有这个标记,有这个标记属性的值是什么,来控制我们程序进行不同的处理 注解3种基本类型a.标记注释    --没有变量，只有名称标识。例如 @annotation b.单一值注释  --在标记注释的基础上提供一段数据。如 @annotation(&amp;quot;data&amp;quot;)">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/03/27/java基础/注解/"/>
+
+
+
+
+
+  <title>注解 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/注解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">注解</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:45:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <ul>
+<li>注释是给人看的提示信息</li>
+<li>注解是给程序看的提示信息</li>
+</ul>
+<p>注解就像程序中的一个小标记,我们可以根据有没有这个标记,有这个标记属性的值是什么,来控制我们程序进行不同的处理</p>
+<h2 id="注解3种基本类型"><a href="#注解3种基本类型" class="headerlink" title="注解3种基本类型"></a>注解3种基本类型</h2><pre><code>a.标记注释    --没有变量，只有名称标识。例如 @annotation
+b.单一值注释  --在标记注释的基础上提供一段数据。如 @annotation(&quot;data&quot;)
+                只需设置一个属性值（只有一个属性，或者其他属性都有默认值），使用时可省略属性名
+c.完整注释    --可以包括多个数据成员，每个数据成员由名称和值构成。 @annotation(val1=&quot;data1&quot;,val2=&quot;data2&quot;)
+</code></pre><p>java定义的一些注解:</p>
+<pre><code>@Override: 限定重写父类方法, 该注解只能用于方法
+@Deprecated: 用于表示某个程序元素(类, 方法等)已过时
+@SuppressWarnings: 抑制编译器警告. 
+</code></pre><h2 id="自定义注解-interface"><a href="#自定义注解-interface" class="headerlink" title="自定义注解 @interface"></a>自定义注解 @interface</h2><p><strong>定义属性</strong></p>
+<ul>
+<li>在自定义注解中声明属性,像接口中定义方法</li>
+<li>可以通过default关键字来声明默认值</li>
+<li>属性的类型必须是:<ul>
+<li>String</li>
+<li>八种基本类型</li>
+<li>枚举类型</li>
+<li>其他注解类型</li>
+<li>Class类型</li>
+<li>这些类型的一维数组</li>
+</ul>
+</li>
+</ul>
+<p><strong>赋值属性</strong></p>
+<p>如果注解中只有一个属性且属性名value需要被赋值,赋值时 value= 可以被省略,直接给值即可</p>
+<p><strong>元注解修饰</strong></p>
+<pre><code>@Retention: 用于指定该 Annotation 可以保留的域, 
+    RetentionPolicy.SOURCE: 编译器直接丢弃这种策略的注释
+        @Override、@SuppressWarnings等，这类注解就是用于标识，可以用作一些检验
+    RetentionPolicy.CLASS: 编译器将把注解记录在 class 文件中. 当运行 Java 程序时, JVM 不会保留注解. 这是默认值
+        在编译时根据注解标识，动态生成一些类或者生成一些xml。因为没有反射，效率和直接调用方法没什么区别
+        使用这类注解的项目有：ParcelableGenerator、butterknife 、androidAnnotaion等。
+    RetentionPolicy.RUNTIME:编译器将把注释记录在 class 文件中. 当运行 Java 程序时, JVM 会保留注解. 程序可以通过反射获取该注释
+        见得最多，在运行时拿到类的Class对象，然后遍历其方法、变量，判断有无注解声明，然后做一些事情
+@Target：指定注解用于什么地方. ElementType[]
+    public enum ElementType { 
+        TYPE, //Class, interface or enum declaration. 
+        FIELD, //Field declaration. 
+        METHOD, //Method declaration. 
+        PARAMETER, //Parameter declaration. 
+        CONSTRUCTOR, //Constructor declaration. 
+        LOCAL_VARIABLE, //Local variable declaration. 
+        ANNOTATION_TYPE, //Annotation type declaration. PACKAGE //Package declaration.
+    }
+@Documented: 被该元修饰的 Annotation 类将被 javadoc 工具提取成文档.
+@Inherited: 被它修饰的 Annotation 将具有继承性.如果某个类使用了被 @Inherited 修饰的 Annotation, 则其子类将自动具有该注解
+</code></pre><p><strong>实例</strong> 遍历类中声明的所有属性，找到存在ViewInject注解的属性并获取其value，然后去调用findViewById方法，最后把值设置给field</p>
+<pre><code>@Target(ElementType.FIELD)  
+@Retention(RetentionPolicy.RUNTIME)  
+public @interface ViewInject  
+{  
+    int value();  
+    int parentId() default 0;  
+}
+
+private static void injectViews(Activity activity) {  
+    Class&lt;? extends Activity&gt; clazz = activity.getClass();  
+    Field[] fields = clazz.getDeclaredFields();  
+    // 遍历所有成员变量  
+    for (Field field : fields)  
+    {   
+        ViewInject viewInjectAnnotation = field.getAnnotation(ViewInject.class);  
+        if (viewInjectAnnotation != null){  
+            int viewId = viewInjectAnnotation.value();  
+            if (viewId != -1){  
+                Log.e(&quot;TAG&quot;, viewId+&quot;&quot;);  
+                // 初始化View  
+                try {  
+                    Method method = clazz.getMethod(&quot;findViewById&quot;, int.class);  
+                    Object resView = method.invoke(activity, viewId);  
+                    field.setAccessible(true);  
+                    field.set(activity, resView);  
+                } catch (Exception e) {  
+                    e.printStackTrace();  
+                }  
+            }  
+        }  
+    }            
+} 
+</code></pre><p>(3)反射注解<br>    sun定义了 AnnotatedElement 接口,在这个几口中定义了反射注解的api,而Class Field Method Constructor Package … 都实现了这个接口,具有这些api<br>        getAnnotation(Class<t> annotationClass)<br>        isAnnotationPresent(Class&lt;? extends Annotation&gt; annotationClass) </t></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/03/27/java基础/线程锁/" rel="next" title="线程锁">
+                <i class="fa fa-chevron-left"></i> 线程锁
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/27/java基础/enum 使用的副本/" rel="prev" title="enum使用">
+                enum使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">171</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#注解3种基本类型"><span class="nav-number">1.</span> <span class="nav-text">注解3种基本类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义注解-interface"><span class="nav-number">2.</span> <span class="nav-text">自定义注解 @interface</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

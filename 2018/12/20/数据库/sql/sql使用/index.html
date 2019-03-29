@@ -89,7 +89,7 @@
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/12/20/数据库/sql/sql使用/外键.png">
 <meta property="og:image" content="http://yoursite.com/2018/12/20/数据库/sql/sql使用/多表设计.png">
-<meta property="og:updated_time" content="2018-12-28T07:12:41.926Z">
+<meta property="og:updated_time" content="2019-03-29T11:16:22.071Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="SQL使用">
 <meta name="twitter:description" content="SQLStructured Query Language, 结构化查询语言 操作 关系型数据库（用表存储数据）的 标准 非过程性语言。 为加强SQL的语言能力，各厂商在实现标准中增加了过程性语言的特征。如Oracle的PL/SQL 过程性处理能力，SQL Server、Sybase的T-SQL 语法不区分大小写。推荐关键字大写，自定义的小写 每条语句以分号结尾 注释符号是 # 数据库服务器–数据库">
@@ -365,14 +365,24 @@
 <p>一般一个工程项目对应一个数据库，一个JavaBean对应一个表。</p>
 <p>元数据：数据库，表，列的定义信息</p>
 <h2 id="数据库服务器–mysql"><a href="#数据库服务器–mysql" class="headerlink" title="数据库服务器–mysql"></a>数据库服务器–mysql</h2><p>要特别注意连接，备份命令是在cmd窗口执行，要注意和sql语句区分，是没有分号的。特别注意！！</p>
-<ol>
-<li><p>连接mysql数据库服务器</p>
-<p> mysql -u root -p</p>
-</li>
-<li><p>备份与恢复数据库</p>
-</li>
-</ol>
-<ul>
+<h3 id="CentOS安装MySQL"><a href="#CentOS安装MySQL" class="headerlink" title="CentOS安装MySQL"></a>CentOS安装MySQL</h3><p>CentOS 7上把MySQL从默认软件列表中移除了，用MariaDB来代替，所以我们必须要去官网上进行下载</p>
+<pre><code>wget http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm 
+
+rpm -ivh mysql-community-release-el7-5.noarch.rpm
+
+yum -y install mysql mysql-server mysql-devel
+</code></pre><h3 id="启动MySQL"><a href="#启动MySQL" class="headerlink" title="启动MySQL"></a>启动MySQL</h3><pre><code>service mysqld start
+</code></pre><h3 id="设置MySQL数据库服务器密码"><a href="#设置MySQL数据库服务器密码" class="headerlink" title="设置MySQL数据库服务器密码"></a>设置MySQL数据库服务器密码</h3><pre><code>mysqladmin -u root password dbroot@quanlist2018
+</code></pre><h3 id="连接MySQL数据库服务器"><a href="#连接MySQL数据库服务器" class="headerlink" title="连接MySQL数据库服务器"></a>连接MySQL数据库服务器</h3><pre><code>mysql -u root -p
+密码默认为空
+</code></pre><h3 id="允许用户远程连接"><a href="#允许用户远程连接" class="headerlink" title="允许用户远程连接"></a>允许用户远程连接</h3><p>登录MySQL后</p>
+<pre><code>grant all privileges on *.* to &apos;root&apos;@&apos;%&apos; identified by &apos;dbroot@quanlist2018&apos; with grant option;
+FLUSH PRIVILEGES;
+exit
+
+&apos;root&apos;@&apos;%&apos; identified by &apos;dbroot@quanlist2018&apos;
+表示root用户可以在任意地址用密码dbroot@quanlist2018登录
+</code></pre><h3 id="备份与恢复数据库"><a href="#备份与恢复数据库" class="headerlink" title="备份与恢复数据库"></a>备份与恢复数据库</h3><ul>
 <li><p>备份数据库：连接mysql服务器前</p>
 <pre><code>mysqldump -u root -p db_name&gt;c:/1.sql
 </code></pre></li>
@@ -836,8 +846,8 @@ inner join on
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/12/20/web/php/CodeIgniter框架使用/" rel="prev" title="CodeIgniter框架使用">
-                CodeIgniter框架使用 <i class="fa fa-chevron-right"></i>
+              <a href="/2018/12/20/Android/retrofit使用/" rel="prev" title="retrofit使用">
+                retrofit使用 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -919,7 +929,7 @@ inner join on
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">119</span>
+                  <span class="site-state-item-count">171</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -930,7 +940,7 @@ inner join on
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -941,7 +951,7 @@ inner join on
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">50</span>
+                  <span class="site-state-item-count">56</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -974,7 +984,7 @@ inner join on
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SQL"><span class="nav-number">1.</span> <span class="nav-text">SQL</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#语法"><span class="nav-number">2.</span> <span class="nav-text">语法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据库服务器–数据库–表"><span class="nav-number">3.</span> <span class="nav-text">数据库服务器–数据库–表</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库服务器–mysql"><span class="nav-number">3.1.</span> <span class="nav-text">数据库服务器–mysql</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库"><span class="nav-number">3.2.</span> <span class="nav-text">数据库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#表"><span class="nav-number">3.3.</span> <span class="nav-text">表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#表记录-数据"><span class="nav-number">3.4.</span> <span class="nav-text">表记录(数据)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多表设计-–-外键约束"><span class="nav-number">4.</span> <span class="nav-text">多表设计 – 外键约束</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多表设计"><span class="nav-number">5.</span> <span class="nav-text">多表设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多表查询"><span class="nav-number">6.</span> <span class="nav-text">多表查询</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分页查询-limit"><span class="nav-number">7.</span> <span class="nav-text">分页查询 limit</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#创建用户"><span class="nav-number">8.</span> <span class="nav-text">创建用户</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SQL"><span class="nav-number">1.</span> <span class="nav-text">SQL</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#语法"><span class="nav-number">2.</span> <span class="nav-text">语法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据库服务器–数据库–表"><span class="nav-number">3.</span> <span class="nav-text">数据库服务器–数据库–表</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库服务器–mysql"><span class="nav-number">3.1.</span> <span class="nav-text">数据库服务器–mysql</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CentOS安装MySQL"><span class="nav-number">3.1.1.</span> <span class="nav-text">CentOS安装MySQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动MySQL"><span class="nav-number">3.1.2.</span> <span class="nav-text">启动MySQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置MySQL数据库服务器密码"><span class="nav-number">3.1.3.</span> <span class="nav-text">设置MySQL数据库服务器密码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#连接MySQL数据库服务器"><span class="nav-number">3.1.4.</span> <span class="nav-text">连接MySQL数据库服务器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#允许用户远程连接"><span class="nav-number">3.1.5.</span> <span class="nav-text">允许用户远程连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#备份与恢复数据库"><span class="nav-number">3.1.6.</span> <span class="nav-text">备份与恢复数据库</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库"><span class="nav-number">3.2.</span> <span class="nav-text">数据库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#表"><span class="nav-number">3.3.</span> <span class="nav-text">表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#表记录-数据"><span class="nav-number">3.4.</span> <span class="nav-text">表记录(数据)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多表设计-–-外键约束"><span class="nav-number">4.</span> <span class="nav-text">多表设计 – 外键约束</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多表设计"><span class="nav-number">5.</span> <span class="nav-text">多表设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多表查询"><span class="nav-number">6.</span> <span class="nav-text">多表查询</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#分页查询-limit"><span class="nav-number">7.</span> <span class="nav-text">分页查询 limit</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#创建用户"><span class="nav-number">8.</span> <span class="nav-text">创建用户</span></a></li></ol></div>
             
 
           </div>
@@ -994,7 +1004,7 @@ inner join on
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

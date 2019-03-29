@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="风">
 <meta property="og:description" content="Lottie 是一个可以解析AE( Adobe After Effects )上的插件Bodymovin导出的json文件(依赖png文件)实现在移动设备上渲染的动画库。 优点： 开发高效，文件体积小，展示效果好，性能消耗小，控制灵活，服务器更新动画，跨平台。比gif体积小，效果好(AE导出gif有白边)，可以重复播放指定帧指定次数 缺陷： 系统版本有要求。支持 Android(Jellybean">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-12-28T07:12:41.914Z">
+<meta property="og:updated_time" content="2019-03-29T11:16:22.055Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="动画库Lottie">
 <meta name="twitter:description" content="Lottie 是一个可以解析AE( Adobe After Effects )上的插件Bodymovin导出的json文件(依赖png文件)实现在移动设备上渲染的动画库。 优点： 开发高效，文件体积小，展示效果好，性能消耗小，控制灵活，服务器更新动画，跨平台。比gif体积小，效果好(AE导出gif有白边)，可以重复播放指定帧指定次数 缺陷： 系统版本有要求。支持 Android(Jellybean">
@@ -373,7 +373,13 @@
 <p>  v7的24版本带的v4包，找不到 android.support.v4.util.ArraySet</p>
 </li>
 </ul>
-
+<h1 id="卡顿问题"><a href="#卡顿问题" class="headerlink" title="卡顿问题"></a>卡顿问题</h1><p>全屏动画卡顿问题特别严重</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//硬件加速，开启之后瞬间丝滑</span></span><br><span class="line">animationView.useHardwareAcceleration(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//合并路径 默认是关闭的，根据自己需求调整</span></span><br><span class="line">animationView.enableMergePathsForKitKatAndAbove(<span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
+<h1 id="回收图片资源的时机"><a href="#回收图片资源的时机" class="headerlink" title="回收图片资源的时机"></a>回收图片资源的时机</h1><ul>
+<li>设置图片资源</li>
+<li>onDetachedFromWindow；即设置可见性为gone，且把view remove</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">---LottieAnimationView---</span><br><span class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDetachedFromWindow</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (isAnimating()) &#123;</span><br><span class="line">    cancelAnimation();</span><br><span class="line">    wasAnimatingWhenDetached = <span class="keyword">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  recycleBitmaps();</span><br><span class="line">  <span class="keyword">super</span>.onDetachedFromWindow();</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setImageResource</span><span class="params">(<span class="keyword">int</span> resId)</span> </span>&#123;</span><br><span class="line">  recycleBitmaps();</span><br><span class="line">  cancelLoaderTask();</span><br><span class="line">  <span class="keyword">super</span>.setImageResource(resId);</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="meta">@VisibleForTesting</span> <span class="function"><span class="keyword">void</span> <span class="title">recycleBitmaps</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="comment">// AppCompatImageView constructor will set the image when set from xml</span></span><br><span class="line">  <span class="comment">// before LottieDrawable has been initialized</span></span><br><span class="line">  <span class="keyword">if</span> (lottieDrawable != <span class="keyword">null</span>) &#123;</span><br><span class="line">    lottieDrawable.recycleBitmaps();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">---LottieDrawable---</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">recycleBitmaps</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (imageAssetManager != <span class="keyword">null</span>) &#123;</span><br><span class="line">    imageAssetManager.recycleBitmaps();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">--ImageAssetManager</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">recycleBitmaps</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">synchronized</span> (bitmapHashLock) &#123;</span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;String, LottieImageAsset&gt; entry : imageAssets.entrySet()) &#123;</span><br><span class="line">      LottieImageAsset asset = entry.getValue();</span><br><span class="line">      Bitmap bitmap = asset.getBitmap();</span><br><span class="line">      <span class="keyword">if</span> (bitmap != <span class="keyword">null</span>) &#123;</span><br><span class="line">        bitmap.recycle();</span><br><span class="line">        asset.setBitmap(<span class="keyword">null</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -498,7 +504,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">119</span>
+                  <span class="site-state-item-count">171</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -509,7 +515,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -520,7 +526,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">50</span>
+                  <span class="site-state-item-count">56</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -553,7 +559,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基本使用"><span class="nav-number">1.</span> <span class="nav-text">基本使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#添加依赖"><span class="nav-number">1.1.</span> <span class="nav-text">添加依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#xml"><span class="nav-number">1.2.</span> <span class="nav-text">xml</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#资源目录"><span class="nav-number">1.3.</span> <span class="nav-text">资源目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置依赖图片目录"><span class="nav-number">1.4.</span> <span class="nav-text">设置依赖图片目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#API控制"><span class="nav-number">1.5.</span> <span class="nav-text">API控制</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#注意事项"><span class="nav-number">2.</span> <span class="nav-text">注意事项</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#基本使用"><span class="nav-number">1.</span> <span class="nav-text">基本使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#添加依赖"><span class="nav-number">1.1.</span> <span class="nav-text">添加依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#xml"><span class="nav-number">1.2.</span> <span class="nav-text">xml</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#资源目录"><span class="nav-number">1.3.</span> <span class="nav-text">资源目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置依赖图片目录"><span class="nav-number">1.4.</span> <span class="nav-text">设置依赖图片目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#API控制"><span class="nav-number">1.5.</span> <span class="nav-text">API控制</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#注意事项"><span class="nav-number">2.</span> <span class="nav-text">注意事项</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#卡顿问题"><span class="nav-number">3.</span> <span class="nav-text">卡顿问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#回收图片资源的时机"><span class="nav-number">4.</span> <span class="nav-text">回收图片资源的时机</span></a></li></ol></div>
             
 
           </div>
@@ -573,7 +579,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

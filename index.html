@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/28/电脑使用/windows/cmd更换默认编码为utf8/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/29/java基础/java虚拟机/深入理解java虚拟机面试精华总结/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/28/电脑使用/windows/cmd更换默认编码为utf8/" itemprop="url">cmd更换默认编码为utf8</a></h1>
+                <a class="post-title-link" href="/2019/03/29/java基础/java虚拟机/深入理解java虚拟机面试精华总结/" itemprop="url">未命名</a></h1>
         
 
         <div class="post-meta">
@@ -293,8 +293,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-28T15:09:53+08:00">
-                2018-12-28
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-29T19:16:22+08:00">
+                2019-03-29
               </time>
             
 
@@ -303,28 +303,6 @@
             
           </span>
 
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
           
 
           
@@ -355,16 +333,389 @@
       
         
           
-            <p>以下是几种常用的编码: </p>
-<pre><code>936 GBK(一般情况下为默认编码) 
-437 美国英语 
-65001 utf-8
-</code></pre><ol>
-<li>运行CMD </li>
-<li>命令行中输入 <code>chcp 65001</code> 回车, 控制台会切换到新的代码页. </li>
-<li>标题栏点击右键, 选择”选项”标签页, 选中”丢弃旧的副本”多选项。(否则，关闭后重新打开还是其他编码)</li>
-<li>选择”字体”标签页, 把字体设置为Lucia Console.这样字体显示的视觉效果更好</li>
+            <p><img src="jvm_1.jpg" alt=""></p>
+<h1 id="一、运行时数据区-Runtime-Data-Area"><a href="#一、运行时数据区-Runtime-Data-Area" class="headerlink" title="一、运行时数据区 Runtime Data Area"></a>一、运行时数据区 Runtime Data Area</h1><p><img src="jvm_2.jpg" alt=""></p>
+<p><strong>1. 程序计数器</strong></p>
+<p>任一时刻，一个CPU的内核只会执行一条线程中的指令，因此，为了能够使得每个线程都在线程切换后能够恢复切换之前的程序执行位置，每个线程都需要有自己独立的程序计数器，不能互相被干扰，否则就会影响到程序的正常执行次序</p>
+<p>如果线程执行的是非native方法，则程序计数器中保存的是当前需要执行的指令的地址；如果线程执行的是native方法，则程序计数器中的值是undefined。</p>
+<p>所占空间的大小不会随程序的执行而发生改变，因此，对于程序计数器是不会发生内存溢出现象(OutOfMemory)</p>
+<p><strong>2. Java栈</strong></p>
+<p>就是我们常常所说的栈。</p>
+<p>为执行Java方法(字节码)服务的，是Java方法执行的内存模型</p>
+<p>每个线程正在执行的方法可能不同，因此每个线程都会有一个自己的Java栈，互不干扰。</p>
+<p><img src="jvm_3.jpg" alt=""></p>
+<p>Java栈中存放的是一个个的栈帧，每个栈帧对应一个被调用的方法</p>
+<p>当线程执行一个方法时，就会随之创建一个对应的栈帧，并将建立的栈帧压栈。当方法执行完毕之后，便会将栈帧出栈。</p>
+<p>规定了两种异常：</p>
+<ul>
+<li>线程请求的栈深度大于虚拟机所允许的深度，将抛出StackOverflowError异常。</li>
+<li>虚拟机扩展时无法申请到足够的内存，将抛出OutOfMemoryError异常(堆和方法区也会抛出OOM)</li>
+</ul>
+<p><strong>3. 本地方法栈</strong></p>
+<p>为执行本地方法（Native Method）服务的</p>
+<p>VM规范并没有对本地方法栈的具体实现方法以及数据结构作强制规定，虚拟机可以自由实现它。</p>
+<p>HotSopt虚拟机直接就把本地方法栈和Java栈合二为一。</p>
+<p>会抛出StackOverflowError和OutOfMemoryErroy异常</p>
+<p><strong>4.堆</strong></p>
+<p>C语言中，堆是程序员唯一可以管理的内存区域。程序员可以通过malloc函数和free函数在堆上申请和释放空间</p>
+<p>Java中的堆是用来存储<strong>对象实例以及数组</strong>（当然，数组引用是存放在Java栈中）。</p>
+<p>Java<strong>垃圾收集器</strong>管理的主要区域</p>
+<p>Java堆细分为新生代和老年代(为了更好的管理内存)</p>
+<p><strong>5.方法区</strong></p>
+<p>存储了每个<strong>类的信息(类名称、方法信息、字段信息、接口信息)、静态变量、常量、运行时常量池以及编译器编译后的代码</strong>等</p>
+<p>运行时常量池：</p>
+<ul>
+<li>加载 Class文件常量池<ul>
+<li>储编译期间生成的字面常量和符号引用</li>
+</ul>
+</li>
+<li>运行期间放入的<ul>
+<li>比如String的intern方法，就能将常量放入运行时常量池</li>
+</ul>
+</li>
+</ul>
+<p>JVM规范中，<strong>不强制要求实现垃圾回收</strong>。</p>
+<p>很多人习惯将方法区称为“永久代”，是因为HotSpot虚拟机以<strong>永久代</strong>来实现方法区，从而JVM的垃圾收集器可以像管理堆区一样管理这部分区域，从而不需要专门为这部分设计垃圾回收机制。</p>
+<p>不过自从JDK7之后，Hotspot虚拟机便将运行时常量池从永久代移除了。</p>
+<h1 id="二、对象"><a href="#二、对象" class="headerlink" title="二、对象"></a>二、对象</h1><p>hotspot虚拟机为例</p>
+<p><strong>2.1 对象的创建</strong></p>
+<p><strong>1.检查</strong> </p>
+<p>检查new指令的参数能否在常量池中定位到一个类的符号引用</p>
+<p>检查这个符号引用代表的类是否已经被加载、解析和初始化过。如果没有，执行相应的类加载过程</p>
+<p><strong>2.分配内存</strong> </p>
+<p>为新生对象分配内存</p>
+<p>假设Java堆中内存是绝对规整的，所有用过的内存放在一遍，空闲的内存放在另一边，中间放着一个指针作为分界点的指示器，那所分配内存就仅仅是把那个指针指向空闲空间那边挪动一段与对象大小相等的距离，这个分配方式叫做“<strong>指针碰撞</strong>”</p>
+<p>如果Java堆中的内存并不是规整的，已使用的内存和空闲的内存相互交错，那就没办法简单地进行指针碰撞了，虚拟机就必须维护一个列表，记录上哪些内存块是可用的，在分配的时候从列表中找到一块足够大的空间划分给对象实例，并更新列表上的记录，这种分配方式成为“<strong>空闲列表</strong>”</p>
+<p>选择那种分配方式由Java堆是否规整决定，而Java堆是否规整又由所采用的垃圾收集器是否带有压缩整理功能决定。</p>
+<p><strong>3. Init</strong></p>
+<p>执行new指令之后会接着执行Init方法，进行初始化，这样一个对象才算产生出来</p>
+<p><strong>2.2 对象的内存布局</strong></p>
+<p>对象在内存中储存的布局可以分为3块区域：</p>
+<ul>
+<li>对象头。包括两部分：<ul>
+<li>对象自身的运行时数据，如哈希码、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳</li>
+<li>类型指针，即对象指向它的类元数据的指针，虚拟机通过这个来确定对象是哪个类的实例</li>
+</ul>
+</li>
+<li>实例数据</li>
+<li>对齐填充</li>
+</ul>
+<p><strong>2.3 对象的访问定位</strong></p>
+<ul>
+<li>使用句柄访问<ul>
+<li>reference存储的是对象的句柄地址(Java堆中有句柄池)</li>
+<li>句柄中包含了对象实例数据与类型数据各自的具体地址</li>
+<li>优势:对象被移动(垃圾收集时移动对象是非常普遍的行为)时只会改变句柄中的实例数据指针，而reference本身不需要修改</li>
+</ul>
+</li>
+<li>使用直接指针访问<br>  -refreence存储的直接就是对象的地址<ul>
+<li>Java堆对象的布局必须考虑如何访问类型数据的相关信息</li>
+<li>优势：速度更快，节省了一次指针定位的时间开销</li>
+</ul>
+</li>
+</ul>
+<h1 id="三、OutOfMemoryError-异常"><a href="#三、OutOfMemoryError-异常" class="headerlink" title="三、OutOfMemoryError 异常"></a>三、OutOfMemoryError 异常</h1><p>3.1 Java堆溢出</p>
+<p>检查虚拟机的堆参数（-Xmx与-Xms），与机器物理内存对比看是否还可以调大</p>
+<p>3.2 虚拟机栈和本地方法栈溢出</p>
+<p>3.3 方法区和运行时常量池溢出</p>
+<p>由于常量池分配在永久代中，可以通过-XX:PermSize和-XX:MaxPermSize限制方法区大小，从而间接限制其中常量池的容量。</p>
+<h1 id="四、垃圾收集"><a href="#四、垃圾收集" class="headerlink" title="四、垃圾收集"></a>四、垃圾收集</h1><p><strong>1.判断对象存活</strong></p>
+<p><strong>4.1.1 引用计数器法</strong></p>
+<p>给对象添加一个引用计数器，每当由一个地方引用它时，计数器值就加1；当引用失效时，计数器值就减1；任何时刻计数器为0的对象就是不可能再被使用的</p>
+<p><strong>4.1.2 可达性分析算法</strong></p>
+<p>通过一系列的“GC Roots”对象作为起始点，从这些节点开始向下搜索，搜索所走过的路径成为引用链，当一个对象到GC ROOTS没有任何引用链相连时，则证明此对象时不可用的</p>
+<p>Java语言中GC Roots对象包括下面几种：</p>
+<p>1.虚拟机栈（栈帧中的<strong>本地变量</strong>表）中引用的对象</p>
+<p>2.本地方法栈<strong>JNI</strong>（Native方法）引用的对象</p>
+<p>3.方法区中<strong>类静态成员</strong>引用的对象</p>
+<p>4.方法区中<strong>常量</strong>引用的对象</p>
+<p><strong>2.对象引用</strong></p>
+<ul>
+<li><p>强引用</p>
+<ul>
+<li>Object obj </li>
+<li>垃圾收集器永远不会回收掉被强引用引用的对象</li>
+</ul>
+</li>
+<li><p>软引用</p>
+<ul>
+<li>SoftReference<object> sf = new SoftReference<object>(obj);</object></object></li>
+<li><p>用于缓存数据。内存不足自动回收，如果这次回收还没有足够的内存才会抛出内存溢出异常</p>
+<pre><code>Object obj = new Object();
+SoftReference&lt;Object&gt; sf = new SoftReference&lt;Object&gt;(obj);
+obj = null;
+sf.get();//有时候会返回null
+</code></pre></li>
+</ul>
+</li>
+<li><p>弱引用</p>
+<ul>
+<li>WeakReference<object> wf</object></li>
+<li><p>用于监控对象是否已经被垃圾回收器标记为即将回收的垃圾。无论当前内存是否足够都会回收掉只被弱引用关联的对象</p>
+<pre><code>Object obj = new Object();
+WeakReference&lt;Object&gt; wf = new WeakReference&lt;Object&gt;(obj);
+obj = null;
+wf.get();//有时候会返回null
+wf.isEnQueued();//返回是否被垃圾回收器标记为即将回收的垃圾
+</code></pre></li>
+</ul>
+</li>
+<li><p>虚引用</p>
+<ul>
+<li>PhantomReference<object> pf = new PhantomReference<object>(obj);</object></object></li>
+<li><p>用于检测对象是否已经从内存中删除。能在这个对象被收集器回收时收到一个系统通知</p>
+<pre><code>Object obj = new Object();
+PhantomReference&lt;Object&gt; pf = new PhantomReference&lt;Object&gt;(obj);
+obj=null;
+pf.get();//永远返回null
+pf.isEnQueued();//返回是否从内存中已经删除
+</code></pre></li>
+</ul>
+</li>
+</ul>
+<p><strong>3.Finalize方法</strong></p>
+<p>任何一个对象的finalize()方法都只会被系统自动调用一次，如果对象面临下一次回收，它的finalize()方法不会被再次执行</p>
+<p><strong>4.3.1 回收方法区</strong></p>
+<p>永久代的垃圾收集主要回收两部分内容：废弃常量和无用的类</p>
+<p>废弃常量：假如一个字符串abc已经进入了常量池中，如果当前系统没有任何一个String对象abc，也就是没有任何Stirng对象引用常量池的abc常量，也没有其他地方引用的这个字面量，这个时候发生内存回收这个常量就会被清理出常量池</p>
+<p>无用的类：</p>
+<p>1.该类所有的实例都已经被回收，就是Java堆中不存在该类的任何实例</p>
+<p>2.加载该类的ClassLoader已经被回收</p>
+<p>3.该类对用的java.lang.Class对象没有在任何地方被引用，无法再任何地方通过反射访问该类的方法</p>
+<p><strong>4.垃圾收集算法</strong></p>
+<p><strong>4.4.1 标记—清除算法</strong></p>
+<p>算法分为标记和清除两个阶段：首先标记出所有需要回收的对象，在标记完成后统一回收所有被标记的对象、</p>
+<p>不足:一个是效率问题，标记和清除两个过程的效率都不高；另一个是空间问题，标记清楚之后会产生大量不连续的内存碎片，空间碎片太多可能会导致以后再程序运行过程中需要分配较大的对象时，无法找到足够的连续内存而不得不提前触发另一次垃圾收集动作</p>
+<p><strong>4.4.2 复制算法</strong></p>
+<p>他将可用内存按照容量划分为大小相等的两块，每次只使用其中的一块。当这块的内存用完了，就将还存活着的对象复制到另外一块上面，然后再把已使用过的内存空间一次清理掉。这样使得每次都是对整个半区进行内存回收，内存分配时也就不用考虑内存碎片等复杂情况，只要移动堆顶指针，按顺序分配内存即可</p>
+<p>不足：将内存缩小为了原来的一半</p>
+<p>实际中我们并不需要按照1:1比例来划分内存空间，而是将内存分为一块较大的Eden空间和两块较小的Survivor空间，每次使用Eden和其中一块Survivor</p>
+<p>当另一个Survivor空间没有足够空间存放上一次新生代收集下来的存活对象时，这些对象将直接通过分配担保机制进入老年代</p>
+<p><strong>4.4.3 标记整理算法</strong></p>
+<p>让所有存活的对象都向一端移动，然后直接清理掉端边界以外的内存</p>
+<p><strong>4.4.4 分代收集算法</strong></p>
+<p>只是根据对象存活周期的不同将内存划分为几块。一般是把java堆分为新生代和老年代，这样就可以根据各个年代的特点采用最适当的收集算法。在新生代中，每次垃圾收集时都发现有大批对象死去，只有少量存活，那就选用复制算法，只需要付出少量存活对象的复制成本就可以完成收集。而老年代中因为对象存活率高、没有额外空间对它进行分配担保，就必须使用标记清理或者标记整理算法来进行回收</p>
+<p>5.垃圾收集器</p>
+<p>a)Serial收集器：</p>
+<p>这个收集器是一个单线程的收集器，但它的单线程的意义不仅仅说明它会只使用一个COU或一条收集线程去完成垃圾收集工作，更重要的是它在进行垃圾收集时，必须暂停其他所有的工作线程，直到它手机结束</p>
+<p>b)ParNew 收集器：</p>
+<p>Serial收集器的多线程版本，除了使用了多线程进行收集之外，其余行为和Serial收集器一样</p>
+<p>并行：指多条垃圾收集线程并行工作，但此时用户线程仍然处于等待状态</p>
+<p>并发：指用户线程与垃圾收集线程同时执行（不一定是并行的，可能会交替执行），用户程序在继续执行，而垃圾收集程序运行于另一个CPU上</p>
+<p>c)Parallel Scavenge </p>
+<p>收集器是一个新生代收集器，它是使用复制算法的收集器，又是并行的多线程收集器。</p>
+<p>吞吐量：就是CPU用于运行用户代码的时间与CPU总消耗时间的比值。即吞吐量=运行用户代码时间/（运行用户代码时间+垃圾收集时间）</p>
+<p>d)Serial Old 收集器：</p>
+<p>是Serial收集器的老年代版本,是一个单线程收集器，使用标记整理算法</p>
+<p>e)Parallel Old 收集器：</p>
+<p>Parallel Old是Paraller Seavenge收集器的老年代版本，使用多线程和标记整理算法</p>
+<p>f)CMS收集器：</p>
+<p>CMS收集器是基于标记清除算法实现的，整个过程分为4个步骤：</p>
+<p>1.初始标记2.并发标记3.重新标记4.并发清除</p>
+<p>优点：并发收集、低停顿</p>
+<p>缺点：</p>
+<p>1.CMS收集器对CPU资源非常敏感，CMS默认启动的回收线程数是（CPU数量+3）/4，</p>
+<p>2.CMS收集器无法处理浮动垃圾，可能出现Failure失败而导致一次Full G场地产生</p>
+<p>3.CMS是基于标记清除算法实现的</p>
+<p>g)G1收集器：</p>
+<p>它是一款面向服务器应用的垃圾收集器</p>
+<p>1.并行与并发：利用多CPU缩短STOP-The-World停顿的时间</p>
+<p>2.分代收集</p>
+<p>3.空间整合：不会产生内存碎片</p>
+<p>4.可预测的停顿</p>
+<p>运作方式：初始标记，并发标记，最终标记，筛选回收</p>
+<p><strong>6.内存分配与回收策略</strong></p>
+<p>4.6.1 对象优先在Eden分配：</p>
+<p>大多数情况对象在新生代Eden区分配，当Eden区没有足够空间进行分配时，虚拟机将发起一次Minor GC</p>
+<p>4.6.2 大对象直接进入老年代：</p>
+<p>所谓大对象就是指需要大量连续内存空间的Java对象，最典型的大对象就是那种很长的字符串以及数组。这样做的目的是避免Eden区及两个Servivor之间发生大量的内存复制</p>
+<p>4.6.3长期存活的对象将进入老年代</p>
+<p>如果对象在Eden区出生并且尽力过一次Minor GC后仍然存活，并且能够被Servivor容纳，将被移动到Servivor空间中，并且把对象年龄设置成为1.对象在Servivor区中每熬过一次Minor GC，年龄就增加1岁，当它的年龄增加到一定程度（默认15岁），就将会被晋级到老年代中</p>
+<p>4.6.4动态对象年龄判定</p>
+<p>为了更好地适应不同程序的内存状况，虚拟机并不是永远地要求对象的年龄必须达到了MaxTenuringThreshold才能晋级到老年代，如果在Servivor空间中相同年龄所有对象的大小总和大于Survivor空间的一半，年龄大于或等于该年龄的对象就可以直接进入到老年代，无须登到MaxTenuringThreshold中要求的年龄</p>
+<p>4.6.4 空间分配担保：</p>
+<p>在发生Minor GC 之前，虚拟机会检查老年代最大可 用的连续空间是否大于新生代所有对象总空间，如果这个条件成立，那么Minor DC可以确保是安全的。如果不成立，则虚拟机会查看HandlePromotionFailure设置值是否允许担保失败。如果允许那么会继续检查老年代最大可用的连续空间是否大于晋级到老年代对象的平均大小，如果大于，将尝试进行一次Minor GC，尽管这次MinorGC 是有风险的：如果小于，或者HandlePromotionFailure设置不允许冒险，那这时也要改为进行一次Full GC</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/29/RN/RN之Native处理异常/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/29/RN/RN之Native处理异常/" itemprop="url">RN之Native处理异常</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-29T17:41:12+08:00">
+                2019-03-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://blog.csdn.net/sinat_17775997/article/details/70511410" target="_blank" rel="noopener">React Native for Android 异常处理概览</a></p>
+<p>研究RN框架异常的动机在于，我们需要建立起一套针对性的容错机制，毕竟它还是一个不够成熟的框架。期望能够做到的效果就是，对于每一个RN页面的启动，我们能够在<strong>进入页面至退出页面</strong>期间侦测所有发生的<strong>RN相关</strong>的崩溃，然后根据崩溃来考虑该页面是否该有降级策略、判断框架是否真的能够支持稳定迭代。</p>
+<p>并且，集中地处理崩溃，也有利于我们后续对框架稳定性进行针对性的统计与优化。即使最后还是最简单粗暴的try-catch，这个catch的位置也是一门艺术。</p>
+<p><strong>异常种类</strong></p>
+<ul>
+<li>产生位置<ul>
+<li>JS</li>
+<li>Java </li>
+<li>C++</li>
+</ul>
+</li>
+<li>产生时期<ul>
+<li>启动期</li>
+<li>运行期</li>
+</ul>
+</li>
+</ul>
+<h1 id="启动期异常"><a href="#启动期异常" class="headerlink" title="启动期异常"></a>启动期异常</h1><h2 id="框架启动流程"><a href="#框架启动流程" class="headerlink" title="框架启动流程"></a>框架启动流程</h2><p>ReactActivity.onCreate 调用 ReactActivityDelegate.loadApp 开始核心启动流程</p>
+<ul>
+<li><strong>预初始化</strong>：<ul>
+<li>初始化ReactRootView与ReactInstanceManager实例</li>
+</ul>
+</li>
+<li><strong>创建React上下文</strong>：由ReactRootView.startReactApplication一路走下来，会用懒加载方式创建React上下文，通过进入ReactInstanceManager.ReactContextInitAsyncTask这个AsyncTask中执行上下文创建的工作，里面执行的东西可以说是所有的Java部分初始化内容（收集与注册提供的Native/JS/View模块、初始化CatalystInstance（负责核心Bridge相关）、运行JSBundle、将界面展示到ReactRootView上等）。</li>
+</ul>
+<h2 id="预初始化"><a href="#预初始化" class="headerlink" title="预初始化"></a>预初始化</h2><p>涉及了so加载的操作，可以在 ReactRootView.startReactApplication外部再加一层try-catch</p>
+<h2 id="创建React上下文阶段"><a href="#创建React上下文阶段" class="headerlink" title="创建React上下文阶段"></a>创建React上下文阶段</h2><p>RN有捕获异常，但是仅仅只用 <code>DevSupportManager</code> 去处理，当不使用 <code>develop support</code> 时，会直接抛出异常。</p>
+<p>不使用dev support时</p>
+<ul>
+<li>传入一个Handler去专门处理启动期的崩溃</li>
+<li>用<code>ReactInstanceManagerBuilder.setNativeModuleCallExceptionHandler()</code> 传入的ExceptionHandler 统一去处理崩溃</li>
+</ul>
+<h2 id="运行期异常"><a href="#运行期异常" class="headerlink" title="运行期异常"></a>运行期异常</h2><ol>
+<li>JS调用Native产生异常<ul>
+<li>Native模块不存在</li>
+<li>Native模块函数原型不一致</li>
+<li>Native模块执行的异常</li>
+</ul>
+</li>
+<li>Native调用JS异常<ul>
+<li>JS模块不存在</li>
+<li>JS模块函数原型不一致</li>
+<li>JS模块执行的异常</li>
+</ul>
+</li>
+<li>JS本身代码执行的异常</li>
+<li>UI操作的异常</li>
 </ol>
+<h3 id="运行线程"><a href="#运行线程" class="headerlink" title="运行线程"></a>运行线程</h3><p>RN维护了三个线程的MessageQueue，所有的操作都会被push到上面运行</p>
+<ul>
+<li><strong>NativeQueue</strong> 运行Native模块函数的线程（通常由JS发起），后台线程；</li>
+<li><strong>JSQueue</strong> 运行JS的线程，后台线程。</li>
+<li><strong>UIQueue</strong> 专门做UI操作，使用Android里面的<strong>主线程</strong>；</li>
+</ul>
+<p>初始化 <code>ReactInstanceManager</code> 时传的Handler 可以处理上面的前7种异常，我们需要单独处理UI操作异常</p>
+<p>UI操作，其实是调用的UIManagerModule这个Java模块进行的操作，但是实际上它不是马上被同步执行的，而是仅仅只有一个入队列的操作。所有的UI操作都通过Choreographer来驱动执行，那这个时候虽然是在主线程运行，但是不在上面任何一个MessageQueue里面了，于是上面的方式捕获不到。</p>
+<h3 id="UI操作的异常"><a href="#UI操作的异常" class="headerlink" title="UI操作的异常"></a>UI操作的异常</h3><p>UI操作的异常默认由 <code>ReactContext.handleException</code> 处理，追踪发现是 RN React上下文创建时设给它一个Handler，只在develop support时才起作用</p>
+<p>初始化ReactContext时</p>
+<ul>
+<li>在使用develop support时设给它DevSupportManagerImpl</li>
+<li>否则使用传入的NativeModuleExceptionHandler</li>
+</ul>
 
           
         
@@ -413,7 +764,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/28/电脑使用/windows/win7文件夹最高权限/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/字符串分割/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -432,7 +783,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/28/电脑使用/windows/win7文件夹最高权限/" itemprop="url">win7文件夹最高权限</a></h1>
+                <a class="post-title-link" href="/2019/03/27/java基础/字符串分割/" itemprop="url">字符串分割</a></h1>
         
 
         <div class="post-meta">
@@ -444,8 +795,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-28T15:09:53+08:00">
-                2018-12-28
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:51:53+08:00">
+                2019-03-27
               </time>
             
 
@@ -467,8 +818,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
                   </a>
                 </span>
 
@@ -506,7 +857,9 @@
       
         
           
-            <p>文件夹–右键–属性–<code>安全</code> 选项卡–高级–更改权限–添加–高级–立即查找–选中 <code>Everyone</code> –选中“完全控制”权限的“允许”复选框–选中 <code>包括可从该对象的父项继承的权限</code> <code>使用可从此对象继承的权限所有子对象权限</code></p>
+            <pre><code>1、如果用“.”作为分隔的话，必须是如下写法：String.split(&quot;\\.&quot;),这样才能正确的分隔开，不能用String.split(&quot;.&quot;);
+</code></pre><p>2、如果用“|”作为分隔的话，必须是如下写法：String.split(“\|”),这样才能正确的分隔开，不能用String.split(“|”);<br>“.”和“|”都是转义字符，必须得加”\“;<br>String[] split = EditWorksActivity.selectedWorkServiceId.trim().split(“\|”);</p>
+<p>而且分隔出来的字符串可能带有不可见特殊部分，可能出现equal 不成立bug</p>
 
           
         
@@ -555,7 +908,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/28/电脑使用/windows/正在使用文件的应用进程/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/URL和URI/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -574,7 +927,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/28/电脑使用/windows/正在使用文件的应用进程/" itemprop="url">正在使用文件的应用进程</a></h1>
+                <a class="post-title-link" href="/2019/03/27/java基础/URL和URI/" itemprop="url">URL和URI</a></h1>
         
 
         <div class="post-meta">
@@ -586,8 +939,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-28T15:09:53+08:00">
-                2018-12-28
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:50:53+08:00">
+                2019-03-27
               </time>
             
 
@@ -609,8 +962,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
                   </a>
                 </span>
 
@@ -648,331 +1001,33 @@
       
         
           
-            <p>删除文件提示文件正在被另一个程序使用，不需要重启可实现删除。将正在使用文件的进程关闭即可。</p>
-<p>任务管理器 – 切换到 性能 选项卡 – 打开 资源监视器 – 切换到 CPU 选项卡 – 关联的句柄 搜索 文件名(文件夹名或者子文件夹名)，即可找到正在使用文件的程序</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/24/web/php/CentOS搭建PHP环境/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/24/web/php/CentOS搭建PHP环境/" itemprop="url">CentOS搭建PHP环境</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-24T22:31:25+08:00">
-                2018-12-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/" itemprop="url" rel="index">
-                    <span itemprop="name">Web</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h1><pre><code>yum install httpd httpd-devel mod_ssl
-
-httpd -V //查看httpd版本
-
-ps aux |grep httpd //查看开启的 httpd 服务
-
-rpm -qi httpd //版本信息
-</code></pre><h2 id="配置Apache"><a href="#配置Apache" class="headerlink" title="配置Apache"></a>配置Apache</h2><h3 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h3><p><code>/etc/httpd/conf/httpd.conf</code></p>
-<pre><code>cp httpd.conf httpd.conf.bak    //修改前将原有配置文件备份
-</code></pre><h3 id="设置为自动启动"><a href="#设置为自动启动" class="headerlink" title="设置为自动启动"></a>设置为自动启动</h3><pre><code>systemctl enable httpd.service
-</code></pre><h2 id="开启与关闭Apache"><a href="#开启与关闭Apache" class="headerlink" title="开启与关闭Apache"></a>开启与关闭Apache</h2><pre><code>systemctl start  httpd.service
-systemctl stop  httpd.service
-</code></pre><h1 id="安装MySQL"><a href="#安装MySQL" class="headerlink" title="安装MySQL"></a>安装MySQL</h1><pre><code>yum install mysql mysql-server
-</code></pre><h1 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h1><h2 id="安装php7-2"><a href="#安装php7-2" class="headerlink" title="安装php7.2"></a>安装php7.2</h2><p>centos中的yum安装版本是5.4。因此我们手动更新rpm为第三方的php版本</p>
-<h3 id="获取rpm"><a href="#获取rpm" class="headerlink" title="获取rpm"></a>获取rpm</h3><pre><code>rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm   
-
-rpm -Uvh https://mirror.webtatic.com/yum/el7/webtatic-release.rpm
-</code></pre><h3 id="查看php版本"><a href="#查看php版本" class="headerlink" title="查看php版本"></a>查看php版本</h3><pre><code>yum list php*
-</code></pre><h3 id="安装php7-2-1"><a href="#安装php7-2-1" class="headerlink" title="安装php7.2"></a>安装php7.2</h3><pre><code>yum -y install php72w
-</code></pre><h3 id="安装拓展包"><a href="#安装拓展包" class="headerlink" title="安装拓展包"></a>安装拓展包</h3><pre><code>yum -y install php72w-cli php72w-common php72w-devel php72w-mysql
-</code></pre><h1 id="配置Apache支持php7-2"><a href="#配置Apache支持php7-2" class="headerlink" title="配置Apache支持php7.2"></a>配置Apache支持php7.2</h1><p>配置Apache的 php配置信息文件</p>
-<p><code>/etc/httpd/conf/httpd.conf</code> 文件</p>
-<pre><code>PHPIniDir /etc/php.ini
-</code></pre><h1 id="重启Apache"><a href="#重启Apache" class="headerlink" title="重启Apache"></a>重启Apache</h1>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/24/web/php/CentOS安装PHP7的正确姿势/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/24/web/php/CentOS安装PHP7的正确姿势/" itemprop="url">CentOS 安装PHP7的正确姿势</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-24T17:31:25+08:00">
-                2018-12-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/" itemprop="url" rel="index">
-                    <span itemprop="name">Web</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="SCL"><a href="#SCL" class="headerlink" title="SCL"></a>SCL</h1><p>CentOS上的PHP版本都十分古老(5.4)，满足不了一些框架对PHP版本的要求。</p>
-<p>于是，出现了许多第三方软件库。第三方软件库是提供的软件没有经过CentOS官方测试，在安装软件的同时，可能会替换掉系统的一些核心文件，造成系统不稳定。</p>
-<p>推荐用SCL（Software Collections）软件库安装高版本的PHP。SCL属于CentOS官方的软件库，经过充分测试，安装软件时不会替换系统的核心文件，保证了系统的稳定性。SCL以 scl enable 方式管理软件，虽然在使用上增加了一点点的麻烦，但这绝对地保证了系统稳定性。而且这么做还有一个好处：就是系统上可以多个PHP版本共存而互相不冲突。方便你测试代码或者框架，在各个版本PHP上的兼容性。</p>
-<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="安装SCL"><a href="#安装SCL" class="headerlink" title="安装SCL"></a>安装SCL</h2><p><code>yum install centos-release-scl-rh</code></p>
-<h2 id="在yum中搜到新版的PHP"><a href="#在yum中搜到新版的PHP" class="headerlink" title="在yum中搜到新版的PHP"></a>在yum中搜到新版的PHP</h2><p><code>yum search php</code></p>
-<p>结果如下</p>
-<pre><code>php54-runtime.x86_64
-php55-runtime.x86_64
-rh-php56-runtime.x86_64
-rh-php70-runtime.x86_64
-
-rh- 前缀是RedHat的意思，标识这是官方提供的PHP而不是第三方库提供的
-</code></pre><h2 id="安装PHP7-0"><a href="#安装PHP7-0" class="headerlink" title="安装PHP7.0"></a>安装PHP7.0</h2><p><code>yum install rh-php70</code></p>
-<p>PHP实际会安装在 <code>/opt/rh</code> 目录下 </p>
-<h2 id="scl-enable-显示执行php"><a href="#scl-enable-显示执行php" class="headerlink" title="scl enable 显示执行php"></a>scl enable 显示执行php</h2><p>SCL的风格就是把软件对系统的影响减少到最小，安装完PHP，php命令不会被添加到 $PATH 变量中。需要通过 scl enable 命令显示执行：</p>
-<pre><code>scl enable rh-php70 &quot;php -v&quot; //执行 php -v
-
-scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别php了
+            <pre><code>Android 从网页中跳转到APP http://blog.csdn.net/buptlzx/article/details/9837137
+</code></pre><p>就Android平台而言，URI主要分三个部分：<code>scheme, authority, path</code>。其中<code>authority</code>又分为<code>host和port</code>。格式如下： </p>
+<pre><code>scheme://host:port/path 
+</code></pre><p>举个实际的例子： </p>
+<pre><code>content://com.example.project:200/folder/subfolder/etc 
+\---------/  \--------------/ \-/ \-------------------/ 
+scheme              host      port         path 
+                     \-----------/ 
+                        authority    
+</code></pre><p>data flag </p>
+<pre><code>&lt;data android:host=&quot;string&quot; 
+      android:mimeType=&quot;string&quot; 
+      android:path=&quot;string&quot; 
+      android:pathPattern=&quot;string&quot; 
+      android:pathPrefix=&quot;string&quot; 
+      android:port=&quot;string&quot; 
+      android:scheme=&quot;string&quot; /&gt; 
+</code></pre><p>api</p>
+<pre><code>Uri uri = intent.getData();  
+       System.out.println(&quot;scheme:&quot;+scheme);  
+       if (uri != null) {  
+           String host = uri.getHost();  
+           String dataString = intent.getDataString();  
+           String id = uri.getQueryParameter(&quot;d&quot;);  
+           String path = uri.getPath();  
+           String path1 = uri.getEncodedPath();  
+           String queryString = uri.getQuery();  
 </code></pre>
           
         
@@ -1021,7 +1076,7 @@ scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/21/数据库/sql/GreenDAO使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/ThreadLocal/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1040,7 +1095,7 @@ scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/21/数据库/sql/GreenDAO使用/" itemprop="url">GreenDAO使用</a></h1>
+                <a class="post-title-link" href="/2019/03/27/java基础/ThreadLocal/" itemprop="url">ThreadLocal</a></h1>
         
 
         <div class="post-meta">
@@ -1052,8 +1107,8 @@ scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-21T09:04:53+08:00">
-                2018-12-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:49:53+08:00">
+                2019-03-27
               </time>
             
 
@@ -1075,8 +1130,8 @@ scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
                   </a>
                 </span>
 
@@ -1114,123 +1169,225 @@ scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别
       
         
           
-            <p>greendao<br>    orm–object relation mapping<br>    javabean – orm – sqlite</p>
-<pre><code>官方Demo里共有六个工程目录，分别为：
-(1).DaoCore：库目录，即jar文件greendao-1.3.0-beta-1.jar的代码；
-(2).DaoExample：android范例工程；
-(3).DaoExampleGenerator：DaoExample工程的DAO类构造器，java工程；
-(4).DaoGenerator：DAO类构造器，java工程；
-(5).DaoTest、PerformanceTestOrmLite：其他测试相关的工程。
-我们关心的只是2和3.
-
-1.新建java工程（数据模型和dao 生成 工程）
-
-2.导入jar
-    greendao-generator.jar
-    freemarker.jar模版文件
-
-3.设计表结构
-
-4.数据模型化 和 生成dao
-    实例化 schema
-    创建添加entity  -- 可持久化的对象，一个实体关联 一张表
-    为entity添加属性(关于主键，一般是自己指定一个任意类型属性。不想指定就用addIdProperty())
-    生产 new DaoGenerator().generateAll()
-        Schema schema = new Schema(1, &quot;com.baiyz.medicchat.dao&quot;); 
-        //Schema(int version, String defaultJavaPackage) version用于标识更新db，package是生产的Java文件所在包名
-        //还可以设置（dao和test单独放于一个包下，默认是放在schema定义的实体包下）
-            schema.setDefaultJavaPackageDao(defaultJavaPackageDao)
-            schema.setDefaultJavaPackageTest(defaultJavaPackageTest)
-            schema.enableKeepSectionsByDefault();//设置可以在实体中保留自定义代码
-
-        Entity note= schema.addEntity(&quot;Note&quot;);
-
-        note.addIdProperty(); //hospital.addIdProperty().autoincrement().primaryKey();一般加上主键和自增长属性
-        note.addStringProperty(&quot;text&quot;).notNull();
-        note.addStringProperty(&quot;comment&quot;);
-        note.addDateProperty(&quot;date&quot;);
-
-        new DaoGenerator().generateAll(&quot;../medichat/src&quot;, schema); 
-        //generateAll(Schema schema, String outDir) 输出到那个文件目录（一般写我们使用该dao的Android工程目录，不用自己手动拷贝）
-
-5.把greendao.jar，生成的object和objectDao 拷贝到Android工程 （example是 Note.java 和 NoteDao.java ）
-6.开始使用
-    使用前先了解一下 核心类
-        DaoMaster：以一定的模式持有数据库对象（SQLiteDatabase）并管理一些DAO类（而不是对象）。
-        DaoSession：管理指定模式下所有可用的DAO对象，你可以通过某个get方法获取到。
-            DaoSession提供一些通用的持久化方法，比如对实体进行插入，加载，更新，刷新和删除。
-            最后DaoSession对象会跟踪identity scope，更多细节，可以参看 session文档。
-        DAOs（Data access objects）: 数据访问对象，用于实体的持久化和查询。
-            对于每一个实体，greenDao会生成一个DAO，相对于DaoSession它拥有更多持久化的方法，比如：加载全部，插入
-        Beans，每个实体都会生成一个bean
-
-    DevOpenHelper helper = new DaoMaster.DevOpenHelper(this, &quot;notes-db&quot;, null); //&quot;notes-db&quot;会作为数据库名字，
-    db = helper.getWritableDatabase();        
-    daoMaster = new DaoMaster(db);
-
-    daoSession = daoMaster.newSession();
-
-    noteDao = daoSession.getNoteDao();
-
-    1.添加一个新的note到数据库中：
-        Note note = new Note(null, noteText, comment, new Date());
-        noteDao.insert(note);
-        Log.d(&quot;DaoExample&quot;, &quot;Inserted new note, ID: &quot; + note.getId());
-        该示例只是创建并插入了一个java对象。但insert方法返回的时候，数据库的ID已经分发到了刚插入的Note对象上了。在log中可以看到。
-
-    2.删除一条note：非常简单明，在onListItemClick方法中可以看到
-        noteDao.deleteByKey(id);
-    3.你也可以看一下其它的DAO方法：loadAll、update。
-
-    4.条件查询    
-    注意：每次查询必须新建一个queryBuilder，否则会导致数据不更新的bug（数据一直不变）
-        QueryBuilder.where(WhereCondition arg0, WhereCondition... arg1)
-         /**通过医院name获得医院id 失败返回-1*/
-        public int getHospitalIdByName(String name){
-            QueryBuilder&lt;Hospital&gt; qb=this.queryBuilder();
-            qb.where(Properties.HospitalName.eq(name));
-            if(qb.list().size()&gt;0){
-                return qb.list().get(0).getHospitalId();
-            }
-            return -1;
+            <p>ThreadLocal，线程本地变量，也叫做线程本地存储</p>
+<p>ThreadLocal为变量在每个线程中创建一个副本，每个线程可以访问自己内部的副本变量。</p>
+<p>ThreadLocal类提供的几个方法：</p>
+<pre><code>public T get() { } //获取ThreadLocal在当前线程中保存的变量副本
+public void set(T value) { } //设置当前线程中变量的副本
+public void remove() { } //移除当前线程中变量的副本
+protected T initialValue() { } //一个延迟加载方法
+</code></pre><h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><pre><code>ThreadLocal&lt;Object&gt; threadLocal = new ThreadLocal&lt;Object&gt;();
+threadLocal.set(&quot;123&quot;);
+threadLocal.get();
+</code></pre><h1 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h1><pre><code>public T get() {
+    Thread t = Thread.currentThread();
+    ThreadLocalMap map = getMap(t);
+    if (map != null) {
+        ThreadLocalMap.Entry e = map.getEntry(this);
+        if (e != null)
+            return (T)e.value;
+    }
+    return setInitialValue();
+}
+ThreadLocalMap getMap(Thread t) {
+    return t.threadLocals;
+}
+public class Thread implements Runnable {
+    ThreadLocal.ThreadLocalMap threadLocals = null;//存储线程变量副本
+}
+static class ThreadLocalMap {
+    static class Entry extends WeakReference&lt;ThreadLocal&gt; {
+        Object value; //The value associated with this ThreadLocal.
+        Entry(ThreadLocal k, Object v) {//使用ThreadLocal作为键值
+            super(k);
+            value = v;
         }
+    }
+}
+每个线程Thread内部有一个ThreadLocal.ThreadLocalMap类型的成员变量threadLocals，用来存储变量副本的，键值为当前ThreadLocal变量，value为变量副本（即T类型的变量）。
+</code></pre><p><strong>线程本地变量存储：</strong></p>
+<p><code>Thread.ThreadLocalMap&lt;ThreadLocal, Object&gt;;</code></p>
+<pre><code>1、Thread: 当前线程，可以通过Thread.currentThread()获取。
 
-继承类和接口、序列化
-    greendao的 实体 也支持 继承、接口、序列化
-    实体可以继承其他类和接口。
-    但是千万不要试图 继承另一个实体，期望获得另一个实体的字段，
-    这会造成跨表，需要到父实体表中查询字段
-    通常，使用接口作为实体属性和行为的通用基类是比较好的。
-    比如：一个实体A和B共享了一套属性，这些属性可以定义在C中。下面是一个序列化B的列子：
-    其父类可以通过setSuperclass，其父类可以通过setSuperclass(String)方法指定，
-        myEntity.setSuperclass(&quot;MyCommonBehavior&quot;);
+2、ThreadLocal：我们的static ThreadLocal变量。
 
-        entityA.implementsInterface(&quot;C&quot;);
-        entityB.implementsInterface(&quot;C&quot;);
+3、Object: 当前线程共享变量。
+</code></pre><p>调用ThreadLocal.get()，实际上是从当前线程中获取ThreadLocalMap&lt;ThreadLocal, Object&gt;，然后根据当前ThreadLocal获取当前线程本地变量Object。ThreadLocal.set，ThreadLocal.remove实际上是同样的道理。</p>
+<p><strong>这种存储结构的好处：</strong></p>
+<p>1、线程死去的时候，线程共享变量ThreadLocalMap则销毁。</p>
+<p>2、ThreadLocalMap&lt;ThreadLocal,Object&gt;键值对数量为ThreadLocal的数量，一般来说ThreadLocal数量很少，相比在ThreadLocal中用Map&lt;Thread, Object&gt;键值对存储线程共享变量（Thread数量一般来说比ThreadLocal数量多），性能提高很多。</p>
+<p><strong>关于ThreadLocalMap&lt;ThreadLocal, Object&gt;弱引用问题：</strong></p>
+<p>当线程没有结束，但是ThreadLocal已经被回收，则可能导致线程中存在ThreadLocalMap&lt;null, Object&gt;的键值对，造成内存泄露。（ThreadLocal被回收，ThreadLocal关联的线程共享变量还存在）。</p>
+<p>虽然ThreadLocal的get，set方法可以清除ThreadLocalMap中key为null的value，但是get，set方法在内存泄露后并不会必然调用，所以为了防止此类情况的出现，我们有两种手段。</p>
+<p>1、使用完线程共享变量后，显式调用ThreadLocalMap.remove方法清除线程共享变量；</p>
+<p>2、JDK建议ThreadLocal定义为private static，这样ThreadLocal的弱引用问题则不存在了。</p>
 
-        entityB.implementsSerializable();
+          
+        
+      
+    </div>
+    
+    
+    
 
-保持段落独（Keep sections 保持自定义的代码不会被覆盖，只在实体中有效，实体dao不会起效，没有keep段）
-    实体类在每一次生成器运行的时候都会被覆盖。
-    greenDao允许添加自定义的代码到实体，通过“keep” 
-    schema.enableKeepSectionsByDefault()设置对所有实体有效，允许保留自定义的代码不被覆盖
-    或者hospital.setHasKeepSections(new Boolean(true))。对该实体单独生效，设置有保留段落为true
-    一旦使用，3个独立的部分会在实体中生成：
+    
 
-    // KEEP INCLUDES - put your custom includes here
-    // KEEP INCLUDES END
-    ...
-    // KEEP FIELDS - put your custom fields here
-    // KEEP FIELDS END
-    ...
-    // KEEP METHODS - put your custom methods here
-    // KEEP METHODS END
+    
 
-注意，不要修改KEEP注释。在该范围的代码会在代码重新生成的时候不被覆盖。
-这个功能实在鸡肋，dao本来就功能少，还不能保留自定义代码，只能定义在实体中（不合封装逻辑）
+    
 
-表在什么时候如何创建？
-    OpenHelper extends SQLiteOpenHelper的onCreate()中创建所有的表
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/trycatch/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/trycatch/" itemprop="url">trycatch</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:49:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>public static void main(String[] args) {
+    try {
+        System.out.println(&quot;before try  catch exception&quot;);
+        int a = 0 / 0;
+        System.out.println(&quot;after tyr catch exception&quot;);//无法执行到
+    } catch (Exception e) {
+        System.out.println(e.getMessage());
+        System.out.println(&quot;catch&quot;);
+    } finally {
+        System.out.println(&quot;finally&quot;);
+    }
+    System.out.println(&quot;before un try catch exception&quot;);
+    int a = 0 / 0;
+    System.out.println(&quot;after un try catch exception&quot;);//无法执行到
+}
+</code></pre><p>结果</p>
+<pre><code>before try  catch exception
+/ by zero
+catch
+finally
+before un try catch exception
+Exception in thread &quot;main&quot; java.lang.ArithmeticException: / by zero
+    at MainTest.main(MainTest.java:20)
+</code></pre><p>结论</p>
+<pre><code>1. try语句块中，异常后面的代码无法执行
+2. try catch语句块外的代码，正常执行。try catch最大意义所在（最常用场景）--保证try catch语句块后面的代码正常执行
 </code></pre>
           
         
@@ -1279,7 +1436,7 @@ scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/21/数据库/sql/Android ORM 框架/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/字符串/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1298,7 +1455,7 @@ scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/21/数据库/sql/Android ORM 框架/" itemprop="url">Android ORM框架</a></h1>
+                <a class="post-title-link" href="/2019/03/27/java基础/字符串/" itemprop="url">字符串</a></h1>
         
 
         <div class="post-meta">
@@ -1310,8 +1467,8 @@ scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-21T09:01:53+08:00">
-                2018-12-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:49:53+08:00">
+                2019-03-27
               </time>
             
 
@@ -1333,8 +1490,8 @@ scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
                   </a>
                 </span>
 
@@ -1372,739 +1529,173 @@ scl enable rh-php70 bash //执行 bash 命令，新开的shell就能自动识别
       
         
           
-            <table>
-<thead>
-<tr>
-<th>orm</th>
-<th>原理</th>
-<th>特性</th>
-<th>Module定义</th>
-<th>初始化灵活</th>
-<th>配置数据库</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>OrmLite</td>
-<td>注解反射</td>
-<td>OrmLiteSqliteOpenHelper创建数据库</td>
-<td>@DatabaseTable(tableName = “accounts”)</td>
-<td>√</td>
-<td>OrmLiteSqliteOpenHelper创建数据库时</td>
-</tr>
-<tr>
-<td>SugarORM</td>
-<td>注解反射</td>
-<td>实践中提示找不到表</td>
-<td>直接继承特定类/@Table注解</td>
-<td>提供application</td>
-<td>meta-data</td>
-</tr>
-<tr>
-<td>Active Android</td>
-<td>注解反射</td>
-<td></td>
-<td>×直接继承特定类</td>
-<td>提供application/自定义初始化</td>
-<td>meta-data</td>
-</tr>
-<tr>
-<td>Realm</td>
-<td>注解反射</td>
-<td>基于C++，直接运行在设备硬件上，高性能</td>
-<td>×直接继承特定类</td>
-<td>√</td>
-<td>代码灵活配置</td>
-</tr>
-<tr>
-<td>xutils的dbutils</td>
-<td>注解反射</td>
-<td>可继承父类字段，泛框架，apk体积大</td>
-<td>可继承父类字段</td>
-<td>√</td>
-<td>代码灵活配置</td>
-</tr>
-<tr>
-<td>GreenDAO</td>
-<td>代码模板生成</td>
-<td>Java工程生成dao，高性能，繁琐不灵活</td>
-<td>无法继承父类字段，可继承接口方法</td>
-<td>√</td>
-<td></td>
-</tr>
-<tr>
-<td>DBFlow</td>
-<td>注解apt预编译</td>
-<td>apt预编译，高性能，无缝支持多个数据库</td>
-<td>直接继承特定类/实现Model接口</td>
-<td>application中/其他Context(Activity)中初始化也将只有Application的context</td>
-<td>static final字段</td>
-</tr>
-<tr>
-<td>SQLBrite</td>
-<td></td>
-<td>响应式数据库</td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<h2 id="1-OrmLite-注解反射"><a href="#1-OrmLite-注解反射" class="headerlink" title="1. OrmLite 注解反射"></a>1. OrmLite 注解反射</h2><p>OrmLite 是 Java ORM。支持JDBC连接，Spring以及Android平台。</p>
-<p>语法中广泛使用了注解（Annotation）。</p>
-<h2 id="2-SugarORM-注解反射"><a href="#2-SugarORM-注解反射" class="headerlink" title="2. SugarORM 注解反射"></a>2. SugarORM 注解反射</h2><pre><code>http://satyan.github.io/sugar/getting-started.html
-</code></pre><p>SugarORM 是 Android 平台专用ORM。提供简单易学的APIs。可以很容易的处理1对1和1对多的关系型数据，并通过3个函数save(), delete() 和 find() (或者 findById()) 来简化CRUD基本操作。</p>
-<p>github开源的jar包导入Android studio 识别出错，eclipse使用正常</p>
-<h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>通过AndroidManifest.xml meta-data标签配置 数据库名称、版本</p>
-<h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><ol>
-<li>AndroidManifest.xml application 是 <code>com.orm.SugarApp</code>或它的子类</li>
-</ol>
-<h3 id="Moudle"><a href="#Moudle" class="headerlink" title="Moudle"></a>Moudle</h3><ol>
-<li>Moudle 必须含有 default constructor.</li>
-<li><p>Moudle 两种定义方式</p>
-<pre><code>直接 extends SugarRecord
-@Table注解，同时 Moudle 必须含有 private Long id field
-</code></pre></li>
-</ol>
-<h2 id="3-GreenDAO-代码模板生成"><a href="#3-GreenDAO-代码模板生成" class="headerlink" title="3. GreenDAO 代码模板生成"></a>3. GreenDAO 代码模板生成</h2><p><strong>快</strong>：当性能很重要时（数据访问频繁），GreenDao是一个很快的解决方案，它能够支持数千条记录的CRUD每秒，和OrmLite相比，GreenDAO要快几乎4.5倍。</p>
-<p><strong>小</strong>：GreenDAO小于100KB，所以对于应用程序APK的大小影响很小。</p>
-<p><strong>繁</strong>：必须使用Java工程（代码模板）生成dao，学习成本高</p>
-<p><strong>死</strong>：生成的dao固定，不方便修改。增加功能需要重新运行Java工程生成dao，这同时导致我们添加到dao类的自定义方法（非模板生成）被覆盖</p>
-<h2 id="4-Active-Android-注解反射"><a href="#4-Active-Android-注解反射" class="headerlink" title="4. Active Android 注解反射"></a>4. Active Android 注解反射</h2><h3 id="配置-1"><a href="#配置-1" class="headerlink" title="配置"></a>配置</h3><p>通过AndroidManifest.xml meta-data标签配置 数据库名称、版本</p>
-<h3 id="初始化-1"><a href="#初始化-1" class="headerlink" title="初始化"></a>初始化</h3><ol>
-<li><p>AndroidManifest.xml application 是 <code>com.activeandroid.app.Application</code>或它的子类</p>
-</li>
-<li><p>自定义初始化</p>
-<pre><code>ActiveAndroid.initialize(this);//方法一
-
-Configuration dbConfiguration = new Configuration.Builder(this).setDatabaseName(&quot;xxx.db&quot;).create();
-ActiveAndroid.initialize(dbConfiguration);//方法二
-</code></pre></li>
-</ol>
-<h3 id="Moudle-1"><a href="#Moudle-1" class="headerlink" title="Moudle"></a>Moudle</h3><ol>
-<li>Moudle 必须含有 default constructor.</li>
-<li><p>Moudle 一种定义方式</p>
-<pre><code>extends  Model
-</code></pre></li>
-</ol>
-<h2 id="5-Realm-注解反射"><a href="#5-Realm-注解反射" class="headerlink" title="5. Realm 注解反射"></a>5. Realm 注解反射</h2><pre><code>https://realm.io/
-http://www.tuicool.com/articles/V7ZFvuB Realm for Android快速入门教程
-</code></pre><p>基于C++编写，直接运行在你的设备硬件上（不需要被解释），因此运行很快。</p>
-<p>开源跨平台</p>
-<h3 id="创建一个Realm"><a href="#创建一个Realm" class="headerlink" title="创建一个Realm"></a>创建一个Realm</h3><p>一个Realm相当于一个SQLite数据库。它有一个与之对应的文件，一旦创建将持久保存在安卓的文件系统中。</p>
-<p>要创建一个新的Realm，你可以在任意Activity中调用静态方法Realm.getInstance。</p>
-<pre><code>Realm myRealm = Realm.getInstance(context); //创建default.realm的Realm文件
-
-Realm myOtherRealm = Realm.getInstance(
-            new RealmConfiguration.Builder(context)
-                    .name(&quot;myOtherRealm.realm&quot;)
-                    .build()
-);//自定义文件名的realm文件
-</code></pre><h3 id="创建一个RealmObject"><a href="#创建一个RealmObject" class="headerlink" title="创建一个RealmObject"></a>创建一个RealmObject</h3><p>继承RealmObject</p>
-<h3 id="Realm实战总结"><a href="#Realm实战总结" class="headerlink" title="Realm实战总结"></a>Realm实战总结</h3><pre><code>Realm实战总结---Android http://blog.csdn.net/javine/article/details/51016754
-</code></pre><ol>
-<li><p>model类必须extends RealmObject,所有属性必须用private修饰</p>
-</li>
-<li><p>model中支持基本数据结构：boolean, byte, short, ìnt, long, float, double, String, Dateand byte[]</p>
-</li>
-<li><p>若要使用List必须用RealmList<t>，或者继承RealmList</t></p>
-</li>
-<li><p>与Retrofit2.*一起使用，通过Gson来解析Json数据并直接生成RealmObject，可参考如下写法：</p>
-<pre><code>Gson gson = new GsonBuilder()  
-.setExclusionStrategies(new ExclusionStrategy() {  
-    @Override  
-    public boolean shouldSkipField(FieldAttributes f) {  
-        return f.getDeclaringClass().equals(RealmObject.class);//跳过RealmObject类型字段不解析  
-    }  
-
-    @Override  
-    public boolean shouldSkipClass(Class&lt;?&gt; clazz) {  
-        return false;  
-    }  
-})  
-.create();  
-
-// Configure Retrofit to use the proper GSON converter  
-RestAdapter restAdapter = new RestAdapter.Builder()  
-    .setEndpoint(&quot;https://api.github.com&quot;)  
-    .addConverterFactory(GsonConverterFactory.create(gson))  
-    .build();  
-
-GitHubService service = restAdapter.create(GitHubService.class);
-</code></pre></li>
-<li><p>使用@PrimaryKey 注释的成员变量，在保存时不能为null，但在执行保存的transaction之前可以是null。</p>
-</li>
-<li><p>以PrimaryKey为索引，如果要保存的数据中的primaryKey是新的则保存一条新数据，否则更新原有数据</p>
-</li>
-</ol>
-<h3 id="realm-坑"><a href="#realm-坑" class="headerlink" title="realm 坑"></a>realm 坑</h3><pre><code>http://www.open-open.com/lib/view/open1453185177792.html 为什么我不再使用Realm
-</code></pre><ol>
-<li><p>必须直接继承自RealmObject。这阻碍我们利用数据模型中的任意类型的继承。所有属性必须用private修饰</p>
-</li>
-<li><p>不能定义除setters 和 getters之外的实例方法。如果你想重写equals 或者toString`那么你就别想了。这样导致的另外一个后果就是我们只能局限于使用标记接口模式（marker interfaces） (注解也是可以的 )。</p>
-</li>
-<li><p>setters 和 getters方法只是为Realm替换自己实现的代理方法。它不能操作数据，跑出异常，或者打印日志。</p>
-</li>
-<li><p>必须保证存在一个空的构造函数。如果你想用一个builder 或者工厂方法来作为实例化的唯一途径，那么这种限制就成了一个问题。</p>
-</li>
-<li><p>数据类型限制。所有的基本数据类型以及它们的封装类型都能支持，包括String, Date, 和byte[]`。但是对于其它类型，为了被持久化，必须继承自RealmObject。Lists可以用RealmList来支持。如果我们想使用枚举而不是int，是没有办法的（使用@IntDef注解）。我们还不能使用集合类型，比如Set和Map。</p>
-</li>
-</ol>
-<h3 id="Realm多线程中的那些坑"><a href="#Realm多线程中的那些坑" class="headerlink" title="Realm多线程中的那些坑"></a>Realm多线程中的那些坑</h3><pre><code>Realm多线程中的那些坑... http://blog.csdn.net/javine/article/details/51040110
-</code></pre><ol>
-<li><p>RealmObject自带线程保护功能，只能在创建它的线程中访问，在子线程中不能访问。</p>
-<p> 也就是说，如果你在主线程中new了一个RealmObject对象 user，那么在子线程中是访问不了user对象的。要想在子线程中访问，必须先将user存入Ream中，然后在子线程中query出来。</p>
-</li>
-<li><p>如果Realm关闭，所有查询得到的RealmObject都不能使用了。</p>
-<p> 如果想在子线程中去查询数据，然后在主线程中使用是无法做到的。所以Realm提供的异步查询就很重要了…</p>
-</li>
-<li><p>如果想在Realm.close()之后继续操作查询得到的对象，只能复制一份数据传出来。</p>
-<p> Realm开发者是为了它的一个特色功能Auto-Update，即自动更新查询到的数据，<br> 特意让查询得到的数据与数据库中的数据保持了同步，所以Realm一关，外面的数据也用不了。<br> 而且，这个Auto-update暂时还无法关闭，stackOverFlow上有说以后可能会提供关闭这个功能的方法。</p>
-</li>
-<li><p>如果直接修改或删除query得到的数据，必须在transaction中完成…</p>
-<p> 也就是说，你根本不能把query返回的对象，当成普通对象去赋值或删除，如果想要直接操作…ok，把对象copy一份传出来…</p>
-</li>
-</ol>
-<h3 id="初次使用Realm踩到的坑"><a href="#初次使用Realm踩到的坑" class="headerlink" title="初次使用Realm踩到的坑"></a>初次使用Realm踩到的坑</h3><pre><code>初次使用Realm踩到的坑 http://www.jianshu.com/p/92c6337f3129
-</code></pre><ol>
-<li><p>Realm对象只能在创建它的线程中使用</p>
-<p> 按照以前的思路, 我在自己的 Application 类中添加了一个静态字段以及一个方法用来全局获取到数据库</p>
-<pre><code>public class MyApp extends Application {
-    private static Realm mRealm;
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-        RealmConfiguration configuration = new RealmConfiguration.Builder(this).build();
-        Realm.setDefaultConfiguration(configuration);
-        mRealm = Realm.getDefaultInstance();
-    }
-
-    public static Realm getRealm() {
-        return mRealm;
-    }
-}
-</code></pre><p> 一旦在不是创建 Application 的线程中使用就会抛出异常:</p>
-<pre><code>Caused by: java.lang.IllegalStateException: Realm access from incorrect thread. Realm objects can only be accessed on the thread they were created.
-</code></pre></li>
-</ol>
-<p>正确的做法是在需要的时候再使用 Realm.getDefaultInstance() 获取到Realm实例</p>
-<h2 id="6-SQLBrite-响应式数据库"><a href="#6-SQLBrite-响应式数据库" class="headerlink" title="6. SQLBrite 响应式数据库"></a>6. SQLBrite 响应式数据库</h2><p>Square 的 Jake Wharton 大神的，响应式数据库</p>
-<p>关注如何在数据变化时更简便的获取到通知。当你不想用ContentProvider，只想简单监听SQLite表增删改的数据变更时可以试试它</p>
-<h2 id="7-xutils的dbutils-注解反射"><a href="#7-xutils的dbutils-注解反射" class="headerlink" title="7. xutils的dbutils 注解反射"></a>7. xutils的dbutils 注解反射</h2><p>xutils框架太泛，包含网络请求、图片加载、view注入等，太泛不精，怕出现问题</p>
-<p>优势：支持Module继承</p>
-<h2 id="8-DBFlow-注解预编译"><a href="#8-DBFlow-注解预编译" class="headerlink" title="8. DBFlow 注解预编译"></a>8. DBFlow 注解预编译</h2><pre><code>https://github.com/Raizlabs/DBFlow
-</code></pre><p>注解 + apt预编译，高性能。</p>
-<h3 id="Module"><a href="#Module" class="headerlink" title="Module"></a>Module</h3><ol>
-<li>直接 extends BaseModel，不灵活</li>
-<li>implement Model，麻烦</li>
-</ol>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/21/数据库/sql/XUtils3使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/21/数据库/sql/XUtils3使用/" itemprop="url">XUtils3使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-21T09:00:53+08:00">
-                2018-12-21
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="使用步骤"><a href="#使用步骤" class="headerlink" title="使用步骤"></a>使用步骤</h1><ol>
-<li><p>application中初始化框架 </p>
-<pre><code>x.Ext.init(this);//初始化xutils
-</code></pre></li>
-<li><p>获取DbManager.DaoConfig 对象</p>
-<pre><code>DaoConfig daoConfig=XUtil.getDaoConfig();//默认DaoConfig
-</code></pre></li>
-<li><p>获取DbManager对象，<strong>操作数据库的对象</strong></p>
-<pre><code>DbManager db = x.getDb(daoConfig); 
-</code></pre></li>
-</ol>
-<p>数据库里表的创建的时间，在涉及到这张表的操作时，会先判断当前的表是否存在，如果不存在，创建一张表，如果存在，进行相应的CRUD操作</p>
-<pre><code>DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
-        .setDbName(dbName)
-        .setDbVersion(1)
-        .setDbOpenListener(new DbManager.DbOpenListener() {
-            @Override
-            public void onDbOpened(DbManager db) {
-                db.getDatabase().enableWriteAheadLogging();// 开启WAL, 对写入加速提升巨大
-            }
-        })
-        .setDbUpgradeListener(new DbManager.DbUpgradeListener() {
-            @Override
-            public void onUpgrade(DbManager db, int oldVersion, int newVersion) {
-            }
-        });
-
-dbManager = x.getDb(daoConfig);
-</code></pre><h2 id="DbManager操作"><a href="#DbManager操作" class="headerlink" title="DbManager操作"></a>DbManager操作</h2><ol>
-<li>getDaoConfig 获取数据库的配置信息 </li>
-<li>getDatabase 获取数据库实例 </li>
-<li><p>saveBindingId、saveOrUpdate、save 插入数据的3个方法(保存数据) </p>
-<pre><code>如果主键id是自增长模式
-save完，object的id不改变（还是默认0），只有数据库中id自增长了
-saveBindingId，obje的id会自动赋值为数据库中的id值
-saveOrUpdate，判断id，如果一致就update，否则save
-</code></pre></li>
-<li>replace 只有存在唯一索引时才有用 慎重 </li>
-<li>delete操作的4种方法(删除数据) </li>
-<li>update操作的2种方法(修改数据) </li>
-<li>find操作6种方法(查询数据) </li>
-<li>dropTable 删除表 </li>
-<li>addColumn 添加一列 </li>
-<li>dropDb 删除数据库</li>
-</ol>
-<h2 id="必须有主键"><a href="#必须有主键" class="headerlink" title="必须有主键"></a>必须有主键</h2><p><strong>没有主键构建sql会报空指针</strong></p>
-<pre><code>@Column(name = &quot;id&quot;, isId = true)
-public long id;
-</code></pre><p><strong>主键默认自动增长，无法赋值。若要赋值，将自动增长属性设为false</strong></p>
-<pre><code>@Column(name = &quot;taskId&quot;, isId = true, autoGen = false, property = &quot;UNIQUE&quot;)
-public int taskId;
-</code></pre><h2 id="除了主键，至少需要另外一个列"><a href="#除了主键，至少需要另外一个列" class="headerlink" title="除了主键，至少需要另外一个列"></a>除了主键，至少需要另外一个列</h2><pre><code>Caused by: android.database.sqlite.SQLiteException: near &quot;)&quot;: syntax error (code 1): , while compiling: CREATE TABLE IF NOT EXISTS &quot;followedquestion&quot; ( &quot;_id&quot;INTEGER PRIMARY KEY, )
-</code></pre><p>看到这个异常，逗号，想到可能是需要主键外的另一个列，加了一列，果然可以</p>
-<h2 id="多条件查询"><a href="#多条件查询" class="headerlink" title="多条件查询"></a>多条件查询</h2><pre><code>communityMessage = DBHelp.getInstance().getDbManager().selector(CommunityMessage.class).where(&quot;communityId&quot;, &quot;=&quot;, communityId).and(WhereBuilder.b(&quot;atUserId&quot;, &quot;=&quot;, UserData.getUserId()).or(&quot;atUserId&quot;, &quot;=&quot;, -1)).limit(1).orderBy(orderByColumName, true).findFirst();
-
-查找CommunityMessage表中指定communityId，而且(atUserId=本人id或=-1)的一条消息
-</code></pre><h2 id="实体支持继承"><a href="#实体支持继承" class="headerlink" title="实体支持继承"></a>实体支持继承</h2><p>实体 Animal</p>
-<pre><code>@Table(name = &quot;animal&quot;)
-public class Animal implements Serializable {
-    @Column(name = &quot;id&quot;, isId = true, autoGen = true)
-    protected long id;
-
-    @Column(name = &quot;name&quot;)
-    protected String name;
-
-    @Column(name = &quot;type&quot;)
-    private String type;
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-}
-</code></pre><p>实体 Dog extends Animal</p>
-<pre><code>@Table(name = &quot;dog&quot;)
-public class Dog extends Animal {
-    @Column(name = &quot;age&quot;)
-    private int age;
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-}
-</code></pre><p>代码</p>
-<pre><code>DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
-        .setDbName(&quot;test.db&quot;)
-        .setDbVersion(1)
-        .setDbOpenListener(new DbManager.DbOpenListener() {
-            @Override
-            public void onDbOpened(DbManager db) {
-                db.getDatabase().enableWriteAheadLogging();// 开启WAL, 对写入加速提升巨大
-            }
-        });
-DbManager dbManager = x.getDb(daoConfig);
-
-Animal animal = new Animal();//存入Animal表
-animal.setName(&quot;animal&quot;);
-animal.setType(&quot;small&quot;);
-
-Dog dog = new Dog();//存入Dog表
-dog.setName(&quot;dog&quot;);
-dog.setAge(13);
-dog.setType(&quot;big&quot;);
-
-Animal animalDog = new Dog();//存入Dog表
-animalDog.setName(&quot;animalDog&quot;);
-animalDog.setType(&quot;big&quot;);
-
-try {
-    dbManager.save(animal);
-    dbManager.save(animalDog);
-    dbManager.save(dog);
-
-    List&lt;Animal&gt; animals = dbManager.findAll(Animal.class);
-    for (Animal a :
-            animals) {
-        Log.d(&quot;lyg&quot;, a.getName() + &quot; &quot; + a.getType());
-    }
-
-
-    List&lt;Dog&gt; dogs = dbManager.findAll(Dog.class);
-    for (Dog d :
-            dogs) {
-        Log.d(&quot;lyg&quot;, d.getName() + &quot; &quot; + d.getType() + &quot; &quot; + d.getAge());
-    }
-
-} catch (DbException e) {
-    e.printStackTrace();
-}
-</code></pre><p>结果：</p>
-<pre><code>10-25 09:24:17.979 30810-30810/com.xuehu365.test D/lyg: animal small
-10-25 09:24:17.979 30810-30810/com.xuehu365.test D/lyg: animalDog big 0
-10-25 09:24:17.979 30810-30810/com.xuehu365.test D/lyg: dog big 13
-</code></pre><p>结论：</p>
-<pre><code>能多态将实体存入正确的表中。
-父类中所有字段都能继承下来（包括private字段）
-</code></pre><h1 id="常见错误"><a href="#常见错误" class="headerlink" title="常见错误"></a>常见错误</h1><h2 id="删除对象id为空异常"><a href="#删除对象id为空异常" class="headerlink" title="删除对象id为空异常"></a>删除对象id为空异常</h2><p>this entity’s id value is null</p>
-<p>报错如下：</p>
-<pre><code>org.xutils.ex.DbException: this entity[class com.xuehu365.xuehu.model.BroadcastMessage]&apos;s id value is null
-       at org.xutils.db.sqlite.SqlInfoBuilder.buildDeleteSqlInfo(SqlInfoBuilder.java:128)
-       at org.xutils.db.DbManagerImpl.delete(DbManagerImpl.java:253)
-    at com.xuehu365.xuehu.utils.DBHelp.delete(DBHelp.java:103)
-</code></pre><p>查看源码：</p>
-<pre><code>public static SqlInfo buildDeleteSqlInfo(TableEntity&lt;?&gt; table, Object entity) throws DbException {
-    SqlInfo result = new SqlInfo();
-
-    ColumnEntity id = table.getId();
-    Object idValue = id.getColumnValue(entity);
-
-    if (idValue == null) {
-        throw new DbException(&quot;this entity[&quot; + table.getEntityType() + &quot;]&apos;s id value is null&quot;);
-    }
-    StringBuilder builder = new StringBuilder(&quot;DELETE FROM &quot;);
-    builder.append(&quot;\&quot;&quot;).append(table.getName()).append(&quot;\&quot;&quot;);
-    builder.append(&quot; WHERE &quot;).append(WhereBuilder.b(id.getName(), &quot;=&quot;, idValue));
-
-    result.setSql(builder.toString());
-
-    return result;
-}
-</code></pre><p>原因：</p>
-<pre><code>是从服务器返回的message对象，并没有id字段（json解析值为null）
-</code></pre><p>解决方案：</p>
-<pre><code>先用该对象的msgId从数据库查询到message对象，然后再调用delete方法
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/web/php/CodeIgniter框架使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/web/php/CodeIgniter框架使用/" itemprop="url">CodeIgniter框架使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T16:08:25+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/" itemprop="url" rel="index">
-                    <span itemprop="name">Web</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>小巧简单，上手容易，适用于小项目敏捷开发</p>
-<p>MVC架构</p>
-<h1 id="快速上手"><a href="#快速上手" class="headerlink" title="快速上手"></a>快速上手</h1><h2 id="安装配置"><a href="#安装配置" class="headerlink" title="安装配置"></a>安装配置</h2><ol>
-<li><a href="https://codeigniter.org.cn/" target="_blank" rel="noopener">下载解压</a></li>
-<li>配置。<ul>
-<li>全局配置 <code>application/config/config.php</code> </li>
-<li>数据库配置 <code>application/config/database.php</code></li>
-</ul>
-</li>
-</ol>
-<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p><img src="https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=206154531,2389930621&amp;fm=173&amp;s=00B0EC339E80BE01958CE540030070B2&amp;w=639&amp;h=188&amp;img.JPEG" alt=""></p>
+            <h1 id="String"><a href="#String" class="headerlink" title="String"></a>String</h1><p><strong>String不变性</strong></p>
 <ul>
-<li>index.php 文件作为前端控制器，初始化运行 CodeIgniter 所需的基本资源； </li>
-<li>Router 检查 HTTP 请求，以确定如何处理该请求； 如果存在缓存文件，将直接输出到浏览器，不用走下面正常的系统流程； 在加载应用程序控制器之前，对 HTTP 请求以及任何用户提交的数据进行安全检查； 控制器加载模型、核心类库、辅助函数以及其他所有处理请求所需的资源； 最后一步，渲染视图并发送至浏览器，如果开启了缓存，视图被会先缓存起来用于 后续的请求。</li>
+<li>String是final类，不能被继承。</li>
+<li>其实是通过char数组来保存字符串的</li>
+<li><p>所有操作都不是在原有的字符串上进行的，而是重新生成了一个新的字符串对象。也就是说进行这些操作后，最原始的字符串并没有被改变。</p>
+<pre><code>public final class String implements java.io.Serializable, Comparable&lt;String&gt;, CharSequence {}
+</code></pre></li>
 </ul>
-<h2 id="两个主要目录"><a href="#两个主要目录" class="headerlink" title="两个主要目录"></a>两个主要目录</h2><ul>
-<li>application目录：用于开发者编写相应的配置以及逻辑处理，开发者只需在这个目录下添加自己需要的开发文件。 </li>
-<li>system目录：框架的系统库，里面包括核心库，类库，辅助类库，数据库等，这些文件，开发者最好不要擅自修改。</li>
+<h2 id="String对象绑定引用"><a href="#String对象绑定引用" class="headerlink" title="String对象绑定引用"></a>String对象绑定引用</h2><p><strong>String str=”hello world”</strong></p>
+<ul>
+<li>将String对象跟引用绑定</li>
+<li>JVM执行引擎先在运行时常量池查找是否存在相同的字面常量<ul>
+<li>如果存在，则直接将引用指向已经存在的字面常量；</li>
+<li>否则在运行时常量池开辟一个空间来存储该字面常量，并将引用指向该字面常量。</li>
 </ul>
-<h2 id="CI框架的MVC和数据库辅助类"><a href="#CI框架的MVC和数据库辅助类" class="headerlink" title="CI框架的MVC和数据库辅助类"></a>CI框架的MVC和数据库辅助类</h2><h3 id="控制器"><a href="#控制器" class="headerlink" title="控制器"></a>控制器</h3><p>application/controller 目录</p>
-<p>开发者添加自己的controller 控制器控制器都要继承核心库里的基类 CI_Controller，它已获取到整个框架的核心类库对象，通过它基本可以调用CI框架下的核心方法。 </p>
-<h3 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h3><p>application/models 目录</p>
-<p>专门用来和数据库打交道的 PHP 类，开发者定义自己的模型类都要继承 模型基类 CI_Mode。当你在控制下调用模型，只需要下面一行代码就实例化了：$this-&gt;load-&gt;model(‘model_name’); </p>
-<h3 id="视图"><a href="#视图" class="headerlink" title="视图"></a>视图</h3><p>application/controller 目录</p>
-<p>视图用于显示在浏览器中</p>
-<h3 id="辅助函数"><a href="#辅助函数" class="headerlink" title="辅助函数"></a>辅助函数</h3><p>application/helpers 目录</p>
-<p>开发者可以创建自己的辅助类，调用的方式与系统的辅助类一致。</p>
-<h3 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h3><p>CI框架封装了多种数据库驱动与连接方法，让你轻松配置就能连接上，且封装了一些查询构造器与生成查询结果，让代码看起来方便简洁</p>
-<h2 id="API快速冒烟"><a href="#API快速冒烟" class="headerlink" title="API快速冒烟"></a>API快速冒烟</h2><p>分页获取用户列表，包含id，username,password</p>
-<h3 id="创建数据库和表"><a href="#创建数据库和表" class="headerlink" title="创建数据库和表"></a>创建数据库和表</h3><p>创建test库user表</p>
-<p>create table user(<br>    id int primary key auto_increment,<br>    username varchar(20),<br>    password varchar(20)<br>);</p>
-<h3 id="创建控制类"><a href="#创建控制类" class="headerlink" title="创建控制类"></a>创建控制类</h3><p>创建文件 <code>application/controllers/Test.php</code></p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span></span>&#123;</span><br><span class="line">	<span class="keyword">public</span> $id;</span><br><span class="line">	<span class="keyword">public</span> $username;</span><br><span class="line">	<span class="keyword">public</span> $password;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">CI_Controller</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getUsers</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">'page_size'</span>]))&#123;</span><br><span class="line">			$pageSize = $_GET[<span class="string">'page_size'</span>];</span><br><span class="line">		&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">			$pageSize = <span class="number">10</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">'page'</span>]))&#123;</span><br><span class="line">			$page = $_GET[<span class="string">'page'</span>];</span><br><span class="line">		&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">			$page = <span class="number">0</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		$startIndex = $page*$pageSize;</span><br><span class="line">		<span class="keyword">$this</span>-&gt;load-&gt;database(); <span class="comment">//加载数据库类</span></span><br><span class="line">		$sql = <span class="string">"SELECT * FROM user limit $startIndex, $pageSize"</span>;</span><br><span class="line">		$query = <span class="keyword">$this</span>-&gt;db-&gt;query($sql); <span class="comment">//执行sql语句</span></span><br><span class="line">		$rows = $query-&gt;custom_result_object(<span class="string">'User'</span>); <span class="comment">//转换成数组</span></span><br><span class="line">		$viewArray = <span class="keyword">array</span>(<span class="string">"jsonArray"</span> =&gt; $rows);</span><br><span class="line">		ob_start(); <span class="comment">//开启缓存</span></span><br><span class="line">		<span class="keyword">$this</span>-&gt;load-&gt;view(<span class="string">'json'</span>, $viewArray); <span class="comment">//输出信息到json.php视图</span></span><br><span class="line">		ob_end_flush(); <span class="comment">//关闭缓存</span></span><br><span class="line">		<span class="keyword">exit</span>(); <span class="comment">//退出</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
-<h3 id="创建View视图"><a href="#创建View视图" class="headerlink" title="创建View视图"></a>创建View视图</h3><p>创建文件 <code>application/views/json.php</code></p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">header(<span class="string">'Content-type: application/json'</span>);<span class="comment">//通信头设置</span></span><br><span class="line">$outputarray = <span class="keyword">array</span>(<span class="string">'status'</span> =&gt; <span class="string">'OK'</span>, <span class="string">'data'</span> =&gt; $jsonArray);</span><br><span class="line"><span class="keyword">echo</span> json_encode($outputarray);<span class="comment">//数组转json，然后echo输出</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
-<h3 id="URL访问接口"><a href="#URL访问接口" class="headerlink" title="URL访问接口"></a>URL访问接口</h3><p>CodeIgniter框架URL规则，上面接口的访问方法为<br><code>http://localhost:8888/index.php/test/getusers?page=1</code></p>
-<p>规则 <code>host/index.php/controller/method?param</code></p>
+</li>
+</ul>
+<p><strong>String str=new String(“hello world”)</strong></p>
+<ul>
+<li>new关键字生成对象是在堆区进行的,创建出的一定是不同的对象</li>
+</ul>
+<p>1</p>
+<pre><code>public class Main {
+    public static void main(String[] args) {
+        String str1 = &quot;hello world&quot;;
+        String str2 = new String(&quot;hello world&quot;);
+        String str3 = &quot;hello world&quot;;
+        String str4 = new String(&quot;hello world&quot;);
+
+        System.out.println(str1==str2);//false
+        System.out.println(str1==str3);//true
+        System.out.println(str2==str4);//false
+    }
+}
+</code></pre><p>2 String str = new String(“abc”)创建了多少个对象？</p>
+<p>很显然，new只调用了一次，也就是说只创建了一个对象。</p>
+<p>在运行期间确实只在堆上创建了一个对象。</p>
+<p>为什么大家都在说是2个对象呢？在类加载的过程中，确实在运行时常量池中创建了一个”abc”对象。</p>
+<p>因此，这个问题如果换成 String str = new String(“abc”)涉及到几个String对象？合理的解释是2个。</p>
+<h2 id="常量池、编译期常量优化"><a href="#常量池、编译期常量优化" class="headerlink" title="常量池、编译期常量优化"></a>常量池、编译期常量优化</h2><p><strong>class文件常量池</strong> </p>
+<ul>
+<li>存储编译期间生成的 字面常量以及符号引用，在运行期间对应着方法区的运行时常量池。</li>
+<li>编译期间常量优化。<ul>
+<li>字符串直接相加，优化。<ul>
+<li>把相加结果为一个常量字符串存入class文件常量池</li>
+</ul>
+</li>
+<li>字符串间接相加(即包含字符串引用)<ul>
+<li>引用非final，不优化。 <ul>
+<li>因为b+2这种方式生成的对象事实上是保存在堆上的</li>
+</ul>
+</li>
+<li>引用final<ul>
+<li>引用值是字面常量值，优化。 <ul>
+<li>因为final变量编译期间都会直接被替代为真实的字面常量值，并将该字面常量值存入class文件常量池</li>
+</ul>
+</li>
+<li>引用值非字面常量值(如方法返回值)，不优化。 <ul>
+<li>因为值只能在运行期间确定</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>1</p>
+<pre><code>String a = &quot;hello2&quot;;
+String b = &quot;hello&quot; + 2;//直接相加，优化
+System.out.println((a == b));//true
+</code></pre><p>2</p>
+<pre><code>String a = &quot;hello2&quot;;
+String b = &quot;hello&quot;;
+String c = b + 2;//间接相加,引用非final，不优化
+System.out.println((a == c));//false
+</code></pre><p>3</p>
+<pre><code>String a = &quot;hello2&quot;;   　 
+final String b = &quot;hello&quot;;       
+String c = b + 2;    //间接相加,引用final且引用值是常量值，优化   
+System.out.println((a == c));//true
+</code></pre><p>4</p>
+<pre><code>public class Main {
+    public static void main(String[] args) {
+        String a = &quot;hello2&quot;;
+        final String b = getHello();
+        String c = b + 2;//间接相加,引用final且引用值非常量值，不优化   
+        System.out.println((a == c));//false
+    }
+
+    public static String getHello() {
+        return &quot;hello&quot;;
+    }
+}
+</code></pre><h2 id="intern-方法"><a href="#intern-方法" class="headerlink" title="intern()方法"></a>intern()方法</h2><p>String类的intern方法是一个<strong>本地方法</strong>。<strong>只会直接访问运行时常量池</strong></p>
+<p>JDK1.6，intern方法会在运行时常量池中查找是否存在内容相同的字符串，如果存在则返回指向该字符串的引用，如果不存在，则会将该字符串入池，并返回一个指向该字符串的引用。</p>
+<pre><code>public class Main {
+    public static void main(String[] args) {
+        String a = &quot;hello&quot;;
+        String b =  new String(&quot;hello&quot;);
+        String c =  new String(&quot;hello&quot;);
+        String d = b.intern();
+
+        System.out.println(a==b);//false
+        System.out.println(b==c);//false
+        System.out.println(b==d);//false
+        System.out.println(a==d);//true
+    }
+}
+</code></pre><h1 id="StringBuilder"><a href="#StringBuilder" class="headerlink" title="StringBuilder"></a>StringBuilder</h1><pre><code>public class Main {
+    public static void main(String[] args) {
+        String string = &quot;&quot;;
+        for(int i=0;i&lt;10000;i++){
+            string += &quot;hello&quot;;
+        }
+    }
+}
+</code></pre><p>反编译字节码：</p>
+<pre><code>  public static void main(java.lang.String[]);
+    Code:
+       0: ldc           #2                  // String
+       2: astore_1
+       3: iconst_0
+       4: istore_2
+       5: iload_2
+       6: sipush        10000
+       9: if_icmpge     38
+      12: new           #3                  // class java/lang/StringBuilder
+      15: dup
+      16: invokespecial #4                  // Method java/lang/StringBuilder.&quot;&lt;init&gt;&quot;:()V
+      19: aload_1
+      20: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/Stri
+ngBuilder;
+      23: ldc           #6                  // String hello
+      25: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/Stri
+ngBuilder;
+      28: invokevirtual #7                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      31: astore_1
+      32: iinc          2, 1
+      35: goto          5
+      38: return
+</code></pre><p>string += “hello”;的过程相当于将原有的string变量指向的对象内容取出与”hello”作字符串相加操作再存进另一个新的String对象当中，再让string变量指向新生成的对象</p>
+<p>从第5行到第35行是整个循环的执行过程，每次循环会new出一个StringBuilder对象，然后进行append操作，最后通过toString方法返回String对象。循环new出了10000个对象。从上面还可以看出：string+=”hello”的操作事实上会自动被JVM优化成：</p>
+<pre><code>StringBuilder str = new StringBuilder(string);
+str.append(&quot;hello&quot;);
+str.toString();
+</code></pre><h1 id="StringBuffer"><a href="#StringBuffer" class="headerlink" title="StringBuffer"></a>StringBuffer</h1><p><strong>线程安全</strong></p>
+<p>StringBuffer类的成员方法前面多了一个关键字：synchronized</p>
+<h1 id="效率"><a href="#效率" class="headerlink" title="效率"></a>效率</h1><p>从高到低，依次为：</p>
+<p><strong>直接相加</strong></p>
+<ul>
+<li><p>效率最高，因为在编译期间优化了，便确定了它的值</p>
+<pre><code>String s = &quot;I&quot;+&quot;love&quot;+&quot;java&quot;;//在编译期间便被优化成了&quot;Ilovejava&quot;
+</code></pre></li>
+</ul>
+<p><strong>StringBuilder</strong></p>
+<p><strong>StringBuffer</strong></p>
+<p><strong>间接相加(即包含字符串引用)</strong></p>
+<ul>
+<li><p>效率特别低，因为在编译器不会对引用变量进行优化。形如s1+s2+s3; </p>
+<pre><code>String s1 =&quot;I&quot;;
+String s2 = &quot;love&quot;;
+String s3 = &quot;java&quot;;
+String s = s1+s2+s3;
+</code></pre></li>
+</ul>
 
           
         
@@ -2153,7 +1744,7 @@ try {
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/数据库/sql/sql使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/内存模型JMM和volatile/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -2172,7 +1763,7 @@ try {
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/数据库/sql/sql使用/" itemprop="url">SQL使用</a></h1>
+                <a class="post-title-link" href="/2019/03/27/java基础/内存模型JMM和volatile/" itemprop="url">内存模型JVM和volatile</a></h1>
         
 
         <div class="post-meta">
@@ -2184,8 +1775,8 @@ try {
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T15:47:53+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:48:53+08:00">
+                2019-03-27
               </time>
             
 
@@ -2207,8 +1798,8 @@ try {
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
                   </a>
                 </span>
 
@@ -2246,447 +1837,429 @@ try {
       
         
           
-            <h1 id="SQL"><a href="#SQL" class="headerlink" title="SQL"></a>SQL</h1><p><strong>Structured Query Language</strong>, 结构化查询语言</p>
-<p>操作 关系型数据库（用表存储数据）的 标准 非过程性语言。</p>
-<p>为加强SQL的语言能力，各厂商在实现标准中增加了过程性语言的特征。如Oracle的PL/SQL 过程性处理能力，SQL Server、Sybase的T-SQL</p>
-<h1 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h1><pre><code>不区分大小写。推荐关键字大写，自定义的小写
-每条语句以分号结尾
-注释符号是 #
-</code></pre><h1 id="数据库服务器–数据库–表"><a href="#数据库服务器–数据库–表" class="headerlink" title="数据库服务器–数据库–表"></a>数据库服务器–数据库–表</h1><p>数据库服务器有多个数据库组成，每个数据库有多个表。表中存储着数据。</p>
-<p>一般一个工程项目对应一个数据库，一个JavaBean对应一个表。</p>
-<p>元数据：数据库，表，列的定义信息</p>
-<h2 id="数据库服务器–mysql"><a href="#数据库服务器–mysql" class="headerlink" title="数据库服务器–mysql"></a>数据库服务器–mysql</h2><p>要特别注意连接，备份命令是在cmd窗口执行，要注意和sql语句区分，是没有分号的。特别注意！！</p>
+            <pre><code>volatile 英[ˈvɒlətaɪl] 易变的，不稳定的;
+</code></pre><h1 id="Java内存模型JMM-Java-Memory-Mode"><a href="#Java内存模型JMM-Java-Memory-Mode" class="headerlink" title="Java内存模型JMM(Java Memory Mode)"></a>Java内存模型JMM(Java Memory Mode)</h1><ol>
+<li><p><strong>原子性</strong></p>
+<p> 操作<strong>不可被中断</strong>。即使多线程并发，操作不会被其他线程干扰</p>
+<p> 例如为int i 赋值，32位系统能保证该操作具有原子性，不会出现对一个线程赋值了i的高16位，另一个线程赋值i的低16位</p>
+<p> 但是，long l 赋值，32位操作系统该操作需要两步，就不具备原子性。</p>
+<p> 最新的JDK中，JVM已经保证对64位数据的读取和赋值也是原子性操作了</p>
+<p> <strong>对基本数据类型的读取和赋值操作是原子性操作</strong></p>
+</li>
+</ol>
+<pre><code>    x = 10;         //原子性
+    y = x;         //两个操作，读x，将x赋值给y
+    x++;           //x = x + 1;三个操作，读x，+1，赋值给x
+
+**原子操作类**
+
+java 1.5的java.util.concurrent.atomic包下提供了一些原子操作类，保证这些操作是原子性操作。如 AtomicInteger
+
+即对基本数据类型的 自增（加1操作），自减（减1操作）、以及加法操作（加一个数），减法操作（减一个数）进行了封装
+
+atomic是利用CAS(Compare And Swap)来实现原子性操作的，CAS实际上是利用处理器提供的CMPXCHG指令实现的，而处理器执行CMPXCHG指令是一个原子性操作。
+</code></pre><ol start="2">
+<li><p><strong>可见性</strong></p>
+<p> 一个线程修改了变量的值，其他线程能够<strong>立即看到</strong>修改的值</p>
+<p> 产生问题原因：</p>
 <ol>
-<li><p>连接mysql数据库服务器</p>
-<p> mysql -u root -p</p>
-</li>
-<li><p>备份与恢复数据库</p>
+<li>编译器优化</li>
+<li>缓存优化(将变量缓存在CPU cache或寄存器里)</li>
+<li>硬件优化(部分内存读写不立即触发，而先进入硬件队列等待)</li>
+<li><p>指令重排</p>
+<p>可见性问题，线程1对变量i修改了之后，线程2没有立即看到线程1修改的值</p>
 </li>
 </ol>
+</li>
+<li><p><strong>有序性</strong></p>
+<p> 程序执行的<strong>顺序</strong>按照代码的先后顺序执行</p>
+<p> 有序性问题是三个问题中<strong>最难理解</strong>的</p>
+<p> 产生问题原因：</p>
 <ul>
-<li><p>备份数据库：连接mysql服务器前</p>
-<pre><code>mysqldump -u root -p db_name&gt;c:/1.sql
-</code></pre></li>
-<li><p>恢复数据库：必须要先创建数据库，然后导入备份的sql文件</p>
-<pre><code>备份。在cmd窗口
-    mysql -u root -p db_name&lt;c:/1.sql
-恢复。在mysql窗口中（连接mysql服务器后）
-    use db_name;
-    source c:/1.sql;
-</code></pre></li>
+<li><p>指令重排</p>
+<p>Java内存模型中，允许编译器和处理器对指令进行重排序，但是重排序过程不会影响到单线程程序的执行，却会影响到多线程并发执行的正确性</p>
+<p>Java内存模型具备一些先天的“有序性”，即 <strong>happens-before原则（先行发生原则）</strong>：</p>
+<p>  程序次序规则：一个线程内，按照代码顺序，书写在前面的操作先行发生于书写在后面的操作<br>  锁定规则：unLock操作先行发生于后面对同一个锁lock操作<br>  volatile变量规则：对一个变量的写操作先行发生于后面对这个变量的读操作<br>  传递规则：如果操作A先行发生于操作B，而操作B又先行发生于操作C，则可以得出操作A先行发生于操作C<br>  线程启动规则：Thread对象的start()方法先行发生于此线程的每个一个动作<br>  线程中断规则：对线程interrupt()方法的调用先行发生于被中断线程的代码检测到中断事件的发生<br>  线程终结规则：线程中所有的操作都先行发生于线程的终止检测，我们可以通过Thread.join()方法结束、Thread.isAlive()的返回值手段检测到线程已经终止执行<br>  对象终结规则：一个对象的初始化完成先行发生于他的finalize()方法</p>
+</li>
 </ul>
-<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><pre><code>1.创建数据库
-    create database [if not exists] db_name [character set xxx] [collate xxx]
-    *创建一个名称为mydb1的数据库。
-        create database mydb1;
-    *创建一个使用utf8（中间没有杆）字符集的mydb2数据库。
-        create database mydb2 character set utf8;
-    *创建一个使用utf8字符集，并带校对规则（校对规则是下划线连接）的mydb3数据库。
-        create database mydb3 character set utf8 collate utf8_bin ;
-2.查看数据库
-    show databases;查看所有数据库
-    show create database db_name; 查看数据库的创建方式
-3.修改数据库
-    alter database db_name [character set xxx] [collate xxxx]
-4.删除数据库
-    drop database [if exists] db_name;
-5.使用数据库
-    切换使用的数据库 use db_name; （数据库特有关键字，不用加database）
-    查看当前使用的数据库 select database();注意不要忘了括号
-</code></pre><hr>
-<h2 id="表"><a href="#表" class="headerlink" title="表"></a>表</h2><pre><code>1.创建表
-        create table tab_name(
-            field1 type,
-            field2 type,
-            ...
-            fieldn type
-        )[character set xxx][collate xxx];
+</li>
+</ol>
+<p><strong>synchronized</strong>和<strong>Lock</strong></p>
+<ul>
+<li><p>保证原子性</p>
+</li>
+<li><p>保证可见性</p>
+<p>  synchronized和Lock能保证同一时刻只有一个线程获取锁然后执行同步代码，并且在释放锁之前会将对变量的修改刷新到主存当中。因此可以保证可见性。</p>
+</li>
+<li><p>保证有序性</p>
+</li>
+</ul>
+<p><strong>volatile</strong></p>
+<ul>
+<li><p>保证可见性</p>
+<p>  保证变量修改的值会立即被更新到主存，当有其他线程需要读取时，它会去内存中读取新值</p>
+</li>
+<li><p>保证一定的“有序性”</p>
+</li>
+</ul>
+<p>volatile无法保证对变量的任何操作都是原子性的</p>
+<p>volatile关键字的两层语义：</p>
+<p>1）保证了不同线程对这个变量进行操作时的可见性。</p>
+<p>2）禁止进行指令重排序。</p>
+<p><strong>使用volatile必须具备2个条件</strong></p>
+<ul>
+<li><p>对变量的写操作不依赖于当前值</p>
+</li>
+<li><p>该变量没有包含在具有其他变量的不变式中</p>
+</li>
+</ul>
+<p><strong>使用volatile关键字的场景</strong></p>
+<ul>
+<li><p>状态标记量</p>
+</li>
+<li><p>double check</p>
+</li>
+</ul>
 
-        ****java和mysql的数据类型比较
-            String  ----------------------  char(n) varchar(n) 注意是var+char。 
-                                                定长是固定长度，自动补齐。变长是根据存储内容决定长度。
-                                                但都不能超过定义长度n.定长胜在效率，变长胜在节省空间。
-            byte short int long float double -------------- tinyint  smallint int bigint float double。
-                                                    长度分别    1        2        4    8        4        8字节
-            boolean ------------------ bit 0/1
-            Date ------------------ Date、Time、DateTime、timestamp
-            FileInputStream FileReader  ------------------------------ 大数据类型 Blob Text
-            字符和日期型数据应包含在单引号中
+          
+        
+      
+    </div>
+    
+    
+    
 
-            *创建一个员工表employee
-            create table employee(
-                id int primary key auto_increment ,
-                name varchar(20),
-                gender bit default 1,
-                birthday date,
-                entry_date date,
-                job varchar(20),
-                salary double,
-                resume text
-            );
+    
 
-            约束:
-                primary key 主键，不空切唯一。一般其后都紧跟着auto_increment 主键字段必须是数字类型(非数字无法自增长)。主键无法更改（更改主键，插入数据库就无法知道修改的列）
-                auto_increment只有主键可以自动增长    
-                unique
-                not null
-                外键约束，一般是和多表设计一起理解。看后面
-    2.查看表信息
-        show tables 查看当前数据库中的所有的表
-        show create table tab_name    查看当前数据库表建表语句 
-        desc tab_name 查看表结构。（表特有关键字，所以不用加table）
-    3.修改表
-        alter table add列/drop列/change列名/modify列类型/character set
-        rename table to  重命名表(不要忘记了to)
+    
 
-            *在上面员工表的基本上增加一个image列。
-                alter table employee add image blob;
-            *修改job列，使其长度为60。
-                alter table employee modify job varchar(60);
-            *删除gender列。
-                alter table employee drop gender;
-            *表名改为user。
-                rename table employee to user;
-            *修改表的字符集为utf8
-                alter table user character set gbk; 
-            *列名name修改为username    
-                alter table user change name username varchar(20);
+    
 
-    4.删除表
-        drop table tab_name;
-</code></pre><hr>
-<h2 id="表记录-数据"><a href="#表记录-数据" class="headerlink" title="表记录(数据)"></a>表记录(数据)</h2><pre><code>1.增加一条记录insert into values  其实可以用逗号分隔一次性插入多条记录。
-    insert into tab_name [(field1,filed2,.......)] values (value1,value2,.......)[,(value1,value2,...)];
-    *values中的数据必须与列的排列位置相对应。
-    *插入空值：不要把该列加入列列表  或  值写为null
-    *如果要插入所有字段可以省写列列表，直接按表中字段顺序写值列表insert into tab_name values(value1,value2,......);
-    *字符和日期型数据应包含在单引号中&apos;zhang&apos; &apos;2013-04-20&apos;
-    *mysql中乱码的原因与解决：
-        客户端发送数据时使用的编码和服务器处理数据时使用的编码不相同
-        show variables like &apos;character%&apos;;可以获得服务器使用的编码。
-        %表示任意个字符，下划线_表示一个字符。 模糊匹配like。
-        解决方法
-                (1)set names xxxx; --- 连接后通知服务器和当前客户端进行交互时使用的编码集（每个客户端连接后都需要设置）
-                (2)修改服务器中的my.ini配置文件，修改服务器默认 认为的客户端的编码
-    *练习：使用insert语句向表中插入四个员工的信息。
-    insert into emp (name,birthday,entry_date,job,salary) values (&apos;张飞&apos;,&apos;1990-09-09&apos;,&apos;2000-01-01&apos;,&apos;打手&apos;,999);
-    insert into emp values (null,&apos;黄忠&apos;,1,&apos;1970-05-05&apos;,&apos;2001-01-01&apos;,&apos;战神&apos;,1000,null);
-    insert into emp (name,birthday,entry_date,job,salary) values (&apos;关羽&apos;,&apos;1989-08-08&apos;,&apos;2000-01-01&apos;,&apos;财神&apos;,9999)
-                                                                    ,(&apos;赵云&apos;,&apos;1991-07-07&apos;,&apos;2000-01-02&apos;,&apos;保安&apos;,888);
+    <footer class="post-footer">
+      
 
-2.修改表列记录 update  set
-        update tab_name set field1=expr1 [,field2=expr1] [where 语句]
-        *SET子句指示要修改哪些列和要给予哪些值（可以是表达式，比如field+10，表示增加10）。
-        *WHERE子句指定应更新哪些行。如没有WHERE子句，则更新所有的行。
-    *where字句中可以使用：
-                        *比较运算符：    
-                                    &gt; &lt; &gt;= &lt;= &lt;&gt;  （不等于是&lt;&gt;,特别注意）
-                                    between 10 and 20 值在10到20之间  
-                                    in(10,20,3)值是10或20或30
-                                    like &apos;张pattern&apos; pattern可以是%或者_，如果是%则表示任意多字符，此例中张三丰 张飞 张abcd ，如果是_则表示一个字符张_，张飞符合。
-                                    is null
+      
 
-                        *逻辑运算符
-                            在多个条件直接可以使用逻辑运算符 and or not
+      
 
-            ~将所有员工薪水修改为5000元。
-                update employee set salary=5000;
-            ~将姓名为’张飞’的员工薪水修改为3000元。
-                update employee set salary=3000 where name = &apos;张飞&apos;;
-            ~将姓名为’关羽’的员工薪水修改为4000元,job改为ccc。
-                update employee set salary=4000,job=&apos;ccc&apos; where name=&apos;关羽&apos;;
-            ~将刘备的薪水在原有基础上增加1000元。    
-                update employee set salary=salary+1000 where name=&apos;刘备&apos;;
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
 
 
-3.删除表行操作 delete
-        delete from tab_name [where ....]
-        *如果不跟where语句则删除整张表中的数据
-        *delete只能用来删除一行记录，不能值删除一行记录中的某一列值（这是update操作）。
-        *delete是删除表中选中的数据，表还在。删除表要 drop table
-        truncate是删除表中所有数据。直接删除表，然后创建一张结构一样（具有相同列）的新表。这种删除不能在事务中恢复。
-                当删除表中所有数据时，truncate比delete更高效。
+    
+      
 
-        *实验：
-            ~删除表中名称为’张飞’的记录。
-                delete from employee where name=&apos;张飞&apos;;
-            ~删除表中所有记录。
-                delete from employee;
-            ~使用truncate删除表中记录。
-                truncate employee;
+  
 
+  
+  
+  
 
-    4.select操作
-    （1）select [distinct] *|field1 [,field2] from tab_name 其中from指定从哪张表筛选，*表示查找所有列，也可以指定一个列列表明确指定要查找的列，distinct用来剔除重复行。
-                查询表中所有学生的信息。
-                select * from exam;
-                查询表中所有学生的姓名和对应的英语成绩。
-                select name,english from exam;
-                过滤表中重复数据。
-                select distinct english from exam;
-    （2）select 也可以使用表达式，并且可以使用 as 别名 。（as可以省略，直接空格跟别名）
-                在所有学生分数上加10分特长分显示。
-                select name,english+10,chinese+10,math+10 from exam;
-                统计每个学生的总分。
-                select name,english+chinese+math from exam;
-                使用别名表示学生总分。
-                select name,english+chinese+math as 总成绩 from exam;
-                select name,english+chinese+math 总成绩 from exam;
-                select name english from exam;这个很容易出错。其实是省略as的别名。
-    （3）使用where子句，进行过滤查询。
-        实际应用中，where子句都是动态构造的。多条件查询构造sql技巧，where 1=1 and ......
-                 ~查询英语成绩大于90分的同学
-                    select name,english from exam where english &gt; 90;
-                ~查询总分大于230分的所有同学
-                    select name 姓名,english+chinese+math 总成绩 from exam where english+chinese+math&gt;230;
-                ~查询英语分数在 80－100之间的同学。
-                    select * from exam where english between 80 and 100;
-                ~查询数学分数为75,76,77的同学。
-                    select * from exam where math in(75,76,77);
-                ~查询所有姓张的学生成绩。
-                    select * from exam where name like &apos;张%&apos;;
-                    select * from exam where name like &apos;张_&apos;;
-                    select * from exam where name like &apos;张__&apos;;
-                ~查询数学分&gt;70，语文分&gt;80的同学。
-                    select * from exam where math&gt;70 and chinese&gt;80;
-                ~查找缺考数学的学生的姓名
-                    select name from exam where math is null;
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/反射/">
 
-    （4）Order by field [asc|desc]按指定列排序，可以是别名。
-                Asc 升序、Desc 降序，其中asc为默认值
-                ORDER BY 子句应位于SELECT语句的结尾。
-            *练习：
-                对数学成绩排序后输出。
-                select * from exam order by math desc;
-                对总分排序按从高到低的顺序输出
-                select name ,(ifnull(math,0)+ifnull(chinese,0)+ifnull(english,0)) 总成绩 from exam order by 总成绩 desc;
-                对姓张的学生成绩排序输出
-                select name ,(ifnull(math,0)+ifnull(chinese,0)+ifnull(english,0)) 总成绩 from exam where name like &apos;张%&apos; order by 总成绩 desc;
-    null和任何数运算结果都为null
-    ifnull(col,0)如果某列的值为null，用0替代
-    （5）聚合函数：技巧,先不要管聚合函数要干嘛，先把要求的内容查出来再包上聚合函数即可。
-            ~1.count(列) -- 统计符合条件的记录共有几条
-                ~统计一个班级共有多少学生？
-                    select count(*) from exam;
-                ~统计数学成绩大于70的学生有多少个？
-                    select count(*) from exam where math&gt;70;
-                ~统计总分大于230的人数有多少？
-                    select count(name) from exam where math+english+chinese&gt;230;
-            ~2.sum(列) --Sum函数返回满足where条件的行的和
-                ~统计一个班级数学总成绩？
-                    select sum(math) from exam;    
-                ~统计一个班级语文、英语、数学各科的总成绩
-                    select sum(chinese),sum(english),sum(math) from exam;
-                ~统计一个班级语文、英语、数学的成绩总和
-                    select sum(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-                ~统计一个班级语文成绩平均分
-                    select sum(chinese)/count(name) from exam
-            ~3.AVG --函数返回满足where条件的一列的平均值
-                ~求一个班级数学平均分？
-                    select avg(math) from exam;
-                ~求一个班级总分平均分？            
-                select avg(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-            ~4.MAX/MIN--函数返回满足where条件的一列的最大/最小值    
-                ~求班级最高分和最低分
-                select max(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-                select min(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-    (6)分组查询--GROUP BY
-            ~对订单表中商品归类后，显示每一类商品的总价
-                select id,product,sum(price) from orders group by product;
-            ~查询购买了几类商品，并且每类总价大于100的商品
-                select product,sum(price) from orders group by product having sum(price)&gt;100;
-            ~查询单价小于100 但是总价大于100的商品。
-                select product from orders where price&lt;100 group by product having sum(price)&gt;100;
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
 
-        where 在最前面进行过滤，不能使用别名和聚合函数
-        having 在分组之后进行过滤，可以使用别名和聚合函数,having中用到的列，必须在前面使用过才可以用
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
 
-    （7）重点：综合运用 Select from where group by having order by 
-                    Mysql在执行sql语句时的执行顺序：from where select group by having order by
-            *分析：        
-                select math+english+chinese as 总成绩 from exam where 总成绩 &gt;250; ---- 不成功
-                select math+english+chinese as 总成绩 from exam having 总成绩 &gt;250; --- 成功
-                select math+english+chinese as 总成绩 from exam group by 总成绩 having 总成绩 &gt;250; ----成功
-                select  math+english+chinese as 总成绩 from exam order by 总成绩;----成功
-                select * from exam as 成绩 where 成绩.math&gt;85; ---- 成功
-</code></pre><hr>
-<h1 id="多表设计-–-外键约束"><a href="#多表设计-–-外键约束" class="headerlink" title="多表设计 – 外键约束"></a>多表设计 – 外键约束</h1><img src="/2018/12/20/数据库/sql/sql使用/外键.png">
-<pre><code>1.创建表时指定约束：foreign key (dept_id) references dept(id)
-        create table dept(
-        id int primary key auto_increment,
-        name varchar(30)
-    );
-    insert into dept values(null,&apos;财务部&apos;);
-    insert into dept values(null,&apos;人事部&apos;);
-    insert into dept values(null,&apos;销售部&apos;);
-    insert into dept values(null,&apos;科技部&apos;);
+    
+      <header class="post-header">
 
-    create table emp(
-        id int primary key auto_increment,
-        name varchar(30),
-        dept_id int,
-        foreign key (dept_id) references dept(id)
-    );
-    insert into emp values (null,&apos;奥巴马&apos;,1);
-    insert into emp values (null,&apos;乔峰&apos;,2);    
-    insert into emp values (null,&apos;哈利波特&apos;,3);
-    insert into emp values (null,&apos;朴乾&apos;,4);
-    insert into emp values (null,&apos;萨达姆&apos;,4);
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/反射/" itemprop="url">反射</a></h1>
+        
 
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:47:53+08:00">
+                2019-03-27
+              </time>
+            
 
+            
 
-2.外键约束：
-        （1）增加外键：
-            可以明确指定外键的名称，如果不指定外键的名称,mysql会自动为你创建一个外键名称。
-            RESTRICT : 只要本表格里面有指向主表的数据， 在主表里面就无法删除相关记录。
-            CASCADE : 如果在foreign key 所指向的那个表里面删除一条记录，那么在此表里面的跟那个key一样的所有记录都会一同删掉。
-            alter table book add [constraint FK_BOOK] foreign key(pubid) references pub_com(id) [on delete restrict] [on update restrict];
+            
+          </span>
 
-        （2）删除外键
-            alter table 表名 drop foreign key 外键（区分大小写，外键名可以desc 表名查看）;
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
 
+                
+                
+              
+            </span>
+          
 
-3.主键约束：
-        （1）增加主键（自动增长，只有主键可以自动增长）primary key(id)
-            Alter table tb add primary key(id) [auto_increment];
-        （2）删除主键
-            alter table 表名 drop primary key
-        （3）增加自动增长
-            Alter table employee modify id int auto_increment;
-        （4）删除自动增长
-            Alter table tb modify id int;        
-</code></pre><hr>
-<h1 id="多表设计"><a href="#多表设计" class="headerlink" title="多表设计"></a>多表设计</h1><img src="/2018/12/20/数据库/sql/sql使用/多表设计.png">
-<pre><code>一对一（311教室和20130405班级，两方都是一）:在任意一方保存另一方的主键
-一对多、多对一（班级和学生，其中班级为1，学生为多）：在多的一方保存一的一方的主键
-多对多（教师和学生，两方都是多）：使用中间表，保存对应关系
+          
+            
+          
 
-        create table orderitem(
-            order_id varchar(100),
-            product_id varchar(100),
-            buynum int ,
-            primary key(order_id,product_id), #联合主键,两列的值加在一起作为这张表的主键使用
-            foreign key(order_id) references orders(id),
-            foreign key(product_id) references products(id)
-        );
-</code></pre><hr>
-<h1 id="多表查询"><a href="#多表查询" class="headerlink" title="多表查询"></a>多表查询</h1><pre><code>create table dept(
-        id int primary key auto_increment,
-        name varchar(30)
-    );
-    insert into dept values(null,&apos;caiwu&apos;);
-    insert into dept values(null,&apos;renshi&apos;);
-    insert into dept values(null,&apos;xingzheng&apos;);
+          
+          
 
-    create table emp(
-        id int primary key auto_increment,
-        name varchar(30),
-        dept_id int
-    );
-    insert into emp values (null,&apos;cw&apos;,1);
-    insert into emp values (null,&apos;rs&apos;,2);    
-    insert into emp values (null,&apos;xx&apos;,5);
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://blog.csdn.net/harvic880925/article/details/50072739" target="_blank" rel="noopener">夯实JAVA基本之二 —— 反射（1）：基本类周边信息获取</a></p>
+<p>//获取类类型对象的几种方式：<br>Person person = new Person();<br>Class a = person.getClass() //方法一：<br>Class b = Persion.class;//方法二：<br>Class c = Class.forName(String ClassName); //方法三：<br>Class d = context.getClassLoader().loadClass(String ClassName);//方法四：（不建议使用）  </p>
+<p>//获取包名类名<br>public String getName();//获取完整的类名（包含包名）<br>public String getSimpleName();//仅获取类名<br>public Package getPackage()//获取类类型所对应的package对象  </p>
+<p>//获取超类Class对象<br>public Class&lt;?&gt; getSuperclass();//获取普通函数的父类Class对象<br>public Type getGenericSuperclass();//针对泛型父类而设计（下篇讲解）  </p>
+<p>//获取接口Class对象<br>public Class&lt;?&gt;[] getInterfaces();//获取普通接口的方法<br>public Type[] getGenericInterfaces();//获取泛型接口的方法  </p>
+<p>//类访问修饰符<br>int modifiers = clazz.getModifiers();//获取类访问修饰符对应的int变量<br>String Modifier.toString(int modifiers) //根据整型变量来生成对应的修饰符字符串<br>boolean Modifier.isAbstract(int modifiers)//isXXX()系列函数用以检查特定的修饰符是否存在  </p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
 
 
-mysql&gt; select * from dept;
-    +----+-----------+
-    | id | name      |
-    +----+-----------+
-    |  1 | caiwu     |
-    |  2 | renshi    |
-    |  3 | xingzheng |
-mysql&gt; select * from emp;
-    +----+------+---------+
-    | id | name | dept_id |
-    +----+------+---------+
-    |  1 | cw   |       1 |
-    |  2 | rs   |       2 |
-    |  3 | xx   |       5 |
-    +----+------+---------+
+    
+      
 
-1.笛卡尔积查询：两张表中一条一条对应的记录，m条记录和n条记录查询，最后得到m*n条记录，其中很多错误数据
-    select * from dept,emp;
+  
 
-    mysql&gt; select * from dept,emp;
-            +----+-----------+----+------+---------+
-            | id | name      | id | name | dept_id |
-            +----+-----------+----+------+---------+
-            |  1 | caiwu     |  1 | cw   |       1 |
-            |  2 | renshi    |  1 | cw   |       1 |
-            |  3 | xingzheng |  1 | cw   |       1 |
-            |  1 | caiwu     |  2 | rs   |       2 |
-            |  2 | renshi    |  2 | rs   |       2 |
-            |  3 | xingzheng |  2 | rs   |       2 |
-            |  1 | caiwu     |  3 | xx   |       5 |
-            |  2 | renshi    |  3 | xx   |       5 |
-            |  3 | xingzheng |  3 | xx   |       5 |
-            +----+-----------+----+------+---------+
-2.内连接：查询两张表中都有的关联数据,相当于利用条件从笛卡尔积结果中筛选出了正确的结果。
-inner join on
-    select * from dept,emp            where dept.id=emp.dept_id;
-    select * from dept inner join emp on dept.id=emp.dept_id;
+  
+  
+  
 
-    mysql&gt; select * from dept,emp where dept.id=emp.dept_id;
-            +----+--------+----+------+---------+
-            | id | name   | id | name | dept_id |
-            +----+--------+----+------+---------+
-            |  1 | caiwu  |  1 | cw   |       1 |
-            |  2 | renshi |  2 | rs   |       2 |
-    mysql&gt; select * from dept inner join emp on dept.id=emp.dept_id;
-            +----+--------+----+------+---------+
-            | id | name   | id | name | dept_id |
-            +----+--------+----+------+---------+
-            |  1 | caiwu  |  1 | cw   |       1 |
-            |  2 | renshi |  2 | rs   |       2 |
-            +----+--------+----+------+---------+
-3.外连接
-    （1）左外连接：在内连接的基础上增加左边有右边没有的结果
-    left join on
-                mysql&gt; select * from dept left join emp on dept.id=emp.dept_id;
-                        +----+-----------+------+------+---------+
-                        | id | name      | id   | name | dept_id |
-                        +----+-----------+------+------+---------+
-                        |  1 | caiwu     |    1 | cw   |       1 |
-                        |  2 | renshi    |    2 | rs   |       2 |
-                        |  3 | xingzheng | NULL | NULL |    NULL |
-                        +----+-----------+------+------+---------+
-    （2）右外连接：在内连接的基础上增加右边有左边没有的结果
-    right join on
-                mysql&gt; select * from dept right join emp on dept.id=emp.dept_id;
-                        +------+--------+----+------+---------+
-                        | id   | name   | id | name | dept_id |
-                        +------+--------+----+------+---------+
-                        |    1 | caiwu  |  1 | cw   |       1 |
-                        |    2 | renshi |  2 | rs   |       2 |
-                        | NULL | NULL   |  3 | xx   |       5 |
-                        +------+--------+----+------+---------+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/enum 使用/">
 
-    （3）全外连接：在内连接的基础上增加左边有右边没有的和右边有左边没有的结果
-    full join on  --mysql不支持全外连接
-        left join on
-        union
-        right join on ;--mysql可以使用此种方式间接实现全外连接
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
 
-        mysql&gt; select * from dept left join emp on dept.id=emp.dept_id
-            -&gt; union
-            -&gt; select * from dept right join emp on dept.id=emp.dept_id;
-                +------+-----------+------+------+---------+
-                | id   | name      | id   | name | dept_id |
-                +------+-----------+------+------+---------+
-                |    1 | caiwu     |    1 | cw   |       1 |
-                |    2 | renshi    |    2 | rs   |       2 |
-                |    3 | xingzheng | NULL | NULL |    NULL |
-                | NULL | NULL      |    3 | xx   |       5 |
-                +------+-----------+------+------+---------+
-</code></pre><h1 id="分页查询-limit"><a href="#分页查询-limit" class="headerlink" title="分页查询 limit"></a>分页查询 limit</h1><pre><code>逻辑分页：检索出所有数据存到集合中，需要时从集合中拿
-    优点：一次查询，多次使用。减少数据库访问
-    缺点：数据过大占内存，数据更新有延迟
-物理分页：只检索需要的数据
-            不同数据库有不同的物理分页指令，mysql是limit startIndex,count （索引编号从0开始）
-                    select * from customer limit 0,1; 从表中第一条数据开始取一条记录。
-</code></pre><h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><pre><code>    create user estore identified by &apos;estore&apos;;
-授权：
-    grant all on estore.* to estore;
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/enum 使用/" itemprop="url">enum使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:46:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="emun也是class"><a href="#emun也是class" class="headerlink" title="emun也是class"></a>emun也是class</h2><p>经过反编译知道，enum也是被编译成了一个class文件。</p>
+<pre><code>public final class RoomType extends java.lang.Enum{ }
+</code></pre><p>如果命名意义明确，enum可以单独作为一个类。</p>
+<h2 id="枚举项的值默认为从0开始递增的int值"><a href="#枚举项的值默认为从0开始递增的int值" class="headerlink" title="枚举项的值默认为从0开始递增的int值"></a>枚举项的值默认为从0开始递增的int值</h2><pre><code>enum MyEnum{
+    FIRST_ELEMENT,
+    SECOND_ELEMENT,
+}
+ordinal()返回值的序列号，从0开始
+</code></pre><h2 id="自定义枚举项的值"><a href="#自定义枚举项的值" class="headerlink" title="自定义枚举项的值"></a>自定义枚举项的值</h2><pre><code>enum FruitEnum {
+    APPLE(1), ORANGE(2); //调用构造函数来构造枚举项
+
+    private int value = 0;
+
+    private FruitEnum(int value) { //必须是private的构造方法，否则编译错误
+        this.value = value;
+    }
+
+    public static FruitEnum valueOf(int value) { //值(这里是int，可以使string等)到enum的转换函数
+        switch (value) {
+        case 1:
+            return APPLE;
+        case 2:
+            return ORANGE;
+        default:
+            return null;
+        }
+    }
+
+    public int value() { //enum到值的转换函数
+        return this.value;
+    }
+}
+
+如果是int到enum自然排序转换，还可以调用values()(系统api，返回enum数组)
+public enum RoomType {
+    Single(&quot;single&quot;), Group(&quot;group&quot;);
+
+    String value;
+
+    RoomType(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public static RoomType fromInt(int i) {//参数只能是索引
+        return values()[i];
+    }
+}
+RoomType.fromInt(0) 返回的是第一个enum项Single
 </code></pre>
           
         
@@ -2726,7 +2299,7 @@ inner join on
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2776,7 +2349,7 @@ inner join on
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">119</span>
+                  <span class="site-state-item-count">171</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2787,7 +2360,7 @@ inner join on
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">6</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2798,7 +2371,7 @@ inner join on
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">50</span>
+                  <span class="site-state-item-count">56</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2835,7 +2408,7 @@ inner join on
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
