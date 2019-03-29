@@ -1,6 +1,8 @@
 ---
 title: RxJava
 date: 2018-04-26 14:12:33
+categories:
+  - Android
 tags: RxJava
 ---
 
@@ -348,10 +350,13 @@ RxJava 的默认规则中，遵循的是**线程不变原则**。即不指定线
 
 ### 内置Scheduler ###
 
-- `Schedulers.immediate()`:直接在当前线程运行，相当于不指定线程。这是默认的 Scheduler。
+- `Schedulers.immediate()`:在当前线程立即执行任务，相当于不指定线程。这是默认的 Scheduler。如果当前线程有任务在执行，则会将其暂停，等插入进来的任务执行完之后，再将未完成的任务接着执行
+- Schedulers.trampoline()：RxJava2废弃了RxJava1中的Schedulers.immediate( )，作为替代者
 - `Schedulers.newThread()`: 总是启用新线程，并在新线程执行操作。
-- `Schedulers.io()`: I/O 操作（读写文件、读写数据库、网络信息交互等）所使用的 Scheduler。行为模式和 newThread() 差不多，区别在于 io() 的内部实现是是用一个无数量上限的线程池，可以重用空闲的线程，因此多数情况下 io() 比 newThread() 更有效率。不要把计算工作放在 io() 中，可以避免创建不必要的线程。
-- `Schedulers.computation()`: 计算所使用的 Scheduler。这个计算指的是 CPU 密集型计算，即不会被 I/O 等操作限制性能的操作，例如图形的计算。这个 Scheduler 使用的固定的线程池，大小为 CPU 核数。不要把 I/O 操作放在 computation() 中，否则 I/O 操作的等待时间会浪费 CPU。
+- `Schedulers.io()`: I/O 密集操作（读写文件、读写数据库、网络信息交互等）所使用的 Scheduler。行为模式和 newThread() 差不多，区别在于 io() 的内部实现是是用一个**无数量上限的线程池**，可以复用空闲的线程，因此多数情况下 io() 比 newThread() 更有效率。不要把计算工作放在 io() 中，可以避免创建不必要的线程。
+- `Schedulers.computation()`: 计算所使用的 Scheduler。这个计算指的是 CPU 密集型计算，即不会被 I/O 等操作限制性能的操作，例如图形的计算。这个 Scheduler 使用的**固定的线程池**，大小为 CPU 核数。不要把 I/O 操作放在 computation() 中，否则 I/O 操作的等待时间会浪费 CPU。
+- Schedulers.single()：**线程单例**，所有的任务都在这一个线程中执行，当此线程中有任务执行时，其他任务将会按照先进先出的顺序依次执行。
+- Scheduler.from(@NonNull Executor executor)：指定一个线程调度器，由此调度器来控制任务的执行策略。
 - `AndroidSchedulers.mainThread()`: 在 Android 主线程运行。Android专用的
 
 ### API ###
@@ -442,20 +447,26 @@ subscribeOn() 和 observeOn() 都做了线程切换的工作（图中的 "schedu
 
 ## API ##
 
+```java
+public final <R> Observable<R> map(Func1<? super T, ? extends R> func) {}
+public final <R> Observable<R> flatMap(Func1<? super T, ? extends Observable<? extends R>> func) {}
+```
 ###  map() ###
 
-- 返回的是 结果集
-- 只能一对一的转换
+- **同步**
+- 闭包函数返回的是 结果集
+- 只能**一对一**的转换
 	- map返回的是结果集，不能直接使用from/just再次进行事件分发。只能for遍历。
 		- RxJava 目的之一就是 剔除嵌套结构
-	- 执行流程：被订阅时每传递一个事件执行一次onNext方法
+	- 执行流程：原Observable发射数据，映射，观察者onNext()
 
 ### flatMap() ###
 
-- 返回的是 结果集的Observable
+- **异步**
+- 闭包函数返回的是 结果集的**Observable**
 - 可以一对多和多对多的转换
 	- flatMap返回的是结果集Observable，可以直接使用from/just再次进行事件分发。
-	- 执行流程：一般利用from/just进行一一分发，被订阅时将所有数据传递完毕汇总到一个Observable然后一一执行onNext方法
+	- 执行流程：将所有发射数据映射汇总到新Observable，新Observable再组织发射(一般利用from/just进行分发，一一执行观察者的onNext()）
 
 **flatMap() 的原理：**
 
@@ -465,6 +476,51 @@ subscribeOn() 和 observeOn() 都做了线程切换的工作（图中的 "schedu
 
 把事件拆成了两级，通过一组新创建的 Observable 将初始的对象『铺平』之后通过统一路径分发了下去。
 
+### map和flatMap使用场景
+
+- 将一个类型对象**同步**处理成另一个类型，推荐用map，否则的话就用flatMap。
+- 需要在处理中加入容错的机制，推荐用flatMap。
+	
+	```
+	flatMap的闭包返回值是一个Observable，
+	所以我们可以在这个闭包的call中通过Observable.create的方式来创建Observable，
+	而create方法是可以控制数据流下端的Subscriber的，
+	即可以调用onNext/onCompete/onError方法。
+	如果出现异常，我们直接调用subscribe.onError即可
+	```
+
+**实例：**将一个File[] jsonFile中每个File转换成String
+
+```java
+Observable.from(jsonFile)
+	.map(new Func1<File, String>() {
+	    @Override public String call(File file) {
+	        try {
+	            return new Gson().toJson(new FileReader(file), Object.class);
+	        } catch (FileNotFoundException e) {
+	            // get Exception. What to do ?
+	        }
+	        return null; // Not good :(
+	    }
+	});
+	
+Observable.from(jsonFile)
+	.flatMap(new Func1<File, Observable<String>>() {
+	    @Override public Observable<String> call(final File file) {
+	        return Observable.create(new Observable.OnSubscribe<String>() {
+	            @Override public void call(Subscriber<? super String> subscriber) {
+	                try {
+	                    String json = new Gson().toJson(new FileReader(file), Object.class);
+	                    subscriber.onNext(json);
+	                    subscriber.onCompleted();
+	                } catch (FileNotFoundException e) {
+	                    subscriber.onError(e);
+	                }
+	            }
+	        });
+	    }
+	});
+```
 ### map和flatMap实例
 
 **实例1：**执行流程的不同
@@ -792,6 +848,40 @@ RxJava不建议开发者自定义 Operator 来直接使用 lift()，而是建议
 	输出
 		A0 B1 C2 D3 E4
 
+## zip
+
+将多个Observable的发射组合在一起
+
+在user界面，既要请求user基本信息，又要列举user下的event数据
+
+```java
+public interface GitHubUser {
+  @GET("users/{user}")
+  Observable<JsonObject> getUser(@Path("user") String user);
+}
+ 
+public interface GitHubEvents {
+  @GET("users/{user}/events")
+  Observable<JsonArray> listEvents(@Path("user") String user);
+}
+
+Observable.zip(userObservable, eventsObservable, new Func2<JsonObject, JsonArray, UserAndEvents>() {
+  @Override
+  public UserAndEvents call(JsonObject jsonObject, JsonArray jsonElements) {
+    return new UserAndEvents(jsonObject, jsonElements);
+  }
+});
+
+public class UserAndEvents {
+  public UserAndEvents(JsonObject user, JsonArray events) {
+    this.events = events;
+    this.user = user;
+  }
+ 
+  public JsonArray events;
+  public JsonObject user;
+}
+```
 # 错误处理
 从Observable的错误通知中恢复
 

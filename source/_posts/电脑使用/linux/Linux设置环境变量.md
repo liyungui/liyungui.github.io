@@ -1,8 +1,10 @@
 ---
 title: Linux设置环境变量
 date: 2018-12-16 11:35:29
+categories:
+  - 电脑使用
 tags:
-	- Flutter
+  - Linux
 ---
 
 # export 命令
@@ -15,15 +17,6 @@ tags:
  
  export可以向shell执行的脚本传递变量的值。
  
-
----
-title: Linux设置环境变量
-date: 2018-12-20 08:59:53
-categories:
-  - 电脑使用
-tags:
-  - Linux
----
 # 三种实现方法设置环境变量
 
 ## 终端中直接使用 export -- 临时变量

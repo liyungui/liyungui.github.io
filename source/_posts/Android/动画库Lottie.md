@@ -99,3 +99,64 @@ animation.getAnimatedFraction() 返回进度[minFrame,maxFrame]。如果没设�
 
 	v7的24版本带的v4包，找不到 android.support.v4.util.ArraySet
 
+# 卡顿问题
+
+全屏动画卡顿问题特别严重
+
+```java
+//硬件加速，开启之后瞬间丝滑
+animationView.useHardwareAcceleration(true);
+
+//合并路径 默认是关闭的，根据自己需求调整
+animationView.enableMergePathsForKitKatAndAbove(true);
+```
+
+# 回收图片资源的时机
+
+- 设置图片资源
+- onDetachedFromWindow；即设置可见性为gone，且把view remove
+
+```java
+---LottieAnimationView---
+@Override protected void onDetachedFromWindow() {
+  if (isAnimating()) {
+    cancelAnimation();
+    wasAnimatingWhenDetached = true;
+  }
+  recycleBitmaps();
+  super.onDetachedFromWindow();
+}
+  
+@Override public void setImageResource(int resId) {
+  recycleBitmaps();
+  cancelLoaderTask();
+  super.setImageResource(resId);
+}
+  
+@VisibleForTesting void recycleBitmaps() {
+  // AppCompatImageView constructor will set the image when set from xml
+  // before LottieDrawable has been initialized
+  if (lottieDrawable != null) {
+    lottieDrawable.recycleBitmaps();
+  }
+}
+---LottieDrawable---
+public void recycleBitmaps() {
+  if (imageAssetManager != null) {
+    imageAssetManager.recycleBitmaps();
+  }
+}
+--ImageAssetManager
+public void recycleBitmaps() {
+  synchronized (bitmapHashLock) {
+    for (Map.Entry<String, LottieImageAsset> entry : imageAssets.entrySet()) {
+      LottieImageAsset asset = entry.getValue();
+      Bitmap bitmap = asset.getBitmap();
+      if (bitmap != null) {
+        bitmap.recycle();
+        asset.setBitmap(null);
+      }
+    }
+  }
+}
+```

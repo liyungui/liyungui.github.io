@@ -57,6 +57,14 @@ tags:
 	    view.draw(canvas);  
 	    return bitmap;  
 	}
+	
+	public static Bitmap loadBitmapFromView(View v) {
+     Bitmap b = Bitmap.createBitmap( v.getLayoutParams().width, v.getLayoutParams().height, Bitmap.Config.ARGB_8888);                
+     Canvas c = new Canvas(b);
+     v.layout(0, 0, v.getLayoutParams().width, v.getLayoutParams().height);
+     v.draw(c);
+     return b;
+}
 
 
 ## View没有显示在界面上的情况 ##

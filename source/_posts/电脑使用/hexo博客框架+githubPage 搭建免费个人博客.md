@@ -313,8 +313,9 @@ GitHub Pages 可以被认为是用户编写的、托管在github上的静态网�
 		- 生成的html： `<img src="/2018/04/25/test/test.jpg">`
 		- 生成时会将图片复制到 `public/2018/04/25/test/test.jpg`。博客图片太多的话，不利于管理
 
+# GithubPage展示多个项目
 
-
+Github 上 yourname.github.io 上只能展示一个项目，如果想展示多个静态项目的话，仅需在每个项目下建立一个 gh-pages 分支，这样你就可以通过 yourname.github.io/projectName/ 访问了
 
 
 

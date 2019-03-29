@@ -33,11 +33,42 @@ tags:
 
 要特别注意连接，备份命令是在cmd窗口执行，要注意和sql语句区分，是没有分号的。特别注意！！
 
-1. 连接mysql数据库服务器
+### CentOS安装MySQL
+
+CentOS 7上把MySQL从默认软件列表中移除了，用MariaDB来代替，所以我们必须要去官网上进行下载
+
+	wget http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm 
+	
+	rpm -ivh mysql-community-release-el7-5.noarch.rpm
+	
+	yum -y install mysql mysql-server mysql-devel
+
+### 启动MySQL
+
+	service mysqld start
+	
+### 设置MySQL数据库服务器密码
+
+	mysqladmin -u root password dbroot@quanlist2018
+	
+### 连接MySQL数据库服务器
 
 	mysql -u root -p
+	密码默认为空
+	
+### 允许用户远程连接
+
+登录MySQL后
+
+	grant all privileges on *.* to 'root'@'%' identified by 'dbroot@quanlist2018' with grant option;
+	FLUSH PRIVILEGES;
+	exit
+	
+	'root'@'%' identified by 'dbroot@quanlist2018'
+	表示root用户可以在任意地址用密码dbroot@quanlist2018登录
+	
 		
-2. 备份与恢复数据库
+### 备份与恢复数据库
 
 - 备份数据库：连接mysql服务器前
 	

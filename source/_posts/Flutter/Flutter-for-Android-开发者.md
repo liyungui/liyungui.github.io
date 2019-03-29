@@ -42,7 +42,7 @@ Android中，通过方法直接更新View
 
 这是Stateful和Stateless widget的概念的来源。
 
-StatefulWidget有一个State对象，它可以跨帧存储状态数据并恢复它(更新)。
+StatefulWidget有一个State对象，它可以跨帧存储状态数据并恢复它(更新)。**State对象有个`widget`变量持有它的widget**
 
 可以将StatelessWidget包装在StatefulWidget中实现更新
 
@@ -259,6 +259,26 @@ Intent主要有两种使用场景：在Activity之间切换，以及调用外部
 	  },
 	));
 
+### 路由带参和返回参数
+
+必须使用 MaterialPageRoute 进行路由。
+
+使用命名路由报错如下
+
+```
+type 'MaterialPageRoute<dynamic>' is not a subtype of type 'Route<String>'
+```
+
+实例：跳转登录页面，返回用户信息刷新页面
+
+```dart
+String string = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => Login()));
+        
+login.dart页面
+Navigator.pop(context, "");
+```
 ## 处理Android传入的Intent ##
 
 **Flutter通过自定义MethodChannel和原生交互**

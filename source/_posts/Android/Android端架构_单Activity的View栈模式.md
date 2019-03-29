@@ -60,10 +60,16 @@ tags:
 
 ## Screen是如何添加到屏幕中的 ##
 
-	MainActivity.onCreate() --> MainController.onCreate() --> BaseStateManager.inTurnBackAllAndSetTopState()
-	--> BaseState.handleForwardEnter() --> StateMain.forwardEnter() --> StateMain.showScreen()
-	--> MainController.receiveCommand() --> MainUiManager.receiveCommand() --> BaseFrameView.pushScreen() 调用 BaseFrameView.this.addView(screen);
-
+	MainActivity.onCreate() 
+	--> MainController.onCreate() 
+	--> mStateManager.inTurnBackAllAndSetTopState(StateMain.getInstance(), null, null);
+	--> state.handleForwardEnter(mController, this, null, params, result);
+	--> StateMain.forwardEnter() 
+	--> StateMain.showScreen()
+	--> MainController.receiveCommand() 
+	--> MainUiManager.receiveCommand() 
+	--> mFrameView.pushScreen(screen);
+	--> BaseFrameView.this.addView(screen);
 
 MainController
 

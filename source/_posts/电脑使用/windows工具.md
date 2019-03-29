@@ -56,7 +56,7 @@ Make lists,not war.我常用于记录工作中的各种待办事项。
 比GifCam更好用。
 
 # 数据库客户端：DataGrip #
-
+[]()
 一个客户端全搞定主流数据库。不用再装Navicat、plsql了。
 
 ps:DataGrip其实是IDEA里一个集成功能，被单独抽离出来成了一个独立产品。
@@ -72,4 +72,10 @@ ps:DataGrip其实是IDEA里一个集成功能，被单独抽离出来成了一�
 # API工具：Postman #
 
 强大的API调试、Http请求的工具 。可自动同步个人请求记录。
+
+# [克隆自己声音的工具](https://lyrebird.ai/)
+
+用长度为 1 分钟的音频即可生成与你语音特征高度相似的数字语音输出结果
+
+需要登录体验
 

@@ -21,7 +21,7 @@ tags:
 
 - **万物皆对象。包括 函数 null。** 
 	- `Object`是最顶层基类
-	- 很多语言，函数都是一级对象(first-class objects)，如Ruby，Python
+	- 函数是一级对象(first-class objects)，如Ruby，Python
 - 支持类型推断。虽然Dart是强类型语言
 - 支持泛型
 - 支持嵌套函数。create functions within functions (nested or local functions)
@@ -66,12 +66,30 @@ tags:
 ## Strings ##
 
 - `var s = 'string interpolation';`
-- ` ${s}` 引用字符串
+- ` ${s}` **插值**引用字符串
 - `==` 比较内容是否一致
 - `+` 拼接字符串
 - `'''多行字符串'''`
 - raw String。 `var s = r"In a raw string, even \n isn't special.";`
 
+### 最佳实践
+
+- 使用相邻字符串连接字符串面值。
+- 优先使用**插值**来组合字符串和值。
+- 插值标识符后面没有**紧跟**字母数字文本，那么{}应该被省略
+
+```dart
+//字符串字面值(不是值，而是实际引用的字面值)，不需要使用+连接它们。就像C和c++
+raiseAlarm(
+	'ERROR: Parts of the spaceship are on fire. Other '
+	'parts are overrun by martians. Unclear which are which.'
+);
+
+//插值
+'Hello, $name! You are ${year - birth} years old.';
+"Wear your wildest $decade's outfit."
+'Wear your wildest ${decade}s outfit.'
+```
 ## bool ##
 
 ##  List ##
