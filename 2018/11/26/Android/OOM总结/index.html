@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="风">
 <meta property="og:description" content="常规OOM–Java堆内存不够导致的OOMjava.lang.OutOfMemoryError:      Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM 下面是几个关于Android官方声明内存限制阈值的API： ActivityManager.getMemoryClass()：">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-03-29T11:16:22.023Z">
+<meta property="og:updated_time" content="2019-04-04T11:52:33.865Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="OOM总结">
 <meta name="twitter:description" content="常规OOM–Java堆内存不够导致的OOMjava.lang.OutOfMemoryError:      Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM 下面是几个关于Android官方声明内存限制阈值的API： ActivityManager.getMemoryClass()：">
@@ -396,7 +396,7 @@ Threads上限: 500
 <h1 id="导致OOM发生的原因"><a href="#导致OOM发生的原因" class="headerlink" title="导致OOM发生的原因"></a>导致OOM发生的原因</h1><p>综上，可以导致OOM的原因有以下几种：</p>
 <ul>
 <li>文件描述符(fd)数目超限，即proc/pid/fd下文件数目突破/proc/pid/limits中的限制。可能的发生场景有：<br>短时间内大量请求导致socket的fd数激增，大量（重复）打开文件等</li>
-<li>线程数超限，即proc/pid/status中记录的线程数（threads项）突破/proc/sys/kernel/threads-max中规定的最大线程数。可能的发生场景有：<br>app内多线程使用不合理，如多个不共享线程池的OKhttpclient等等</li>
+<li>线程数超限，即proc/pid/status中记录的线程数（threads项）突破/proc/sys/kernel/threads-max中规定的最大线程数。可能的发生场景有：<br>app内多线程使用不合理，如多个不共享线程池的OKhttpclient；<br><strong>rxjava的Scheduler.io使用不合理极易导致OOM</strong>(自增无上限的线程池，每个线程保活60s)</li>
 <li>传统的java堆内存超限，即申请堆内存大小超过了 Runtime.getRuntime().maxMemory()</li>
 <li>（低概率）32位系统进程逻辑空间被占满导致OOM.</li>
 <li>其他</li>
