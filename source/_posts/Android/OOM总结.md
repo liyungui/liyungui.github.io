@@ -114,7 +114,8 @@ Java堆OOM
 - 文件描述符(fd)数目超限，即proc/pid/fd下文件数目突破/proc/pid/limits中的限制。可能的发生场景有：
 短时间内大量请求导致socket的fd数激增，大量（重复）打开文件等
 - 线程数超限，即proc/pid/status中记录的线程数（threads项）突破/proc/sys/kernel/threads-max中规定的最大线程数。可能的发生场景有：
-app内多线程使用不合理，如多个不共享线程池的OKhttpclient等等
+app内多线程使用不合理，如多个不共享线程池的OKhttpclient；
+**rxjava的Scheduler.io使用不合理极易导致OOM**(自增无上限的线程池，每个线程保活60s)
 - 传统的java堆内存超限，即申请堆内存大小超过了 Runtime.getRuntime().maxMemory()
 - （低概率）32位系统进程逻辑空间被占满导致OOM.
 - 其他
