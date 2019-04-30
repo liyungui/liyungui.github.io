@@ -1,5 +1,5 @@
 ---
-title: RN升级JavaScriptCore版本
+title: RN稳定性优化-升级JavaScriptCore版本
 date: 2019-03-08 11:14:26
 categories:
 	- Android

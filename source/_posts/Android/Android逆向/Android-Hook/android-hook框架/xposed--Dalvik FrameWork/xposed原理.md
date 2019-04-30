@@ -132,3 +132,16 @@ XposedHelpers hook方法等操作api
 	Unhook findAndHookMethod(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback)
  
 		
+# xposed模块模块检测
+
+## /proc/<pid>/smaps 文件分析
+
+进程 加载 dex，so文件 占用的内存
+
+```
+app dex maps
+Pss		Rss		Size		name	other
+2269 kB		11284 kB		11536 kB		/data/dalvik-cache/arm/system@framework@boot.art	
+42 kB		72 kB		88 kB		/data/app/com.zy.course.dev-1/oat/arm/base.odex	
+0 kB		28 kB		15556 kB		/data/app/cn.cyt.cracker007-1/oat/arm/base.odex
+```	

@@ -28,3 +28,7 @@ PlantUML 是基于 Java 语言的开源 UML 图形绘制工具，是创建UML图
 		File->Settings->Other Settings ->PlantUML，选中 Graphvizbin目录中dot.exe
 
 至此，就可以正确 open 或者 new UML图了
+
+# 参考&扩展
+
+[官网](http://plantuml.com/zh/)

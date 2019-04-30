@@ -6,21 +6,45 @@ categories:
 tags:
   - Android
 ---
-[OkHttp, Retrofit, Volley应该选择哪一个？](http://www.jianshu.com/p/77d418e7b5d6) 
 
-[Retrofit分析-漂亮的解耦套路](http://www.jianshu.com/p/45cb536be2f4) 
+# OkHttp
 
-[Retrofit初探和简单使用](http://mp.weixin.qq.com/s?__biz=MjM5NDkxMTgyNw==&mid=2653057382&idx=2&sn=68c882cc9fc197f67ad7caba80630314#wechat_redirect) 
+## 概念
 
-[github地址](https://github.com/square/retrofit) 
+**OkHttp** 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟**HttpClient**, **HttpUrlConnection**的职责是一样的
 
-[文档地址](http://square.github.io/retrofit/) 
-
-[用法详解系列](https://futurestud.io/blog/retrofit-2-upgrade-guide-from-1-9) 
-
-OkHttp 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟HttpClient, HttpUrlConnection的职责是一样的
+Android 4.4后，HttpURLConnection底层实现已被OkHttp替换。可见OkHttp的性能已经被Google认同
 
 volley, retrofit, android-async-http 帮你封装了具体的请求，线程切换以及数据转换
+
+
+android-async-http内部实现是基于HttpClient, 6.0之后系统不再自带HttpClient，在最近的更新中将HttpClient的所有代码copy了一份进来，所以还能使用
+
+Volley是官方出的，可以支持HttpUrlConnection, HttpClient, OkHttp，如果习惯使用Volley，直接写个OkHttp扩展就行了。
+
+## 优势
+
+- 支持HTTP2.0/SPDY
+- socket自动选择最好路线，并支持自动重连
+- 拥有自动维护的socket连接池，减少握手次数
+- 拥有队列线程池，轻松写并发
+- 拥有Interceptors轻松处理请求与响应（比如GZIP压缩,LOG打印请求日志等）
+- 实现基于Headers的缓存策略
+
+## OkHttp 发送HTTP请求的初步分析
+
+Dispatcher类 中有两个集合分别为：runningAsyncCalls、readyAsyncCalls分别存放正在执行的请求，等待执行的请求
+
+该类中有一个ThreadPoolExecutor线程池(核心线程0，最大线程Integer.MAX_VALUE，队列Integer.MAX_VALUE，保活60秒)执行器，利用该执行器来执行**异步请求**的execute方法。异步请求发送在非当前工作线程，即创建异步请求的线程，而是从线程池中获取一条线程执行网络请求。同步请求则直接是在当前工作线程中执行。
+
+该类对**异步请求**的管理是通过maxRequests、maxRequestsPerHost进行控制的，前者控制线程池中同时运行的最大请求数，防止同时运行线程过多，造成OOM。后者限制了同一hostname下的请求数，防止一个应用占用的网络资源过多，优化用户体验。
+
+## 设置最大并发数
+
+```java
+OkHttpClient().dispatcher(). maxRequests(8);
+OkHttpClient().dispatcher().setMaxRequestsPerHost(8);
+```
 
 # 一、应用示例--get请求 #
 
@@ -457,3 +481,19 @@ NetService.getInstance().getBusinessService()
 - 定义接口返回值为 `Observable`。原来为 `Call`
 - 创建 `Retrofit实例`时额外 `addCallAdapterFactory(RxJavaCallAdapterFactory.create())`
 - 调用接口获取返回值改为 `观察者模式`。原来是 `Callback`
+
+# 参考&扩展
+
+[OkHttp, Retrofit, Volley应该选择哪一个？](http://www.jianshu.com/p/77d418e7b5d6) 
+
+[Retrofit分析-漂亮的解耦套路](http://www.jianshu.com/p/45cb536be2f4) 
+
+[Retrofit初探和简单使用](http://mp.weixin.qq.com/s?__biz=MjM5NDkxMTgyNw==&mid=2653057382&idx=2&sn=68c882cc9fc197f67ad7caba80630314#wechat_redirect) 
+
+[github地址](https://github.com/square/retrofit) 
+
+[文档地址](http://square.github.io/retrofit/) 
+
+[用法详解系列](https://futurestud.io/blog/retrofit-2-upgrade-guide-from-1-9) 
+
+

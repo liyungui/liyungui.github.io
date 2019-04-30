@@ -140,7 +140,7 @@ RxJava 规定，当不会再有新的事件发出时，需要触发 onCompleted(
          java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.String java.lang.String.concat(java.lang.String)' on a null object reference
              at com.example.test.MainActivity$2.onNext(MainActivity.java:63)
 
-# 框架基本实现 #
+# 造轮子-框架基本实现 #
 框架内部实现有点复杂，代码逻辑有点绕。
 
 既然用拆轮子的方式来分析源码比较难啃，不如换种方式，以**造轮子**的方式来分析
@@ -260,7 +260,7 @@ Observable.create(new Observable.OnSubscribe<String>() {
 
 {% asset_img subscriber.jpg %}
 
-# 操作符
+# 造轮子-操作符
 
 RxJava之所以强大好用，与其拥有丰富灵活的操作符是分不开的。
 
@@ -326,7 +326,7 @@ public <R> Observable<R> lift(Operator<? extends R, ? super T> operator) {
 
 RxJava不建议开发者自定义 Operator 来直接使用 lift()，而是建议尽量使用已有的 lift() 包装方法（如 map() flatMap() 等）进行组合来实现需求，因为直接使用 lift() 非常容易发生一些难以发现的错误
 
-# 线程控制 Scheduler
+# 造轮子-线程控制
 
 RxJava 的默认规则中，遵循的是**线程不变原则**。即不指定线程的情况下，事件的发出和消费都是在同一个线程的
 
@@ -458,7 +458,7 @@ public static Scheduler mainThread() {
 ```
 LooperScheduler的代码很清晰，内部持有一个Handler，用于线程的切换。在Worker的schedule(Action0 action,...)方法中，将action通过Handler切换到所绑定的线程中执行。
 
-### 内置Scheduler ###
+# 内置Scheduler
 
 - `Schedulers.immediate()`:在当前线程立即执行任务，相当于不指定线程。这是默认的 Scheduler。如果当前线程有任务在执行，则会将其暂停，等插入进来的任务执行完之后，再将未完成的任务接着执行
 - Schedulers.trampoline()：RxJava2废弃了RxJava1中的Schedulers.immediate( )，作为替代者
@@ -466,10 +466,10 @@ LooperScheduler的代码很清晰，内部持有一个Handler，用于线程的�
 - `Schedulers.io()`: I/O 密集操作（读写文件、读写数据库、网络信息交互等）所使用的 Scheduler。行为模式和 newThread() 差不多，区别在于 io() 的内部实现是是用一个**无数量上限的线程池**，可以复用空闲的线程，因此多数情况下 io() 比 newThread() 更有效率。不要把计算工作放在 io() 中，可以避免创建不必要的线程。每个线程设置了一个**60s的保活**时间防止被结束（60s内做频繁操作时，io调度器线程池不起作用）
 - `Schedulers.computation()`: 计算所使用的 Scheduler。这个计算指的是 CPU 密集型计算，即不会被 I/O 等操作限制性能的操作，例如图形的计算。这个 Scheduler 使用的**固定的线程池**，大小为 CPU 核数。不要把 I/O 操作放在 computation() 中，否则 I/O 操作的等待时间会浪费 CPU。
 - Schedulers.single()：**线程单例**，所有的任务都在这一个线程中执行，当此线程中有任务执行时，其他任务将会按照先进先出的顺序依次执行。
-- Scheduler.from(@NonNull Executor executor)：指定一个线程调度器，由此调度器来控制任务的执行策略。
+- Schedulers.from(@NonNull Executor executor)：指定一个线程调度器，由此调度器来控制任务的执行策略。
 - `AndroidSchedulers.mainThread()`: 在 Android 主线程运行。Android专用的
 
-### API ###
+# 线程控制API
 
 `subscribeOn()`  指定被观察者`Observable`的线程/事件产生的线程
 
@@ -485,7 +485,7 @@ LooperScheduler的代码很清晰，内部持有一个Handler，用于线程的�
 	        }
 	    });
 
-#### observeOn() delayError的坑
+## observeOn() delayError的坑
 
 `observeOn(Scheduler scheduler, boolean delayError)` delayError默认为false，onNext未消费时，直接丢弃，发射OnEror事件，导致一些偶发bug
 	
@@ -501,7 +501,7 @@ LooperScheduler的代码很清晰，内部持有一个Handler，用于线程的�
 		
 	bug：页面有时候会显示空白，即直接执行了OnEror
 
-### 原理 ###
+## 原理
 
 `subscribeOn()` 和 `observeOn()` 的内部实现，是 `lift()`
 
@@ -520,7 +520,7 @@ subscribeOn() 和 observeOn() 都做了线程切换的工作（图中的 "schedu
 - observeOn() 的线程切换则发生在它内建的 Subscriber 中
 	- 即发生在它即将给下一级 Subscriber 发送事件时，因此 observeOn() 控制的是它后面的线程
 
-### 多个 subscribeOn() 和 observeOn() 混合使用，线程调度 ###
+## 多个 subscribeOn() 和 observeOn() 混合使用，线程调度
 
 {% asset_img multi_schedule.jpg %}
 
@@ -530,7 +530,7 @@ subscribeOn() 和 observeOn() 都做了线程切换的工作（图中的 "schedu
 - ⑤处受第二个 onserveOn() 影响，运行在紫色线程；
 - 第二个 subscribeOn() ，由于在通知过程中线程就被第一个 subscribeOn() 截断，因此对整个流程并没有任何影响。**当使用多个 subscribeOn() 的时候，只有第一个 subscribeOn() 起作用**。
 
-### 延伸：doOnSubscribe() ###
+## 延伸：doOnSubscribe()
 
 **超过一个的 subscribeOn() 对事件处理的流程没有影响，但在流程之前却是可以利用的**
 
