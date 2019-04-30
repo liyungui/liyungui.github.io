@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="风">
 <meta property="og:description" content="Android Hook框架Xposed原理与源代码分析  xposedCydia Substrate可以修改任何主进程的代码，不管是用Java还是C/C++（native代码）编写的。 而Xposed（开源）只支持 HOOK app_process中的java函数 Xposed框架是一款可以在不修改APK的情况下影响程序运行（修改系统）的框架服务，通过替换/system/bin/app_proc">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-04T11:52:33.865Z">
+<meta property="og:updated_time" content="2019-04-30T10:47:20.019Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="xposed原理">
 <meta name="twitter:description" content="Android Hook框架Xposed原理与源代码分析  xposedCydia Substrate可以修改任何主进程的代码，不管是用Java还是C/C++（native代码）编写的。 而Xposed（开源）只支持 HOOK app_process中的java函数 Xposed框架是一款可以在不修改APK的情况下影响程序运行（修改系统）的框架服务，通过替换/system/bin/app_proc">
@@ -406,6 +406,12 @@ void handleInitPackageResources(InitPackageResourcesParam resparam) hook包资�
 void initZygote(StartupParam startupParam) hook Zygote初始化 IXposedHookZygoteInit
 </code></pre><p>XposedHelpers hook方法等操作api</p>
 <pre><code>Unhook findAndHookMethod(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback)
+</code></pre><h1 id="xposed模块模块检测"><a href="#xposed模块模块检测" class="headerlink" title="xposed模块模块检测"></a>xposed模块模块检测</h1><h2 id="proc-smaps-文件分析"><a href="#proc-smaps-文件分析" class="headerlink" title="/proc//smaps 文件分析"></a>/proc/<pid>/smaps 文件分析</pid></h2><p>进程 加载 dex，so文件 占用的内存</p>
+<pre><code>app dex maps
+Pss        Rss        Size        name    other
+2269 kB        11284 kB        11536 kB        /data/dalvik-cache/arm/system@framework@boot.art    
+42 kB        72 kB        88 kB        /data/app/com.zy.course.dev-1/oat/arm/base.odex    
+0 kB        28 kB        15556 kB        /data/app/cn.cyt.cracker007-1/oat/arm/base.odex
 </code></pre>
       
     </div>
@@ -529,7 +535,7 @@ void initZygote(StartupParam startupParam) hook Zygote初始化 IXposedHookZygot
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">171</span>
+                  <span class="site-state-item-count">177</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -540,7 +546,7 @@ void initZygote(StartupParam startupParam) hook Zygote初始化 IXposedHookZygot
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -551,7 +557,7 @@ void initZygote(StartupParam startupParam) hook Zygote初始化 IXposedHookZygot
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-count">57</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -584,7 +590,7 @@ void initZygote(StartupParam startupParam) hook Zygote初始化 IXposedHookZygot
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#xposed"><span class="nav-number">1.</span> <span class="nav-text">xposed</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#xposed安装"><span class="nav-number">2.</span> <span class="nav-text">xposed安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装本地服务XposedInstalle-需要root权限"><span class="nav-number">2.1.</span> <span class="nav-text">安装本地服务XposedInstalle(需要root权限)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#下载-安装。"><span class="nav-number">2.1.1.</span> <span class="nav-text">下载 安装。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#激活框架。"><span class="nav-number">2.1.2.</span> <span class="nav-text">激活框架。</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#xposed项目编码"><span class="nav-number">3.</span> <span class="nav-text">xposed项目编码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#jar包依赖"><span class="nav-number">3.1.</span> <span class="nav-text">jar包依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Manifest设置"><span class="nav-number">3.2.</span> <span class="nav-text">Manifest设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义hook类"><span class="nav-number">3.3.</span> <span class="nav-text">自定义hook类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#assets-xposed-init-声明主入口类"><span class="nav-number">3.4.</span> <span class="nav-text">assets/xposed_init 声明主入口类.</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译，安装xposed模块"><span class="nav-number">3.5.</span> <span class="nav-text">编译，安装xposed模块</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#关键api"><span class="nav-number">4.</span> <span class="nav-text">关键api</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#xposed"><span class="nav-number">1.</span> <span class="nav-text">xposed</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#xposed安装"><span class="nav-number">2.</span> <span class="nav-text">xposed安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装本地服务XposedInstalle-需要root权限"><span class="nav-number">2.1.</span> <span class="nav-text">安装本地服务XposedInstalle(需要root权限)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#下载-安装。"><span class="nav-number">2.1.1.</span> <span class="nav-text">下载 安装。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#激活框架。"><span class="nav-number">2.1.2.</span> <span class="nav-text">激活框架。</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#xposed项目编码"><span class="nav-number">3.</span> <span class="nav-text">xposed项目编码</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#jar包依赖"><span class="nav-number">3.1.</span> <span class="nav-text">jar包依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Manifest设置"><span class="nav-number">3.2.</span> <span class="nav-text">Manifest设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义hook类"><span class="nav-number">3.3.</span> <span class="nav-text">自定义hook类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#assets-xposed-init-声明主入口类"><span class="nav-number">3.4.</span> <span class="nav-text">assets/xposed_init 声明主入口类.</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译，安装xposed模块"><span class="nav-number">3.5.</span> <span class="nav-text">编译，安装xposed模块</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#关键api"><span class="nav-number">4.</span> <span class="nav-text">关键api</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#xposed模块模块检测"><span class="nav-number">5.</span> <span class="nav-text">xposed模块模块检测</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#proc-smaps-文件分析"><span class="nav-number">5.1.</span> <span class="nav-text">/proc//smaps 文件分析</span></a></li></ol></li></ol></div>
             
 
           </div>

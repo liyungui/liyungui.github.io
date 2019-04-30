@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="OkHttp, Retrofit, Volley应该选择哪一个？  Retrofit分析-漂亮的解耦套路  Retrofit初探和简单使用  github地址  文档地址  用法详解系列  OkHttp 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟HttpClient, HttpUrlConnection的职责是一样的 volley, retrofit">
+<meta name="description" content="OkHttp概念OkHttp 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟HttpClient, HttpUrlConnection的职责是一样的 Android 4.4后，HttpURLConnection底层实现已被OkHttp替换。可见OkHttp的性能已经被Google认同 volley, retrofit, android-async-htt">
 <meta name="keywords" content="Android">
 <meta property="og:type" content="article">
 <meta property="og:title" content="retrofit使用">
 <meta property="og:url" content="http://yoursite.com/2018/12/20/Android/retrofit使用/index.html">
 <meta property="og:site_name" content="风">
-<meta property="og:description" content="OkHttp, Retrofit, Volley应该选择哪一个？  Retrofit分析-漂亮的解耦套路  Retrofit初探和简单使用  github地址  文档地址  用法详解系列  OkHttp 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟HttpClient, HttpUrlConnection的职责是一样的 volley, retrofit">
+<meta property="og:description" content="OkHttp概念OkHttp 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟HttpClient, HttpUrlConnection的职责是一样的 Android 4.4后，HttpURLConnection底层实现已被OkHttp替换。可见OkHttp的性能已经被Google认同 volley, retrofit, android-async-htt">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-04T11:52:33.889Z">
+<meta property="og:updated_time" content="2019-04-30T10:47:20.051Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="retrofit使用">
-<meta name="twitter:description" content="OkHttp, Retrofit, Volley应该选择哪一个？  Retrofit分析-漂亮的解耦套路  Retrofit初探和简单使用  github地址  文档地址  用法详解系列  OkHttp 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟HttpClient, HttpUrlConnection的职责是一样的 volley, retrofit">
+<meta name="twitter:description" content="OkHttp概念OkHttp 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟HttpClient, HttpUrlConnection的职责是一样的 Android 4.4后，HttpURLConnection底层实现已被OkHttp替换。可见OkHttp的性能已经被Google认同 volley, retrofit, android-async-htt">
 
 
 
@@ -352,14 +352,23 @@
       
 
       
-        <p><a href="http://www.jianshu.com/p/77d418e7b5d6" target="_blank" rel="noopener">OkHttp, Retrofit, Volley应该选择哪一个？</a> </p>
-<p><a href="http://www.jianshu.com/p/45cb536be2f4" target="_blank" rel="noopener">Retrofit分析-漂亮的解耦套路</a> </p>
-<p><a href="http://mp.weixin.qq.com/s?__biz=MjM5NDkxMTgyNw==&amp;mid=2653057382&amp;idx=2&amp;sn=68c882cc9fc197f67ad7caba80630314#wechat_redirect" target="_blank" rel="noopener">Retrofit初探和简单使用</a> </p>
-<p><a href="https://github.com/square/retrofit" target="_blank" rel="noopener">github地址</a> </p>
-<p><a href="http://square.github.io/retrofit/" target="_blank" rel="noopener">文档地址</a> </p>
-<p><a href="https://futurestud.io/blog/retrofit-2-upgrade-guide-from-1-9" target="_blank" rel="noopener">用法详解系列</a> </p>
-<p>OkHttp 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟HttpClient, HttpUrlConnection的职责是一样的</p>
+        <h1 id="OkHttp"><a href="#OkHttp" class="headerlink" title="OkHttp"></a>OkHttp</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p><strong>OkHttp</strong> 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟<strong>HttpClient</strong>, <strong>HttpUrlConnection</strong>的职责是一样的</p>
+<p>Android 4.4后，HttpURLConnection底层实现已被OkHttp替换。可见OkHttp的性能已经被Google认同</p>
 <p>volley, retrofit, android-async-http 帮你封装了具体的请求，线程切换以及数据转换</p>
+<p>android-async-http内部实现是基于HttpClient, 6.0之后系统不再自带HttpClient，在最近的更新中将HttpClient的所有代码copy了一份进来，所以还能使用</p>
+<p>Volley是官方出的，可以支持HttpUrlConnection, HttpClient, OkHttp，如果习惯使用Volley，直接写个OkHttp扩展就行了。</p>
+<h2 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h2><ul>
+<li>支持HTTP2.0/SPDY</li>
+<li>socket自动选择最好路线，并支持自动重连</li>
+<li>拥有自动维护的socket连接池，减少握手次数</li>
+<li>拥有队列线程池，轻松写并发</li>
+<li>拥有Interceptors轻松处理请求与响应（比如GZIP压缩,LOG打印请求日志等）</li>
+<li>实现基于Headers的缓存策略</li>
+</ul>
+<h2 id="OkHttp-发送HTTP请求的初步分析"><a href="#OkHttp-发送HTTP请求的初步分析" class="headerlink" title="OkHttp 发送HTTP请求的初步分析"></a>OkHttp 发送HTTP请求的初步分析</h2><p>Dispatcher类 中有两个集合分别为：runningAsyncCalls、readyAsyncCalls分别存放正在执行的请求，等待执行的请求</p>
+<p>该类中有一个ThreadPoolExecutor线程池(核心线程0，最大线程Integer.MAX_VALUE，队列Integer.MAX_VALUE，保活60秒)执行器，利用该执行器来执行<strong>异步请求</strong>的execute方法。异步请求发送在非当前工作线程，即创建异步请求的线程，而是从线程池中获取一条线程执行网络请求。同步请求则直接是在当前工作线程中执行。</p>
+<p>该类对<strong>异步请求</strong>的管理是通过maxRequests、maxRequestsPerHost进行控制的，前者控制线程池中同时运行的最大请求数，防止同时运行线程过多，造成OOM。后者限制了同一hostname下的请求数，防止一个应用占用的网络资源过多，优化用户体验。</p>
+<h2 id="设置最大并发数"><a href="#设置最大并发数" class="headerlink" title="设置最大并发数"></a>设置最大并发数</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient().dispatcher(). maxRequests(<span class="number">8</span>);</span><br><span class="line">OkHttpClient().dispatcher().setMaxRequestsPerHost(<span class="number">8</span>);</span><br></pre></td></tr></table></figure>
 <h1 id="一、应用示例–get请求"><a href="#一、应用示例–get请求" class="headerlink" title="一、应用示例–get请求"></a>一、应用示例–get请求</h1><p>下面以聚合数据平台的免费的一个笑话的接口为例 </p>
 <pre><code>接口文档地址：https://www.juhe.cn/docs/api/id/95。 
 接口地址：http://japi.juhe.cn/joke/content/list.from。
@@ -682,6 +691,12 @@ public interface PostService {
 <li>创建 <code>Retrofit实例</code>时额外 <code>addCallAdapterFactory(RxJavaCallAdapterFactory.create())</code></li>
 <li>调用接口获取返回值改为 <code>观察者模式</code>。原来是 <code>Callback</code></li>
 </ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><p><a href="http://www.jianshu.com/p/77d418e7b5d6" target="_blank" rel="noopener">OkHttp, Retrofit, Volley应该选择哪一个？</a> </p>
+<p><a href="http://www.jianshu.com/p/45cb536be2f4" target="_blank" rel="noopener">Retrofit分析-漂亮的解耦套路</a> </p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MjM5NDkxMTgyNw==&amp;mid=2653057382&amp;idx=2&amp;sn=68c882cc9fc197f67ad7caba80630314#wechat_redirect" target="_blank" rel="noopener">Retrofit初探和简单使用</a> </p>
+<p><a href="https://github.com/square/retrofit" target="_blank" rel="noopener">github地址</a> </p>
+<p><a href="http://square.github.io/retrofit/" target="_blank" rel="noopener">文档地址</a> </p>
+<p><a href="https://futurestud.io/blog/retrofit-2-upgrade-guide-from-1-9" target="_blank" rel="noopener">用法详解系列</a> </p>
 
       
     </div>
@@ -805,7 +820,7 @@ public interface PostService {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">171</span>
+                  <span class="site-state-item-count">177</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -816,7 +831,7 @@ public interface PostService {
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -827,7 +842,7 @@ public interface PostService {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-count">57</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -860,7 +875,7 @@ public interface PostService {
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、应用示例–get请求"><span class="nav-number">1.</span> <span class="nav-text">一、应用示例–get请求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、概念描述"><span class="nav-number">2.</span> <span class="nav-text">二、概念描述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#请求URL"><span class="nav-number">2.1.</span> <span class="nav-text">请求URL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-Urls-Resolve-Against-Your-Base-Url"><span class="nav-number">2.1.1.</span> <span class="nav-text">How Urls Resolve Against Your Base Url</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求路径-Path-Parameters"><span class="nav-number">2.2.</span> <span class="nav-text">请求路径 Path Parameters</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求方法"><span class="nav-number">2.3.</span> <span class="nav-text">请求方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求参数-Query-Parameters"><span class="nav-number">2.4.</span> <span class="nav-text">请求参数 Query Parameters</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求体"><span class="nav-number">2.5.</span> <span class="nav-text">请求体</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求头操作-HEADER-MANIPULATION"><span class="nav-number">2.6.</span> <span class="nav-text">请求头操作 HEADER MANIPULATION</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#返回体转换器"><span class="nav-number">2.7.</span> <span class="nav-text">返回体转换器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interceptor"><span class="nav-number">2.8.</span> <span class="nav-text">Interceptor</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#开启OkHttp自带Interceptor-打印请求和响应log"><span class="nav-number">2.8.1.</span> <span class="nav-text">开启OkHttp自带Interceptor 打印请求和响应log</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Log-Levels"><span class="nav-number">2.8.2.</span> <span class="nav-text">Log Levels</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#遇到的问题：NoClassDefFoundError-Failed-resolution-of-Lokhttp3-internal-Platform"><span class="nav-number">2.8.3.</span> <span class="nav-text">遇到的问题：NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义Interceptor实现-添加get方法通用查询参数-优雅log"><span class="nav-number">2.8.4.</span> <span class="nav-text">自定义Interceptor实现 添加get方法通用查询参数 + 优雅log</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#泛型封装的失败"><span class="nav-number">2.9.</span> <span class="nav-text">泛型封装的失败</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结合rxjava"><span class="nav-number">3.</span> <span class="nav-text">结合rxjava</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#OkHttp"><span class="nav-number">1.</span> <span class="nav-text">OkHttp</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概念"><span class="nav-number">1.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优势"><span class="nav-number">1.2.</span> <span class="nav-text">优势</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OkHttp-发送HTTP请求的初步分析"><span class="nav-number">1.3.</span> <span class="nav-text">OkHttp 发送HTTP请求的初步分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置最大并发数"><span class="nav-number">1.4.</span> <span class="nav-text">设置最大并发数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一、应用示例–get请求"><span class="nav-number">2.</span> <span class="nav-text">一、应用示例–get请求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、概念描述"><span class="nav-number">3.</span> <span class="nav-text">二、概念描述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#请求URL"><span class="nav-number">3.1.</span> <span class="nav-text">请求URL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#How-Urls-Resolve-Against-Your-Base-Url"><span class="nav-number">3.1.1.</span> <span class="nav-text">How Urls Resolve Against Your Base Url</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求路径-Path-Parameters"><span class="nav-number">3.2.</span> <span class="nav-text">请求路径 Path Parameters</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求方法"><span class="nav-number">3.3.</span> <span class="nav-text">请求方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求参数-Query-Parameters"><span class="nav-number">3.4.</span> <span class="nav-text">请求参数 Query Parameters</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求体"><span class="nav-number">3.5.</span> <span class="nav-text">请求体</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求头操作-HEADER-MANIPULATION"><span class="nav-number">3.6.</span> <span class="nav-text">请求头操作 HEADER MANIPULATION</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#返回体转换器"><span class="nav-number">3.7.</span> <span class="nav-text">返回体转换器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interceptor"><span class="nav-number">3.8.</span> <span class="nav-text">Interceptor</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#开启OkHttp自带Interceptor-打印请求和响应log"><span class="nav-number">3.8.1.</span> <span class="nav-text">开启OkHttp自带Interceptor 打印请求和响应log</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Log-Levels"><span class="nav-number">3.8.2.</span> <span class="nav-text">Log Levels</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#遇到的问题：NoClassDefFoundError-Failed-resolution-of-Lokhttp3-internal-Platform"><span class="nav-number">3.8.3.</span> <span class="nav-text">遇到的问题：NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义Interceptor实现-添加get方法通用查询参数-优雅log"><span class="nav-number">3.8.4.</span> <span class="nav-text">自定义Interceptor实现 添加get方法通用查询参数 + 优雅log</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#泛型封装的失败"><span class="nav-number">3.9.</span> <span class="nav-text">泛型封装的失败</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#结合rxjava"><span class="nav-number">4.</span> <span class="nav-text">结合rxjava</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">5.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
             
 
           </div>

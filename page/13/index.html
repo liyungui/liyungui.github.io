@@ -262,6 +262,1896 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/JS/ES6-对象的扩展/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/01/JS/ES6-对象的扩展/" itemprop="url">ES6-对象的扩展</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-01T10:11:20+08:00">
+                2018-08-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="属性简洁表示法"><a href="#属性简洁表示法" class="headerlink" title="属性简洁表示法"></a>属性简洁表示法</h1><p><strong>直接写入变量和函数，作为对象的属性和方法。</strong></p>
+<ul>
+<li>键值对同名。即属性的键名和值名相同<ul>
+<li>属性简写：省略 属性名和冒号</li>
+<li>方法简写：省略 冒号和function<ul>
+<li>方法的值是一个 Generator 函数，前面需要加上星号</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>简洁写法的属性名总是字符串</li>
+<li>属性名是字符串，直接取变量名;属性值是变量值</li>
+</ul>
+<p>实例</p>
+<pre><code>function people(name, age) {
+    return {
+        name: name,
+        age: age
+        getName: function() {
+            console.log(this.name)
+        }
+    };
+}
+
+function people(name, age) {
+    return {
+        name,
+        age
+        getName () {
+            console.log(this.name)
+        }
+    };
+}
+
+const obj = {
+  * m() {
+    yield &apos;hello world&apos;;
+  }
+};
+
+const foo = &apos;bar&apos;;
+const baz = {foo};
+baz // {foo: &quot;bar&quot;}//属性名是字符串，直接取变量名;属性值是变量值
+// 等同于
+const baz = {foo: foo};
+
+const obj = {
+  class () {}
+};
+// 等同于
+var obj = {
+  &apos;class&apos;: function() {}
+};
+</code></pre><h1 id="属性名表达式"><a href="#属性名表达式" class="headerlink" title="属性名表达式"></a>属性名表达式</h1><p>ES6 允许<strong>字面量定义对象(使用大括号)</strong>时，<strong>用表达式作为对象的属性名</strong> 即把表达式放在方括号内</p>
+<pre><code>let lastWord = &apos;last word&apos;;
+const a = {
+  &apos;first word&apos;: &apos;hello&apos;,
+  [lastWord]: &apos;world&apos;
+};
+a[&apos;first word&apos;] // &quot;hello&quot;
+a[lastWord] // &quot;world&quot;
+a[&apos;last word&apos;] // &quot;world&quot;
+</code></pre><p><strong>属性名表达式与简洁表示法，不能同时使用</strong>，会报错。</p>
+<pre><code>// 报错
+const foo = &apos;bar&apos;;
+const bar = &apos;abc&apos;;
+const baz = { [foo] };
+
+// 正确
+const foo = &apos;bar&apos;;
+const baz = { [foo]: &apos;abc&apos;};
+</code></pre><p><strong>属性名表达式是对象，默认情况下自动将对象转为字符串[object Object]</strong></p>
+<pre><code>const keyA = {a: 1};
+const keyB = {b: 2};
+const myObject = {
+  [keyA]: &apos;valueA&apos;,
+  [keyB]: &apos;valueB&apos;
+};
+myObject // Object {[object Object]: &quot;valueB&quot;}
+
+[keyA]和[keyB]得到的都是[object Object]
+所以[keyB]会把[keyA]覆盖掉，而myObject最后只有一个[object Object]属性
+</code></pre><h1 id="属性的可枚举性和遍历"><a href="#属性的可枚举性和遍历" class="headerlink" title="属性的可枚举性和遍历"></a>属性的可枚举性和遍历</h1><h2 id="可枚举性"><a href="#可枚举性" class="headerlink" title="可枚举性"></a>可枚举性</h2><h3 id="描述对象（Descriptor）"><a href="#描述对象（Descriptor）" class="headerlink" title="描述对象（Descriptor）"></a>描述对象（Descriptor）</h3><ul>
+<li>用来控制该属性的行为。</li>
+<li>对象的每个属性都有一个描述对象，</li>
+<li>获取该属性的描述对象 <code>Object.getOwnPropertyDescriptor()</code></li>
+</ul>
+<p>实例：描述对象</p>
+<pre><code>let obj = { foo: 123 };
+Object.getOwnPropertyDescriptor(obj, &apos;foo&apos;)
+//  {
+//    value: 123,
+//    writable: true,
+//    enumerable: true,
+//    configurable: true
+//  }
+</code></pre><h3 id="可枚举性-1"><a href="#可枚举性-1" class="headerlink" title="可枚举性"></a>可枚举性</h3><ul>
+<li><strong>描述对象的enumerable属性</strong></li>
+<li>最初目的，就是让某些属性可以规避掉for…in操作</li>
+</ul>
+<p><strong>目前，有四个操作会忽略enumerable为false的属性。</strong></p>
+<ul>
+<li>for…in循环：只遍历<strong>对象自身</strong>的和<strong>继承</strong>的<strong>可枚举</strong>的属性。</li>
+<li>Object.keys()：返回<strong>对象自身</strong>的所有<strong>可枚举</strong>的属性的键名。</li>
+<li>Object.assign()： 只拷贝<strong>对象自身</strong>的<strong>可枚举</strong>的属性。</li>
+<li>JSON.stringify()：只串行化<strong>对象自身</strong>的<strong>可枚举</strong>的属性。</li>
+</ul>
+<p>实例：toString和length属性不可枚举</p>
+<pre><code>Object.getOwnPropertyDescriptor(Object.prototype, &apos;toString&apos;).enumerable
+// false
+
+Object.getOwnPropertyDescriptor([], &apos;length&apos;).enumerable
+// false
+
+    上面代码中，toString和length属性的enumerable都是false，
+    因此for...in不会遍历到这两个继承自原型的属性。
+</code></pre><p><strong>ES6 规定，所有 Class 的原型的方法都是不可枚举的</strong></p>
+<p>Object.getOwnPropertyDescriptor(class {foo() {}}.prototype, ‘foo’).enumerable<br>// false<br>总的来说，操作中引入继承的属性会让问题复杂化，大多数时候，我们只关心对象自身的属性。所以，尽量不要用for…in循环，而用Object.keys()代替。</p>
+<h2 id="属性的遍历"><a href="#属性的遍历" class="headerlink" title="属性的遍历"></a>属性的遍历</h2><h3 id="五种遍历对象的属性的方法"><a href="#五种遍历对象的属性的方法" class="headerlink" title="五种遍历对象的属性的方法"></a>五种遍历对象的属性的方法</h3><p>ES6 一共有 5 种方法可以遍历对象的属性。</p>
+<h4 id="for…in"><a href="#for…in" class="headerlink" title="for…in"></a>for…in</h4><p>for…in循环遍历<strong>对象自身</strong>的和<strong>继承</strong>的<strong>可枚举属性</strong>（不含 Symbol 属性）。</p>
+<h4 id="Object-keys-obj"><a href="#Object-keys-obj" class="headerlink" title="Object.keys(obj)"></a>Object.keys(obj)</h4><p>Object.keys返回一个数组，包括<strong>对象自身</strong>的（不含继承的）所有<strong>可枚举</strong>属性（不含 Symbol 属性）的键名。</p>
+<h4 id="Object-getOwnPropertyNames-obj"><a href="#Object-getOwnPropertyNames-obj" class="headerlink" title="Object.getOwnPropertyNames(obj)"></a>Object.getOwnPropertyNames(obj)</h4><p>Object.getOwnPropertyNames返回一个数组，包含<strong>对象自身</strong>的所有属性（不含 Symbol 属性，但是包括不可枚举属性）的键名。</p>
+<h4 id="Object-getOwnPropertySymbols-obj"><a href="#Object-getOwnPropertySymbols-obj" class="headerlink" title="Object.getOwnPropertySymbols(obj)"></a>Object.getOwnPropertySymbols(obj)</h4><p>Object.getOwnPropertySymbols返回一个数组，包含<strong>对象自身</strong>的所有 <strong>Symbol</strong> 属性的键名。</p>
+<h4 id="Reflect-ownKeys-obj"><a href="#Reflect-ownKeys-obj" class="headerlink" title="Reflect.ownKeys(obj)"></a>Reflect.ownKeys(obj)</h4><p>Reflect.ownKeys返回一个数组，包含<strong>对象自身</strong>的所有键名，不管键名是 <strong>Symbol</strong> 或字符串，也不管是否可枚举。</p>
+<h3 id="属性遍历次序规则"><a href="#属性遍历次序规则" class="headerlink" title="属性遍历次序规则"></a>属性遍历次序规则</h3><p>以上的 5 种方法遍历对象的键名，都遵守同样的属性遍历次序规则。</p>
+<ul>
+<li>所有数值键，按照数值升序排列。</li>
+<li>所有字符串键，按照加入时间升序排列。</li>
+<li>所有 Symbol 键，按照加入时间升序排列。</li>
+</ul>
+<p>实例：</p>
+<pre><code>Reflect.ownKeys({ [Symbol()]:0, b:0, 10:0, 2:0, a:0 })
+// [&apos;2&apos;, &apos;10&apos;, &apos;b&apos;, &apos;a&apos;, Symbol()]
+上面代码中，Reflect.ownKeys方法返回一个数组，包含了参数对象的所有属性。这个数组的属性次序是这样的，首先是数值属性2和10，其次是字符串属性b和a，最后是 Symbol 属性。
+</code></pre><h1 id="方法的-name-属性"><a href="#方法的-name-属性" class="headerlink" title="方法的 name 属性"></a>方法的 name 属性</h1><p>对象方法也是函数，因此也有name属性，<strong>返回函数名</strong></p>
+<ul>
+<li>对象的方法使用了取值函数(getter)和存值函数(setter)，<ul>
+<li>name属性不在该方法上面</li>
+<li>在该方法的属性的描述对象的get和set属性上面</li>
+<li>返回值是方法名前加上get和set</li>
+</ul>
+</li>
+<li><p>两种特殊情况</p>
+<ul>
+<li>bind方法创造的函数<ul>
+<li>name属性返回bound加上原函数的名字；</li>
+</ul>
+</li>
+<li><p>Function构造函数创造的函数</p>
+<ul>
+<li>name属性返回anonymous<br>实例</li>
+</ul>
+<p>onst obj = {<br>get foo() {},<br>set foo(x) {}<br>};</p>
+<p>obj.foo.name<br>// TypeError: Cannot read property ‘name’ of undefined</p>
+<p>const descriptor = Object.getOwnPropertyDescriptor(obj, ‘foo’);<br>descriptor.get.name // “get foo”<br>descriptor.set.name // “set foo”</p>
+<p>(new Function()).name // “anonymous”</p>
+<p>var doSomething = function() {<br>// …<br>};<br>doSomething.bind().name // “bound doSomething”</p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="Object-is"><a href="#Object-is" class="headerlink" title="Object.is()"></a>Object.is()</h1><p><strong>是否严格相等</strong></p>
+<p>比较两个值是否相等三种方法：</p>
+<ul>
+<li>相等运算符（==）<ul>
+<li>缺点：<ul>
+<li><strong>自动转换数据类型</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>严格相等运算符（===）<ul>
+<li>缺点：<ul>
+<li>NaN不等于自身</li>
+<li>+0等于-0</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>is()<br>  -ES6 提出<ul>
+<li>“Same-value equality”（同值相等)算法</li>
+<li>两个值是否<strong>严格相等</strong><ul>
+<li>解决了严格比较运算符（===）的两个缺点</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="Object-assign"><a href="#Object-assign" class="headerlink" title="Object.assign()"></a>Object.assign()</h1><h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><p><strong>合并对象，将源对象的所有可枚举属性，复制到目标对象</strong></p>
+<pre><code>Object.assign(target, ... source)
+</code></pre><ul>
+<li><strong>浅拷贝</strong></li>
+<li><strong>属性覆盖</strong> 后面的属性会覆盖前面的属性<ul>
+<li>目标对象与源对象有同名属性</li>
+<li>多个源对象有同名属性</li>
+</ul>
+</li>
+<li>只有一个参数<ul>
+<li>直接返回该参数</li>
+</ul>
+</li>
+<li>参数不是对象，自动转成对象<ul>
+<li>非首参(源对象)<ul>
+<li>数值和布尔值，无效果<ul>
+<li>包装对象不产生可枚举属性</li>
+</ul>
+</li>
+<li>字符串，以数组形式拷入目标对象(属性名为元素索引)<ul>
+<li>包装对象产生可枚举属性</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>undefined和null无法转成对象<ul>
+<li>首参，会报错</li>
+<li>非首参，跳过</li>
+</ul>
+</li>
+<li><p>取值函数的处理</p>
+<ul>
+<li><p>求值后复制值<br>实例</p>
+<p>const target = { a: 1, b: 1 };<br>const source1 = { b: 2, c: 2 };<br>const source2 = { c: 3 };<br>Object.assign(target, source1, source2);<br>target // {a:1, b:2, c:3}</p>
+<p>const obj = {a: 1};<br>Object.assign(obj) === obj // true</p>
+<p>Object.assign(undefined) // 报错<br>let obj = {a: 1};<br>Object.assign(obj, undefined) === obj // true</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>实例：字符串的处理，转为数组对象</p>
+<pre><code>const v1 = &apos;abc&apos;;
+const v2 = true;
+const v3 = 10;
+const obj = Object.assign({}, v1, v2, v3);
+console.log(obj); // { &quot;0&quot;: &quot;a&quot;, &quot;1&quot;: &quot;b&quot;, &quot;2&quot;: &quot;c&quot; }
+</code></pre><p>实例：数组对象的处理</p>
+<pre><code>Object.assign([1, 2, 3], [4, 5])
+// [4, 5, 3]
+    把数组视为属性名为 0、1、2 的对象
+    因此源数组的 0 号属性4覆盖了目标数组的 0 号属性1
+</code></pre><p>实例：取值函数的处理</p>
+<pre><code>const source = {
+  get foo() { return 1 }
+};
+const target = {};
+Object.assign(target, source)
+// { foo: 1 }
+</code></pre><h2 id="常见用途"><a href="#常见用途" class="headerlink" title="常见用途"></a>常见用途</h2><h3 id="合并对象-克隆对象"><a href="#合并对象-克隆对象" class="headerlink" title="合并对象/克隆对象"></a>合并对象/克隆对象</h3><h3 id="为对象添加属性"><a href="#为对象添加属性" class="headerlink" title="为对象添加属性"></a>为对象添加属性</h3><p>将x属性和y属性添加到Point类的对象实例</p>
+<p>class Point {<br>  constructor(x, y) {<br>    Object.assign(this, {x, y});<br>  }<br>}</p>
+<h3 id="为对象添加方法"><a href="#为对象添加方法" class="headerlink" title="为对象添加方法"></a>为对象添加方法</h3><pre><code>Object.assign(SomeClass.prototype, {
+  someMethod(arg1, arg2) {
+    ···
+  },
+  anotherMethod() {
+    ···
+  }
+});
+
+// 等同于下面的写法
+SomeClass.prototype.someMethod = function (arg1, arg2) {
+  ···
+};
+SomeClass.prototype.anotherMethod = function () {
+  ···
+};
+</code></pre><h3 id="为属性指定默认值"><a href="#为属性指定默认值" class="headerlink" title="为属性指定默认值"></a>为属性指定默认值</h3><p>EFAULTS对象是默认值，options对象是用户提供的参数</p>
+<p>Object.assign方法将DEFAULTS和options合并成一个新对象，如果两者有同名属性，则option的属性值会覆盖DEFAULTS的属性值</p>
+<pre><code>const DEFAULTS = {
+  logLevel: 0,
+  outputFormat: &apos;html&apos;
+};
+function processContent(options) {
+  options = Object.assign({}, DEFAULTS, options);
+  console.log(options);
+  // ...
+}
+</code></pre><h1 id="对象的扩展运算符"><a href="#对象的扩展运算符" class="headerlink" title="对象的扩展运算符"></a>对象的扩展运算符</h1><p>扩展运算符（<code>...</code>）</p>
+<h2 id="解构赋值"><a href="#解构赋值" class="headerlink" title="解构赋值"></a>解构赋值</h2><p><strong>解构赋值必须是最后一个参数</strong>，否则会报错。</p>
+<pre><code>let { x, y, ...z } = { x: 1, y: 2, a: 3, b: 4 };
+x // 1
+y // 2
+z // { a: 3, b: 4 }
+</code></pre><p><strong>变量声明</strong>语句之中，如果使用<strong>解构赋值</strong>，<strong>扩展运算符</strong>后面必须是一个<strong>变量</strong>名，而不能是一个解构赋值表达式</p>
+<p><strong>扩展运算符的解构赋值，只能复制对象自身的属性</strong>。 继承的属性无法复制</p>
+<pre><code>const o = Object.create({ x: 1, y: 2 });
+o.z = 3;
+let { x, ...newObj } = o;//这里的扩展运算符后只能是变量，所以引入了中间变量newObj
+let { y, z } = newObj;
+x // 1
+y // undefined
+z // 3
+
+变量x是单纯的解构赋值，所以可以读取对象o继承的属性；
+变量y和z是扩展运算符的解构赋值，只能读取对象o自身的属性
+    所以变量z可以赋值成功，变量y取不到值
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/31/JS/ES6-Promise对象/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/31/JS/ES6-Promise对象/" itemprop="url">ES6-Promise对象</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-31T15:39:20+08:00">
+                2018-07-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Promise-的含义"><a href="#Promise-的含义" class="headerlink" title="Promise 的含义"></a>Promise 的含义</h1><h2 id="Promise"><a href="#Promise" class="headerlink" title="Promise"></a>Promise</h2><ul>
+<li>Promise 是异步编程的一种解决方案</li>
+<li>比传统的解决方案——回调函数和事件——更合理和更强大。</li>
+<li>它由社区最早提出和实现，ES6 将其写进了语言标准，统一了用法，原生提供了Promise对象</li>
+</ul>
+<h2 id="Promise对象"><a href="#Promise对象" class="headerlink" title="Promise对象"></a>Promise对象</h2><h3 id="两个特点"><a href="#两个特点" class="headerlink" title="两个特点"></a>两个特点</h3><ul>
+<li><p>状态不受外界影响。Promise对象代表一个异步操作，</p>
+<ul>
+<li>有三种状态：<ul>
+<li>pending（进行中）</li>
+<li>fulfilled（已成功）</li>
+<li>rejected（已失败）。</li>
+</ul>
+</li>
+<li>只有异步操作的结果，可以决定当前是哪一种状态，任何其他操作都无法改变这个状态。<ul>
+<li>这也是Promise这个名字的由来</li>
+<li>它的英语意思就是“承诺”，表示其他手段无法改变。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>一旦状态改变，就<strong>不会再变</strong>，<strong>任何时候</strong>都可以得到这个结果。</p>
+<ul>
+<li>Promise对象的状态一旦变为fulfilled或rejected，状态就凝固了，这时就称为 resolved（已定型）。</li>
+<li>如果改变已经发生了，你再对Promise对象添加回调函数，也会立即得到这个结果。<ul>
+<li>这与事件（Event）完全不同，事件的特点是，如果你错过了它，再去监听，是得不到结果的。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><ul>
+<li>将异步操作以同步操作的流程表达出来，避免了层层嵌套的回调函数。</li>
+<li>提供统一的接口，使得控制异步操作更加容易</li>
+</ul>
+<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><ul>
+<li><strong>一旦新建立即执行，无法取消</strong></li>
+<li>如果不设置回调函数，Promise内部抛出的错误，不会反应到外部。</li>
+<li>当处于pending状态时，无法得知目前进展到哪一个阶段（刚刚开始还是即将完成）。</li>
+</ul>
+<p>如果某些<strong>事件不断地反复发生</strong>，一般来说，<strong>使用 Stream 模式</strong>是比部署Promise更好的选择。</p>
+<h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><h2 id="创建实例"><a href="#创建实例" class="headerlink" title="创建实例"></a>创建实例</h2><p>Promise构造函数接受一个函数作为参数，该函数的两个参数分别是resolve和reject两个函数，由 JavaScript 引擎提供，不用自己部署。</p>
+<pre><code>const promise = new Promise(function(resolve, reject) {
+  // ... some code
+
+  if (/* 异步操作成功 */){
+    resolve(value);
+  } else {
+    reject(error);
+  }
+});
+</code></pre><h2 id="then-设置回调"><a href="#then-设置回调" class="headerlink" title="then()设置回调"></a>then()设置回调</h2><p>Promise实例生成以后，可以用then方法分别指定resolved状态和rejected状态的回调函数(第二个参数可选)。    </p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>实例：异步加载图片</p>
+<pre><code>function loadImageAsync(url) {
+  return new Promise(function(resolve, reject) {
+    const image = new Image();
+
+    image.onload = function() {
+      resolve(image);
+    };
+
+    image.onerror = function() {
+      reject(new Error(&apos;Could not load image at &apos; + url));
+    };
+
+    image.src = url;
+  });
+}
+
+loadImageAsync(&apos;http://www.baidu.com&apos;).then(function(image) {
+  console.log(&apos;resolved&apos;);
+}, function(error) {
+  console.error(&apos;出错了&apos;, error);
+});
+</code></pre><p>实例：Ajax 操作</p>
+<pre><code>const getJSON = function(url) {
+  const promise = new Promise(function(resolve, reject){
+    const handler = function() {
+      if (this.readyState !== 4) {
+        return;
+      }
+      if (this.status === 200) {
+        resolve(this.response);
+      } else {
+        reject(new Error(this.statusText));
+      }
+    };
+    const client = new XMLHttpRequest();
+    client.open(&quot;GET&quot;, url);
+    client.onreadystatechange = handler;
+    client.responseType = &quot;json&quot;;
+    client.setRequestHeader(&quot;Accept&quot;, &quot;application/json&quot;);
+    client.send();
+
+  });
+
+  return promise;
+};
+
+getJSON(&quot;/posts.json&quot;).then(function(json) {
+  console.log(&apos;Contents: &apos; + json);
+}, function(error) {
+  console.error(&apos;出错了&apos;, error);
+});
+</code></pre><h2 id="回调函数顺序"><a href="#回调函数顺序" class="headerlink" title="回调函数顺序"></a>回调函数顺序</h2><ul>
+<li>创建实例指定的回调函数<ul>
+<li>函数中调用resolve或reject并不会终结回调函数的执行</li>
+</ul>
+</li>
+<li>当前脚本所有同步任务</li>
+<li>then()指定的状态回调函数<ul>
+<li>立即 resolved 的 Promise 也要在本轮事件循环的末尾执行(JS是事件循环驱动)</li>
+</ul>
+</li>
+</ul>
+<p>实例：</p>
+<pre><code>let promise = new Promise(function(resolve, reject) {
+  console.log(&apos;Promise&apos;);
+  resolve();
+});
+
+promise.then(function() {
+  console.log(&apos;resolved.&apos;);
+});
+
+console.log(&apos;Hi!&apos;);
+
+// Promise
+// Hi!
+// resolved
+Promise 新建后立即执行，所以首先输出的是Promise。然后，then方法指定的回调函数，将在当前脚本所有同步任务执行完才会执行，所以resolved最后输出。
+</code></pre><p>实例：</p>
+<pre><code>new Promise((resolve, reject) =&gt; {
+  resolve(1);
+  console.log(2);//还是会执行，并且会首先打印出来。，then方法指定的回调函数，将在当前脚本所有同步任务执行完才会执行
+}).then(r =&gt; {
+  console.log(r);
+});
+// 2
+// 1
+</code></pre><p>一般来说，调用resolve或reject以后，Promise 的使命就完成了，后继操作应该放到then方法里面，而不应该直接写在resolve或reject的后面。所以，最好在它们前面加上return语句，这样就不会有意外。</p>
+<pre><code>new Promise((resolve, reject) =&gt; {
+  return resolve(1);
+  // 后面的语句不会执行
+  console.log(2);
+})
+</code></pre><h1 id="then"><a href="#then" class="headerlink" title="then()"></a>then()</h1><h2 id="链式调用"><a href="#链式调用" class="headerlink" title="链式调用"></a>链式调用</h2><p>then方法返回的是一个新的Promise实例（注意，不是原来那个Promise实例）。因此可以采用链式写法，即then方法后面再调用另一个then方法</p>
+<pre><code>getJSON(&quot;/posts.json&quot;).then(function(json) {
+  return json.post;
+}).then(function(post) {
+  // ...
+});
+</code></pre><h2 id="异步结果是另一个异步操作"><a href="#异步结果是另一个异步操作" class="headerlink" title="异步结果是另一个异步操作"></a>异步结果是另一个异步操作</h2><p>非链式调用</p>
+<pre><code>const p1 = new Promise(function (resolve, reject) {
+  // ...
+});
+
+const p2 = new Promise(function (resolve, reject) {
+  // ...
+  resolve(p1);
+})
+</code></pre><p>p1的状态就会传递给p2，也就是说，p1的状态决定了p2的状态</p>
+<p>链式调用：访问一个url获取新url，访问新url获取结果</p>
+<pre><code>getJSON(&quot;/post/1.json&quot;).then(function(post) {
+  return getJSON(post.commentURL);
+}).then(function funcA(comments) {
+  console.log(&quot;resolved: &quot;, comments);
+}, function funcB(err){
+  console.log(&quot;rejected: &quot;, err);
+});
+</code></pre><p>采用箭头函数，上面的代码可以写得更简洁。</p>
+<pre><code>getJSON(&quot;/post/1.json&quot;).then(
+  post =&gt; getJSON(post.commentURL)
+).then(
+  comments =&gt; console.log(&quot;resolved: &quot;, comments),
+  err =&gt; console.log(&quot;rejected: &quot;, err)
+);
+</code></pre><h1 id="catch"><a href="#catch" class="headerlink" title="catch()"></a>catch()</h1><p>catch()是then(null, rejection)的别名，用于指定发生错误时的回调函数。</p>
+<p>一般来说，不要在then方法里面定义 Reject 状态的回调函数（即then的第二个参数），总是使用catch方法。</p>
+<pre><code>getJSON(&apos;/posts.json&apos;).then(function(posts) {
+  // ...
+}).catch(function(error) {
+  // 处理 getJSON 和 then()指定的回调函数运行时发生的错误
+  console.log(&apos;发生错误！&apos;, error);
+});
+</code></pre><h1 id="finally"><a href="#finally" class="headerlink" title="finally()"></a>finally()</h1><p>用于指定不管 Promise 对象最后状态如何，都会执行的操作。该方法是 ES2018 引入标准的。</p>
+<h1 id="resolve"><a href="#resolve" class="headerlink" title="resolve()"></a>resolve()</h1><p><strong>返回一个resolved状态的 Promise 对象</strong></p>
+<pre><code>Promise.resolve(&apos;foo&apos;)
+// 等价于
+new Promise(resolve =&gt; resolve(&apos;foo&apos;))
+</code></pre><p>resolve()的参数分成四种情况</p>
+<h2 id="参数是-Promise-实例"><a href="#参数是-Promise-实例" class="headerlink" title="参数是 Promise 实例"></a>参数是 Promise 实例</h2><p>不做任何修改、原封不动地返回这个实例。</p>
+<h2 id="参数是thenable对象"><a href="#参数是thenable对象" class="headerlink" title="参数是thenable对象"></a>参数是thenable对象</h2><p>thenable对象指的是<strong>具有then方法的对象</strong></p>
+<p>将这个对象转为 Promise 对象，然后就立即执行thenable对象的then方法。then方法一般会将状态置为resolved</p>
+<pre><code>let thenable = {
+  then: function(resolve, reject) {
+    resolve(42);
+  }
+};
+
+let p1 = Promise.resolve(thenable);
+//thenable对象的then方法执行后，对象p1的状态就变为resolved，从而立即执行下面then方法指定的回调函数，输出 42。
+p1.then(function(value) {
+  console.log(value);  // 42
+});
+</code></pre><h2 id="参数不是thenable对象，或根本不是对象"><a href="#参数不是thenable对象，或根本不是对象" class="headerlink" title="参数不是thenable对象，或根本不是对象"></a>参数不是thenable对象，或根本不是对象</h2><p>返回一个resolved状态的 Promise 对象。</p>
+<pre><code>const p = Promise.resolve(&apos;Hello&apos;);
+p.then(function (s){
+  console.log(s)
+});
+// Hello
+</code></pre><h2 id="不带有任何参数"><a href="#不带有任何参数" class="headerlink" title="不带有任何参数"></a>不带有任何参数</h2><p>返回一个resolved状态的 Promise 对象。</p>
+<pre><code>const p = Promise.resolve();
+p.then(function () {
+  // ...
+});
+</code></pre><h1 id="reject"><a href="#reject" class="headerlink" title="reject()"></a>reject()</h1><p><strong>返回一个rejected状态的 Promise 对象</strong></p>
+<pre><code>const p = Promise.reject(&apos;出错了&apos;);
+// 等同于
+const p = new Promise((resolve, reject) =&gt; reject(&apos;出错了&apos;))
+</code></pre><p><strong>注意：Promise.reject()方法的参数，会原封不动地作为reject的理由，变成后续方法的参数。这一点与Promise.resolve方法不一致</strong></p>
+<pre><code>const thenable = {
+  then(resolve, reject) {
+    reject(&apos;出错了&apos;);
+  }
+};
+
+Promise.reject(thenable)
+.catch(e =&gt; {
+  console.log(e === thenable)
+})
+// true
+
+Promise.reject方法的参数是一个thenable对象，执行以后，后面catch方法的参数不是reject抛出的“出错了”这个字符串，而是thenable对象。
+</code></pre><h1 id="all"><a href="#all" class="headerlink" title="all()"></a>all()</h1><p>将多个 Promise 实例，包装成一个新Promise实例。</p>
+<pre><code>const p = Promise.all([p1, p2, p3]);
+</code></pre><h2 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h2><h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><p>所有数组元素会被 Promise.resolve() 转为Promise 实例</p>
+<h3 id="对象：有Iterator接口且成员都是Promise实例"><a href="#对象：有Iterator接口且成员都是Promise实例" class="headerlink" title="对象：有Iterator接口且成员都是Promise实例"></a>对象：有Iterator接口且成员都是Promise实例</h3><h2 id="新Promise实例状态回调"><a href="#新Promise实例状态回调" class="headerlink" title="新Promise实例状态回调"></a>新Promise实例状态回调</h2><p>p的状态由p1、p2、p3决定，分成两种情况。</p>
+<ul>
+<li>p1、p2、p3的状态都变成fulfilled，p的状态才会变成fulfilled<ul>
+<li>此时p1、p2、p3的返回值组成一个数组，传递给p的回调函数</li>
+</ul>
+</li>
+<li>p1、p2、p3之中有一个被rejected，p的状态就变成rejected<ul>
+<li>此时第一个被reject的实例的返回值，会传递给p的回调函数。</li>
+</ul>
+</li>
+</ul>
+<p>如果作为参数的 Promise 实例，自己定义了catch方法，那么它一旦被rejected，并不会触发Promise.all()的catch方法</p>
+<pre><code>const p1 = new Promise((resolve, reject) =&gt; {
+  resolve(&apos;hello&apos;);
+})
+.then(result =&gt; result)
+.catch(e =&gt; e);
+
+const p2 = new Promise((resolve, reject) =&gt; {
+  throw new Error(&apos;报错了&apos;);
+})
+.then(result =&gt; result)
+.catch(e =&gt; e);
+
+Promise.all([p1, p2])
+.then(result =&gt; console.log(result))
+.catch(e =&gt; console.log(e));
+// [&quot;hello&quot;, Error: 报错了]
+
+p2首先会rejected
+但是p2有自己的catch方法，该方法返回的是一个新的 Promise 实例，p2指向的实际上是这个实例。
+该实例执行完catch方法后，也会变成resolved，导致Promise.all()方法参数里面的两个实例都会resolved
+因此会调用then方法指定的回调函数，而不会调用catch方法指定的回调函数。
+</code></pre><h1 id="race"><a href="#race" class="headerlink" title="race()"></a>race()</h1><p>将多个 Promise 实例，包装成一个新Promise实例。</p>
+<p>跟 all()很相似。<strong>最大的区别就是新Promise实例状态回调不同</strong></p>
+<pre><code>const p = Promise.race([p1, p2, p3]);
+</code></pre><p>只要p1、p2、p3之中有一个实例率先改变状态，p的状态就跟着改变。那个率先改变的 Promise 实例的返回值，传递给p的回调函数。</p>
+<h1 id="try"><a href="#try" class="headerlink" title="try()"></a>try()</h1><p><strong>为同步操作和异步操作提供了统一的处理机制，而且能统一处理同步异常和异步异常</strong></p>
+<pre><code>const f = () =&gt; console.log(&apos;now&apos;);
+Promise.try(f);
+console.log(&apos;next&apos;);
+// now
+// next
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/31/JS/ES6-函数的扩展/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/31/JS/ES6-函数的扩展/" itemprop="url">ES6-函数的扩展</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-31T10:39:20+08:00">
+                2018-07-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="函数参数的默认值"><a href="#函数参数的默认值" class="headerlink" title="函数参数的默认值"></a>函数参数的默认值</h1><p>ES6 允许为函数的参数设置默认值，即直接写在参数定义的后面。</p>
+<pre><code>function log(x, y = &apos;World&apos;) {
+  console.log(x, y);
+}
+
+log(&apos;Hello&apos;) // Hello World
+log(&apos;Hello&apos;, &apos;China&apos;) // Hello China
+log(&apos;Hello&apos;, &apos;&apos;) // Hello
+</code></pre><p>使用参数默认值时，函数不能有同名参数</p>
+<pre><code>// 不报错
+function foo(x, x, y) {
+  // ...
+}
+
+// 报错
+function foo(x, x, y = 1) {
+  // ...
+}
+// SyntaxError: Duplicate parameter name not allowed in this context
+</code></pre><p>参数默认值是惰性求值的</p>
+<pre><code>let x = 99;
+function foo(p = x + 1) {
+  console.log(p);
+}
+
+foo() // 100
+
+x = 100;
+foo() // 101
+</code></pre><h2 id="参数默认值的位置"><a href="#参数默认值的位置" class="headerlink" title="参数默认值的位置"></a>参数默认值的位置</h2><ul>
+<li>函数的尾参数有默认值，可以省略</li>
+<li>其他位置，不能省略。显式输入undefined</li>
+</ul>
+<p>示例</p>
+<p>// 例一<br>function f(x = 1, y) {<br>  return [x, y];<br>}</p>
+<pre><code>f() // [1, undefined]
+f(2) // [2, undefined])
+f(, 1) // 报错
+f(undefined, 1) // [1, 1]
+</code></pre><h2 id="函数的-length-属性"><a href="#函数的-length-属性" class="headerlink" title="函数的 length 属性"></a>函数的 length 属性</h2><p>指定了默认值以后，函数的length属性，将返回没有指定默认值的参数个数。也就是说，指定了默认值后，length属性将失真。</p>
+<h2 id="作用域"><a href="#作用域" class="headerlink" title="作用域"></a>作用域</h2><p>一旦设置了参数的<strong>默认值</strong>，函数进行声明<strong>初始化</strong>时，参数会形成一个<strong>单独的作用域</strong>（context）。等到初始化结束，这个作用域就会消失。这种语法行为，在不设置参数默认值时，是不会出现的。</p>
+<pre><code>var x = 1;
+function f(x, y = x) {
+  console.log(y);
+}
+f(2) // 2
+调用函数f时，参数形成一个单独的作用域。
+在这个作用域里面，默认值变量x指向第一个参数x，而不是全局变量x，所以输出是2。
+
+let x = 1;
+function f(y = x) {
+  let x = 2;
+  console.log(y);
+}
+f() // 1
+
+function f(y = x) {
+  let x = 2;
+  console.log(y);
+}
+f() // ReferenceError: x is not defined
+</code></pre><p>如果参数的默认值是一个函数，该函数的作用域也遵守这个规则</p>
+<pre><code>let foo = &apos;outer&apos;;
+
+function bar(func = () =&gt; foo) {
+  let foo = &apos;inner&apos;;
+  console.log(func());
+}
+
+bar(); // outer
+</code></pre><h2 id="指定参数是否可以省略"><a href="#指定参数是否可以省略" class="headerlink" title="指定参数是否可以省略"></a>指定参数是否可以省略</h2><p>不得省略，如果省略就抛出一个错误</p>
+<pre><code>function throwIfMissing() {
+  throw new Error(&apos;Missing parameter&apos;);
+}
+
+function foo(mustBeProvided = throwIfMissing()) {
+  return mustBeProvided;
+}
+
+foo()
+// Error: Missing parameter
+
+参数mustBeProvided的默认值等于throwIfMissing函数的运行结果（注意函数名throwIfMissing之后有一对圆括号），这表明参数的默认值不是在定义时执行，而是在运行时执行。
+</code></pre><p>将参数默认值设为undefined，表明这个参数是可以省略的。</p>
+<pre><code>function foo(optional = undefined) { ··· }
+</code></pre><h1 id="rest-参数"><a href="#rest-参数" class="headerlink" title="rest 参数"></a>rest 参数</h1><ul>
+<li>形式为 <code>...变量名</code><ul>
+<li>用于获取函数的多余参数，这样就不需要使用arguments对象了。</li>
+<li>是一个数组<ul>
+<li>arguments对象不是数组，而是一个类似数组的对象。</li>
+<li>所以为了使用数组的方法，必须使用Array.prototype.slice.call先将其转为数组。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>只能是最后一个参数</li>
+<li>函数的length属性，不包括 rest 参数</li>
+</ul>
+<p>实例</p>
+<pre><code>function add(...values) {
+  let sum = 0;
+  for (var val of values) {
+    sum += val;
+  }
+  return sum;
+}
+
+add(2, 5, 3) // 10
+</code></pre><p>实例：rest 参数代替arguments变量</p>
+<pre><code>// arguments变量的写法
+function sortNumbers() {
+  return Array.prototype.slice.call(arguments).sort();
+}
+
+// rest参数的写法
+const sortNumbers = (...numbers) =&gt; numbers.sort();
+</code></pre><h1 id="严格模式"><a href="#严格模式" class="headerlink" title="严格模式"></a>严格模式</h1><p>从 ES5 开始，函数内部可以设定为严格模式。</p>
+<p>ES2016 规定只要函数参数使用了默认值、解构赋值、或者扩展运算符，那么函数内部就不能显式设定为严格模式，否则会报错。</p>
+<ul>
+<li>函数内部的严格模式，同时适用于函数体和函数参数。</li>
+<li>函数先执行函数参数，再执行函数体。</li>
+<li>这就有一个不合理的地方，只有从函数体之中，才能知道参数是否应该以严格模式执行，但是参数却应该先于函数体执行</li>
+</ul>
+<p>两种方法可以规避这种限制</p>
+<ul>
+<li>设定全局性的严格模式</li>
+<li>把函数包在一个无参数的立即执行函数里面</li>
+</ul>
+<p>代码</p>
+<pre><code>&apos;use strict&apos;;
+function doSomething(a, b = a) {
+  // code
+}
+
+const doSomething = (function () {
+  &apos;use strict&apos;;
+  return function(value = 42) {
+    return value;
+  };
+}());
+</code></pre><h1 id="name-属性"><a href="#name-属性" class="headerlink" title="name 属性"></a>name 属性</h1><p>函数的name属性，返回该函数的函数名</p>
+<p>将一个匿名函数赋值给一个变量，ES5 的name属性，会返回空字符串，而 ES6 的name属性会返回实际的函数名。</p>
+<pre><code>var f = function () {};
+
+// ES5
+f.name // &quot;&quot;
+
+// ES6
+f.name // &quot;f&quot;
+</code></pre><h1 id="箭头函数"><a href="#箭头函数" class="headerlink" title="箭头函数"></a>箭头函数</h1><h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><p>ES6 允许使用“箭头”（=&gt;）定义函数</p>
+<pre><code>(参数)=&gt;{代码行;
+        return 返回值;}
+</code></pre><ul>
+<li>省略 function 关键字</li>
+<li>如果参数个数=1，省略小括号</li>
+<li>如果函数体代码行=1，省略大括号和return</li>
+<li>参数支持变量解构</li>
+<li>如果箭头函数<strong>返回对象</strong>，必须在<strong>对象外面加上括号</strong>，否则会报错<ul>
+<li>因为 大括号被解释为代码块</li>
+</ul>
+</li>
+</ul>
+<p>实例</p>
+<pre><code>var sum = (num1, num2) =&gt; { return num1 + num2; }
+
+var f = v =&gt; v;
+// 等同于
+var f = function (v) {
+  return v;
+};
+
+var f = () =&gt; 5;
+// 等同于
+var f = function () { return 5 };
+
+var sum = (num1, num2) =&gt; num1 + num2;
+// 等同于
+var sum = function(num1, num2) {
+  return num1 + num2;
+};
+
+const full = ({ first, last }) =&gt; first + &apos; &apos; + last;
+// 等同于
+function full(person) {
+  return person.first + &apos; &apos; + person.last;
+}
+
+//返回对象，在对象外面加上括号
+let getTempItem = id =&gt; ({ id: id, name: &quot;Temp&quot; });
+
+let foo = () =&gt; { a: 1 };
+foo() // undefined
+始意图是返回一个对象{ a: 1 }，但是由于引擎认为大括号是代码块，所以执行了一行语句a: 1。这时，a被解释为语句的标签，因此实际执行的语句是1;，然后函数就结束了，没有返回值
+</code></pre><p>实例：rest 参数与箭头函数结合</p>
+<pre><code>const numbers = (...nums) =&gt; nums;
+numbers(1, 2, 3, 4, 5)
+// [1,2,3,4,5]
+
+const headAndTail = (head, ...tail) =&gt; [head, tail];
+headAndTail(1, 2, 3, 4, 5)
+// [1,[2,3,4,5]]
+</code></pre><h2 id="注意点"><a href="#注意点" class="headerlink" title="注意点"></a>注意点</h2><ul>
+<li>函数体内的<strong>this对象指向不可变</strong><ul>
+<li>就是<strong>定义时所在的对象</strong>，而不是使用时所在的对象。<ul>
+<li>箭头函数根本没有自己的this，导致内部的this就是外层代码块的this。正是因为它没有this，所以也就不能用作构造函数</li>
+<li>箭头函数可以绑定this对象，大大减少了显式绑定this对象的写法（call、apply、bind）</li>
+</ul>
+</li>
+<li>有<strong>利于封装回调函数</strong></li>
+</ul>
+</li>
+<li>不可以当作构造函数<ul>
+<li>不可以使用new命令，否则会抛出一个错误。</li>
+</ul>
+</li>
+<li>不可以使用arguments对象<ul>
+<li>该对象在函数体内不存在。如果要用，可以用 rest 参数代替。</li>
+</ul>
+</li>
+<li>不可以使用yield命令，因此箭头函数不能用作 Generator 函数。</li>
+</ul>
+<p>箭头函数转成 ES5 的代码如下，转换后的 ES5 版本清楚地说明了，箭头函数里面根本没有自己的this，而是引用外层的this</p>
+<pre><code>// ES6
+function foo() {
+  setTimeout(() =&gt; {
+    console.log(&apos;id:&apos;, this.id);
+  }, 100);
+}
+
+// ES5
+function foo() {
+  var _this = this;
+  setTimeout(function () {
+    console.log(&apos;id:&apos;, _this.id);
+  }, 100);
+}
+</code></pre><h2 id="箭头函数嵌套"><a href="#箭头函数嵌套" class="headerlink" title="箭头函数嵌套"></a>箭头函数嵌套</h2><h1 id="函数绑定”（function-bind）运算符"><a href="#函数绑定”（function-bind）运算符" class="headerlink" title="函数绑定”（function bind）运算符"></a>函数绑定”（function bind）运算符</h1><p>将对象绑定到函数上面</p>
+<ul>
+<li>两个冒号（::） <code>对象::函数</code><ul>
+<li>对象为空，将方法绑定在该对象上</li>
+<li>运算结果为对象，可以采用链式写法</li>
+</ul>
+</li>
+<li>用来取代call、apply、bind调用</li>
+</ul>
+<p>实例：</p>
+<pre><code>foo::bar;
+// 等同于
+bar.bind(foo);
+
+let log = ::console.log;
+// 等同于
+var log = console.log.bind(console);
+
+import { map, takeWhile, forEach } from &quot;iterlib&quot;;
+getPlayers()
+::map(x =&gt; x.character())
+::takeWhile(x =&gt; x.strength &gt; 100)
+::forEach(x =&gt; console.log(x));
+</code></pre><h1 id="尾调用优化"><a href="#尾调用优化" class="headerlink" title="尾调用优化"></a>尾调用优化</h1><h2 id="尾调用-Tail-Call"><a href="#尾调用-Tail-Call" class="headerlink" title="尾调用(Tail Call)"></a>尾调用(Tail Call)</h2><ul>
+<li>函数式编程的一个重要概念，</li>
+<li>某个函数的最后一步是调用另一个函数</li>
+</ul>
+<p>实例：</p>
+<pre><code>//尾调用
+function f(x){
+  return g(x);
+}
+
+//函数m和n都属于尾调用
+function f(x) {
+  if (x &gt; 0) {
+    return m(x)
+  }
+  return n(x);
+}
+
+
+//非尾调用。调用函数g之后，还有赋值操作
+function f(x){
+  let y = g(x);
+  return y;
+}
+
+//非尾调用。调用函数g之后，还有加法操作
+function f(x){
+  return g(x) + 1;
+}
+
+//非尾调用。调用函数g之后，还有return undefined;
+function f(x){
+  g(x);
+}
+</code></pre><h2 id="调用帧和调用栈"><a href="#调用帧和调用栈" class="headerlink" title="调用帧和调用栈"></a>调用帧和调用栈</h2><p>函数调用会在内存形成一个“调用记录”，又称“<strong>调用帧</strong>”（call frame），保存调用位置和内部变量等信息。</p>
+<p>所有的调用帧，就形成一个“<strong>调用栈</strong>”（call stack）</p>
+<h2 id="尾调用优化-Tail-call-optimization"><a href="#尾调用优化-Tail-call-optimization" class="headerlink" title="尾调用优化(Tail call optimization)"></a>尾调用优化(Tail call optimization)</h2><p><strong>直接用内层函数的调用帧，取代外层函数的调用帧。这将大大节省内存</strong></p>
+<ul>
+<li>只在严格模式下有效<ul>
+<li>正常模式下，函数内部有两个变量，可以跟踪函数的调用栈<ul>
+<li>func.arguments：返回调用时函数的参数。</li>
+<li>func.caller：返回调用当前函数的那个函数。</li>
+</ul>
+</li>
+<li>尾调用优化发生时，函数的调用栈会改写，因此上面两个变量就会失真。</li>
+<li>严格模式禁用这两个变量</li>
+</ul>
+</li>
+</ul>
+<p>因为尾调用是函数的最后一步操作，<strong>一般</strong>调用位置、内部变量等信息都不会再用到了，不需要保留外层函数的调用帧。</p>
+<pre><code>function f() {
+  let m = 1;
+  let n = 2;
+  return g(m + n);
+}
+f();
+
+// 等同于
+function f() {
+  return g(3);
+}
+f();
+
+// 等同于
+g(3);
+
+不需要保存内部变量m和n的值、g的调用位置等信息，所以执行到最后一步，完全可以删除f(x)的调用帧，只保留g(3)的调用帧
+</code></pre><p>实例：无法进行“尾调用优化”</p>
+<p>内层函数inner用到了外层函数addOne的内部变量one</p>
+<pre><code>function addOne(a){
+  var one = 1;
+  function inner(b){
+    return b + one;
+  }
+  return inner(a);
+}
+</code></pre><h2 id="尾递归"><a href="#尾递归" class="headerlink" title="尾递归"></a>尾递归</h2><p>函数调用自身，称为递归。如果<strong>尾调用自身</strong>，就称为尾递归。</p>
+<p>递归非常耗费内存，因为需要同时保存成千上百个调用帧，很容易发生“栈溢出”错误（stack overflow）。但对于尾递归来说，由于只存在一个调用帧，所以永远不会发生“栈溢出”错误</p>
+<h3 id="递归函数的改写"><a href="#递归函数的改写" class="headerlink" title="递归函数的改写"></a>递归函数的改写</h3><p>尾递归的实现，往往需要改写递归函数，确保最后一步只调用自身。</p>
+<p>做到这一点的方法，就是把<strong>所有用到的内部变量改写成函数的参数</strong>。</p>
+<p><strong>缺点：不太直观</strong></p>
+<p>实例：n的阶乘</p>
+<p>阶乘函数 factorial 需要用到一个中间变量total，那就把这个中间变量改写成函数的参数。</p>
+<p>这样做的缺点就是不太直观，第一眼很难看出来，为什么计算5的阶乘，需要传入两个参数5和1？</p>
+<pre><code>//最多需要保存n个调用记录，复杂度 O(n) 
+function factorial(n) {
+  if (n === 1) return 1;
+  return n * factorial(n - 1);
+}
+factorial(5) // 120
+
+//改写成尾递归，只保留一个调用记录，复杂度 O(1) 
+function factorial(n, total) {
+  if (n === 1) return total;
+  return factorial(n - 1, n * total);
+}
+factorial(5, 1) // 120
+</code></pre><p>实例：Fibonacci 数列</p>
+<pre><code>function Fibonacci (n) {
+  if ( n &lt;= 1 ) {return 1};
+  return Fibonacci(n - 1) + Fibonacci(n - 2);
+}
+Fibonacci(10) // 89
+Fibonacci(100) // 堆栈溢出
+Fibonacci(500) // 堆栈溢出
+
+//尾递归优化
+function Fibonacci2 (n , ac1 = 1 , ac2 = 1) {
+  if( n &lt;= 1 ) {return ac2};
+
+  return Fibonacci2 (n - 1, ac2, ac1 + ac2);
+}
+Fibonacci2(100) // 573147844013817200000
+Fibonacci2(1000) // 7.0330367711422765e+208
+Fibonacci2(10000) // Infinity
+</code></pre><h3 id="尾递归的优雅实现"><a href="#尾递归的优雅实现" class="headerlink" title="尾递归的优雅实现"></a>尾递归的优雅实现</h3><h4 id="柯里化-currying"><a href="#柯里化-currying" class="headerlink" title="柯里化(currying)"></a>柯里化(currying)</h4><p>尾递归函数之外，再提供一个正常形式的函数</p>
+<pre><code>function tailFactorial(n, total) {
+  if (n === 1) return total;
+  return tailFactorial(n - 1, n * total);
+}
+
+function factorial(n) {
+  return tailFactorial(n, 1);
+}
+
+factorial(5) // 120
+</code></pre><p>柯里化</p>
+<ul>
+<li>函数式编程的一个概念</li>
+<li>意将多参数的函数转换成单参数的形式。</li>
+</ul>
+<p>代码</p>
+<pre><code>function tailFactorial(n, total) {
+  if (n === 1) return total;
+  return tailFactorial(n - 1, n * total);
+}
+
+function currying(fn, n) {//fn柯里化的函数，n是柯里化的参数
+  return function (m) {
+    return fn.call(this, m, n);
+  };
+}
+
+const factorial = currying(tailFactorial, 1);
+
+factorial(5) // 120
+</code></pre><h4 id="采用ES6的函数默认值"><a href="#采用ES6的函数默认值" class="headerlink" title="采用ES6的函数默认值"></a>采用ES6的函数默认值</h4><pre><code>function factorial(n, total = 1) {
+  if (n === 1) return total;
+  return factorial(n - 1, n * total);
+}
+factorial(5) // 120
+</code></pre><h3 id="自己实现尾递归优化"><a href="#自己实现尾递归优化" class="headerlink" title="自己实现尾递归优化"></a>自己实现尾递归优化</h3><h4 id="递归本质上是一种循环操作"><a href="#递归本质上是一种循环操作" class="headerlink" title="递归本质上是一种循环操作"></a>递归本质上是一种循环操作</h4><p><strong>纯粹的函数式编程语言没有循环操作命令</strong>，所有的循环都用递归实现，这就是为什么尾递归对这些语言极其重要。</p>
+<p>对于其他支持“尾调用优化”的语言（比如 Lua，ES6），只需要知道循环可以用递归代替，而一旦使用递归，就最好使用尾递归。</p>
+<h4 id="实现尾递归优化"><a href="#实现尾递归优化" class="headerlink" title="实现尾递归优化"></a>实现尾递归优化</h4><p>尾递归优化只在严格模式下生效，那么正常模式下，可以自己实现尾递归优化</p>
+<p>原理：尾递归之所以需要优化，原因是调用栈太多，造成溢出，那么只要减少调用栈，就不会溢出。怎么做可以减少调用栈呢？就是采用“循环”换掉“递归”。</p>
+<h1 id="函数参数的尾逗号"><a href="#函数参数的尾逗号" class="headerlink" title="函数参数的尾逗号"></a>函数参数的尾逗号</h1><p>ES2017 允许<strong>函数定义和调用最后一个参数有尾逗号</strong>(trailing comma)。因此，函数参数与数组和对象的尾逗号规则，保持一致了。</p>
+<pre><code>function clownsEverywhere(
+  param1,
+  param2,
+) { /* ... */ }
+
+clownsEverywhere(
+  &apos;foo&apos;,
+  &apos;bar&apos;,
+);
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/30/JS/ES6-变量的解构赋值/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/30/JS/ES6-变量的解构赋值/" itemprop="url">ES6-变量的解构赋值</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-30T17:41:20+08:00">
+                2018-07-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>按照一定模式，从<strong>数组和对象</strong>中提取值，对变量进行赋值，这被称为<strong>解构(Destructuring)</strong></p>
+<p>等号右边的值不是对象或数组，就先将其转为对象。</p>
+<h1 id="数组的解构赋值"><a href="#数组的解构赋值" class="headerlink" title="数组的解构赋值"></a>数组的解构赋值</h1><p><strong>数据结构具有 Iterator 接口，都可以采用数组形式的解构赋值</strong></p>
+<p><strong>数组的元素是按次序排列的，变量的取值由它的位置决定；</strong></p>
+<p>Set 结构，也可以使用数组的解构赋值</p>
+<pre><code>let [x, y, z] = new Set([&apos;a&apos;, &apos;b&apos;, &apos;c&apos;]);
+x // &quot;a&quot;
+</code></pre><p>Generator 函数原生具有 Iterator 接口</p>
+<pre><code>function* fibs() {
+  let a = 0;
+  let b = 1;
+  while (true) {
+    yield a;
+    [a, b] = [b, a + b];
+  }
+}
+
+let [first, second, third, fourth, fifth, sixth] = fibs();
+sixth // 5
+</code></pre><p>数组解构</p>
+<pre><code>let [a, b, c] = [1, 2, 3];
+</code></pre><p>嵌套</p>
+<pre><code>let [foo, [[bar], baz]] = [1, [[2], 3]];
+foo // 1
+bar // 2
+baz // 3
+
+let [ , , third] = [&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;];
+third // &quot;baz&quot;
+
+let [x, , y] = [1, 2, 3];
+x // 1
+y // 3
+
+let [head, ...tail] = [1, 2, 3, 4];
+head // 1
+tail // [2, 3, 4]
+
+let [x, y, ...z] = [&apos;a&apos;];
+x // &quot;a&quot;
+y // undefined
+z // []
+</code></pre><h2 id="不完全解构"><a href="#不完全解构" class="headerlink" title="不完全解构"></a>不完全解构</h2><pre><code>let [x, y] = [1, 2, 3];
+x // 1
+y // 2
+
+let [a, [b], d] = [1, [2, 3], 4];
+a // 1
+b // 2
+d // 4
+</code></pre><h2 id="解构不成功，变量的值就等于undefined。"><a href="#解构不成功，变量的值就等于undefined。" class="headerlink" title="解构不成功，变量的值就等于undefined。"></a>解构不成功，变量的值就等于undefined。</h2><pre><code>let [foo] = [];
+let [bar, foo] = [1];
+
+以上两种情况都属于解构不成功，foo的值都会等于undefined。
+</code></pre><h2 id="等号的右边不是可遍历的结构，将会报错。"><a href="#等号的右边不是可遍历的结构，将会报错。" class="headerlink" title="等号的右边不是可遍历的结构，将会报错。"></a>等号的右边不是可遍历的结构，将会报错。</h2><pre><code>// 报错
+let [foo] = 1;
+let [foo] = false;
+let [foo] = NaN;
+let [foo] = undefined;
+let [foo] = null;
+let [foo] = {};
+</code></pre><h2 id="默认值"><a href="#默认值" class="headerlink" title="默认值"></a>默认值</h2><p><strong>解构赋值允许指定默认值</strong></p>
+<p>ES6 内部使用严格相等运算符（===），判断一个位置是否有值。所以，只有当一个数组成员<strong>严格等于undefined，默认值才会生效</strong>。</p>
+<pre><code>let [foo = true] = [];
+foo // true
+
+let [x, y = &apos;b&apos;] = [&apos;a&apos;]; // x=&apos;a&apos;, y=&apos;b&apos;
+
+let [x = 1] = [undefined];
+x // 1
+
+let [x = 1] = [null];
+x // null
+</code></pre><p>如果默认值是一个表达式，那么这个<strong>表达式是惰性求值的</strong>，即只有在用到的时候，才会求值。</p>
+<pre><code>function f() {
+  console.log(&apos;aaa&apos;);
+}
+
+let [x = f()] = [1];
+
+x能取到值，所以函数f根本不会执行
+</code></pre><p>默认值可以引用解构赋值的其他变量，但该变量必须已经声明。</p>
+<pre><code>let [x = 1, y = x] = [];     // x=1; y=1
+let [x = 1, y = x] = [2];    // x=2; y=2
+let [x = 1, y = x] = [1, 2]; // x=1; y=2
+let [x = y, y = 1] = [];     // ReferenceError: y is not defined
+</code></pre><h1 id="对象的解构赋值"><a href="#对象的解构赋值" class="headerlink" title="对象的解构赋值"></a>对象的解构赋值</h1><p><strong>对象的属性没有次序，变量必须与属性同名，才能取到正确的值。</strong></p>
+<p>对象的解构赋值的<strong>内部机制</strong>，是先找到同名属性，然后再赋给对应的变量。真正被赋值的是后者</p>
+<p>完整形式：</p>
+<pre><code>let { foo: foo, bar: bar } = { foo: &quot;aaa&quot;, bar: &quot;bbb&quot; };
+foo // &quot;aaa&quot;
+bar // &quot;bbb&quot;
+
+let { foo: baz } = { foo: &quot;aaa&quot;, bar: &quot;bbb&quot; };
+baz // &quot;aaa&quot;
+foo // error: foo is not defined
+
+foo是匹配的模式，baz才是变量。真正被赋值的是变量baz，而不是模式foo。
+</code></pre><p>简写：</p>
+<pre><code>let { foo, bar } = { foo: &quot;aaa&quot;, bar: &quot;bbb&quot; };
+</code></pre><p>嵌套</p>
+<pre><code>let obj = {
+  p: [
+    &apos;Hello&apos;,
+    { y: &apos;World&apos; }
+  ]
+};
+
+let { p, p: [x, { y }] } = obj;
+x // &quot;Hello&quot;
+y // &quot;World&quot;
+p // [&quot;Hello&quot;, {y: &quot;World&quot;}]
+</code></pre><p>如果解构模式是嵌套的对象，而且子对象所在的父属性不存在，那么将会报错。</p>
+<pre><code>// 报错
+let {foo: {bar}} = {baz: &apos;baz&apos;};
+解构 foo属性对应的子对象的bar属性，报错。原因很简单，因为foo这时等于undefined，再取子属性就会报错
+</code></pre><p>将一个<strong>已经声明的变量用于解构赋值</strong>，必须非常小心。<strong>避免 JavaScript 将其解释为代码块</strong></p>
+<pre><code>let x;
+{x} = {x: 1};// SyntaxError: syntax error
+
+let x;
+({x} = {x: 1});//不将大括号写在行首
+</code></pre><h2 id="很方便地将现有对象的方法，赋值到某个变量"><a href="#很方便地将现有对象的方法，赋值到某个变量" class="headerlink" title="很方便地将现有对象的方法，赋值到某个变量"></a>很方便地将现有对象的方法，赋值到某个变量</h2><pre><code>let { log, sin, cos } = Math;
+将Math对象的对数、正弦、余弦三个方法，赋值到对应的变量上，使用起来就会方便很多。
+</code></pre><h2 id="对数组进行对象属性的解构"><a href="#对数组进行对象属性的解构" class="headerlink" title="对数组进行对象属性的解构"></a>对数组进行对象属性的解构</h2><p><strong>数组本质是特殊的对象</strong></p>
+<pre><code>let arr = [1, 2, 3];
+let {0 : first, [arr.length - 1] : last} = arr;
+first // 1。 数组arr的0键对应的值是1
+last // 3。 2键，对应的值是3
+</code></pre><h1 id="字符串的解构赋值"><a href="#字符串的解构赋值" class="headerlink" title="字符串的解构赋值"></a>字符串的解构赋值</h1><p>字符串被转换成了一个类似数组的对象</p>
+<pre><code>const [a, b, c, d, e] = &apos;hello&apos;;
+a // &quot;h&quot;
+b // &quot;e&quot;
+c // &quot;l&quot;
+d // &quot;l&quot;
+e // &quot;o&quot;
+
+let {length : len} = &apos;hello&apos;;
+len // 5
+</code></pre><h1 id="数值和布尔值的解构赋值"><a href="#数值和布尔值的解构赋值" class="headerlink" title="数值和布尔值的解构赋值"></a>数值和布尔值的解构赋值</h1><p>数值和布尔值，会先转为对象</p>
+<pre><code>let {toString: s} = 123;
+s === Number.prototype.toString // true
+
+let {toString: s} = true;
+s === Boolean.prototype.toString // true
+</code></pre><h1 id="undefined和null的解构赋值"><a href="#undefined和null的解构赋值" class="headerlink" title="undefined和null的解构赋值"></a>undefined和null的解构赋值</h1><p>undefined和null<strong>无法转为对象</strong>，所以对它们进行解构赋值，都会<strong>报错</strong></p>
+<pre><code>let { prop: x } = undefined; // TypeError
+let { prop: y } = null; // TypeError
+</code></pre><h1 id="函数参数的解构赋值"><a href="#函数参数的解构赋值" class="headerlink" title="函数参数的解构赋值"></a>函数参数的解构赋值</h1><pre><code>function add([x, y]){
+  return x + y;
+}
+
+add([1, 2]); // 3
+
+传入参数的那一刻，数组参数就被解构成变量x和y。对于函数内部的代码来说，它们能感受到的参数就是x和y
+</code></pre><p>示例</p>
+<pre><code>[[1, 2], [3, 4]].map(([a, b]) =&gt; a + b);
+// [ 3, 7 ]
+</code></pre><p>函数参数的解构也可以使用默认值</p>
+<pre><code>//为变量x和y指定默认值
+function move({x = 0, y = 0} = {}) {
+  return [x, y];
+}
+
+move({x: 3, y: 8}); // [3, 8]
+move({x: 3}); // [3, 0]
+move({}); // [0, 0]
+move(); // [0, 0]
+
+//为函数move的参数指定默认值
+function move({x, y} = { x: 0, y: 0 }) {
+  return [x, y];
+}
+
+move({x: 3, y: 8}); // [3, 8]
+move({x: 3}); // [3, undefined]
+move({}); // [undefined, undefined]
+move(); // [0, 0]
+</code></pre><h1 id="圆括号问题"><a href="#圆括号问题" class="headerlink" title="圆括号问题"></a>圆括号问题</h1><p>解构赋值虽然很方便，但是解析起来并不容易。对于编译器来说，一个式子到底是<strong>模式，还是表达式</strong>，没有办法从一开始就知道，必须解析到（或解析不到）等号才能知道。</p>
+<p>由此带来的问题是，如果模式中出现圆括号怎么处理。ES6 的规则是，只要有<strong>可能导致解构的歧义，就不得使用圆括号</strong>。</p>
+<p>但是，这条规则实际上不那么容易辨别，处理起来相当麻烦。因此，建议只要有可能，就不要在模式中放置圆括号。</p>
+<h2 id="不能使用圆括号的情况"><a href="#不能使用圆括号的情况" class="headerlink" title="不能使用圆括号的情况"></a>不能使用圆括号的情况</h2><h3 id="变量声明语句"><a href="#变量声明语句" class="headerlink" title="变量声明语句"></a>变量声明语句</h3><pre><code>let [(a)] = [1];
+</code></pre><h3 id="函数参数"><a href="#函数参数" class="headerlink" title="函数参数"></a>函数参数</h3><p>函数参数也属于变量声明</p>
+<pre><code>function f([(z)]) { return z; }
+</code></pre><h3 id="赋值语句的模式"><a href="#赋值语句的模式" class="headerlink" title="赋值语句的模式"></a>赋值语句的模式</h3><pre><code>([a]) = [5];
+</code></pre><h2 id="可以使用圆括号的情况"><a href="#可以使用圆括号的情况" class="headerlink" title="可以使用圆括号的情况"></a>可以使用圆括号的情况</h2><p><strong>赋值语句的非模式部分，可以使用圆括号</strong></p>
+<ul>
+<li>赋值语句，而不是声明语句</li>
+<li><p>非模式部分</p>
+<p>  [(b)] = [3]; // 正确。模式是取数组的第一个成员，跟圆括号无关<br>  ({ p: (d) } = {}); // 正确。模式是p，而不是d<br>  [(parseInt.prop)] = [3]; // 正确。模式是取数组的第一个成员，跟圆括号无关</p>
+</li>
+</ul>
+<h1 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h1><h2 id="交换变量的值"><a href="#交换变量的值" class="headerlink" title="交换变量的值"></a>交换变量的值</h2><p>交换变量x和y的值</p>
+<pre><code>let x = 1;
+let y = 2;
+
+[x, y] = [y, x];
+</code></pre><h2 id="从函数返回多个值"><a href="#从函数返回多个值" class="headerlink" title="从函数返回多个值"></a>从函数返回多个值</h2><p>函数只能返回一个值，如果要返回多个值，只能将它们放在数组或对象里返回。有了解构赋值，取出这些值就非常方便。</p>
+<pre><code>// 返回一个数组
+function example() {
+  return [1, 2, 3];
+}
+let [a, b, c] = example();
+
+// 返回一个对象
+function example() {
+  return {
+    foo: 1,
+    bar: 2
+  };
+}
+let { foo, bar } = example();
+</code></pre><h2 id="函数参数的定义"><a href="#函数参数的定义" class="headerlink" title="函数参数的定义"></a>函数参数的定义</h2><p>方便地将一组参数与变量名对应起来</p>
+<pre><code>// 参数是一组有次序的值
+function f([x, y, z]) { ... }
+f([1, 2, 3]);
+
+// 参数是一组无次序的值
+function f({x, y, z}) { ... }
+f({z: 3, y: 2, x: 1});
+</code></pre><h2 id="函数参数的默认值"><a href="#函数参数的默认值" class="headerlink" title="函数参数的默认值"></a>函数参数的默认值</h2><h2 id="提取-JSON-数据"><a href="#提取-JSON-数据" class="headerlink" title="提取 JSON 数据"></a>提取 JSON 数据</h2><pre><code>let jsonData = {
+  id: 42,
+  status: &quot;OK&quot;,
+  data: [867, 5309]
+};
+
+let { id, status, data: number } = jsonData;
+
+console.log(id, status, number);
+// 42, &quot;OK&quot;, [867, 5309]
+</code></pre><h2 id="遍历-Map-结构"><a href="#遍历-Map-结构" class="headerlink" title="遍历 Map 结构"></a>遍历 Map 结构</h2><p>任何部署了 Iterator 接口的对象，都可以用for…of循环遍历</p>
+<p>Map 结构原生支持 Iterator 接口，配合变量的解构赋值，获取键名和键值就非常方便。</p>
+<pre><code>const map = new Map();
+map.set(&apos;first&apos;, &apos;hello&apos;);
+map.set(&apos;second&apos;, &apos;world&apos;);
+
+for (let [key, value] of map) {
+  console.log(key + &quot; is &quot; + value);
+}
+// first is hello
+// second is world
+
+// 获取键名
+for (let [key] of map) {
+  // ...
+}
+
+// 获取键值
+for (let [,value] of map) {
+  // ...
+}
+</code></pre><h2 id="输入模块的指定方法"><a href="#输入模块的指定方法" class="headerlink" title="输入模块的指定方法"></a>输入模块的指定方法</h2><p>const { SourceMapConsumer, SourceNode } = require(“source-map”);</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/30/JS/ES6-let和const 命令/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/30/JS/ES6-let和const 命令/" itemprop="url">ES6-let和const 命令</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-30T16:41:20+08:00">
+                2018-07-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>参考 <a href="http://es6.ruanyifeng.com/" target="_blank" rel="noopener">ECMAScript 6 入门</a></p>
+<h1 id="let"><a href="#let" class="headerlink" title="let"></a>let</h1><h2 id="所声明的变量，只在let命令所在的代码块内有效"><a href="#所声明的变量，只在let命令所在的代码块内有效" class="headerlink" title="所声明的变量，只在let命令所在的代码块内有效"></a>所声明的变量，只在let命令所在的代码块内有效</h2><pre><code>for (let i = 0; i &lt; 3; i++) {
+  let i = &apos;abc&apos;;
+  console.log(i);//输出了 3 次abc
+}
+</code></pre><p>for循环有一个特别之处，就是设置循环变量的那部分是一个父作用域，而循环体内部是一个单独的子作用域</p>
+<h2 id="不存在变量提升"><a href="#不存在变量提升" class="headerlink" title="不存在变量提升"></a>不存在变量提升</h2><p>变量一定要在声明后使用，否则报错。</p>
+<h2 id="暂时性死区"><a href="#暂时性死区" class="headerlink" title="暂时性死区"></a>暂时性死区</h2><p>temporal dead zone，简称 TDZ</p>
+<p>块级作用域内存在let命令，它所声明的变量就“绑定”（binding）这个区域，不再受外部的影响</p>
+<pre><code>var tmp = 123;
+
+if (true) {
+  // TDZ开始
+  tmp = &apos;abc&apos;; // ReferenceError
+  let tmp;//// TDZ结束
+}
+</code></pre><p>有些“死区”比较隐蔽，不太容易发现。</p>
+<pre><code>function bar(x = y, y = 2) {
+  return [x, y];
+}
+
+bar(); // 报错(某些实现可能不报错)。参数x默认值等于另一个参数y，而此时y还没有声明，属于”死区“。
+</code></pre><h2 id="不允许重复声明"><a href="#不允许重复声明" class="headerlink" title="不允许重复声明"></a>不允许重复声明</h2><pre><code>// 报错
+function func() {
+  let a = 10;
+  var a = 1;
+}
+
+// 报错
+function func() {
+  let a = 10;
+  let a = 1;
+}
+
+function func(arg) {
+  let arg; // 报错
+}
+
+function func(arg) {
+  {
+    let arg; // 不报错
+  }
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/27/JS/JS教程/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2411,1095 +4301,6 @@ render() {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/26/RN/RN工程结构/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/26/RN/RN工程结构/" itemprop="url">RN工程结构</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-26T15:35:14+08:00">
-                2018-07-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <ul>
-<li>android/: <ul>
-<li>Android 原生代码目录，主要用于原生库、原生View的编写桥接、以及 ReactNative 第三方库的 link。</li>
-</ul>
-</li>
-<li>ios/: <ul>
-<li>iOS 原生代码目录，主要用于原生库、原生View的编写桥接、以及 ReactNative 第三方库的 link。</li>
-</ul>
-</li>
-<li>index.js: <ul>
-<li>RN项目的<strong>入口</strong>文件。</li>
-</ul>
-</li>
-<li>package.json: <ul>
-<li>npm 的包管理文件</li>
-<li>功能类似 Android 的 gradle，iOS 的 cocoaPods。</li>
-<li>说明了RN项目的名称，版本号，依赖等</li>
-<li>NodeJS相关的目录</li>
-</ul>
-</li>
-<li>node_modules/: <ul>
-<li>npm install 命令node解析package.json <strong>下载生成</strong>的相关依赖</li>
-<li>NodeJS相关的目录</li>
-</ul>
-</li>
-</ul>
-<p>如果搭建了 typescript 开发环境：</p>
-<ul>
-<li>tsconfig.json: <ul>
-<li>typescript 环境配置文件。</li>
-</ul>
-</li>
-<li>src/: <ul>
-<li>typescript 搭建环境时新建目录，用于存放编写的 ts 代码。</li>
-</ul>
-</li>
-<li>lib/: <ul>
-<li>执行 tsc 脚本后，根据已有 ts 代码，编译成的 js 代码目录，也是代码运行时的目录，即运行时代码都指向 lib 文件夹。</li>
-</ul>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/25/RN/现有Android项目集成RN/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/25/RN/现有Android项目集成RN/" itemprop="url">现有Android项目集成RN</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-25T15:23:51+08:00">
-                2018-07-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>首先阅读官方文档 <a href="https://reactnative.cn/docs/0.51/integration-with-existing-apps.html#content" target="_blank" rel="noopener">集成到现有原生应用</a></p>
-<h1 id="关于"><a href="#关于" class="headerlink" title="关于"></a>关于</h1><h2 id="加载RN资源包"><a href="#加载RN资源包" class="headerlink" title="加载RN资源包"></a>加载RN资源包</h2><p>正常运行模式，优先加载 <code>assets/index.android.bundle</code>，加载失败加载 <code>packager</code>服务器的bundle到 <code>assets</code></p>
-<p>Live Reload 和 Debug JS模式下，每次都是加载  <code>packager</code>服务器的bundle到 <code>assets</code></p>
-<h2 id="编译并运行RN应用到两种方法"><a href="#编译并运行RN应用到两种方法" class="headerlink" title="编译并运行RN应用到两种方法"></a>编译并运行RN应用到两种方法</h2><ul>
-<li>根目录 <code>react-native run-android</code></li>
-<li>根目录 <code>npm install</code> <code>yarn start</code> android目录 <code>./gradlew installDebug</code></li>
-</ul>
-<h2 id="调试小技巧"><a href="#调试小技巧" class="headerlink" title="调试小技巧"></a>调试小技巧</h2><p>APP和调试服务器并没有绑定。即任一APP都可以读取本地调试服务器的bundle</p>
-<p>如果某个工程无法运行调试，就可以直接开启 packager服务器，然后运行app，app会自动从packager服务器读取bundle，达到调试目的</p>
-<h2 id="连接不上本地调试服务器"><a href="#连接不上本地调试服务器" class="headerlink" title="连接不上本地调试服务器"></a>连接不上本地调试服务器</h2><p>表现：报红，而且终端也发现不走加载进度条。只有 <code>Loading dependency graph, done.</code> 正常情况下，显示done后，连接上手机，就会走加载进度条</p>
-<p>adb devices 确定已经连接上adb</p>
-<pre><code>adb reverse tcp:8081 tcp:8081
-连接成功，Chrome自动打开http://localhost:8081/debugger-ui。状态如下
-    Status: Debugger session #0 active.
-</code></pre><h1 id="初始化指定RN版本"><a href="#初始化指定RN版本" class="headerlink" title="初始化指定RN版本"></a>初始化指定RN版本</h1><p>历史原因。之前RN开发由IOS端同学负责，用的是 0.48.4</p>
-<pre><code>react-native init rns --version 0.48.4
-</code></pre><h1 id="自定义js文件名和文件路径"><a href="#自定义js文件名和文件路径" class="headerlink" title="自定义js文件名和文件路径"></a>自定义js文件名和文件路径</h1><p>实际开发几乎不会用官方文档中的 app.js，也不会直接就放根目录下</p>
-<p>历史原因。 js文件放在 ssz_rn_project\js\pages_live 文件夹。 js下还有 pages_student, pages_teacher等</p>
-<p><code>index.android.js</code></p>
-<pre><code>require(&apos;js/pages_teacher/index.teacher.js&apos;);
-require(&apos;js/pages_student/index.student.js&apos;);
-require(&apos;js/pages_parent/index.parent.js&apos;);
-require(&apos;js/pages_live/index.liveplay.js&apos;);
-</code></pre><p><code>index.liveplay.js</code></p>
-<pre><code>import { AppRegistry } from &apos;react-native&apos;;
-import LivePlayCourseDetail from &apos;./LivePlayCourseDetail/index&apos;;
-
-// 课程详情页
-AppRegistry.registerComponent(&apos;LiveCourseDetail&apos;, () =&gt; LivePlayCourseDetail);
-</code></pre><h1 id="运行有坑"><a href="#运行有坑" class="headerlink" title="运行有坑"></a>运行有坑</h1><h2 id="找不到AndroidManifest"><a href="#找不到AndroidManifest" class="headerlink" title="找不到AndroidManifest"></a>找不到AndroidManifest</h2><pre><code>ENOENT: no such file or directory, open &apos;D:\rn_project\android\app\src\main\AndroidManifest.xml&apos;
-</code></pre><h3 id="原因：RN默认的Android项目名称为app"><a href="#原因：RN默认的Android项目名称为app" class="headerlink" title="原因：RN默认的Android项目名称为app"></a>原因：RN默认的Android项目名称为app</h3><p>实际开发都会修改默认的moudle名称</p>
-<p>解决方案：指定module name</p>
-<p><code>node_modules\react-native\local-cli\runAndroid\runAndroid.js</code></p>
-<pre><code>module.exports = {
-  name: &apos;run-android&apos;,
-  description: &apos;builds your app and starts it on a connected Android emulator or device&apos;,
-  func: runAndroid,
-  options: [{
-    command: &apos;--install-debug&apos;,
-  }, {
-    command: &apos;--root [string]&apos;,
-    description: &apos;Override the root directory for the android build (which contains the android directory)&apos;,
-    default: &apos;&apos;,
-  }, {
-    command: &apos;--flavor [string]&apos;,
-    description: &apos;--flavor has been deprecated. Use --variant instead&apos;,
-  }, {
-    command: &apos;--variant [string]&apos;,
-  }, {
-    command: &apos;--appFolder [string]&apos;,
-    description: &apos;Specify a different application folder name for the android source.&apos;,
-    default: &apos;app&apos;,
-  }, {
-    command: &apos;--appIdSuffix [string]&apos;,
-    description: &apos;Specify an applicationIdSuffix to launch after build.&apos;,
-    default: &apos;&apos;,
-  }, {
-    command: &apos;--main-activity [string]&apos;,
-    description: &apos;Name of the activity to start&apos;,
-    default: &apos;MainActivity&apos;,
-  }, {
-    command: &apos;--deviceId [string]&apos;,
-    description: &apos;builds your app and starts it on a specific device/simulator with the &apos; +
-      &apos;given device id (listed by running &quot;adb devices&quot; on the command line).&apos;,
-  }, {
-    command: &apos;--no-packager&apos;,
-    description: &apos;Do not launch packager while building&apos;,
-  }],
-};
-</code></pre><h2 id="找不到Activity"><a href="#找不到Activity" class="headerlink" title="找不到Activity"></a>找不到Activity</h2><p><code>react-native run-android --appFolder course</code></p>
-<pre><code>Error: Activity class {com.shensz.course/com.shensz.course.MainActivity} does not exist.
-</code></pre><h3 id="原因1：Mainactivity不在清单文件里package的直接目录下"><a href="#原因1：Mainactivity不在清单文件里package的直接目录下" class="headerlink" title="原因1：Mainactivity不在清单文件里package的直接目录下"></a>原因1：Mainactivity不在清单文件里package的直接目录下</h3><p>解决方案：指定Activity路径</p>
-<p><code>react-native run-android --appFolder course --main-activity module.main.activity.MainActivity</code></p>
-<pre><code>Error: Activity class {com.shensz.course/com.shensz.course.module.main.activity.MainActivity} does not exist.
-</code></pre><h3 id="原因2：清单文件里-package-和build-gradle里的-applicationId-不一致。"><a href="#原因2：清单文件里-package-和build-gradle里的-applicationId-不一致。" class="headerlink" title="原因2：清单文件里 package 和build.gradle里的 applicationId 不一致。"></a>原因2：清单文件里 <code>package</code> 和build.gradle里的 <code>applicationId</code> 不一致。</h3><p>RN运行时直接读取清单文件 <code>package</code> 作为 <code>applicationId</code></p>
-<p>查看APP当前Activity可以确认正确 <code>applicationId</code></p>
-<pre><code>mFocusedActivity: ActivityRecord{72be82 u0 com.zy.course.dev/com.shensz.course.module.main.activity.MainActivity t1446}
-</code></pre><p>不一致是历史遗留问题，已经转让shensz所有权，所以需要改applicationId。新项目框架直接复用shensz，未修改包名</p>
-<pre><code>package=&quot;com.shensz.course&quot;
-
-defaultConfig {
-    applicationId &quot;com.zy.course&quot;
-</code></pre><p>解决方案：统一两者</p>
-<pre><code>修改package略麻烦，会引起R文件找不到(import com.shensz.course.R;报错)，需要改动工程结构重编译才行
-
-这里修改applicationId，反正也只是为了本地调试RN
-</code></pre><h3 id="原因3：build-gradle-指定了-applicationIdSuffix"><a href="#原因3：build-gradle-指定了-applicationIdSuffix" class="headerlink" title="原因3：build.gradle 指定了 applicationIdSuffix"></a>原因3：build.gradle 指定了 <code>applicationIdSuffix</code></h3><p>上面查看APP当前Activity确认正确 <code>applicationId</code> 发现 applicationId 有后缀</p>
-<pre><code>buildTypes {
-    debug {
-        multiDexEnabled true
-        minifyEnabled false
-        applicationIdSuffix &apos;.dev&apos;
-</code></pre><p>解决方案：指定 applicationId 后缀名</p>
-<p>指定后缀名时，后缀名最前面的 <code>.</code> 不需要写，RN会自动添加</p>
-<p><code>react-native run-android --appFolder course  --appIdSuffix dev --main-activity module.main.activity.MainActivity</code></p>
-<p>运行成功</p>
-<h2 id="其他错误"><a href="#其他错误" class="headerlink" title="其他错误"></a>其他错误</h2><p>运行成功，但在显示RN页面时报错(只能显示原生页面)</p>
-<pre><code>java.util.concurrent.ExecutionException:java.lang.RuntimeException:referenceError:can&apos;t find variable:_fbBatchedBridge
-
-或者
-
-Cannot find entry file index.android.js in any of the roots
-</code></pre><h3 id="原因1：没有连上开发服务器"><a href="#原因1：没有连上开发服务器" class="headerlink" title="原因1：没有连上开发服务器"></a>原因1：没有连上开发服务器</h3><p>解决方案：打开RN调试菜单，设置IP和端口，Reload JS</p>
-<h3 id="原因2：RN没有自动生成打包文件"><a href="#原因2：RN没有自动生成打包文件" class="headerlink" title="原因2：RN没有自动生成打包文件"></a>原因2：RN没有自动生成打包文件</h3><p>解决方案：手动打包，然后运行</p>
-<pre><code>React-native bundle --platform Android --dev false --entry-file index.android.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
-</code></pre><h1 id="调试有坑"><a href="#调试有坑" class="headerlink" title="调试有坑"></a>调试有坑</h1><h2 id="多个react-native-node-module"><a href="#多个react-native-node-module" class="headerlink" title="多个react-native node module"></a>多个react-native node module</h2><p>打开调试(使用开发服务器bundle)开关，红屏报错</p>
-<pre><code>Bundling `index.android.js`  [development, non-minified, hmr disabled]  25.0% (1/2), failed.
-error: bundling failed: ambiguous resolution: module `D:\AndroidProject\rns\ssz_rn_project\js\pages\index.js` tries to require `react-native`, but there are several files providing this module. You can delete or fix them:
-
-  * `D:\AndroidProject\rns\ssz_rn_project\android\node_modules\react-native\package.json`
-  * `D:\AndroidProject\rns\ssz_rn_project\node_modules\react-native\package.json`
-</code></pre><h3 id="尝试删除-android-node-modules"><a href="#尝试删除-android-node-modules" class="headerlink" title="尝试删除 android\node_modules"></a>尝试删除 android\node_modules</h3><p>android\node_modules 是原来Android项目就有的。</p>
-<p>尝试删除，重新运行。发现还是提示同样错误，判断是nmp 缓存原因。清除缓存，重启大法都无法解决缓存问题，最后重命名工程文件夹名字解决缓存问题</p>
-<p><strong>删除后会造成无法编译。</strong>报错无法找到 react-native</p>
-<pre><code>A problem occurred configuring project &apos;:react-native-svg&apos;.
-  &gt; Could not resolve all dependencies for configuration &apos;:react-native-svg:_debugCompile&apos;.
-     &gt; Could not find com.facebook.react:react-native:0.48.4.
-       Searched in the following locations:
-            https://dl.bintray.com/thelasterstar/maven/com/facebook/react/react-native/0.48.4/react-native-0.48.4.pom
-           https://dl.bintray.com/thelasterstar/maven/com/facebook/react/react-native/0.48.4/react-native-0.48.4.jar
-           https://jitpack.io/com/facebook/react/react-native/0.48.4/react-native-0.48.4.pom
-           https://jitpack.io/com/facebook/react/react-native/0.48.4/react-native-0.48.4.jar
-            file:/D:/AndroidProject/rns/ssz_rn_project/android/node_modules/react-native/android/com/facebook/react/react-native/0.48.4/react-native-0.48.4.pom
-           file:/D:/AndroidProject/rns/ssz_rn_project/android/node_modules/react-native/android/com/facebook/react/react-native/0.48.4/react-native-0.48.4.jar
-           file:/D:/AndroidProject/rns/ssz_rn_project/android/node_modules/react-native-svg/android/libs/react-native-0.48.4.jar
-</code></pre><p>查看工程根目录build.gradle</p>
-<pre><code>allprojects {
-    repositories {
-        maven { url &quot;https://dl.bintray.com/thelasterstar/maven/&quot; }
-        maven {
-            // 本地依赖。目录下所有lib都是通过npm安装的。All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-            url &quot;$rootDir/node_modules/react-native/android&quot;
-        }
-        flatDir {
-            dirs &apos;libs&apos;
-        }
-</code></pre><p><strong>修改工程根目录build.gradle</strong></p>
-<pre><code>url &quot;$rootDir/../node_modules/react-native/android&quot;
-</code></pre><p><strong>修改settings.gradle</strong></p>
-<pre><code>include &apos;:react-native-svg&apos;, &apos;:pay&apos;, &apos;:base&apos;, &apos;:common&apos;, &apos;:downloader&apos;, &apos;:camera&apos;, &apos;:cropper&apos;, &apos;:statistics&apos;, &apos;:imsdk&apos;, &apos;:ping&apos;, &apos;:location&apos;, &apos;:pdf-view&apos;, &apos;:react-native-ssz-pdf&apos;, &apos;:course&apos;, &apos;:kefu-easeui&apos;
-project(&apos;:react-native-svg&apos;).projectDir = new File(rootProject.projectDir, &apos;node_modules/react-native-svg/android&apos;)
-include &apos;:react-native-fs&apos;
-project(&apos;:react-native-fs&apos;).projectDir = new File(rootProject.projectDir, &apos;node_modules/react-native-fs/android&apos;)
-include &apos;:react-native-fetch-blob&apos;
-project(&apos;:react-native-fetch-blob&apos;).projectDir = new File(rootProject.projectDir, &apos;node_modules/react-native-fetch-blob/android&apos;)
-
-改后：
-
-include &apos;:react-native-svg&apos;, &apos;:pay&apos;, &apos;:base&apos;, &apos;:common&apos;, &apos;:downloader&apos;, &apos;:camera&apos;, &apos;:cropper&apos;, &apos;:statistics&apos;, &apos;:imsdk&apos;, &apos;:ping&apos;, &apos;:location&apos;, &apos;:pdf-view&apos;, &apos;:react-native-ssz-pdf&apos;, &apos;:course&apos;, &apos;:kefu-easeui&apos;
-project(&apos;:react-native-svg&apos;).projectDir = new File(&apos;../node_modules/react-native-svg/android&apos;)
-include &apos;:react-native-fs&apos;
-project(&apos;:react-native-fs&apos;).projectDir = new File(&apos;../node_modules/react-native-fs/android&apos;)
-include &apos;:react-native-fetch-blob&apos;
-project(&apos;:react-native-fetch-blob&apos;).projectDir = new File(&apos;../node_modules/react-native-fetch-blob/android&apos;)
-</code></pre><p>重新运行，调试成功</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/22/M1卡常用数据加密算法/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/22/M1卡常用数据加密算法/" itemprop="url">M1卡常用数据加密算法</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-22T14:39:23+08:00">
-                2018-07-22
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>M1卡数据都是<strong>16进制存储</strong></p>
-<p>M1卡数据加密算法一般比较简单。最常见有：逆序，异或和位移</p>
-<h1 id="案例：逆序异或"><a href="#案例：逆序异或" class="headerlink" title="案例：逆序异或"></a>案例：逆序异或</h1><img src="/2018/07/22/M1卡常用数据加密算法/1.png">
-<img src="/2018/07/22/M1卡常用数据加密算法/2.png">
-<h2 id="余额"><a href="#余额" class="headerlink" title="余额"></a>余额</h2><p>6931 逆序 3169 转10进制 12649。 余额是 126.49</p>
-<p>492e  余额是 118.49</p>
-<h2 id="校验位"><a href="#校验位" class="headerlink" title="校验位"></a>校验位</h2><p>6931 Xor 96ce = ffff</p>
-<p>492e Xor b6d1 = ffff</p>
-<p>所以，校验位 = 金额 Xor ffff</p>
-<h1 id="案例：异或"><a href="#案例：异或" class="headerlink" title="案例：异或"></a>案例：异或</h1><img src="/2018/07/22/M1卡常用数据加密算法/3.jpg">
-<p>分析：</p>
-<p>40.00元对应十六进制 0FA0 校验位EC，0F xor A0 xor EC = 43</p>
-<p>34.48元对应十六进制 0D78 校验位36，0D xor 78 xor 36 = 43</p>
-<p>结论：</p>
-<p>校验位：余额转化成十六进制后异或，再与0×43异或。</p>
-<h1 id="案例：代数"><a href="#案例：代数" class="headerlink" title="案例：代数"></a>案例：代数</h1><img src="/2018/07/22/M1卡常用数据加密算法/4.jpg">
-<p>分析：</p>
-<p>da21 逆序 21da 转10进制 8666。 余额是 86.66</p>
-<p>d221  余额是 86.58</p>
-<p>校验码计算方法：</p>
-<p>da 转10进制 218</p>
-<p>21 转10进制 33</p>
-<p>218+33=251</p>
-<p>0161 16转10 353</p>
-<p>251-353=-102</p>
-<p>这里的-102就是这里算法的代数，把-102带入第二组数据，看看结果是不是一样的</p>
-<p>d2 16转10 210</p>
-<p>21 16转10 33</p>
-<p>210+33=243</p>
-<p>243–102=345</p>
-<p>345换成十六进制得0159，恰好是第二组校验码</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/12/使用telnet理解NATS文本协议/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/12/使用telnet理解NATS文本协议/" itemprop="url">使用telnet理解NATS文本协议</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-12T17:13:24+08:00">
-                2018-07-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="连接"><a href="#连接" class="headerlink" title="连接"></a>连接</h1><pre><code># 连接消息系统所在的host:port
-telnet localhost 4222
-
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is &apos;^]&apos;.
-INFO {&quot;server_id&quot;:&quot;r9W3SWa4LURYr3Ngwh0cyj&quot;,&quot;version&quot;:&quot;1.1.1&quot;,&quot;git_commit&quot;:&quot;&quot;,&quot;go&quot;:&quot;go1.10.1&quot;,&quot;host&quot;:&quot;0.0.0.0&quot;,&quot;port&quot;:4222,&quot;auth_required&quot;:false,&quot;tls_required&quot;:false,&quot;tls_verify&quot;:false,&quot;max_payload&quot;:65536}
-</code></pre><p>可以看到服务端反馈了了一个INFO类型的信息，给出了server端的信息。</p>
-<h1 id="订阅"><a href="#订阅" class="headerlink" title="订阅"></a>订阅</h1><pre><code># 在另一个终端窗口连接消息系统
-telnet localhost 4222
-# 订阅一个消息，主题为foo，定义subject ID为1，sid要求是数字的唯一ID
-# 语法：SUB &lt;subject&gt; [queue group] &lt;sid&gt;\r\n
-SUB foo 1
-</code></pre><h1 id="发布"><a href="#发布" class="headerlink" title="发布"></a>发布</h1><pre><code># 回来第一个窗口
-# 发布一个消息，主题为foo，长度为11，内容为：Hello NATS!\
-# 语法：PUB &lt;subject&gt; [reply-to] &lt;#bytes&gt;\r\n[payload]\r\n
-PUB foo 11
-Hello NATS!
-</code></pre><p>可以看到订阅端收到了消息</p>
-<pre><code>MSG foo 1 11
-
-HELLO NATS!
-</code></pre><h1 id="取消订阅"><a href="#取消订阅" class="headerlink" title="取消订阅"></a>取消订阅</h1><pre><code># 语法：UNSUB &lt;sid&gt;
-UNSUB 1
-</code></pre><h1 id="PING和PONG"><a href="#PING和PONG" class="headerlink" title="PING和PONG"></a>PING和PONG</h1><p>server如果观察到死掉的client，会自动关闭，降低负载。为了确保client是在线状态，每隔一段时间会有一个PING信息，client需要应答PONG，如果应答不及时，连接会被close掉。</p>
-<pre><code># server发送PING
-PING
-# client应答PONG
-PONG
-</code></pre><h1 id="OK和ERROR"><a href="#OK和ERROR" class="headerlink" title="OK和ERROR"></a>OK和ERROR</h1><p>如果是发送成功，服务器端返回</p>
-<pre><code>+OK
-</code></pre><p>否则：返回ERROR，语法：-ERR <error message=""></error></p>
-<pre><code>-ERR &apos;Authorization Timeout&apos;
-</code></pre><p>可以看到文本协议都非常简单，更多协议直接在<a href="https://nats.io/documentation/internals/nats-protocol/" target="_blank" rel="noopener">NATS protocol</a>查阅。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/12/NATS消息系统/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/12/NATS消息系统/" itemprop="url">NATS消息系统</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-12T16:08:02+08:00">
-                2018-07-12
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="简单原理"><a href="#简单原理" class="headerlink" title="简单原理"></a>简单原理</h1><p>NATS的服务端监听了一个端口，并将此端口暴露在公网。所有客户端通过长连接连上这个IP的端口，可以相互实时传输消息，发布和订阅消息。</p>
-<h1 id="物理架构"><a href="#物理架构" class="headerlink" title="物理架构"></a>物理架构</h1><p>以下是发起连麦的一个例子，序号表示发生的顺序。</p>
-<p>注：</p>
-<ul>
-<li>req表示请求(有响应回执)</li>
-<li>sub表示订阅主题</li>
-<li>pub表示发布广播。req和pub的时候可以带上消息、一般是一串JSON文本。</li>
-<li>$classid.mic.request这种字符串是一个主题(频道)。</li>
-</ul>
-<img src="/2018/07/12/NATS消息系统/NATS.png">
-<h2 id="NATS集群起什么作用？"><a href="#NATS集群起什么作用？" class="headerlink" title="NATS集群起什么作用？"></a>NATS集群起什么作用？</h2><ol>
-<li>去单点，提高可用性，当单机挂掉的时候，备用机器补上；</li>
-<li>提高并发，单机并发只能到60000+，但多机器可以非常高；</li>
-</ol>
-<h2 id="为什么学生发起连麦是点对点req而不是发广播pub？"><a href="#为什么学生发起连麦是点对点req而不是发广播pub？" class="headerlink" title="为什么学生发起连麦是点对点req而不是发广播pub？"></a>为什么学生发起连麦是点对点req而不是发广播pub？</h2><p>假设网络畅通的前提下，两种做法对比：</p>
-<ol>
-<li>如果直接广播这个$classid.mic.request连麦请求，后台可能没有收到消息，或者后台收到之后处理消息发生异常，没有正确入队。造成<strong>状态不一致</strong>：其他学生会以为这个学生已经成功入队，事实上没有；</li>
-<li>如果是学生发起req请求，后台接收到消息之后，进行入队处理，成功会发送回执消息，并广播「成功入队」的消息给所有人，可以确保入队是已经执行成功的。这个状态有接收方(后台)的验证，是可信的；</li>
-</ol>
-<h2 id="设计原则"><a href="#设计原则" class="headerlink" title="设计原则"></a>设计原则</h2><ul>
-<li><p>传递信息量相同的情况下，消息越短越好。</p>
-<p>  所有JSON都需要uglify，不能排版，不能有多余的空格。有n个学生，则消息量会被放大n倍，这些消息都要吞噬掉服务器的CPU、内存、带宽。如果可能，应该用二进制协议而非文本协议，性能更高，带宽要求更小。</p>
-</li>
-<li><p>不影响正常功能的情况下，消息覆盖人数越少越好。</p>
-<p>  可用「奥卡姆剃刀」。那么提个问题，禁言消息怎么设计？</p>
-<ul>
-<li>是设计成每个人一个主题，老师点对点沟通？</li>
-<li>还是设计成大班中的每个人都接收到禁言消息？</li>
-<li>还是小班中每个人都接收到禁言消息？</li>
-</ul>
-</li>
-<li><p>协商定义好每个主题的触发条件、内容格式，形式(广播/点对点)。当新增角色模块，如管路员的时候，对照格式规范，对各自的逻辑进行编码即可。</p>
-</li>
-</ul>
-<h1 id="性能测试"><a href="#性能测试" class="headerlink" title="性能测试"></a>性能测试</h1><p>一般上课过程中，可能的publisher是老师、辅导老师、管理员。publisher不会很多，学生上线发的状态、心跳除外，因为订阅者也只有老师端和管理员。</p>
-<p>所以大部分情况下，频繁发布消息的人只有老师。</p>
-<pre><code># -s  nats地址
-# -np publisher数量
-# -ns subcriber数量
-# -n  总的消息数量，会按publisher数量平均分
-# -ms 消息的长度
-# foo.shit 发布订阅的主题
-# 性能测试不要开启日志，日志的IO会严重影响性能，直接下降2个数量级。
-# 配置文件的max_connections也非常重要，会直接限制连接数
-nats-bench -s nats://mobile:$passwd@localhost:4222 -np 1 -ns 1000 -n 10000 -ms 128 foo.shit
-</code></pre><p>注：</p>
-<ul>
-<li>由于公网的网络有上限，实际吞吐量会比较小。</li>
-<li>使用自带工具<a href="https://nats.io/documentation/tutorials/nats-benchmarking/" target="_blank" rel="noopener">nats-bench</a>测试。</li>
-<li>20000+并发后，报错：「Can’t connect: nats: no servers available for connection」，需要修改~/go/src/github.com/nats-io/go-nats/nats.go中的DefaultTimeout为30秒，参照本页性能优化小节。</li>
-</ul>
-<img src="/2018/07/12/NATS消息系统/1.png">
-<h1 id="各端使用方法"><a href="#各端使用方法" class="headerlink" title="各端使用方法"></a>各端使用方法</h1><h2 id="前端"><a href="#前端" class="headerlink" title="前端"></a>前端</h2><p>前端使用的客户端是<a href="https://github.com/isobit/websocket-nats" target="_blank" rel="noopener">websocket-nats</a>，后端把原来的TCP协议通过<a href="https://github.com/isobit/ws-tcp-relay" target="_blank" rel="noopener">ws-tcp-relay</a>转成了websocket协议。</p>
-<p>性能测试结果如下：</p>
-<img src="/2018/07/12/NATS消息系统/2.png">
-<h2 id="C"><a href="#C" class="headerlink" title="C++"></a>C++</h2><h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><p>java客户端是<a href="https://github.com/nats-io/java-nats" target="_blank" rel="noopener">java-nats</a></p>
-<h3 id="Android"><a href="#Android" class="headerlink" title="Android"></a>Android</h3><p>Gradle/Grails</p>
-<pre><code>compile &apos;io.nats:jnats:1.0&apos;
-</code></pre><h3 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h3><h4 id="重复收到消息"><a href="#重复收到消息" class="headerlink" title="重复收到消息"></a>重复收到消息</h4><p>原因是重复subscribe(String subject)</p>
-<p>每次subscribe都会生成一个AsyncSubscriptionImpl并添加到队列中接受消息</p>
-<p>所以要特别注意动态订阅的主题重复订阅问题</p>
-<pre><code>SubscriptionImpl subscribe(String subject, String queue, MessageHandler cb,
-                           BlockingQueue&lt;Message&gt; ch) {
-    final SubscriptionImpl sub;
-    try {
-        if (cb != null) {
-            sub = new AsyncSubscriptionImpl(this, subject, queue, cb);
-            // If we have an async callback, start up a sub specific Runnable to deliver the messages
-            logger.debug(&quot;Starting subscription for subject &apos;{}&apos;&quot;, subject);
-            subexec.submit(new Runnable() {
-                public void run() {
-                    try {
-                        waitForMsgs((AsyncSubscriptionImpl) sub);
-                    } catch (InterruptedException e) {
-                        logger.debug(&quot;Interrupted in waitForMsgs&quot;);
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            });
-        } 
-
-        // Sets sid and adds to subs map
-        addSubscription(sub);
-        ...
-    } finally {
-        mu.unlock();
-    }
-}
-</code></pre><h4 id="重复收到自己reply-to-request的消息"><a href="#重复收到自己reply-to-request的消息" class="headerlink" title="重复收到自己reply to request的消息"></a>重复收到自己reply to request的消息</h4><p>如果所有subscribe使用了同一个MessageHandler，就会出现这种情况。因为我们request和publish的主题相同，我们发送reply的publish，自己也会收到，然后又reply自己…反复循环</p>
-<pre><code>if (&quot;help&quot;.equals(msg.getSubject())) {
-    NATSManager.getInstance().getNATSService().reply(msg.getSubject(), msg.getReplyTo(), &quot;I can help!&quot;.getBytes(), new NATSService.CallBack() {
-        @Override
-        public void onError(Exception e) {
-            e.printStackTrace();
-        }
-    });
-}
-</code></pre><h1 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h1><h2 id="slow-consumer"><a href="#slow-consumer" class="headerlink" title="slow consumer"></a>slow consumer</h2><h1 id="安装-搭建-启动"><a href="#安装-搭建-启动" class="headerlink" title="安装/搭建/启动"></a>安装/搭建/启动</h1><p>这节和以后的内容，仅后端同学关注即可。</p>
-<h2 id="安装Go语言环境与nast服务端"><a href="#安装Go语言环境与nast服务端" class="headerlink" title="安装Go语言环境与nast服务端"></a>安装Go语言环境与nast服务端</h2><p>Go 语言虽然是静态编译型语言，但是它却拥有脚本化的语法，支持多种编程范式(函数式和面向对象)。</p>
-<p>去<a href="https://golang.org/" target="_blank" rel="noopener">Go官网</a>下载Linux的安装包，按照<a href="https://golang.org/doc/install" target="_blank" rel="noopener">安装文档</a>安装，注意GOROOT和PATH环境变量的配置。</p>
-<p>安装并验证hello程序之后，安装nast服务端：</p>
-<pre><code># 执行命令后，我的go workspace是默认的$HOME/go，所以会安装在go workspace目录内
-go get github.com/nats-io/gnatsd
-# 在PATH环境变量中加入$HOME/go/bin并source，执行以下命令，验证安装成功
-gnatsd version
-
-# 安装nats-top，跟top类似的监控工具
-go get github.com/nats-io/nats-top
-# 测试是否安装成功
-nats-top
-
-# 安装go client，用来测试
-go get github.com/nats-io/go-nats
-</code></pre><h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p>为了便于多人维护和守护执行，建议用配置文件配置而非用启动参数，故障时便于他人重启。</p>
-<pre><code># nast.conf
-
-# 监听端口
-port: 4222
-net: &quot;0.0.0.0&quot;
-
-# 监控服务
-http_port: 8222
-
-# 对客户端鉴权，timeout为验证限时
-authorization {
-  user:     mobile
-  password: samplepassword
-  timeout:  3
-}
-
-# 日志, trace为打印所有的原始消息
-debug: false
-trace: true
-logtime: true
-log_file: &quot;/home/zhonggy/nats/logs/gnatsd.log&quot;
-
-
-# PID文件
-pid_file: &quot;/home/zhonggy/nats/gnatsd.pid&quot;
-
-# 最大连接数，很重要，否则很容易不够用
-max_connections: 1000000
-
-# 控制命令最大长度
-max_control_line: 512
-
-# 消息最大长度
-max_payload: 65536
-
-# socket往客户端写的时间，超过deadline时间会标记为slow consumer
-# 会丢弃消息并断开slow consumer，以避免高负载导致整个系统异常
-# 客户端会收到异常，慢消息异常应该由客户端去处理而非服务器来hold
-# 参考: https://nats.io/documentation/server/gnatsd-slow-consumers/
-write_deadline: &quot;3s&quot;
-</code></pre><p>建立start启动脚本：</p>
-<pre><code>#!/bin/sh
-
-gnatsd -c ./nats.conf &amp;
-</code></pre><h2 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h2><h3 id="内核参数调整"><a href="#内核参数调整" class="headerlink" title="内核参数调整"></a>内核参数调整</h3><p>所有的高并发性能优化，必然牵扯到打开文件数内核参数，如MySQL，Nginx的优化必然先优化系统内核参数。</p>
-<p>每个socket连接都会占用一个文件描述符fd。可通过以下命令查看数量。如果不做配置，则不可能达到高并发。</p>
-<pre><code>ls /proc/$pid/fd/
-</code></pre><p>修改内核参数：</p>
-<pre><code># vi /etc/sysctl.conf
-# 修改内核可打开的文件上线
-fs.file-max = 6815744
-# 执行sysctl -p生效
-# sysctl -a | grep file-max检查是否设置成功
-
-# vi /etc/security/limits.conf
-# 修改每用户可打开文件数
-* soft nofile 1024000
-* hard nofile 1024000
-# 重新ssh登陆后ulimit -n检查是否设置成功
-</code></pre><h2 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h2><h2 id="用户权限"><a href="#用户权限" class="headerlink" title="用户权限"></a>用户权限</h2><h2 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h2><h1 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h1><pre><code>public static void main(String[] args) {
-    try {
-        private String url = &quot;nats://android:cKCOzJv2ywY20H8a@192.168.30.53:4222&quot;;
-        final Connection nc = Nats.connect(url);
-        // Simple Async Subscriber
-        nc.subscribe(&quot;foo&quot;, new MessageHandler() {
-            @Override
-            public void onMessage(Message msg) {
-                System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
-            }
-        });
-        // Simple Publisher
-        nc.publish(&quot;foo&quot;, &quot;Hello World&quot;.getBytes());
-
-        // Replies
-        nc.subscribe(&quot;help&quot;, new MessageHandler() {
-            @Override
-            public void onMessage(Message msg) {
-                try {
-                    System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
-                    nc.subscribe(msg.getReplyTo(), new MessageHandler() {
-                        @Override
-                        public void onMessage(Message msg) {
-                            System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
-                        }
-                    });
-                    nc.publish(msg.getReplyTo(), &quot;I can help!&quot;.getBytes());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        // Requests
-        Message msg = nc.request(&quot;help&quot;, &quot;help me&quot;.getBytes(), 10000);
-
-        //nc.close();
-
-
-        nc.subscribe(&quot;1.vote.ask&quot;, new MessageHandler() {
-            @Override
-            public void onMessage(Message msg) {
-                System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
-            }
-        });
-        nc.publish(&quot;1.vote.ask&quot;, &quot;{\&quot;code\&quot;:0,\&quot;msg\&quot;:\&quot;\&quot;,\&quot;data\&quot;:{\&quot;online_num\&quot;:{\&quot;chatroom_id\&quot;:\&quot;liveroom_262\&quot;,\&quot;total_online_num\&quot;:1,\&quot;detail_online_num\&quot;:[{\&quot;team_id\&quot;:352,\&quot;online_num\&quot;:1}]},\&quot;vote\&quot;:null,\&quot;connect\&quot;:null,\&quot;timestamp\&quot;:1531884212049}}&quot;.getBytes());
-
-        nc.subscribe(&quot;1.vote.data&quot;, new MessageHandler() {
-            @Override
-            public void onMessage(Message msg) {
-                System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
-            }
-        });
-        nc.publish(&quot;backend.vote.answer&quot;, &quot;{\&quot;data\&quot;:{\&quot;display\&quot;:false,\&quot;custom\&quot;:{\&quot;class_id\&quot;:1,\&quot;team_id\&quot;:1,\&quot;vote_id\&quot;:1,\&quot;answer\&quot;:\&quot;B\&quot;}}}&quot;.getBytes());
-        nc.publish(&quot;backend.vote.answer&quot;, &quot;{\&quot;data\&quot;:{\&quot;display\&quot;:false,\&quot;custom\&quot;:{\&quot;class_id\&quot;:1,\&quot;team_id\&quot;:2,\&quot;vote_id\&quot;:1,\&quot;answer\&quot;:\&quot;B\&quot;}}}&quot;.getBytes());
-        nc.publish(&quot;backend.vote.answer&quot;, &quot;{\&quot;data\&quot;:{\&quot;display\&quot;:false,\&quot;custom\&quot;:{\&quot;class_id\&quot;:1,\&quot;team_id\&quot;:3,\&quot;vote_id\&quot;:1,\&quot;answer\&quot;:\&quot;B\&quot;}}}&quot;.getBytes());
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -3554,7 +4355,7 @@ fs.file-max = 6815744
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">171</span>
+                  <span class="site-state-item-count">177</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -3565,7 +4366,7 @@ fs.file-max = 6815744
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -3576,7 +4377,7 @@ fs.file-max = 6815744
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-count">57</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

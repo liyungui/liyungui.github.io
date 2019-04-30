@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="网络," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="三次握手，四次挥手  TCP标志位SYN，ACK，FIN 存放在TCP的标志位(一共6个) SYN：同步序列编号(Synchronize Sequence Numbers)  请求创建连接 同步的是初始序列编号(ISN,Initialize Sequence Numbers) 初始序列号是随机生成的   SYN=1  FIN：结束连接(Finish)  请求关闭连接 FIN=1 在四次分手时，我们">
+<meta name="keywords" content="网络">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP三次握手四次挥手">
+<meta property="og:url" content="http://yoursite.com/2019/04/11/网络/TCP三次握手四次挥手/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="三次握手，四次挥手  TCP标志位SYN，ACK，FIN 存放在TCP的标志位(一共6个) SYN：同步序列编号(Synchronize Sequence Numbers)  请求创建连接 同步的是初始序列编号(ISN,Initialize Sequence Numbers) 初始序列号是随机生成的   SYN=1  FIN：结束连接(Finish)  请求关闭连接 FIN=1 在四次分手时，我们">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/04/11/网络/TCP三次握手四次挥手/三次握手.png">
+<meta property="og:image" content="http://yoursite.com/2019/04/11/网络/TCP三次握手四次挥手/四次挥手.png">
+<meta property="og:updated_time" content="2019-04-30T10:47:20.095Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TCP三次握手四次挥手">
+<meta name="twitter:description" content="三次握手，四次挥手  TCP标志位SYN，ACK，FIN 存放在TCP的标志位(一共6个) SYN：同步序列编号(Synchronize Sequence Numbers)  请求创建连接 同步的是初始序列编号(ISN,Initialize Sequence Numbers) 初始序列号是随机生成的   SYN=1  FIN：结束连接(Finish)  请求关闭连接 FIN=1 在四次分手时，我们">
+<meta name="twitter:image" content="http://yoursite.com/2019/04/11/网络/TCP三次握手四次挥手/三次握手.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/04/11/网络/TCP三次握手四次挥手/"/>
+
+
+
+
+
+  <title>TCP三次握手四次挥手 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/11/网络/TCP三次握手四次挥手/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">TCP三次握手四次挥手</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-11T17:51:53+08:00">
+                2019-04-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="三次握手，四次挥手"><a href="#三次握手，四次挥手" class="headerlink" title="三次握手，四次挥手"></a>三次握手，四次挥手</h1><img src="/2019/04/11/网络/TCP三次握手四次挥手/三次握手.png">
+<img src="/2019/04/11/网络/TCP三次握手四次挥手/四次挥手.png">
+<h1 id="TCP标志位"><a href="#TCP标志位" class="headerlink" title="TCP标志位"></a>TCP标志位</h1><p>SYN，ACK，FIN 存放在TCP的标志位(一共6个)</p>
+<p><strong>SYN</strong>：<strong>同步</strong>序列编号(Synchronize Sequence Numbers)</p>
+<ul>
+<li>请求创建连接</li>
+<li>同步的是初始序列编号(ISN,Initialize Sequence Numbers)<ul>
+<li>初始序列号是<strong>随机</strong>生成的</li>
+</ul>
+</li>
+<li>SYN=1</li>
+</ul>
+<p><strong>FIN</strong>：<strong>结束</strong>连接(Finish)</p>
+<ul>
+<li>请求关闭连接</li>
+<li>FIN=1</li>
+<li>在四次分手时，我们发现FIN发了两遍。这是因为TCP的连接是双向的，一次FIN只能关闭一个方向。</li>
+</ul>
+<p><strong>ACK</strong>：<strong>确认</strong>字符(Acknowledgement）</p>
+<ul>
+<li><strong>确认接受</strong></li>
+<li>ACK为1表示确认号有效，为0表示报文中不包含确认信息，忽略确认号字段</li>
+</ul>
+<p>三次握手和四次分手，在回应的时候都会加上ACK=1，表示消息接收到了，并且在建立连接以后的发送数据时，都需加上ACK=1,来表示数据接收成功。</p>
+<h1 id="TCP包编号"><a href="#TCP包编号" class="headerlink" title="TCP包编号"></a>TCP包编号</h1><p><strong>seq</strong>: <strong>序列号</strong>(Sequence)</p>
+<ul>
+<li><p>数据包序列编号。</p>
+<p>  发送一个数据会被拆成多个数据包来发送，序列号就是对每个数据包进行编号，这样接受方才能对数据包进行再次拼接。</p>
+</li>
+<li><p>初始序列号是<strong>随机</strong>生成的</p>
+</li>
+</ul>
+<p><strong>ack</strong>: <strong>确认</strong>字符(Acknowledgement）</p>
+<ul>
+<li><p>ack=seq+1</p>
+<p>  也是下一个数据包的序列编号seq</p>
+</li>
+</ul>
+<h1 id="TCP状态"><a href="#TCP状态" class="headerlink" title="TCP状态"></a>TCP状态</h1><ul>
+<li><strong>LISTEN</strong> - 某个Socket处于<strong>监听</strong>，侦听来自远方TCP端口的连接请求;</li>
+<li><strong>SYN-SENT</strong> - 已发送SYN报文</li>
+<li><strong>SYN-RECEIVED</strong> - 已接受SYN报文</li>
+<li><strong>ESTABLISHED</strong>- 已建立连接</li>
+<li><strong>FIN-WAIT-1</strong> - 已发送FIN报文，等待对方FIN报文</li>
+<li><strong>FIN-WAIT-2</strong> - 已发送FIN报文，已收到对方ACK报文，等待对方FIN报文；此时已是<strong>半连接</strong>（告诉对方，我暂时还有点数据需要传送给你，稍后再关闭连接）；<code>FIN_WAIT_1</code>状态下，收到了对方同时带FIN标志和ACK标志的报文时，可以直接进入<code>TIME_WAIT</code>状态，而无须经过<code>FIN_WAIT_2</code>状态。</li>
+<li><strong>LAST-ACK</strong> - 等待对方最后的ACK</li>
+<li><strong>TIME-WAIT</strong> -已收到对方FIN报文，已发送ACK报文，等待足够的时间（至少一个报文的来回时间）以确保对方成功接受ACK报文；如果超时没有再次收到 FIN 报文，则代表对方成功接受 ACK 报文，可以进入 CLOSED 状态。这个状态需要<strong>特别注意</strong></li>
+<li><strong>CLOSED</strong> - 连接已关闭；也是初始状态</li>
+<li><strong>CLOSING</strong> - <strong>比较特殊少见</strong>，双方几乎同时close某Socket；发送FIN报文，马上收到对方FIN(正常应收到ACK)</li>
+<li><strong>CLOSE_WAIT</strong> - 等待关闭；已收到FIN报文，已发送ACK报文，此时等待己方去关闭连接（如果己方没有数据要发送，发送FIN报文，收到ACK即可关闭连接）</li>
+</ul>
+<h1 id="为什么需要三次握手"><a href="#为什么需要三次握手" class="headerlink" title="为什么需要三次握手"></a>为什么需要三次握手</h1><p><strong>为了避免资源浪费</strong></p>
+<p>更细的话，这个问题从两个方面来回答</p>
+<ul>
+<li>三次握手才能确认两端的收发能力；没有确认收发能力发送数据浪费资源</li>
+<li>避免建立不必要连接。<ul>
+<li>两次握手就建立连接话（客户端发送连接请求，服务端接收到并发送确认），如果一个连接请求在网络中跑的慢，超时了，客户端重发请求，跑的慢的请求最后到了服务器，服务端就会创建两个连接，浪费资源；</li>
+<li>加第三次握手（客户端确认），客户端在接受到一个服务器的ACK后，后面的ACK就可以抛弃。</li>
+</ul>
+</li>
+</ul>
+<h1 id="为什么需要四次分手"><a href="#为什么需要四次分手" class="headerlink" title="为什么需要四次分手"></a>为什么需要四次分手</h1><p>由于TCP连接是全双工(双向)的，因此每个方向都必须单独进行关闭。每个方向的关闭又需要请求和确认，所以一共就4次</p>
+<p>原则是当一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接。收到一个 FIN只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍能发送数据。首先进行关闭的一方将执行主动关闭，而另一方执行被动关闭。</p>
+<h1 id="初始序列号-ISN-为什么要随机生成"><a href="#初始序列号-ISN-为什么要随机生成" class="headerlink" title="初始序列号(ISN)为什么要随机生成"></a>初始序列号(ISN)为什么要随机生成</h1><p>如果ISN是固定的，攻击者很容易猜出后续的确认号</p>
+<h1 id="半连接队列"><a href="#半连接队列" class="headerlink" title="半连接队列"></a>半连接队列</h1><p>服务器第一次收到客户端的 SYN 之后，就会处于 SYN_RCVD 状态，此时双方还没有完全建立其连接，服务器会把此种状态下请求连接放在一个队列里，我们把这种队列称之为<strong>半连接队列</strong>。</p>
+<h2 id="SYN-ACK-重传"><a href="#SYN-ACK-重传" class="headerlink" title="SYN-ACK 重传"></a>SYN-ACK 重传</h2><p>服务器发送完SYN-ACK包，如果未收到客户确认包，服务器进行首次重传，等待一段时间仍未收到客户确认包，进行第二次重传，如果重传次数超 过系统规定的<strong>最大重传次数</strong>，系统将该连接信息从半连接队列中删除。</p>
+<p>注意，每次重传等待的<strong>超时时间</strong>不一定相同，一般会是指数增长，例如间隔时间为 1s, 2s, 4s, 8s, ….</p>
+<h2 id="SYN攻击"><a href="#SYN攻击" class="headerlink" title="SYN攻击"></a>SYN攻击</h2><p>DDoS攻击的一种</p>
+<p>最常见又最容易被利用的一种攻击手法</p>
+<p>利用TCP协议缺陷，短时间内不断向服务器发送大量的半连接请求（伪造不存在的IP），服务器回复确认包，并等待客户的确认，由于源地址是不存在的，服务器需要不断的重发直至超时，这些伪造的SYN包将长时间占用未连接队列，正常的SYN请求被丢弃，目标系统运行缓慢，严重者引起网络堵塞甚至系统瘫痪。</p>
+<h3 id="防范"><a href="#防范" class="headerlink" title="防范"></a>防范</h3><h4 id="注册表设置"><a href="#注册表设置" class="headerlink" title="注册表设置"></a>注册表设置</h4><p>启用 SynAttackProtect ，指定 SYN_RCVD 状态中的 TCP 连接阈值，超过 SynAttackProtect 时，触发 SYN flood 保护</p>
+<h4 id="丰富带宽资源"><a href="#丰富带宽资源" class="headerlink" title="丰富带宽资源"></a>丰富带宽资源</h4><h4 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h4><p>最有效的方法</p>
+<p>当然前提是攻击在防护带宽范围之内，也就是为什么第二条推荐带宽资源，这是保证在防火墙前面不会造成堵塞</p>
+<h1 id="全连接队列"><a href="#全连接队列" class="headerlink" title="全连接队列"></a>全连接队列</h1><p>已经完成三次握手，建立起连接的就会放在全连接队列中。</p>
+<p>如果队列满了就有可能会出现丢包现象。</p>
+<h1 id="三次握手过程中可以携带数据吗"><a href="#三次握手过程中可以携带数据吗" class="headerlink" title="三次握手过程中可以携带数据吗"></a>三次握手过程中可以携带数据吗</h1><p><strong>第三次握手可以携带数据</strong></p>
+<p>此时客户端已经处于 established 状态，也就是说，对于客户端来说，他已经建立起连接了，并且也已经知道服务器的接收、发送能力是正常的了，所以能携带数据页没啥毛病。</p>
+<p>假如第一次握手可以携带数据的话，恶意攻击者根本就不理服务器的接收、发送能力是否正常，疯狂着重复发 SYN 报文。这会让服务器花费很多时间、内存空间来接收这些报文。让服务器更加容易受到攻击了。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://juejin.im/post/5caed6925188251ac6386c7b" target="_blank" rel="noopener">关于三次握手与四次挥手面试官想考我们什么？</a></li>
+<li><a href="https://baijiahao.baidu.com/s?id=1593714120815701015&amp;wfr=spider&amp;for=pc" target="_blank" rel="noopener">对TCP三次握手四次分手还不清楚，超简单解析</a></li>
+<li><a href="https://baike.baidu.com/item/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/7794287?fr=aladdin#2" target="_blank" rel="noopener">四次挥手</a></li>
+<li><a href="https://juejin.im/post/5cb93204f265da039955d770" target="_blank" rel="noopener">漫画：一招学会TCP的三次握手和四次挥手</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/网络/" rel="tag"><i class="fa fa-tag"></i> 网络</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/04/11/Android/UI性能优化/内存Code部分的占用/" rel="next" title="内存Code部分的占用">
+                <i class="fa fa-chevron-left"></i> 内存Code部分的占用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/04/15/电脑使用/mac/Homebrew使用/" rel="prev" title="Homebrew使用">
+                Homebrew使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">177</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#三次握手，四次挥手"><span class="nav-number">1.</span> <span class="nav-text">三次握手，四次挥手</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP标志位"><span class="nav-number">2.</span> <span class="nav-text">TCP标志位</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP包编号"><span class="nav-number">3.</span> <span class="nav-text">TCP包编号</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TCP状态"><span class="nav-number">4.</span> <span class="nav-text">TCP状态</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#为什么需要三次握手"><span class="nav-number">5.</span> <span class="nav-text">为什么需要三次握手</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#为什么需要四次分手"><span class="nav-number">6.</span> <span class="nav-text">为什么需要四次分手</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#初始序列号-ISN-为什么要随机生成"><span class="nav-number">7.</span> <span class="nav-text">初始序列号(ISN)为什么要随机生成</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#半连接队列"><span class="nav-number">8.</span> <span class="nav-text">半连接队列</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SYN-ACK-重传"><span class="nav-number">8.1.</span> <span class="nav-text">SYN-ACK 重传</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SYN攻击"><span class="nav-number">8.2.</span> <span class="nav-text">SYN攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#防范"><span class="nav-number">8.2.1.</span> <span class="nav-text">防范</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#注册表设置"><span class="nav-number">8.2.1.1.</span> <span class="nav-text">注册表设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#丰富带宽资源"><span class="nav-number">8.2.1.2.</span> <span class="nav-text">丰富带宽资源</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#防火墙"><span class="nav-number">8.2.1.3.</span> <span class="nav-text">防火墙</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#全连接队列"><span class="nav-number">9.</span> <span class="nav-text">全连接队列</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三次握手过程中可以携带数据吗"><span class="nav-number">10.</span> <span class="nav-text">三次握手过程中可以携带数据吗</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">11.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

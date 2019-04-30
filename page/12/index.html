@@ -262,6 +262,933 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/24/Android/X5内核使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/24/Android/X5内核使用/" itemprop="url">X5内核使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-24T15:40:53+08:00">
+                2018-08-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="X5内核概述"><a href="#X5内核概述" class="headerlink" title="X5内核概述"></a>X5内核概述</h1><ul>
+<li>对系统WebView的聚合包装</li>
+<li>加载失败会切换到系统内核</li>
+<li>当手机上有宿主（QQ、微信或QQ空间）时共享宿主的内核，没有可用的内核时会自己去下载内核</li>
+</ul>
+<h1 id="坑"><a href="#坑" class="headerlink" title="坑"></a>坑</h1><p>项目使用的是版本 <code>43500SDK_43656Core</code></p>
+<h2 id="暂时不提供64位的so文件"><a href="#暂时不提供64位的so文件" class="headerlink" title="暂时不提供64位的so文件"></a>暂时不提供64位的so文件</h2><p>解决方案：强制APP使用32位so</p>
+<ul>
+<li><p>指定只保留32位so库</p>
+<pre><code>android{
+    defaultConfig{
+        ndk{abiFilters &quot;armeabi&quot;}
+    }
+}
+
+如果配置后编译报错，在gradle.properties文件中加上 Android.useDeprecatedNdk=true； 
+</code></pre></li>
+<li><p>指定目录下必须有so文件(否则打包无该目录)</p>
+<pre><code>build.gradle中配置的so加载目录:jniLibs.srcDir:customerDir
+
+如果没有该项配置则so加载目录默认为：src/main/jniLibs
+
+将.so文件放置该目录的armeabi文件夹下
+    没有该目录则新建一个
+    APP中没有使用到.so文件则需要拷贝任意一个32位的so文件到该目录下
+        如果没有合适的so可以到官网http://x5.tencent.com/tbs/sdk.html下载官网“SDK接入示例“,拷贝对应目录下的liblbs.so文件
+</code></pre></li>
+</ul>
+<h2 id="如何判断已加载了x5内核"><a href="#如何判断已加载了x5内核" class="headerlink" title="如何判断已加载了x5内核"></a>如何判断已加载了x5内核</h2><p>参考sdk说明文件之 <code>无法加载x5内核的解决方案.doc</code></p>
+<ol>
+<li>webview的<strong>getX5WebViewExtension()</strong>返回非null表示已加载了x5内核webview</li>
+<li>app打开<a href="http://soft.imtt.qq.com/browser/tes/feedback.html" target="_blank" rel="noopener">测试网页</a>，显示000000表示加载的是系统内核，显示大于零的数字表示加载了x5内核（该数字是x5内核版本号）</li>
+</ol>
+<h3 id="共享使用微信手Q的内核"><a href="#共享使用微信手Q的内核" class="headerlink" title="共享使用微信手Q的内核"></a>共享使用微信手Q的内核</h3><p>微信扫下面的二维码打开网页，如果显示的数字是00000说明您的手机微信没有安装内核</p>
+<p>微信扫下面的二维码安装内核43906版本</p>
+<h2 id="初次初始化失败"><a href="#初次初始化失败" class="headerlink" title="初次初始化失败"></a>初次初始化失败</h2><p>经测试，第一次启动APP(Application中)加载X5内核，很大概率失败，重启即可加载成功。解决方案比较暴力，<strong>初始化失败重启APP</strong></p>
+<p>下载的X5内核存储在 <code>sd卡/tencent/tbs</code>，只会下载一次(即删除该目录，重启APP也不会重新下载，测试过程无数次恢复出厂设置)</p>
+<p>wifi条件下下载x5内核24M左右，耗时90秒左右</p>
+<pre><code>QbSdk.setDownloadWithoutWifi(true);//默认只允许在WiFi环境下载
+
+//监控内核初始化状态
+QbSdk.initX5Environment(sContext, new QbSdk.PreInitCallback() {
+    @Override
+    public void onCoreInitFinished() {
+        Logger.d(String.format(&quot;%s:onCoreInitFinished:&quot;, TAG));
+    }
+
+    /**
+     * X5内核初始化后回调，在onCoreInitFinished()之后
+     * @param isX5Core ，true表示X5内核加载成功。加载失败会切换到系统内核
+     */
+    @Override
+    public void onViewInitFinished(boolean isX5Core) {
+        mX5InitSuccess = b;
+        Logger.d(String.format(&quot;%s:onViewInitFinished:%b&quot;, TAG, b));
+        if (!b &amp;&amp; handler != null) {
+            handler.onInitErrot();
+        }
+    }
+});
+
+//监控内核下载状态
+QbSdk.setTbsListener(new TbsListener() {
+    @Override
+    public void onDownloadFinish(int i) {
+        Logger.d(String.format(&quot;%s:onDownloadFinish:%d&quot;, TAG, i));
+    }
+
+    @Override
+    public void onInstallFinish(int i) {
+        Logger.d(String.format(&quot;%s:onInstallFinish:%d&quot;, TAG, i));
+    }
+
+    @Override
+    public void onDownloadProgress(int i) {
+        Logger.d(String.format(&quot;%s:onDownloadProgress:%d&quot;, TAG, i));
+    }
+});
+</code></pre><h2 id="静态集成"><a href="#静态集成" class="headerlink" title="静态集成"></a>静态集成</h2><p>X5内核大小约24M，对App包大小产生一定量的增加</p>
+<p>如下<a href="http://soft.tbs.imtt.qq.com/17421/tbs_res_imtt_tbs_release_integrateWithX5core_43500SDK_43656Core.zip" target="_blank" rel="noopener">下载地址</a>是静态集成X5内核的方法</p>
+<p>1.导入jar包:</p>
+<pre><code>tbs_sdk_thirdapp_v3.5.0.1063_43500_staticwithdownload_withoutGame_obfs_20171011_195714.jar
+</code></pre><p>2.导入内核文件</p>
+<pre><code>将解压tbs_core_3.6.0.1108_043656_20171123_120752_static.apk得到的.so文件放入工程的src/mian/libs目录下。
+</code></pre><p>3.按照官网指引进行替换系统webview</p>
+<pre><code>https://x5.tencent.com/tbs/guide/sdkInit.html 参照官网“SDK集成步骤”中的：1、2、3、6、10
+</code></pre><p>打开webview前调用QbSdk.preinstallStaticTbs()。(建议在application的oncreate中异步线程中调用)。</p>
+<h1 id="TBS-Studio-调试-运行在X5内核的-Webview"><a href="#TBS-Studio-调试-运行在X5内核的-Webview" class="headerlink" title="TBS Studio 调试 运行在X5内核的 Webview"></a>TBS Studio 调试 运行在X5内核的 Webview</h1><h2 id="TBS-Studio"><a href="#TBS-Studio" class="headerlink" title="TBS Studio"></a>TBS Studio</h2><p>TBS Studio是面向基于TBS的Web开发者和移动应用开发商（包括微信、手Q，三方App等）打造的开发服务整体解决方案，以提升广大开发者在真机环境下的开发效率，并帮助开发者分析和优化网页的设计，主要功能有网页Inspector调试，网页性能分析等。</p>
+<h2 id="应用背景"><a href="#应用背景" class="headerlink" title="应用背景"></a>应用背景</h2><p>我们在卓越网校安卓app中，使用了x5内核。</p>
+<h2 id="TBS-Studio-包下载"><a href="#TBS-Studio-包下载" class="headerlink" title="TBS Studio 包下载"></a>TBS Studio 包下载</h2><p>TBS Studio是面向基于TBS的Web开发者和移动应用开发商（包括微信、手Q，三方App等）打造的开发服务整体解决方案，以提升广大开发者在真机环境下的开发效率，并帮助开发者分析和优化网页的设计，主要功能有网页Inspector调试，网页性能分析等。</p>
+<h2 id="应用背景-1"><a href="#应用背景-1" class="headerlink" title="应用背景"></a>应用背景</h2><p>我们在卓越网校安卓app中，使用了x5内核。</p>
+<h2 id="TBS-Studio-包下载-1"><a href="#TBS-Studio-包下载-1" class="headerlink" title="TBS Studio 包下载"></a>TBS Studio 包下载</h2><p><a href="http://mcaredown.3g.qq.com/browser/tes/TBS_Studio_win64_v1.3.1_2017062311.zip" target="_blank" rel="noopener">win64</a>、<a href="http://mcaredown.3g.qq.com/browser/tes/TBS_Studio_win_v1.3.1_2017061615.zip" target="_blank" rel="noopener">win32</a>、<a href="http://mcaredown.3g.qq.com/browser/tes/TBS_Studio_mac_v1.3.1_2017061617.dmg.zip" target="_blank" rel="noopener">mac</a></p>
+<h3 id="运行环境"><a href="#运行环境" class="headerlink" title="运行环境"></a>运行环境</h3><p>PC环境: 当前支持Windows和mac操作系统。<br>手机环境：Android 4.4+，机型包括华为，小米，三星等主流机型。<br>调试宿主App（需要接入x5内核）：微信、手Q、QQ音乐、QZone、京东等</p>
+<h3 id="连接设置"><a href="#连接设置" class="headerlink" title="连接设置"></a>连接设置</h3><p>pc 连接手机，允许 USB 调试。<br>打开需要调试的目标程序<br>打开TBS Studio 启动连接检测。<br>详细过程：<a href="http://bbs.mb.qq.com/thread-1416936-1-1.html" target="_blank" rel="noopener">http://bbs.mb.qq.com/thread-1416936-1-1.html</a>    </p>
+<p>部分机型 adb 连接不上解决</p>
+<p>使用内置adb包（ win下载, mac下载），手动启动adb（使用homebrew下载：brew cask install android-platform-tools）<br>运行 adb devices<br> 找到设备，点击重置，再次“启动检测”<br>未找到设备，或者offline<br>① 运行命令 adb kill-server -&gt; adb start-server -&gt; adb devices<br>② 重拔usb链接调试设备<br>③ 重启调试设备<br>仍然无法连接上<br>打开终端，输入：system_profiler SPUSBDataType，查看Mac系统所有USB设备信息，找到相应的厂商Vender ID<br>终端进入/Users/user/.android，应该有一个adb_usb.ini文件，如果没有就创建，然后将上面的Vender ID 单独一行加入到该文件，然后退出。<br>运行 adb devices。如果列表中找到相应设备，则连接成功。再次打开TBS Studio，检测连接进入调试。<br>)、<a href="http://mcaredown.3g.qq.com/browser/tes/TBS_Studio_mac_v1.3.1_2017061617.dmg.zip" target="_blank" rel="noopener">mac</a></p>
+<p>运行环境</p>
+<p>PC环境: 当前支持Windows和mac操作系统。<br>手机环境：Android 4.4+，机型包括华为，小米，三星等主流机型。<br>调试宿主App（需要接入x5内核）：微信、手Q、QQ音乐、QZone、京东等</p>
+<p>连接设置</p>
+<p>pc 连接手机，允许 USB 调试。<br>打开需要调试的目标程序<br>打开TBS Studio 启动连接检测。<br>详细过程：<a href="http://bbs.mb.qq.com/thread-1416936-1-1.html" target="_blank" rel="noopener">http://bbs.mb.qq.com/thread-1416936-1-1.html</a>    </p>
+<p>部分机型 adb 连接不上解决</p>
+<ol>
+<li>使用内置adb包（ win下载, mac下载），手动启动adb（使用homebrew下载：brew cask install android-platform-tools）<br>运行 adb devices</li>
+<li>找到设备，点击重置，再次“启动检测”<br> 未找到设备，或者offline<br> ① 运行命令 adb kill-server -&gt; adb start-server -&gt; adb devices<br> ② 重拔usb链接调试设备<br> ③ 重启调试设备</li>
+<li>仍然无法连接上<br>打开终端，输入：system_profiler SPUSBDataType，查看Mac系统所有USB设备信息，找到相应的厂商Vender ID<br>终端进入/Users/user/.android，应该有一个adb_usb.ini文件，如果没有就创建，然后将上面的Vender ID 单独一行加入到该文件，然后退出。<br>运行 adb devices。如果列表中找到相应设备，则连接成功。再次打开TBS Studio，检测连接进入调试。</li>
+</ol>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/17/Android/阻止系统Media扫描指定文件夹/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/17/Android/阻止系统Media扫描指定文件夹/" itemprop="url">阻止系统Media扫描指定文件夹</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-17T11:48:53+08:00">
+                2018-08-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>最近项目需求不让系统图库扫描到APP的图片或者不想对用户浏览图片造成影响</p>
+<p>Android提供了对此的支持</p>
+<p><strong>.nomedia文件/文件夹</strong>：让系统不扫描父文件夹下所有媒体文件(图片，mp3,视频)</p>
+<p>例如：sd卡根目录/myapp，里面有我们的图片，不想让系统扫描到图库，直接在该文件夹下，添加 <code>.nomedia文件/文件夹</code></p>
+<p>之前已经扫描出来的资源图片/视频等等，添加nomedia文件后还是会显示。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/16/Android/webview上传图片/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/16/Android/webview上传图片/" itemprop="url">webview上传图片</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-16T18:20:53+08:00">
+                2018-08-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>最近项目需要在ViewWeb页面上点击 <code>&lt;input type=&quot;file&quot;&gt;</code>，调用手机系统相册来上传图片，开发过程中发现无法正常唤起系统相册来选择图片</p>
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>既然浏览器可以，那先参考一下android brower的代码-_-</p>
+<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><ul>
+<li>重写WebChromeClient。系统升级API使用的delete，而不是@deprecated。谨慎做好系统兼容<strong>(大坑一)</strong><ul>
+<li>openFileChooser<ul>
+<li>是系统方法<ul>
+<li>不需要 @Override <strong>(大坑二)</strong></li>
+<li>非继承，所以需要额外添加混淆规则 <strong>(大坑三)</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>onShowFileChooser</li>
+</ul>
+</li>
+<li>在WebViewActivity中接收选择到的文件Uri</li>
+<li>回调接口把文件Uri传给页面。即使取消选择也必须回调，否则阻塞页面 <strong>(大坑四)</strong><ul>
+<li>WebChromeClient提供了回调接口</li>
+</ul>
+</li>
+</ul>
+<h2 id="重写WebChromeClient的openFileChooser-和onShowFileChooser"><a href="#重写WebChromeClient的openFileChooser-和onShowFileChooser" class="headerlink" title="重写WebChromeClient的openFileChooser()和onShowFileChooser()"></a>重写WebChromeClient的openFileChooser()和onShowFileChooser()</h2><pre><code>// For Android &lt; 3.0
+public void openFileChooser(ValueCallback&lt;Uri&gt; uploadMsg) {
+    if (mUploadMessage != null) {
+        mUploadMessage.onReceiveValue(null);
+    }
+    mUploadMessage = uploadMsg;
+    mHandler.openFileChooser(&quot;*/*&quot;);
+}
+// For Android 3.0+
+public void openFileChooser(ValueCallback uploadMsg, String acceptType) {
+    if (mUploadMessage != null) {
+        mUploadMessage.onReceiveValue(null);
+    }
+    mUploadMessage = uploadMsg;
+    String type = TextUtils.isEmpty(acceptType) ? &quot;*/*&quot; : acceptType;
+    mHandler.openFileChooser(type);
+}
+// For Android &gt; 4.1.1
+public void openFileChooser(ValueCallback&lt;Uri&gt; uploadMsg, String acceptType, String capture) {
+    if (mUploadMessage != null) {
+        mUploadMessage.onReceiveValue(null);
+    }
+    mUploadMessage = uploadMsg;
+    String type = TextUtils.isEmpty(acceptType) ? &quot;*/*&quot; : acceptType;
+    mHandler.openFileChooser(type);
+}
+//Android 5.0+
+@Override
+@SuppressLint(&quot;NewApi&quot;)
+public boolean onShowFileChooser(WebView webView, ValueCallback&lt;Uri[]&gt; filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
+    if (mFilePathCallback != null) {
+        mFilePathCallback.onReceiveValue(null);
+    }
+    mFilePathCallback = filePathCallback;
+    String type = &quot;*/*&quot;;
+    if (fileChooserParams != null &amp;&amp; fileChooserParams.getAcceptTypes() != null
+            &amp;&amp; fileChooserParams.getAcceptTypes().length &gt; 0) {
+        type = fileChooserParams.getAcceptTypes()[0];
+    }
+    mHandler.openFileChooser(type);
+    return true;
+}
+</code></pre><h2 id="回调传递文件Uri"><a href="#回调传递文件Uri" class="headerlink" title="回调传递文件Uri"></a>回调传递文件Uri</h2><pre><code>public void notifyFileChooser(Uri uri) {
+    if(mUploadMessage != null) {
+        mUploadMessage.onReceiveValue(uri);
+        mUploadMessage = null;
+    }
+
+    if(mFilePathCallback != null) {
+        if(uri == null){
+            mFilePathCallback.onReceiveValue(null);
+        } else {
+            Uri[] uris = new Uri[]{uri};
+            mFilePathCallback.onReceiveValue(uris);
+        }
+        mFilePathCallback = null;
+    }
+}
+</code></pre><h2 id="退出页面时收尾"><a href="#退出页面时收尾" class="headerlink" title="退出页面时收尾"></a>退出页面时收尾</h2><p><strong>修复页面被阻塞bug</strong></p>
+<p>调用系统app选择文件的时候，若弹出选择框，cancel掉选择框之后，发现webview无响应了，无法刷新，加载，点击，甚至退出这个activity也无法加载！后果很严重~</p>
+<p>原因是当你选择上传文件的时候，webview的<strong>ValueCallback对象（就是选择图片的回调）会持有这个webview，在没有收到回调之前，你无法对这个webview做任何的操作！</strong></p>
+<p>知道原因之后，就很好解决了，如果cancel了，那么直接调用该对象的onReceiveValue()方法，传入null即可，webview就可以正常操作了</p>
+<pre><code>public void reset() {
+    if(mUploadMessage != null) {
+        mUploadMessage.onReceiveValue(null);
+        mUploadMessage = null;
+    }
+
+    if(mFilePathCallback != null) {
+        mFilePathCallback.onReceiveValue(null);
+        mFilePathCallback = null;
+    }
+
+}
+</code></pre><h2 id="添加权限"><a href="#添加权限" class="headerlink" title="添加权限"></a>添加权限</h2><pre><code>&lt;uses-permission android:name=&quot;android.permission.INTERNET&quot; /&gt;
+&lt;uses-permission android:name=&quot;android.permission.WRITE_EXTERNAL_STORAGE&quot; /&gt;
+&lt;uses-permission android:name=&quot;android.permission.MOUNT_UNMOUNT_FILESYSTEMS&quot; /&gt;
+&lt;uses-permission android:name=&quot;android.permission.CAMERA&quot; /&gt;
+</code></pre><h2 id="添加混淆规则"><a href="#添加混淆规则" class="headerlink" title="添加混淆规则"></a>添加混淆规则</h2><pre><code>-keepclassmembers class * extends android.webkit.WebChromeClient{
+    public void openFileChooser(...);
+}
+</code></pre><h1 id="部分系统版本无法实现上传-大坑五"><a href="#部分系统版本无法实现上传-大坑五" class="headerlink" title="部分系统版本无法实现上传(大坑五)"></a>部分系统版本无法实现上传(大坑五)</h1><p>android 4.4更改webkit内核为chromium，<strong>4.4.0到4.4.2</strong>删除了该API，开发团队解释，正在开发一个新的更好的共有的api，会在正式版本上推出。结果呢，在4.4.3版本，又把这个api加回来了。简直是花样作死啊！一般升级api的套路：@deprecated掉旧的api，加入新的api并保留对原有api的支持</p>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><h3 id="用js调用java方法，强烈推荐"><a href="#用js调用java方法，强烈推荐" class="headerlink" title="用js调用java方法，强烈推荐"></a>用js调用java方法，强烈推荐</h3><h3 id="使用第三方webview"><a href="#使用第三方webview" class="headerlink" title="使用第三方webview"></a>使用第三方webview</h3><p>比如腾讯x5内核</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/10/JS/ES6-Symbol/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/10/JS/ES6-Symbol/" itemprop="url">ES6-Symbol</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-10T16:30:20+08:00">
+                2018-08-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>目的：<strong>从根本上防止属性名的冲突</strong></p>
+<p><strong>新的原始数据类型Symbol，表示独一无二的值</strong></p>
+<ul>
+<li>不能使用new命令。因为是原始类型，不是对象</li>
+</ul>
+<p><strong>Symbol 值通过Symbol函数生成，描述参数可省略，保证每次生成的值都独一无二</strong></p>
+<pre><code>let s1 = Symbol(&apos;foo&apos;);
+let s2 = Symbol(&apos;foo&apos;);
+s1 === s2 // false
+</code></pre><p><strong>Symbol 值可以显式转为字符串</strong></p>
+<h2 id="作为属性名"><a href="#作为属性名" class="headerlink" title="作为属性名"></a>作为属性名</h2><p><strong>Symbol 值作为对象属性名时，不能用点运算符</strong></p>
+<pre><code>let mySymbol = Symbol();
+
+// 第一种写法
+let a = {};
+a[mySymbol] = &apos;Hello!&apos;;
+
+// 第二种写法
+let a = {
+  [mySymbol]: &apos;Hello!&apos;
+};
+
+// 第三种写法
+let a = {};
+Object.defineProperty(a, mySymbol, { value: &apos;Hello!&apos; });
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/06/RN/RN图片资源/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/06/RN/RN图片资源/" itemprop="url">RN图片资源</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-06T17:21:21+08:00">
+                2018-08-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="资源属性是一个对象"><a href="#资源属性是一个对象" class="headerlink" title="资源属性是一个对象"></a>资源属性是一个对象</h1><p><strong>图片的资源属性，不接受字符串，只接受带有uri属性的对象</strong></p>
+<h2 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h2><ul>
+<li><strong>方便开发者在对象中添加一些元数据(metadata)</strong><ul>
+<li>例如写入图片尺寸(而不必在样式中写死)</li>
+</ul>
+</li>
+<li>利于扩展<ul>
+<li>未来可能加入精灵图（sprites）的支持。理论上可以无缝支持精灵图的切分<ul>
+<li>进一步输出裁切信息{uri: …, crop: {left: 10, top: 50, width: 20, height: 40}}</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="在主线程外解码图片"><a href="#在主线程外解码图片" class="headerlink" title="在主线程外解码图片"></a>在主线程外解码图片</h1><p> React Native 中，图片解码则是在另一线程中完成的</p>
+<h1 id="RN图片资源"><a href="#RN图片资源" class="headerlink" title="RN图片资源"></a>RN图片资源</h1><p><strong>require(“完整文件名，带路径”)</strong></p>
+<pre><code>&lt;Image source={require(&quot;./logo.png&quot;)} /&gt;
+</code></pre><p>require现在返回的对象包含<strong>真实文件路径以及尺寸</strong>等信息</p>
+<pre><code>{
+  &quot;__packager_asset&quot;:true,
+  &quot;isStatic&quot;:true,
+  &quot;path&quot;:&quot;/Users/react/HelloWorld/iOS/Images.xcassets/react.imageset/logo.png&quot;,
+  &quot;uri&quot;:&quot;logo&quot;,
+  &quot;width&quot;:591,
+  &quot;height&quot;:573
+}
+</code></pre><h2 id="优势-1"><a href="#优势-1" class="headerlink" title="优势"></a>优势</h2><ul>
+<li>Packager可以得知图片大小，在代码里<strong>不需要再声明尺寸</strong><ul>
+<li>也可通过style属性调整为新的大小</li>
+</ul>
+</li>
+<li>iOS 和 Android 一致的文件系统</li>
+<li>通过 npm 来分发组件或库可以包含图片</li>
+</ul>
+<h2 id="查找规则"><a href="#查找规则" class="headerlink" title="查找规则"></a>查找规则</h2><ul>
+<li>根据平台<ul>
+<li><code>my-icon.ios.png</code> 和 <code>my-icon.android.png</code></li>
+</ul>
+</li>
+<li>根据屏幕精度<ul>
+<li><a href="mailto:`check@2x.png" target="_blank" rel="noopener">`check@2x.png</a><code>和</code><a href="mailto:check@3x.png" target="_blank" rel="noopener">check@3x.png</a>`</li>
+<li>会打包所有<strong>实际被用到(即require)</strong>的图片并且依据屏幕精度提供对应的资源<ul>
+<li>require图片名字必须是<strong>静态字符串(非变量)</strong><ul>
+<li>因为<strong>require是编译时期执行</strong></li>
+</ul>
+</li>
+<li>如果没有图片恰好满足屏幕分辨率，则选中最接近的一个图片</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>注意：添加图片的时候 packager 正在运行，可能需要<strong>重启 packager</strong> 以便能正确引入新添加的图片</p>
+<p>实例：require图片名字必须是静态字符串</p>
+<pre><code>// 正确
+var icon = this.props.active
+  ? require(&quot;./my-icon-active.png&quot;)
+  : require(&quot;./my-icon-inactive.png&quot;);
+&lt;Image source={icon} /&gt;;
+</code></pre><h1 id="Native的图片资源"><a href="#Native的图片资源" class="headerlink" title="Native的图片资源"></a>Native的图片资源</h1><p><strong>注意：保证存在，指定尺寸</strong></p>
+<h2 id="iOS的asset-Android的drawable"><a href="#iOS的asset-Android的drawable" class="headerlink" title="iOS的asset, Android的drawable"></a>iOS的asset, Android的drawable</h2><p><strong>uri: “只使用文件名，不带路径和后缀”</strong></p>
+<pre><code>&lt;Image source={{ uri: "app_icon" }} style={{ width: 40, height: 40 }} /&gt;
+</code></pre><h2 id="Android的assets"><a href="#Android的assets" class="headerlink" title="Android的assets"></a>Android的assets</h2><p><strong>uri: “asset:/文件名，不带路径”</strong></p>
+<pre><code>&lt;Image
+  source={{ uri: "asset:/app_icon.png" }}
+  style={{ width: 40, height: 40 }}
+/&gt;
+</code></pre><h1 id="网络图片"><a href="#网络图片" class="headerlink" title="网络图片"></a>网络图片</h1><p><strong>注意：保证存在，指定尺寸</strong></p>
+<h2 id="url图片"><a href="#url图片" class="headerlink" title="url图片"></a>url图片</h2><p><strong>uri: “https://…”</strong></p>
+<pre><code>&lt;Image source={{uri: 'https://facebook.github.io/react/logo-og.png'}}
+       style={{width: 400, height: 400}} /&gt;
+</code></pre><h2 id="数据图片"><a href="#数据图片" class="headerlink" title="数据图片"></a>数据图片</h2><p><strong>uri: “data:image/png;base64,…</strong></p>
+<p>建议仅对<strong>非常小的图片</strong>使用 base64 数据，比如一些小图标。</p>
+<h2 id="网络图片的请求参数"><a href="#网络图片的请求参数" class="headerlink" title="网络图片的请求参数"></a>网络图片的请求参数</h2><p><strong>在 Image 组件的 source 属性中指定一些请求参数</strong></p>
+<pre><code>&lt;Image
+  source={{
+	    uri: "https://facebook.github.io/react/logo-og.png",
+	    method: "POST",
+	    headers: {
+	      Pragma: "no-cache"
+	    },
+	    body: "Your Body goes here"
+	  }}
+  style={{
+		width: 400, 
+		height: 400,
+		resizeMode: Image.resizeMode.contain
+	  }}
+/&gt;
+</code></pre><h1 id="本地文件系统中的图片"><a href="#本地文件系统中的图片" class="headerlink" title="本地文件系统中的图片"></a>本地文件系统中的图片</h1><h1 id="为什么不在所有情况下都自动指定尺寸"><a href="#为什么不在所有情况下都自动指定尺寸" class="headerlink" title="为什么不在所有情况下都自动指定尺寸"></a>为什么不在所有情况下都自动指定尺寸</h1><h2 id="浏览器处理方式"><a href="#浏览器处理方式" class="headerlink" title="浏览器处理方式"></a>浏览器处理方式</h2><p>如果不给图片指定尺寸，那么浏览器会首先渲染一个 0x0 大小的元素占位，然后下载图片，在下载完成后再基于正确的尺寸来渲染图片</p>
+<h2 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h2><p>UI 会在图片加载的过程中上下跳动，使得用户体验非常糟糕</p>
+<h2 id="RN处理方式"><a href="#RN处理方式" class="headerlink" title="RN处理方式"></a>RN处理方式</h2><p><strong>RN图片资源无需指定(加载时立刻知道尺寸)，其他的都需要手动指定</strong></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/06/JS/ES6-Module/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2039,1896 +2966,6 @@ open http://localhost:3000/
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/JS/ES6-对象的扩展/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/01/JS/ES6-对象的扩展/" itemprop="url">ES6-对象的扩展</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-01T10:11:20+08:00">
-                2018-08-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="属性简洁表示法"><a href="#属性简洁表示法" class="headerlink" title="属性简洁表示法"></a>属性简洁表示法</h1><p><strong>直接写入变量和函数，作为对象的属性和方法。</strong></p>
-<ul>
-<li>键值对同名。即属性的键名和值名相同<ul>
-<li>属性简写：省略 属性名和冒号</li>
-<li>方法简写：省略 冒号和function<ul>
-<li>方法的值是一个 Generator 函数，前面需要加上星号</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>简洁写法的属性名总是字符串</li>
-<li>属性名是字符串，直接取变量名;属性值是变量值</li>
-</ul>
-<p>实例</p>
-<pre><code>function people(name, age) {
-    return {
-        name: name,
-        age: age
-        getName: function() {
-            console.log(this.name)
-        }
-    };
-}
-
-function people(name, age) {
-    return {
-        name,
-        age
-        getName () {
-            console.log(this.name)
-        }
-    };
-}
-
-const obj = {
-  * m() {
-    yield &apos;hello world&apos;;
-  }
-};
-
-const foo = &apos;bar&apos;;
-const baz = {foo};
-baz // {foo: &quot;bar&quot;}//属性名是字符串，直接取变量名;属性值是变量值
-// 等同于
-const baz = {foo: foo};
-
-const obj = {
-  class () {}
-};
-// 等同于
-var obj = {
-  &apos;class&apos;: function() {}
-};
-</code></pre><h1 id="属性名表达式"><a href="#属性名表达式" class="headerlink" title="属性名表达式"></a>属性名表达式</h1><p>ES6 允许<strong>字面量定义对象(使用大括号)</strong>时，<strong>用表达式作为对象的属性名</strong> 即把表达式放在方括号内</p>
-<pre><code>let lastWord = &apos;last word&apos;;
-const a = {
-  &apos;first word&apos;: &apos;hello&apos;,
-  [lastWord]: &apos;world&apos;
-};
-a[&apos;first word&apos;] // &quot;hello&quot;
-a[lastWord] // &quot;world&quot;
-a[&apos;last word&apos;] // &quot;world&quot;
-</code></pre><p><strong>属性名表达式与简洁表示法，不能同时使用</strong>，会报错。</p>
-<pre><code>// 报错
-const foo = &apos;bar&apos;;
-const bar = &apos;abc&apos;;
-const baz = { [foo] };
-
-// 正确
-const foo = &apos;bar&apos;;
-const baz = { [foo]: &apos;abc&apos;};
-</code></pre><p><strong>属性名表达式是对象，默认情况下自动将对象转为字符串[object Object]</strong></p>
-<pre><code>const keyA = {a: 1};
-const keyB = {b: 2};
-const myObject = {
-  [keyA]: &apos;valueA&apos;,
-  [keyB]: &apos;valueB&apos;
-};
-myObject // Object {[object Object]: &quot;valueB&quot;}
-
-[keyA]和[keyB]得到的都是[object Object]
-所以[keyB]会把[keyA]覆盖掉，而myObject最后只有一个[object Object]属性
-</code></pre><h1 id="属性的可枚举性和遍历"><a href="#属性的可枚举性和遍历" class="headerlink" title="属性的可枚举性和遍历"></a>属性的可枚举性和遍历</h1><h2 id="可枚举性"><a href="#可枚举性" class="headerlink" title="可枚举性"></a>可枚举性</h2><h3 id="描述对象（Descriptor）"><a href="#描述对象（Descriptor）" class="headerlink" title="描述对象（Descriptor）"></a>描述对象（Descriptor）</h3><ul>
-<li>用来控制该属性的行为。</li>
-<li>对象的每个属性都有一个描述对象，</li>
-<li>获取该属性的描述对象 <code>Object.getOwnPropertyDescriptor()</code></li>
-</ul>
-<p>实例：描述对象</p>
-<pre><code>let obj = { foo: 123 };
-Object.getOwnPropertyDescriptor(obj, &apos;foo&apos;)
-//  {
-//    value: 123,
-//    writable: true,
-//    enumerable: true,
-//    configurable: true
-//  }
-</code></pre><h3 id="可枚举性-1"><a href="#可枚举性-1" class="headerlink" title="可枚举性"></a>可枚举性</h3><ul>
-<li><strong>描述对象的enumerable属性</strong></li>
-<li>最初目的，就是让某些属性可以规避掉for…in操作</li>
-</ul>
-<p><strong>目前，有四个操作会忽略enumerable为false的属性。</strong></p>
-<ul>
-<li>for…in循环：只遍历<strong>对象自身</strong>的和<strong>继承</strong>的<strong>可枚举</strong>的属性。</li>
-<li>Object.keys()：返回<strong>对象自身</strong>的所有<strong>可枚举</strong>的属性的键名。</li>
-<li>Object.assign()： 只拷贝<strong>对象自身</strong>的<strong>可枚举</strong>的属性。</li>
-<li>JSON.stringify()：只串行化<strong>对象自身</strong>的<strong>可枚举</strong>的属性。</li>
-</ul>
-<p>实例：toString和length属性不可枚举</p>
-<pre><code>Object.getOwnPropertyDescriptor(Object.prototype, &apos;toString&apos;).enumerable
-// false
-
-Object.getOwnPropertyDescriptor([], &apos;length&apos;).enumerable
-// false
-
-    上面代码中，toString和length属性的enumerable都是false，
-    因此for...in不会遍历到这两个继承自原型的属性。
-</code></pre><p><strong>ES6 规定，所有 Class 的原型的方法都是不可枚举的</strong></p>
-<p>Object.getOwnPropertyDescriptor(class {foo() {}}.prototype, ‘foo’).enumerable<br>// false<br>总的来说，操作中引入继承的属性会让问题复杂化，大多数时候，我们只关心对象自身的属性。所以，尽量不要用for…in循环，而用Object.keys()代替。</p>
-<h2 id="属性的遍历"><a href="#属性的遍历" class="headerlink" title="属性的遍历"></a>属性的遍历</h2><h3 id="五种遍历对象的属性的方法"><a href="#五种遍历对象的属性的方法" class="headerlink" title="五种遍历对象的属性的方法"></a>五种遍历对象的属性的方法</h3><p>ES6 一共有 5 种方法可以遍历对象的属性。</p>
-<h4 id="for…in"><a href="#for…in" class="headerlink" title="for…in"></a>for…in</h4><p>for…in循环遍历<strong>对象自身</strong>的和<strong>继承</strong>的<strong>可枚举属性</strong>（不含 Symbol 属性）。</p>
-<h4 id="Object-keys-obj"><a href="#Object-keys-obj" class="headerlink" title="Object.keys(obj)"></a>Object.keys(obj)</h4><p>Object.keys返回一个数组，包括<strong>对象自身</strong>的（不含继承的）所有<strong>可枚举</strong>属性（不含 Symbol 属性）的键名。</p>
-<h4 id="Object-getOwnPropertyNames-obj"><a href="#Object-getOwnPropertyNames-obj" class="headerlink" title="Object.getOwnPropertyNames(obj)"></a>Object.getOwnPropertyNames(obj)</h4><p>Object.getOwnPropertyNames返回一个数组，包含<strong>对象自身</strong>的所有属性（不含 Symbol 属性，但是包括不可枚举属性）的键名。</p>
-<h4 id="Object-getOwnPropertySymbols-obj"><a href="#Object-getOwnPropertySymbols-obj" class="headerlink" title="Object.getOwnPropertySymbols(obj)"></a>Object.getOwnPropertySymbols(obj)</h4><p>Object.getOwnPropertySymbols返回一个数组，包含<strong>对象自身</strong>的所有 <strong>Symbol</strong> 属性的键名。</p>
-<h4 id="Reflect-ownKeys-obj"><a href="#Reflect-ownKeys-obj" class="headerlink" title="Reflect.ownKeys(obj)"></a>Reflect.ownKeys(obj)</h4><p>Reflect.ownKeys返回一个数组，包含<strong>对象自身</strong>的所有键名，不管键名是 <strong>Symbol</strong> 或字符串，也不管是否可枚举。</p>
-<h3 id="属性遍历次序规则"><a href="#属性遍历次序规则" class="headerlink" title="属性遍历次序规则"></a>属性遍历次序规则</h3><p>以上的 5 种方法遍历对象的键名，都遵守同样的属性遍历次序规则。</p>
-<ul>
-<li>所有数值键，按照数值升序排列。</li>
-<li>所有字符串键，按照加入时间升序排列。</li>
-<li>所有 Symbol 键，按照加入时间升序排列。</li>
-</ul>
-<p>实例：</p>
-<pre><code>Reflect.ownKeys({ [Symbol()]:0, b:0, 10:0, 2:0, a:0 })
-// [&apos;2&apos;, &apos;10&apos;, &apos;b&apos;, &apos;a&apos;, Symbol()]
-上面代码中，Reflect.ownKeys方法返回一个数组，包含了参数对象的所有属性。这个数组的属性次序是这样的，首先是数值属性2和10，其次是字符串属性b和a，最后是 Symbol 属性。
-</code></pre><h1 id="方法的-name-属性"><a href="#方法的-name-属性" class="headerlink" title="方法的 name 属性"></a>方法的 name 属性</h1><p>对象方法也是函数，因此也有name属性，<strong>返回函数名</strong></p>
-<ul>
-<li>对象的方法使用了取值函数(getter)和存值函数(setter)，<ul>
-<li>name属性不在该方法上面</li>
-<li>在该方法的属性的描述对象的get和set属性上面</li>
-<li>返回值是方法名前加上get和set</li>
-</ul>
-</li>
-<li><p>两种特殊情况</p>
-<ul>
-<li>bind方法创造的函数<ul>
-<li>name属性返回bound加上原函数的名字；</li>
-</ul>
-</li>
-<li><p>Function构造函数创造的函数</p>
-<ul>
-<li>name属性返回anonymous<br>实例</li>
-</ul>
-<p>onst obj = {<br>get foo() {},<br>set foo(x) {}<br>};</p>
-<p>obj.foo.name<br>// TypeError: Cannot read property ‘name’ of undefined</p>
-<p>const descriptor = Object.getOwnPropertyDescriptor(obj, ‘foo’);<br>descriptor.get.name // “get foo”<br>descriptor.set.name // “set foo”</p>
-<p>(new Function()).name // “anonymous”</p>
-<p>var doSomething = function() {<br>// …<br>};<br>doSomething.bind().name // “bound doSomething”</p>
-</li>
-</ul>
-</li>
-</ul>
-<h1 id="Object-is"><a href="#Object-is" class="headerlink" title="Object.is()"></a>Object.is()</h1><p><strong>是否严格相等</strong></p>
-<p>比较两个值是否相等三种方法：</p>
-<ul>
-<li>相等运算符（==）<ul>
-<li>缺点：<ul>
-<li><strong>自动转换数据类型</strong></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>严格相等运算符（===）<ul>
-<li>缺点：<ul>
-<li>NaN不等于自身</li>
-<li>+0等于-0</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>is()<br>  -ES6 提出<ul>
-<li>“Same-value equality”（同值相等)算法</li>
-<li>两个值是否<strong>严格相等</strong><ul>
-<li>解决了严格比较运算符（===）的两个缺点</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h1 id="Object-assign"><a href="#Object-assign" class="headerlink" title="Object.assign()"></a>Object.assign()</h1><h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><p><strong>合并对象，将源对象的所有可枚举属性，复制到目标对象</strong></p>
-<pre><code>Object.assign(target, ... source)
-</code></pre><ul>
-<li><strong>浅拷贝</strong></li>
-<li><strong>属性覆盖</strong> 后面的属性会覆盖前面的属性<ul>
-<li>目标对象与源对象有同名属性</li>
-<li>多个源对象有同名属性</li>
-</ul>
-</li>
-<li>只有一个参数<ul>
-<li>直接返回该参数</li>
-</ul>
-</li>
-<li>参数不是对象，自动转成对象<ul>
-<li>非首参(源对象)<ul>
-<li>数值和布尔值，无效果<ul>
-<li>包装对象不产生可枚举属性</li>
-</ul>
-</li>
-<li>字符串，以数组形式拷入目标对象(属性名为元素索引)<ul>
-<li>包装对象产生可枚举属性</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>undefined和null无法转成对象<ul>
-<li>首参，会报错</li>
-<li>非首参，跳过</li>
-</ul>
-</li>
-<li><p>取值函数的处理</p>
-<ul>
-<li><p>求值后复制值<br>实例</p>
-<p>const target = { a: 1, b: 1 };<br>const source1 = { b: 2, c: 2 };<br>const source2 = { c: 3 };<br>Object.assign(target, source1, source2);<br>target // {a:1, b:2, c:3}</p>
-<p>const obj = {a: 1};<br>Object.assign(obj) === obj // true</p>
-<p>Object.assign(undefined) // 报错<br>let obj = {a: 1};<br>Object.assign(obj, undefined) === obj // true</p>
-</li>
-</ul>
-</li>
-</ul>
-<p>实例：字符串的处理，转为数组对象</p>
-<pre><code>const v1 = &apos;abc&apos;;
-const v2 = true;
-const v3 = 10;
-const obj = Object.assign({}, v1, v2, v3);
-console.log(obj); // { &quot;0&quot;: &quot;a&quot;, &quot;1&quot;: &quot;b&quot;, &quot;2&quot;: &quot;c&quot; }
-</code></pre><p>实例：数组对象的处理</p>
-<pre><code>Object.assign([1, 2, 3], [4, 5])
-// [4, 5, 3]
-    把数组视为属性名为 0、1、2 的对象
-    因此源数组的 0 号属性4覆盖了目标数组的 0 号属性1
-</code></pre><p>实例：取值函数的处理</p>
-<pre><code>const source = {
-  get foo() { return 1 }
-};
-const target = {};
-Object.assign(target, source)
-// { foo: 1 }
-</code></pre><h2 id="常见用途"><a href="#常见用途" class="headerlink" title="常见用途"></a>常见用途</h2><h3 id="合并对象-克隆对象"><a href="#合并对象-克隆对象" class="headerlink" title="合并对象/克隆对象"></a>合并对象/克隆对象</h3><h3 id="为对象添加属性"><a href="#为对象添加属性" class="headerlink" title="为对象添加属性"></a>为对象添加属性</h3><p>将x属性和y属性添加到Point类的对象实例</p>
-<p>class Point {<br>  constructor(x, y) {<br>    Object.assign(this, {x, y});<br>  }<br>}</p>
-<h3 id="为对象添加方法"><a href="#为对象添加方法" class="headerlink" title="为对象添加方法"></a>为对象添加方法</h3><pre><code>Object.assign(SomeClass.prototype, {
-  someMethod(arg1, arg2) {
-    ···
-  },
-  anotherMethod() {
-    ···
-  }
-});
-
-// 等同于下面的写法
-SomeClass.prototype.someMethod = function (arg1, arg2) {
-  ···
-};
-SomeClass.prototype.anotherMethod = function () {
-  ···
-};
-</code></pre><h3 id="为属性指定默认值"><a href="#为属性指定默认值" class="headerlink" title="为属性指定默认值"></a>为属性指定默认值</h3><p>EFAULTS对象是默认值，options对象是用户提供的参数</p>
-<p>Object.assign方法将DEFAULTS和options合并成一个新对象，如果两者有同名属性，则option的属性值会覆盖DEFAULTS的属性值</p>
-<pre><code>const DEFAULTS = {
-  logLevel: 0,
-  outputFormat: &apos;html&apos;
-};
-function processContent(options) {
-  options = Object.assign({}, DEFAULTS, options);
-  console.log(options);
-  // ...
-}
-</code></pre><h1 id="对象的扩展运算符"><a href="#对象的扩展运算符" class="headerlink" title="对象的扩展运算符"></a>对象的扩展运算符</h1><p>扩展运算符（<code>...</code>）</p>
-<h2 id="解构赋值"><a href="#解构赋值" class="headerlink" title="解构赋值"></a>解构赋值</h2><p><strong>解构赋值必须是最后一个参数</strong>，否则会报错。</p>
-<pre><code>let { x, y, ...z } = { x: 1, y: 2, a: 3, b: 4 };
-x // 1
-y // 2
-z // { a: 3, b: 4 }
-</code></pre><p><strong>变量声明</strong>语句之中，如果使用<strong>解构赋值</strong>，<strong>扩展运算符</strong>后面必须是一个<strong>变量</strong>名，而不能是一个解构赋值表达式</p>
-<p><strong>扩展运算符的解构赋值，只能复制对象自身的属性</strong>。 继承的属性无法复制</p>
-<pre><code>const o = Object.create({ x: 1, y: 2 });
-o.z = 3;
-let { x, ...newObj } = o;//这里的扩展运算符后只能是变量，所以引入了中间变量newObj
-let { y, z } = newObj;
-x // 1
-y // undefined
-z // 3
-
-变量x是单纯的解构赋值，所以可以读取对象o继承的属性；
-变量y和z是扩展运算符的解构赋值，只能读取对象o自身的属性
-    所以变量z可以赋值成功，变量y取不到值
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/31/JS/ES6-Promise对象/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/31/JS/ES6-Promise对象/" itemprop="url">ES6-Promise对象</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-31T15:39:20+08:00">
-                2018-07-31
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Promise-的含义"><a href="#Promise-的含义" class="headerlink" title="Promise 的含义"></a>Promise 的含义</h1><h2 id="Promise"><a href="#Promise" class="headerlink" title="Promise"></a>Promise</h2><ul>
-<li>Promise 是异步编程的一种解决方案</li>
-<li>比传统的解决方案——回调函数和事件——更合理和更强大。</li>
-<li>它由社区最早提出和实现，ES6 将其写进了语言标准，统一了用法，原生提供了Promise对象</li>
-</ul>
-<h2 id="Promise对象"><a href="#Promise对象" class="headerlink" title="Promise对象"></a>Promise对象</h2><h3 id="两个特点"><a href="#两个特点" class="headerlink" title="两个特点"></a>两个特点</h3><ul>
-<li><p>状态不受外界影响。Promise对象代表一个异步操作，</p>
-<ul>
-<li>有三种状态：<ul>
-<li>pending（进行中）</li>
-<li>fulfilled（已成功）</li>
-<li>rejected（已失败）。</li>
-</ul>
-</li>
-<li>只有异步操作的结果，可以决定当前是哪一种状态，任何其他操作都无法改变这个状态。<ul>
-<li>这也是Promise这个名字的由来</li>
-<li>它的英语意思就是“承诺”，表示其他手段无法改变。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>一旦状态改变，就<strong>不会再变</strong>，<strong>任何时候</strong>都可以得到这个结果。</p>
-<ul>
-<li>Promise对象的状态一旦变为fulfilled或rejected，状态就凝固了，这时就称为 resolved（已定型）。</li>
-<li>如果改变已经发生了，你再对Promise对象添加回调函数，也会立即得到这个结果。<ul>
-<li>这与事件（Event）完全不同，事件的特点是，如果你错过了它，再去监听，是得不到结果的。</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><ul>
-<li>将异步操作以同步操作的流程表达出来，避免了层层嵌套的回调函数。</li>
-<li>提供统一的接口，使得控制异步操作更加容易</li>
-</ul>
-<h3 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h3><ul>
-<li><strong>一旦新建立即执行，无法取消</strong></li>
-<li>如果不设置回调函数，Promise内部抛出的错误，不会反应到外部。</li>
-<li>当处于pending状态时，无法得知目前进展到哪一个阶段（刚刚开始还是即将完成）。</li>
-</ul>
-<p>如果某些<strong>事件不断地反复发生</strong>，一般来说，<strong>使用 Stream 模式</strong>是比部署Promise更好的选择。</p>
-<h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><h2 id="创建实例"><a href="#创建实例" class="headerlink" title="创建实例"></a>创建实例</h2><p>Promise构造函数接受一个函数作为参数，该函数的两个参数分别是resolve和reject两个函数，由 JavaScript 引擎提供，不用自己部署。</p>
-<pre><code>const promise = new Promise(function(resolve, reject) {
-  // ... some code
-
-  if (/* 异步操作成功 */){
-    resolve(value);
-  } else {
-    reject(error);
-  }
-});
-</code></pre><h2 id="then-设置回调"><a href="#then-设置回调" class="headerlink" title="then()设置回调"></a>then()设置回调</h2><p>Promise实例生成以后，可以用then方法分别指定resolved状态和rejected状态的回调函数(第二个参数可选)。    </p>
-<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>实例：异步加载图片</p>
-<pre><code>function loadImageAsync(url) {
-  return new Promise(function(resolve, reject) {
-    const image = new Image();
-
-    image.onload = function() {
-      resolve(image);
-    };
-
-    image.onerror = function() {
-      reject(new Error(&apos;Could not load image at &apos; + url));
-    };
-
-    image.src = url;
-  });
-}
-
-loadImageAsync(&apos;http://www.baidu.com&apos;).then(function(image) {
-  console.log(&apos;resolved&apos;);
-}, function(error) {
-  console.error(&apos;出错了&apos;, error);
-});
-</code></pre><p>实例：Ajax 操作</p>
-<pre><code>const getJSON = function(url) {
-  const promise = new Promise(function(resolve, reject){
-    const handler = function() {
-      if (this.readyState !== 4) {
-        return;
-      }
-      if (this.status === 200) {
-        resolve(this.response);
-      } else {
-        reject(new Error(this.statusText));
-      }
-    };
-    const client = new XMLHttpRequest();
-    client.open(&quot;GET&quot;, url);
-    client.onreadystatechange = handler;
-    client.responseType = &quot;json&quot;;
-    client.setRequestHeader(&quot;Accept&quot;, &quot;application/json&quot;);
-    client.send();
-
-  });
-
-  return promise;
-};
-
-getJSON(&quot;/posts.json&quot;).then(function(json) {
-  console.log(&apos;Contents: &apos; + json);
-}, function(error) {
-  console.error(&apos;出错了&apos;, error);
-});
-</code></pre><h2 id="回调函数顺序"><a href="#回调函数顺序" class="headerlink" title="回调函数顺序"></a>回调函数顺序</h2><ul>
-<li>创建实例指定的回调函数<ul>
-<li>函数中调用resolve或reject并不会终结回调函数的执行</li>
-</ul>
-</li>
-<li>当前脚本所有同步任务</li>
-<li>then()指定的状态回调函数<ul>
-<li>立即 resolved 的 Promise 也要在本轮事件循环的末尾执行(JS是事件循环驱动)</li>
-</ul>
-</li>
-</ul>
-<p>实例：</p>
-<pre><code>let promise = new Promise(function(resolve, reject) {
-  console.log(&apos;Promise&apos;);
-  resolve();
-});
-
-promise.then(function() {
-  console.log(&apos;resolved.&apos;);
-});
-
-console.log(&apos;Hi!&apos;);
-
-// Promise
-// Hi!
-// resolved
-Promise 新建后立即执行，所以首先输出的是Promise。然后，then方法指定的回调函数，将在当前脚本所有同步任务执行完才会执行，所以resolved最后输出。
-</code></pre><p>实例：</p>
-<pre><code>new Promise((resolve, reject) =&gt; {
-  resolve(1);
-  console.log(2);//还是会执行，并且会首先打印出来。，then方法指定的回调函数，将在当前脚本所有同步任务执行完才会执行
-}).then(r =&gt; {
-  console.log(r);
-});
-// 2
-// 1
-</code></pre><p>一般来说，调用resolve或reject以后，Promise 的使命就完成了，后继操作应该放到then方法里面，而不应该直接写在resolve或reject的后面。所以，最好在它们前面加上return语句，这样就不会有意外。</p>
-<pre><code>new Promise((resolve, reject) =&gt; {
-  return resolve(1);
-  // 后面的语句不会执行
-  console.log(2);
-})
-</code></pre><h1 id="then"><a href="#then" class="headerlink" title="then()"></a>then()</h1><h2 id="链式调用"><a href="#链式调用" class="headerlink" title="链式调用"></a>链式调用</h2><p>then方法返回的是一个新的Promise实例（注意，不是原来那个Promise实例）。因此可以采用链式写法，即then方法后面再调用另一个then方法</p>
-<pre><code>getJSON(&quot;/posts.json&quot;).then(function(json) {
-  return json.post;
-}).then(function(post) {
-  // ...
-});
-</code></pre><h2 id="异步结果是另一个异步操作"><a href="#异步结果是另一个异步操作" class="headerlink" title="异步结果是另一个异步操作"></a>异步结果是另一个异步操作</h2><p>非链式调用</p>
-<pre><code>const p1 = new Promise(function (resolve, reject) {
-  // ...
-});
-
-const p2 = new Promise(function (resolve, reject) {
-  // ...
-  resolve(p1);
-})
-</code></pre><p>p1的状态就会传递给p2，也就是说，p1的状态决定了p2的状态</p>
-<p>链式调用：访问一个url获取新url，访问新url获取结果</p>
-<pre><code>getJSON(&quot;/post/1.json&quot;).then(function(post) {
-  return getJSON(post.commentURL);
-}).then(function funcA(comments) {
-  console.log(&quot;resolved: &quot;, comments);
-}, function funcB(err){
-  console.log(&quot;rejected: &quot;, err);
-});
-</code></pre><p>采用箭头函数，上面的代码可以写得更简洁。</p>
-<pre><code>getJSON(&quot;/post/1.json&quot;).then(
-  post =&gt; getJSON(post.commentURL)
-).then(
-  comments =&gt; console.log(&quot;resolved: &quot;, comments),
-  err =&gt; console.log(&quot;rejected: &quot;, err)
-);
-</code></pre><h1 id="catch"><a href="#catch" class="headerlink" title="catch()"></a>catch()</h1><p>catch()是then(null, rejection)的别名，用于指定发生错误时的回调函数。</p>
-<p>一般来说，不要在then方法里面定义 Reject 状态的回调函数（即then的第二个参数），总是使用catch方法。</p>
-<pre><code>getJSON(&apos;/posts.json&apos;).then(function(posts) {
-  // ...
-}).catch(function(error) {
-  // 处理 getJSON 和 then()指定的回调函数运行时发生的错误
-  console.log(&apos;发生错误！&apos;, error);
-});
-</code></pre><h1 id="finally"><a href="#finally" class="headerlink" title="finally()"></a>finally()</h1><p>用于指定不管 Promise 对象最后状态如何，都会执行的操作。该方法是 ES2018 引入标准的。</p>
-<h1 id="resolve"><a href="#resolve" class="headerlink" title="resolve()"></a>resolve()</h1><p><strong>返回一个resolved状态的 Promise 对象</strong></p>
-<pre><code>Promise.resolve(&apos;foo&apos;)
-// 等价于
-new Promise(resolve =&gt; resolve(&apos;foo&apos;))
-</code></pre><p>resolve()的参数分成四种情况</p>
-<h2 id="参数是-Promise-实例"><a href="#参数是-Promise-实例" class="headerlink" title="参数是 Promise 实例"></a>参数是 Promise 实例</h2><p>不做任何修改、原封不动地返回这个实例。</p>
-<h2 id="参数是thenable对象"><a href="#参数是thenable对象" class="headerlink" title="参数是thenable对象"></a>参数是thenable对象</h2><p>thenable对象指的是<strong>具有then方法的对象</strong></p>
-<p>将这个对象转为 Promise 对象，然后就立即执行thenable对象的then方法。then方法一般会将状态置为resolved</p>
-<pre><code>let thenable = {
-  then: function(resolve, reject) {
-    resolve(42);
-  }
-};
-
-let p1 = Promise.resolve(thenable);
-//thenable对象的then方法执行后，对象p1的状态就变为resolved，从而立即执行下面then方法指定的回调函数，输出 42。
-p1.then(function(value) {
-  console.log(value);  // 42
-});
-</code></pre><h2 id="参数不是thenable对象，或根本不是对象"><a href="#参数不是thenable对象，或根本不是对象" class="headerlink" title="参数不是thenable对象，或根本不是对象"></a>参数不是thenable对象，或根本不是对象</h2><p>返回一个resolved状态的 Promise 对象。</p>
-<pre><code>const p = Promise.resolve(&apos;Hello&apos;);
-p.then(function (s){
-  console.log(s)
-});
-// Hello
-</code></pre><h2 id="不带有任何参数"><a href="#不带有任何参数" class="headerlink" title="不带有任何参数"></a>不带有任何参数</h2><p>返回一个resolved状态的 Promise 对象。</p>
-<pre><code>const p = Promise.resolve();
-p.then(function () {
-  // ...
-});
-</code></pre><h1 id="reject"><a href="#reject" class="headerlink" title="reject()"></a>reject()</h1><p><strong>返回一个rejected状态的 Promise 对象</strong></p>
-<pre><code>const p = Promise.reject(&apos;出错了&apos;);
-// 等同于
-const p = new Promise((resolve, reject) =&gt; reject(&apos;出错了&apos;))
-</code></pre><p><strong>注意：Promise.reject()方法的参数，会原封不动地作为reject的理由，变成后续方法的参数。这一点与Promise.resolve方法不一致</strong></p>
-<pre><code>const thenable = {
-  then(resolve, reject) {
-    reject(&apos;出错了&apos;);
-  }
-};
-
-Promise.reject(thenable)
-.catch(e =&gt; {
-  console.log(e === thenable)
-})
-// true
-
-Promise.reject方法的参数是一个thenable对象，执行以后，后面catch方法的参数不是reject抛出的“出错了”这个字符串，而是thenable对象。
-</code></pre><h1 id="all"><a href="#all" class="headerlink" title="all()"></a>all()</h1><p>将多个 Promise 实例，包装成一个新Promise实例。</p>
-<pre><code>const p = Promise.all([p1, p2, p3]);
-</code></pre><h2 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h2><h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><p>所有数组元素会被 Promise.resolve() 转为Promise 实例</p>
-<h3 id="对象：有Iterator接口且成员都是Promise实例"><a href="#对象：有Iterator接口且成员都是Promise实例" class="headerlink" title="对象：有Iterator接口且成员都是Promise实例"></a>对象：有Iterator接口且成员都是Promise实例</h3><h2 id="新Promise实例状态回调"><a href="#新Promise实例状态回调" class="headerlink" title="新Promise实例状态回调"></a>新Promise实例状态回调</h2><p>p的状态由p1、p2、p3决定，分成两种情况。</p>
-<ul>
-<li>p1、p2、p3的状态都变成fulfilled，p的状态才会变成fulfilled<ul>
-<li>此时p1、p2、p3的返回值组成一个数组，传递给p的回调函数</li>
-</ul>
-</li>
-<li>p1、p2、p3之中有一个被rejected，p的状态就变成rejected<ul>
-<li>此时第一个被reject的实例的返回值，会传递给p的回调函数。</li>
-</ul>
-</li>
-</ul>
-<p>如果作为参数的 Promise 实例，自己定义了catch方法，那么它一旦被rejected，并不会触发Promise.all()的catch方法</p>
-<pre><code>const p1 = new Promise((resolve, reject) =&gt; {
-  resolve(&apos;hello&apos;);
-})
-.then(result =&gt; result)
-.catch(e =&gt; e);
-
-const p2 = new Promise((resolve, reject) =&gt; {
-  throw new Error(&apos;报错了&apos;);
-})
-.then(result =&gt; result)
-.catch(e =&gt; e);
-
-Promise.all([p1, p2])
-.then(result =&gt; console.log(result))
-.catch(e =&gt; console.log(e));
-// [&quot;hello&quot;, Error: 报错了]
-
-p2首先会rejected
-但是p2有自己的catch方法，该方法返回的是一个新的 Promise 实例，p2指向的实际上是这个实例。
-该实例执行完catch方法后，也会变成resolved，导致Promise.all()方法参数里面的两个实例都会resolved
-因此会调用then方法指定的回调函数，而不会调用catch方法指定的回调函数。
-</code></pre><h1 id="race"><a href="#race" class="headerlink" title="race()"></a>race()</h1><p>将多个 Promise 实例，包装成一个新Promise实例。</p>
-<p>跟 all()很相似。<strong>最大的区别就是新Promise实例状态回调不同</strong></p>
-<pre><code>const p = Promise.race([p1, p2, p3]);
-</code></pre><p>只要p1、p2、p3之中有一个实例率先改变状态，p的状态就跟着改变。那个率先改变的 Promise 实例的返回值，传递给p的回调函数。</p>
-<h1 id="try"><a href="#try" class="headerlink" title="try()"></a>try()</h1><p><strong>为同步操作和异步操作提供了统一的处理机制，而且能统一处理同步异常和异步异常</strong></p>
-<pre><code>const f = () =&gt; console.log(&apos;now&apos;);
-Promise.try(f);
-console.log(&apos;next&apos;);
-// now
-// next
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/31/JS/ES6-函数的扩展/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/31/JS/ES6-函数的扩展/" itemprop="url">ES6-函数的扩展</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-31T10:39:20+08:00">
-                2018-07-31
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="函数参数的默认值"><a href="#函数参数的默认值" class="headerlink" title="函数参数的默认值"></a>函数参数的默认值</h1><p>ES6 允许为函数的参数设置默认值，即直接写在参数定义的后面。</p>
-<pre><code>function log(x, y = &apos;World&apos;) {
-  console.log(x, y);
-}
-
-log(&apos;Hello&apos;) // Hello World
-log(&apos;Hello&apos;, &apos;China&apos;) // Hello China
-log(&apos;Hello&apos;, &apos;&apos;) // Hello
-</code></pre><p>使用参数默认值时，函数不能有同名参数</p>
-<pre><code>// 不报错
-function foo(x, x, y) {
-  // ...
-}
-
-// 报错
-function foo(x, x, y = 1) {
-  // ...
-}
-// SyntaxError: Duplicate parameter name not allowed in this context
-</code></pre><p>参数默认值是惰性求值的</p>
-<pre><code>let x = 99;
-function foo(p = x + 1) {
-  console.log(p);
-}
-
-foo() // 100
-
-x = 100;
-foo() // 101
-</code></pre><h2 id="参数默认值的位置"><a href="#参数默认值的位置" class="headerlink" title="参数默认值的位置"></a>参数默认值的位置</h2><ul>
-<li>函数的尾参数有默认值，可以省略</li>
-<li>其他位置，不能省略。显式输入undefined</li>
-</ul>
-<p>示例</p>
-<p>// 例一<br>function f(x = 1, y) {<br>  return [x, y];<br>}</p>
-<pre><code>f() // [1, undefined]
-f(2) // [2, undefined])
-f(, 1) // 报错
-f(undefined, 1) // [1, 1]
-</code></pre><h2 id="函数的-length-属性"><a href="#函数的-length-属性" class="headerlink" title="函数的 length 属性"></a>函数的 length 属性</h2><p>指定了默认值以后，函数的length属性，将返回没有指定默认值的参数个数。也就是说，指定了默认值后，length属性将失真。</p>
-<h2 id="作用域"><a href="#作用域" class="headerlink" title="作用域"></a>作用域</h2><p>一旦设置了参数的<strong>默认值</strong>，函数进行声明<strong>初始化</strong>时，参数会形成一个<strong>单独的作用域</strong>（context）。等到初始化结束，这个作用域就会消失。这种语法行为，在不设置参数默认值时，是不会出现的。</p>
-<pre><code>var x = 1;
-function f(x, y = x) {
-  console.log(y);
-}
-f(2) // 2
-调用函数f时，参数形成一个单独的作用域。
-在这个作用域里面，默认值变量x指向第一个参数x，而不是全局变量x，所以输出是2。
-
-let x = 1;
-function f(y = x) {
-  let x = 2;
-  console.log(y);
-}
-f() // 1
-
-function f(y = x) {
-  let x = 2;
-  console.log(y);
-}
-f() // ReferenceError: x is not defined
-</code></pre><p>如果参数的默认值是一个函数，该函数的作用域也遵守这个规则</p>
-<pre><code>let foo = &apos;outer&apos;;
-
-function bar(func = () =&gt; foo) {
-  let foo = &apos;inner&apos;;
-  console.log(func());
-}
-
-bar(); // outer
-</code></pre><h2 id="指定参数是否可以省略"><a href="#指定参数是否可以省略" class="headerlink" title="指定参数是否可以省略"></a>指定参数是否可以省略</h2><p>不得省略，如果省略就抛出一个错误</p>
-<pre><code>function throwIfMissing() {
-  throw new Error(&apos;Missing parameter&apos;);
-}
-
-function foo(mustBeProvided = throwIfMissing()) {
-  return mustBeProvided;
-}
-
-foo()
-// Error: Missing parameter
-
-参数mustBeProvided的默认值等于throwIfMissing函数的运行结果（注意函数名throwIfMissing之后有一对圆括号），这表明参数的默认值不是在定义时执行，而是在运行时执行。
-</code></pre><p>将参数默认值设为undefined，表明这个参数是可以省略的。</p>
-<pre><code>function foo(optional = undefined) { ··· }
-</code></pre><h1 id="rest-参数"><a href="#rest-参数" class="headerlink" title="rest 参数"></a>rest 参数</h1><ul>
-<li>形式为 <code>...变量名</code><ul>
-<li>用于获取函数的多余参数，这样就不需要使用arguments对象了。</li>
-<li>是一个数组<ul>
-<li>arguments对象不是数组，而是一个类似数组的对象。</li>
-<li>所以为了使用数组的方法，必须使用Array.prototype.slice.call先将其转为数组。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>只能是最后一个参数</li>
-<li>函数的length属性，不包括 rest 参数</li>
-</ul>
-<p>实例</p>
-<pre><code>function add(...values) {
-  let sum = 0;
-  for (var val of values) {
-    sum += val;
-  }
-  return sum;
-}
-
-add(2, 5, 3) // 10
-</code></pre><p>实例：rest 参数代替arguments变量</p>
-<pre><code>// arguments变量的写法
-function sortNumbers() {
-  return Array.prototype.slice.call(arguments).sort();
-}
-
-// rest参数的写法
-const sortNumbers = (...numbers) =&gt; numbers.sort();
-</code></pre><h1 id="严格模式"><a href="#严格模式" class="headerlink" title="严格模式"></a>严格模式</h1><p>从 ES5 开始，函数内部可以设定为严格模式。</p>
-<p>ES2016 规定只要函数参数使用了默认值、解构赋值、或者扩展运算符，那么函数内部就不能显式设定为严格模式，否则会报错。</p>
-<ul>
-<li>函数内部的严格模式，同时适用于函数体和函数参数。</li>
-<li>函数先执行函数参数，再执行函数体。</li>
-<li>这就有一个不合理的地方，只有从函数体之中，才能知道参数是否应该以严格模式执行，但是参数却应该先于函数体执行</li>
-</ul>
-<p>两种方法可以规避这种限制</p>
-<ul>
-<li>设定全局性的严格模式</li>
-<li>把函数包在一个无参数的立即执行函数里面</li>
-</ul>
-<p>代码</p>
-<pre><code>&apos;use strict&apos;;
-function doSomething(a, b = a) {
-  // code
-}
-
-const doSomething = (function () {
-  &apos;use strict&apos;;
-  return function(value = 42) {
-    return value;
-  };
-}());
-</code></pre><h1 id="name-属性"><a href="#name-属性" class="headerlink" title="name 属性"></a>name 属性</h1><p>函数的name属性，返回该函数的函数名</p>
-<p>将一个匿名函数赋值给一个变量，ES5 的name属性，会返回空字符串，而 ES6 的name属性会返回实际的函数名。</p>
-<pre><code>var f = function () {};
-
-// ES5
-f.name // &quot;&quot;
-
-// ES6
-f.name // &quot;f&quot;
-</code></pre><h1 id="箭头函数"><a href="#箭头函数" class="headerlink" title="箭头函数"></a>箭头函数</h1><h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><p>ES6 允许使用“箭头”（=&gt;）定义函数</p>
-<pre><code>(参数)=&gt;{代码行;
-        return 返回值;}
-</code></pre><ul>
-<li>省略 function 关键字</li>
-<li>如果参数个数=1，省略小括号</li>
-<li>如果函数体代码行=1，省略大括号和return</li>
-<li>参数支持变量解构</li>
-<li>如果箭头函数<strong>返回对象</strong>，必须在<strong>对象外面加上括号</strong>，否则会报错<ul>
-<li>因为 大括号被解释为代码块</li>
-</ul>
-</li>
-</ul>
-<p>实例</p>
-<pre><code>var sum = (num1, num2) =&gt; { return num1 + num2; }
-
-var f = v =&gt; v;
-// 等同于
-var f = function (v) {
-  return v;
-};
-
-var f = () =&gt; 5;
-// 等同于
-var f = function () { return 5 };
-
-var sum = (num1, num2) =&gt; num1 + num2;
-// 等同于
-var sum = function(num1, num2) {
-  return num1 + num2;
-};
-
-const full = ({ first, last }) =&gt; first + &apos; &apos; + last;
-// 等同于
-function full(person) {
-  return person.first + &apos; &apos; + person.last;
-}
-
-//返回对象，在对象外面加上括号
-let getTempItem = id =&gt; ({ id: id, name: &quot;Temp&quot; });
-
-let foo = () =&gt; { a: 1 };
-foo() // undefined
-始意图是返回一个对象{ a: 1 }，但是由于引擎认为大括号是代码块，所以执行了一行语句a: 1。这时，a被解释为语句的标签，因此实际执行的语句是1;，然后函数就结束了，没有返回值
-</code></pre><p>实例：rest 参数与箭头函数结合</p>
-<pre><code>const numbers = (...nums) =&gt; nums;
-numbers(1, 2, 3, 4, 5)
-// [1,2,3,4,5]
-
-const headAndTail = (head, ...tail) =&gt; [head, tail];
-headAndTail(1, 2, 3, 4, 5)
-// [1,[2,3,4,5]]
-</code></pre><h2 id="注意点"><a href="#注意点" class="headerlink" title="注意点"></a>注意点</h2><ul>
-<li>函数体内的<strong>this对象指向不可变</strong><ul>
-<li>就是<strong>定义时所在的对象</strong>，而不是使用时所在的对象。<ul>
-<li>箭头函数根本没有自己的this，导致内部的this就是外层代码块的this。正是因为它没有this，所以也就不能用作构造函数</li>
-<li>箭头函数可以绑定this对象，大大减少了显式绑定this对象的写法（call、apply、bind）</li>
-</ul>
-</li>
-<li>有<strong>利于封装回调函数</strong></li>
-</ul>
-</li>
-<li>不可以当作构造函数<ul>
-<li>不可以使用new命令，否则会抛出一个错误。</li>
-</ul>
-</li>
-<li>不可以使用arguments对象<ul>
-<li>该对象在函数体内不存在。如果要用，可以用 rest 参数代替。</li>
-</ul>
-</li>
-<li>不可以使用yield命令，因此箭头函数不能用作 Generator 函数。</li>
-</ul>
-<p>箭头函数转成 ES5 的代码如下，转换后的 ES5 版本清楚地说明了，箭头函数里面根本没有自己的this，而是引用外层的this</p>
-<pre><code>// ES6
-function foo() {
-  setTimeout(() =&gt; {
-    console.log(&apos;id:&apos;, this.id);
-  }, 100);
-}
-
-// ES5
-function foo() {
-  var _this = this;
-  setTimeout(function () {
-    console.log(&apos;id:&apos;, _this.id);
-  }, 100);
-}
-</code></pre><h2 id="箭头函数嵌套"><a href="#箭头函数嵌套" class="headerlink" title="箭头函数嵌套"></a>箭头函数嵌套</h2><h1 id="函数绑定”（function-bind）运算符"><a href="#函数绑定”（function-bind）运算符" class="headerlink" title="函数绑定”（function bind）运算符"></a>函数绑定”（function bind）运算符</h1><p>将对象绑定到函数上面</p>
-<ul>
-<li>两个冒号（::） <code>对象::函数</code><ul>
-<li>对象为空，将方法绑定在该对象上</li>
-<li>运算结果为对象，可以采用链式写法</li>
-</ul>
-</li>
-<li>用来取代call、apply、bind调用</li>
-</ul>
-<p>实例：</p>
-<pre><code>foo::bar;
-// 等同于
-bar.bind(foo);
-
-let log = ::console.log;
-// 等同于
-var log = console.log.bind(console);
-
-import { map, takeWhile, forEach } from &quot;iterlib&quot;;
-getPlayers()
-::map(x =&gt; x.character())
-::takeWhile(x =&gt; x.strength &gt; 100)
-::forEach(x =&gt; console.log(x));
-</code></pre><h1 id="尾调用优化"><a href="#尾调用优化" class="headerlink" title="尾调用优化"></a>尾调用优化</h1><h2 id="尾调用-Tail-Call"><a href="#尾调用-Tail-Call" class="headerlink" title="尾调用(Tail Call)"></a>尾调用(Tail Call)</h2><ul>
-<li>函数式编程的一个重要概念，</li>
-<li>某个函数的最后一步是调用另一个函数</li>
-</ul>
-<p>实例：</p>
-<pre><code>//尾调用
-function f(x){
-  return g(x);
-}
-
-//函数m和n都属于尾调用
-function f(x) {
-  if (x &gt; 0) {
-    return m(x)
-  }
-  return n(x);
-}
-
-
-//非尾调用。调用函数g之后，还有赋值操作
-function f(x){
-  let y = g(x);
-  return y;
-}
-
-//非尾调用。调用函数g之后，还有加法操作
-function f(x){
-  return g(x) + 1;
-}
-
-//非尾调用。调用函数g之后，还有return undefined;
-function f(x){
-  g(x);
-}
-</code></pre><h2 id="调用帧和调用栈"><a href="#调用帧和调用栈" class="headerlink" title="调用帧和调用栈"></a>调用帧和调用栈</h2><p>函数调用会在内存形成一个“调用记录”，又称“<strong>调用帧</strong>”（call frame），保存调用位置和内部变量等信息。</p>
-<p>所有的调用帧，就形成一个“<strong>调用栈</strong>”（call stack）</p>
-<h2 id="尾调用优化-Tail-call-optimization"><a href="#尾调用优化-Tail-call-optimization" class="headerlink" title="尾调用优化(Tail call optimization)"></a>尾调用优化(Tail call optimization)</h2><p><strong>直接用内层函数的调用帧，取代外层函数的调用帧。这将大大节省内存</strong></p>
-<ul>
-<li>只在严格模式下有效<ul>
-<li>正常模式下，函数内部有两个变量，可以跟踪函数的调用栈<ul>
-<li>func.arguments：返回调用时函数的参数。</li>
-<li>func.caller：返回调用当前函数的那个函数。</li>
-</ul>
-</li>
-<li>尾调用优化发生时，函数的调用栈会改写，因此上面两个变量就会失真。</li>
-<li>严格模式禁用这两个变量</li>
-</ul>
-</li>
-</ul>
-<p>因为尾调用是函数的最后一步操作，<strong>一般</strong>调用位置、内部变量等信息都不会再用到了，不需要保留外层函数的调用帧。</p>
-<pre><code>function f() {
-  let m = 1;
-  let n = 2;
-  return g(m + n);
-}
-f();
-
-// 等同于
-function f() {
-  return g(3);
-}
-f();
-
-// 等同于
-g(3);
-
-不需要保存内部变量m和n的值、g的调用位置等信息，所以执行到最后一步，完全可以删除f(x)的调用帧，只保留g(3)的调用帧
-</code></pre><p>实例：无法进行“尾调用优化”</p>
-<p>内层函数inner用到了外层函数addOne的内部变量one</p>
-<pre><code>function addOne(a){
-  var one = 1;
-  function inner(b){
-    return b + one;
-  }
-  return inner(a);
-}
-</code></pre><h2 id="尾递归"><a href="#尾递归" class="headerlink" title="尾递归"></a>尾递归</h2><p>函数调用自身，称为递归。如果<strong>尾调用自身</strong>，就称为尾递归。</p>
-<p>递归非常耗费内存，因为需要同时保存成千上百个调用帧，很容易发生“栈溢出”错误（stack overflow）。但对于尾递归来说，由于只存在一个调用帧，所以永远不会发生“栈溢出”错误</p>
-<h3 id="递归函数的改写"><a href="#递归函数的改写" class="headerlink" title="递归函数的改写"></a>递归函数的改写</h3><p>尾递归的实现，往往需要改写递归函数，确保最后一步只调用自身。</p>
-<p>做到这一点的方法，就是把<strong>所有用到的内部变量改写成函数的参数</strong>。</p>
-<p><strong>缺点：不太直观</strong></p>
-<p>实例：n的阶乘</p>
-<p>阶乘函数 factorial 需要用到一个中间变量total，那就把这个中间变量改写成函数的参数。</p>
-<p>这样做的缺点就是不太直观，第一眼很难看出来，为什么计算5的阶乘，需要传入两个参数5和1？</p>
-<pre><code>//最多需要保存n个调用记录，复杂度 O(n) 
-function factorial(n) {
-  if (n === 1) return 1;
-  return n * factorial(n - 1);
-}
-factorial(5) // 120
-
-//改写成尾递归，只保留一个调用记录，复杂度 O(1) 
-function factorial(n, total) {
-  if (n === 1) return total;
-  return factorial(n - 1, n * total);
-}
-factorial(5, 1) // 120
-</code></pre><p>实例：Fibonacci 数列</p>
-<pre><code>function Fibonacci (n) {
-  if ( n &lt;= 1 ) {return 1};
-  return Fibonacci(n - 1) + Fibonacci(n - 2);
-}
-Fibonacci(10) // 89
-Fibonacci(100) // 堆栈溢出
-Fibonacci(500) // 堆栈溢出
-
-//尾递归优化
-function Fibonacci2 (n , ac1 = 1 , ac2 = 1) {
-  if( n &lt;= 1 ) {return ac2};
-
-  return Fibonacci2 (n - 1, ac2, ac1 + ac2);
-}
-Fibonacci2(100) // 573147844013817200000
-Fibonacci2(1000) // 7.0330367711422765e+208
-Fibonacci2(10000) // Infinity
-</code></pre><h3 id="尾递归的优雅实现"><a href="#尾递归的优雅实现" class="headerlink" title="尾递归的优雅实现"></a>尾递归的优雅实现</h3><h4 id="柯里化-currying"><a href="#柯里化-currying" class="headerlink" title="柯里化(currying)"></a>柯里化(currying)</h4><p>尾递归函数之外，再提供一个正常形式的函数</p>
-<pre><code>function tailFactorial(n, total) {
-  if (n === 1) return total;
-  return tailFactorial(n - 1, n * total);
-}
-
-function factorial(n) {
-  return tailFactorial(n, 1);
-}
-
-factorial(5) // 120
-</code></pre><p>柯里化</p>
-<ul>
-<li>函数式编程的一个概念</li>
-<li>意将多参数的函数转换成单参数的形式。</li>
-</ul>
-<p>代码</p>
-<pre><code>function tailFactorial(n, total) {
-  if (n === 1) return total;
-  return tailFactorial(n - 1, n * total);
-}
-
-function currying(fn, n) {//fn柯里化的函数，n是柯里化的参数
-  return function (m) {
-    return fn.call(this, m, n);
-  };
-}
-
-const factorial = currying(tailFactorial, 1);
-
-factorial(5) // 120
-</code></pre><h4 id="采用ES6的函数默认值"><a href="#采用ES6的函数默认值" class="headerlink" title="采用ES6的函数默认值"></a>采用ES6的函数默认值</h4><pre><code>function factorial(n, total = 1) {
-  if (n === 1) return total;
-  return factorial(n - 1, n * total);
-}
-factorial(5) // 120
-</code></pre><h3 id="自己实现尾递归优化"><a href="#自己实现尾递归优化" class="headerlink" title="自己实现尾递归优化"></a>自己实现尾递归优化</h3><h4 id="递归本质上是一种循环操作"><a href="#递归本质上是一种循环操作" class="headerlink" title="递归本质上是一种循环操作"></a>递归本质上是一种循环操作</h4><p><strong>纯粹的函数式编程语言没有循环操作命令</strong>，所有的循环都用递归实现，这就是为什么尾递归对这些语言极其重要。</p>
-<p>对于其他支持“尾调用优化”的语言（比如 Lua，ES6），只需要知道循环可以用递归代替，而一旦使用递归，就最好使用尾递归。</p>
-<h4 id="实现尾递归优化"><a href="#实现尾递归优化" class="headerlink" title="实现尾递归优化"></a>实现尾递归优化</h4><p>尾递归优化只在严格模式下生效，那么正常模式下，可以自己实现尾递归优化</p>
-<p>原理：尾递归之所以需要优化，原因是调用栈太多，造成溢出，那么只要减少调用栈，就不会溢出。怎么做可以减少调用栈呢？就是采用“循环”换掉“递归”。</p>
-<h1 id="函数参数的尾逗号"><a href="#函数参数的尾逗号" class="headerlink" title="函数参数的尾逗号"></a>函数参数的尾逗号</h1><p>ES2017 允许<strong>函数定义和调用最后一个参数有尾逗号</strong>(trailing comma)。因此，函数参数与数组和对象的尾逗号规则，保持一致了。</p>
-<pre><code>function clownsEverywhere(
-  param1,
-  param2,
-) { /* ... */ }
-
-clownsEverywhere(
-  &apos;foo&apos;,
-  &apos;bar&apos;,
-);
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/30/JS/ES6-变量的解构赋值/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/30/JS/ES6-变量的解构赋值/" itemprop="url">ES6-变量的解构赋值</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-30T17:41:20+08:00">
-                2018-07-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>按照一定模式，从<strong>数组和对象</strong>中提取值，对变量进行赋值，这被称为<strong>解构(Destructuring)</strong></p>
-<p>等号右边的值不是对象或数组，就先将其转为对象。</p>
-<h1 id="数组的解构赋值"><a href="#数组的解构赋值" class="headerlink" title="数组的解构赋值"></a>数组的解构赋值</h1><p><strong>数据结构具有 Iterator 接口，都可以采用数组形式的解构赋值</strong></p>
-<p><strong>数组的元素是按次序排列的，变量的取值由它的位置决定；</strong></p>
-<p>Set 结构，也可以使用数组的解构赋值</p>
-<pre><code>let [x, y, z] = new Set([&apos;a&apos;, &apos;b&apos;, &apos;c&apos;]);
-x // &quot;a&quot;
-</code></pre><p>Generator 函数原生具有 Iterator 接口</p>
-<pre><code>function* fibs() {
-  let a = 0;
-  let b = 1;
-  while (true) {
-    yield a;
-    [a, b] = [b, a + b];
-  }
-}
-
-let [first, second, third, fourth, fifth, sixth] = fibs();
-sixth // 5
-</code></pre><p>数组解构</p>
-<pre><code>let [a, b, c] = [1, 2, 3];
-</code></pre><p>嵌套</p>
-<pre><code>let [foo, [[bar], baz]] = [1, [[2], 3]];
-foo // 1
-bar // 2
-baz // 3
-
-let [ , , third] = [&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;];
-third // &quot;baz&quot;
-
-let [x, , y] = [1, 2, 3];
-x // 1
-y // 3
-
-let [head, ...tail] = [1, 2, 3, 4];
-head // 1
-tail // [2, 3, 4]
-
-let [x, y, ...z] = [&apos;a&apos;];
-x // &quot;a&quot;
-y // undefined
-z // []
-</code></pre><h2 id="不完全解构"><a href="#不完全解构" class="headerlink" title="不完全解构"></a>不完全解构</h2><pre><code>let [x, y] = [1, 2, 3];
-x // 1
-y // 2
-
-let [a, [b], d] = [1, [2, 3], 4];
-a // 1
-b // 2
-d // 4
-</code></pre><h2 id="解构不成功，变量的值就等于undefined。"><a href="#解构不成功，变量的值就等于undefined。" class="headerlink" title="解构不成功，变量的值就等于undefined。"></a>解构不成功，变量的值就等于undefined。</h2><pre><code>let [foo] = [];
-let [bar, foo] = [1];
-
-以上两种情况都属于解构不成功，foo的值都会等于undefined。
-</code></pre><h2 id="等号的右边不是可遍历的结构，将会报错。"><a href="#等号的右边不是可遍历的结构，将会报错。" class="headerlink" title="等号的右边不是可遍历的结构，将会报错。"></a>等号的右边不是可遍历的结构，将会报错。</h2><pre><code>// 报错
-let [foo] = 1;
-let [foo] = false;
-let [foo] = NaN;
-let [foo] = undefined;
-let [foo] = null;
-let [foo] = {};
-</code></pre><h2 id="默认值"><a href="#默认值" class="headerlink" title="默认值"></a>默认值</h2><p><strong>解构赋值允许指定默认值</strong></p>
-<p>ES6 内部使用严格相等运算符（===），判断一个位置是否有值。所以，只有当一个数组成员<strong>严格等于undefined，默认值才会生效</strong>。</p>
-<pre><code>let [foo = true] = [];
-foo // true
-
-let [x, y = &apos;b&apos;] = [&apos;a&apos;]; // x=&apos;a&apos;, y=&apos;b&apos;
-
-let [x = 1] = [undefined];
-x // 1
-
-let [x = 1] = [null];
-x // null
-</code></pre><p>如果默认值是一个表达式，那么这个<strong>表达式是惰性求值的</strong>，即只有在用到的时候，才会求值。</p>
-<pre><code>function f() {
-  console.log(&apos;aaa&apos;);
-}
-
-let [x = f()] = [1];
-
-x能取到值，所以函数f根本不会执行
-</code></pre><p>默认值可以引用解构赋值的其他变量，但该变量必须已经声明。</p>
-<pre><code>let [x = 1, y = x] = [];     // x=1; y=1
-let [x = 1, y = x] = [2];    // x=2; y=2
-let [x = 1, y = x] = [1, 2]; // x=1; y=2
-let [x = y, y = 1] = [];     // ReferenceError: y is not defined
-</code></pre><h1 id="对象的解构赋值"><a href="#对象的解构赋值" class="headerlink" title="对象的解构赋值"></a>对象的解构赋值</h1><p><strong>对象的属性没有次序，变量必须与属性同名，才能取到正确的值。</strong></p>
-<p>对象的解构赋值的<strong>内部机制</strong>，是先找到同名属性，然后再赋给对应的变量。真正被赋值的是后者</p>
-<p>完整形式：</p>
-<pre><code>let { foo: foo, bar: bar } = { foo: &quot;aaa&quot;, bar: &quot;bbb&quot; };
-foo // &quot;aaa&quot;
-bar // &quot;bbb&quot;
-
-let { foo: baz } = { foo: &quot;aaa&quot;, bar: &quot;bbb&quot; };
-baz // &quot;aaa&quot;
-foo // error: foo is not defined
-
-foo是匹配的模式，baz才是变量。真正被赋值的是变量baz，而不是模式foo。
-</code></pre><p>简写：</p>
-<pre><code>let { foo, bar } = { foo: &quot;aaa&quot;, bar: &quot;bbb&quot; };
-</code></pre><p>嵌套</p>
-<pre><code>let obj = {
-  p: [
-    &apos;Hello&apos;,
-    { y: &apos;World&apos; }
-  ]
-};
-
-let { p, p: [x, { y }] } = obj;
-x // &quot;Hello&quot;
-y // &quot;World&quot;
-p // [&quot;Hello&quot;, {y: &quot;World&quot;}]
-</code></pre><p>如果解构模式是嵌套的对象，而且子对象所在的父属性不存在，那么将会报错。</p>
-<pre><code>// 报错
-let {foo: {bar}} = {baz: &apos;baz&apos;};
-解构 foo属性对应的子对象的bar属性，报错。原因很简单，因为foo这时等于undefined，再取子属性就会报错
-</code></pre><p>将一个<strong>已经声明的变量用于解构赋值</strong>，必须非常小心。<strong>避免 JavaScript 将其解释为代码块</strong></p>
-<pre><code>let x;
-{x} = {x: 1};// SyntaxError: syntax error
-
-let x;
-({x} = {x: 1});//不将大括号写在行首
-</code></pre><h2 id="很方便地将现有对象的方法，赋值到某个变量"><a href="#很方便地将现有对象的方法，赋值到某个变量" class="headerlink" title="很方便地将现有对象的方法，赋值到某个变量"></a>很方便地将现有对象的方法，赋值到某个变量</h2><pre><code>let { log, sin, cos } = Math;
-将Math对象的对数、正弦、余弦三个方法，赋值到对应的变量上，使用起来就会方便很多。
-</code></pre><h2 id="对数组进行对象属性的解构"><a href="#对数组进行对象属性的解构" class="headerlink" title="对数组进行对象属性的解构"></a>对数组进行对象属性的解构</h2><p><strong>数组本质是特殊的对象</strong></p>
-<pre><code>let arr = [1, 2, 3];
-let {0 : first, [arr.length - 1] : last} = arr;
-first // 1。 数组arr的0键对应的值是1
-last // 3。 2键，对应的值是3
-</code></pre><h1 id="字符串的解构赋值"><a href="#字符串的解构赋值" class="headerlink" title="字符串的解构赋值"></a>字符串的解构赋值</h1><p>字符串被转换成了一个类似数组的对象</p>
-<pre><code>const [a, b, c, d, e] = &apos;hello&apos;;
-a // &quot;h&quot;
-b // &quot;e&quot;
-c // &quot;l&quot;
-d // &quot;l&quot;
-e // &quot;o&quot;
-
-let {length : len} = &apos;hello&apos;;
-len // 5
-</code></pre><h1 id="数值和布尔值的解构赋值"><a href="#数值和布尔值的解构赋值" class="headerlink" title="数值和布尔值的解构赋值"></a>数值和布尔值的解构赋值</h1><p>数值和布尔值，会先转为对象</p>
-<pre><code>let {toString: s} = 123;
-s === Number.prototype.toString // true
-
-let {toString: s} = true;
-s === Boolean.prototype.toString // true
-</code></pre><h1 id="undefined和null的解构赋值"><a href="#undefined和null的解构赋值" class="headerlink" title="undefined和null的解构赋值"></a>undefined和null的解构赋值</h1><p>undefined和null<strong>无法转为对象</strong>，所以对它们进行解构赋值，都会<strong>报错</strong></p>
-<pre><code>let { prop: x } = undefined; // TypeError
-let { prop: y } = null; // TypeError
-</code></pre><h1 id="函数参数的解构赋值"><a href="#函数参数的解构赋值" class="headerlink" title="函数参数的解构赋值"></a>函数参数的解构赋值</h1><pre><code>function add([x, y]){
-  return x + y;
-}
-
-add([1, 2]); // 3
-
-传入参数的那一刻，数组参数就被解构成变量x和y。对于函数内部的代码来说，它们能感受到的参数就是x和y
-</code></pre><p>示例</p>
-<pre><code>[[1, 2], [3, 4]].map(([a, b]) =&gt; a + b);
-// [ 3, 7 ]
-</code></pre><p>函数参数的解构也可以使用默认值</p>
-<pre><code>//为变量x和y指定默认值
-function move({x = 0, y = 0} = {}) {
-  return [x, y];
-}
-
-move({x: 3, y: 8}); // [3, 8]
-move({x: 3}); // [3, 0]
-move({}); // [0, 0]
-move(); // [0, 0]
-
-//为函数move的参数指定默认值
-function move({x, y} = { x: 0, y: 0 }) {
-  return [x, y];
-}
-
-move({x: 3, y: 8}); // [3, 8]
-move({x: 3}); // [3, undefined]
-move({}); // [undefined, undefined]
-move(); // [0, 0]
-</code></pre><h1 id="圆括号问题"><a href="#圆括号问题" class="headerlink" title="圆括号问题"></a>圆括号问题</h1><p>解构赋值虽然很方便，但是解析起来并不容易。对于编译器来说，一个式子到底是<strong>模式，还是表达式</strong>，没有办法从一开始就知道，必须解析到（或解析不到）等号才能知道。</p>
-<p>由此带来的问题是，如果模式中出现圆括号怎么处理。ES6 的规则是，只要有<strong>可能导致解构的歧义，就不得使用圆括号</strong>。</p>
-<p>但是，这条规则实际上不那么容易辨别，处理起来相当麻烦。因此，建议只要有可能，就不要在模式中放置圆括号。</p>
-<h2 id="不能使用圆括号的情况"><a href="#不能使用圆括号的情况" class="headerlink" title="不能使用圆括号的情况"></a>不能使用圆括号的情况</h2><h3 id="变量声明语句"><a href="#变量声明语句" class="headerlink" title="变量声明语句"></a>变量声明语句</h3><pre><code>let [(a)] = [1];
-</code></pre><h3 id="函数参数"><a href="#函数参数" class="headerlink" title="函数参数"></a>函数参数</h3><p>函数参数也属于变量声明</p>
-<pre><code>function f([(z)]) { return z; }
-</code></pre><h3 id="赋值语句的模式"><a href="#赋值语句的模式" class="headerlink" title="赋值语句的模式"></a>赋值语句的模式</h3><pre><code>([a]) = [5];
-</code></pre><h2 id="可以使用圆括号的情况"><a href="#可以使用圆括号的情况" class="headerlink" title="可以使用圆括号的情况"></a>可以使用圆括号的情况</h2><p><strong>赋值语句的非模式部分，可以使用圆括号</strong></p>
-<ul>
-<li>赋值语句，而不是声明语句</li>
-<li><p>非模式部分</p>
-<p>  [(b)] = [3]; // 正确。模式是取数组的第一个成员，跟圆括号无关<br>  ({ p: (d) } = {}); // 正确。模式是p，而不是d<br>  [(parseInt.prop)] = [3]; // 正确。模式是取数组的第一个成员，跟圆括号无关</p>
-</li>
-</ul>
-<h1 id="用途"><a href="#用途" class="headerlink" title="用途"></a>用途</h1><h2 id="交换变量的值"><a href="#交换变量的值" class="headerlink" title="交换变量的值"></a>交换变量的值</h2><p>交换变量x和y的值</p>
-<pre><code>let x = 1;
-let y = 2;
-
-[x, y] = [y, x];
-</code></pre><h2 id="从函数返回多个值"><a href="#从函数返回多个值" class="headerlink" title="从函数返回多个值"></a>从函数返回多个值</h2><p>函数只能返回一个值，如果要返回多个值，只能将它们放在数组或对象里返回。有了解构赋值，取出这些值就非常方便。</p>
-<pre><code>// 返回一个数组
-function example() {
-  return [1, 2, 3];
-}
-let [a, b, c] = example();
-
-// 返回一个对象
-function example() {
-  return {
-    foo: 1,
-    bar: 2
-  };
-}
-let { foo, bar } = example();
-</code></pre><h2 id="函数参数的定义"><a href="#函数参数的定义" class="headerlink" title="函数参数的定义"></a>函数参数的定义</h2><p>方便地将一组参数与变量名对应起来</p>
-<pre><code>// 参数是一组有次序的值
-function f([x, y, z]) { ... }
-f([1, 2, 3]);
-
-// 参数是一组无次序的值
-function f({x, y, z}) { ... }
-f({z: 3, y: 2, x: 1});
-</code></pre><h2 id="函数参数的默认值"><a href="#函数参数的默认值" class="headerlink" title="函数参数的默认值"></a>函数参数的默认值</h2><h2 id="提取-JSON-数据"><a href="#提取-JSON-数据" class="headerlink" title="提取 JSON 数据"></a>提取 JSON 数据</h2><pre><code>let jsonData = {
-  id: 42,
-  status: &quot;OK&quot;,
-  data: [867, 5309]
-};
-
-let { id, status, data: number } = jsonData;
-
-console.log(id, status, number);
-// 42, &quot;OK&quot;, [867, 5309]
-</code></pre><h2 id="遍历-Map-结构"><a href="#遍历-Map-结构" class="headerlink" title="遍历 Map 结构"></a>遍历 Map 结构</h2><p>任何部署了 Iterator 接口的对象，都可以用for…of循环遍历</p>
-<p>Map 结构原生支持 Iterator 接口，配合变量的解构赋值，获取键名和键值就非常方便。</p>
-<pre><code>const map = new Map();
-map.set(&apos;first&apos;, &apos;hello&apos;);
-map.set(&apos;second&apos;, &apos;world&apos;);
-
-for (let [key, value] of map) {
-  console.log(key + &quot; is &quot; + value);
-}
-// first is hello
-// second is world
-
-// 获取键名
-for (let [key] of map) {
-  // ...
-}
-
-// 获取键值
-for (let [,value] of map) {
-  // ...
-}
-</code></pre><h2 id="输入模块的指定方法"><a href="#输入模块的指定方法" class="headerlink" title="输入模块的指定方法"></a>输入模块的指定方法</h2><p>const { SourceMapConsumer, SourceNode } = require(“source-map”);</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/30/JS/ES6-let和const 命令/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/07/30/JS/ES6-let和const 命令/" itemprop="url">ES6-let和const 命令</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-30T16:41:20+08:00">
-                2018-07-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>参考 <a href="http://es6.ruanyifeng.com/" target="_blank" rel="noopener">ECMAScript 6 入门</a></p>
-<h1 id="let"><a href="#let" class="headerlink" title="let"></a>let</h1><h2 id="所声明的变量，只在let命令所在的代码块内有效"><a href="#所声明的变量，只在let命令所在的代码块内有效" class="headerlink" title="所声明的变量，只在let命令所在的代码块内有效"></a>所声明的变量，只在let命令所在的代码块内有效</h2><pre><code>for (let i = 0; i &lt; 3; i++) {
-  let i = &apos;abc&apos;;
-  console.log(i);//输出了 3 次abc
-}
-</code></pre><p>for循环有一个特别之处，就是设置循环变量的那部分是一个父作用域，而循环体内部是一个单独的子作用域</p>
-<h2 id="不存在变量提升"><a href="#不存在变量提升" class="headerlink" title="不存在变量提升"></a>不存在变量提升</h2><p>变量一定要在声明后使用，否则报错。</p>
-<h2 id="暂时性死区"><a href="#暂时性死区" class="headerlink" title="暂时性死区"></a>暂时性死区</h2><p>temporal dead zone，简称 TDZ</p>
-<p>块级作用域内存在let命令，它所声明的变量就“绑定”（binding）这个区域，不再受外部的影响</p>
-<pre><code>var tmp = 123;
-
-if (true) {
-  // TDZ开始
-  tmp = &apos;abc&apos;; // ReferenceError
-  let tmp;//// TDZ结束
-}
-</code></pre><p>有些“死区”比较隐蔽，不太容易发现。</p>
-<pre><code>function bar(x = y, y = 2) {
-  return [x, y];
-}
-
-bar(); // 报错(某些实现可能不报错)。参数x默认值等于另一个参数y，而此时y还没有声明，属于”死区“。
-</code></pre><h2 id="不允许重复声明"><a href="#不允许重复声明" class="headerlink" title="不允许重复声明"></a>不允许重复声明</h2><pre><code>// 报错
-function func() {
-  let a = 10;
-  var a = 1;
-}
-
-// 报错
-function func() {
-  let a = 10;
-  let a = 1;
-}
-
-function func(arg) {
-  let arg; // 报错
-}
-
-function func(arg) {
-  {
-    let arg; // 不报错
-  }
-}
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -3983,7 +3020,7 @@ function func(arg) {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">171</span>
+                  <span class="site-state-item-count">177</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -3994,7 +3031,7 @@ function func(arg) {
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -4005,7 +3042,7 @@ function func(arg) {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-count">57</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
