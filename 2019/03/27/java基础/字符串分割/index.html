@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="1、如果用“.”作为分隔的话，必须是如下写法：String.split(&amp;quot;\\.&amp;quot;),这样才能正确的分隔开，不能用String.split(&amp;quot;.&amp;quot;); 2、如果用“|”作为分隔的话，必须是如下写法：String.split(“\|”),这样才能正确的分隔开，不能用String.split(“|”);“.”和“|”都是转义字符，必须得加”\“;String[]">
+<meta name="description" content="split1、如果用“.”作为分隔的话，必须是如下写法：String.split(&amp;quot;\\.&amp;quot;),这样才能正确的分隔开，不能用String.split(&amp;quot;.&amp;quot;); 2、如果用“|”作为分隔的话，必须是如下写法：String.split(&amp;quot;\\|&amp;quot;),这样才能正确的分隔开，不能用String.split(&amp;quot;|&amp;quot;); “.”">
 <meta name="keywords" content="Java">
 <meta property="og:type" content="article">
 <meta property="og:title" content="字符串分割">
 <meta property="og:url" content="http://yoursite.com/2019/03/27/java基础/字符串分割/index.html">
 <meta property="og:site_name" content="风">
-<meta property="og:description" content="1、如果用“.”作为分隔的话，必须是如下写法：String.split(&amp;quot;\\.&amp;quot;),这样才能正确的分隔开，不能用String.split(&amp;quot;.&amp;quot;); 2、如果用“|”作为分隔的话，必须是如下写法：String.split(“\|”),这样才能正确的分隔开，不能用String.split(“|”);“.”和“|”都是转义字符，必须得加”\“;String[]">
+<meta property="og:description" content="split1、如果用“.”作为分隔的话，必须是如下写法：String.split(&amp;quot;\\.&amp;quot;),这样才能正确的分隔开，不能用String.split(&amp;quot;.&amp;quot;); 2、如果用“|”作为分隔的话，必须是如下写法：String.split(&amp;quot;\\|&amp;quot;),这样才能正确的分隔开，不能用String.split(&amp;quot;|&amp;quot;); “.”">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-04-30T10:47:20.083Z">
+<meta property="og:updated_time" content="2019-06-24T10:07:52.760Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="字符串分割">
-<meta name="twitter:description" content="1、如果用“.”作为分隔的话，必须是如下写法：String.split(&amp;quot;\\.&amp;quot;),这样才能正确的分隔开，不能用String.split(&amp;quot;.&amp;quot;); 2、如果用“|”作为分隔的话，必须是如下写法：String.split(“\|”),这样才能正确的分隔开，不能用String.split(“|”);“.”和“|”都是转义字符，必须得加”\“;String[]">
+<meta name="twitter:description" content="split1、如果用“.”作为分隔的话，必须是如下写法：String.split(&amp;quot;\\.&amp;quot;),这样才能正确的分隔开，不能用String.split(&amp;quot;.&amp;quot;); 2、如果用“|”作为分隔的话，必须是如下写法：String.split(&amp;quot;\\|&amp;quot;),这样才能正确的分隔开，不能用String.split(&amp;quot;|&amp;quot;); “.”">
 
 
 
@@ -352,10 +352,17 @@
       
 
       
-        <pre><code>1、如果用“.”作为分隔的话，必须是如下写法：String.split(&quot;\\.&quot;),这样才能正确的分隔开，不能用String.split(&quot;.&quot;);
-</code></pre><p>2、如果用“|”作为分隔的话，必须是如下写法：String.split(“\|”),这样才能正确的分隔开，不能用String.split(“|”);<br>“.”和“|”都是转义字符，必须得加”\“;<br>String[] split = EditWorksActivity.selectedWorkServiceId.trim().split(“\|”);</p>
-<p>而且分隔出来的字符串可能带有不可见特殊部分，可能出现equal 不成立bug</p>
-
+        <h1 id="split"><a href="#split" class="headerlink" title="split"></a>split</h1><pre><code>1、如果用“.”作为分隔的话，必须是如下写法：String.split(&quot;\\.&quot;),这样才能正确的分隔开，不能用String.split(&quot;.&quot;);
+2、如果用“|”作为分隔的话，必须是如下写法：String.split(&quot;\\|&quot;),这样才能正确的分隔开，不能用String.split(&quot;|&quot;);
+“.”和“|”都是转义字符，必须得加&quot;\\&quot;;
+而且分隔出来的字符串可能带有不可见特殊部分，可能出现equal 不成立bug    
+</code></pre><p>StringTokenizer</p>
+<ul>
+<li>比spilt<strong>效率高</strong></li>
+<li>支持多个分隔符</li>
+<li>支持是否返回分隔符</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">StringTokenizer st = <span class="keyword">new</span> StringTokenizer(testWord, <span class="string">" ,?.!:\"\"\n#"</span>, <span class="keyword">true</span>);</span><br><span class="line">List&lt;String&gt; wordList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"><span class="keyword">while</span> (st.hasMoreElements()) &#123;</span><br><span class="line">    wordList.add(st.nextToken());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -449,8 +456,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -469,7 +485,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">177</span>
+                  <span class="site-state-item-count">187</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -480,7 +496,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -491,7 +507,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-count">59</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -514,6 +530,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#split"><span class="nav-number">1.</span> <span class="nav-text">split</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       

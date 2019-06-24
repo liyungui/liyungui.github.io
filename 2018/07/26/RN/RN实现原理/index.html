@@ -94,7 +94,7 @@
 <meta property="og:image" content="http://yoursite.com/2018/07/26/RN/RN实现原理/ReactRootView.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/26/RN/RN实现原理/加载JSBundle.png">
 <meta property="og:image" content="http://yoursite.com/2018/07/26/RN/RN实现原理/RN页面渲染流程序列图.png">
-<meta property="og:updated_time" content="2019-04-30T10:47:20.071Z">
+<meta property="og:updated_time" content="2019-06-24T10:07:52.748Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RN实现原理">
 <meta name="twitter:description" content="RN版本 0.48.4 原理概览RN源码目录结构 RN框架 重要角色类 ReactContext：ReactContext继承于ContextWrapper，是ReactNative应用的上下文，通过getContext()去获得，通过它可以访问ReactNative核心类的实现。 ReactInstanceManager：ReactInstanceManager是ReactNative应用总的管">
@@ -352,11 +352,11 @@
 <li><strong>JavascriptModuleRegistry</strong>：JS Module映射表</li>
 <li><strong>NativeModuleRegistry</strong>：Java Module映射表</li>
 </ul>
-<p>页面真正渲染出来以后，它实际上还是Native代码，React Native的作用就是把JavaScript代码映射成Native代码以及实现两端<br>的通信</p>
+<p>页面真正渲染出来以后，它实际上还是Native代码，React Native的作用就是把JavaScript代码映射成Native代码以及实现两端的通信</p>
 <p>所以我们在React Native基础框架搭建的过程中，指导思路之一就是弱化Native与RN的边界与区别，让业务开发组感受不到两者的区别，从而简化开发流程。</p>
 <p>有了对React Native框架的整体理解，我们来继续分析一个RN页面是如何启动并渲染出来的，这也是我们关心的主要问题。后续的基础框架的搭建、JS Bundle分包加载、渲染性能优化<br>等都会围绕着着一块做文章。</p>
-<p>ReactActivity的ReactRootView调用自己的startReactApplication()方法启动了整个RN页面，在启动的过程<br>中先去创建页面上下文ReactContext，然后再去加载、执行并将JavaScript映射成Native Widget，最终一个RN页面就显示在了用户面前</p>
-<h1 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h1><p>主要关注以下五个问题</p>
+<h1 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h1><p>ReactActivity的ReactRootView调用自己的startReactApplication()方法启动了整个RN页面，在启动的过程<br>中先去创建页面上下文ReactContext，然后再去加载、执行并将JavaScript映射成Native Widget，最终一个RN页面就显示在了用户面前</p>
+<p>主要关注以下五个问题</p>
 <h2 id="用户创建ReactNativeHost"><a href="#用户创建ReactNativeHost" class="headerlink" title="用户创建ReactNativeHost"></a>用户创建ReactNativeHost</h2><p>使用RN页面，需要用户先创建一个ReactNativeHost</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> ReactNativeHost(<span class="keyword">this</span>) &#123;</span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">getUseDeveloperSupport</span><span class="params">()</span> </span>&#123;<span class="comment">//是否使用开发模式</span></span><br><span class="line">    <span class="keyword">return</span> BuildConfig.DEBUG;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> List&lt;ReactPackage&gt; <span class="title">getPackages</span><span class="params">()</span> </span>&#123;<span class="comment">//Package List</span></span><br><span class="line">    <span class="keyword">return</span> Arrays.&lt;ReactPackage&gt;asList(</span><br><span class="line">            <span class="keyword">new</span> MainReactPackage()</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 <h2 id="创建ReactInstanceManager"><a href="#创建ReactInstanceManager" class="headerlink" title="创建ReactInstanceManager"></a>创建ReactInstanceManager</h2><p>从序列图可以发现，最终创建ReactInstanceManager是ReactNativeHost.createReactInstanceManager()方法</p>
@@ -622,7 +622,7 @@ C++最终连接了Java与JavaScript。
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">177</span>
+                  <span class="site-state-item-count">187</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -633,7 +633,7 @@ C++最终连接了Java与JavaScript。
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -644,7 +644,7 @@ C++最终连接了Java与JavaScript。
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-count">59</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

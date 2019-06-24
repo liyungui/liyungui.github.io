@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="RFID," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="概念 电平标准（电信号） TTL 低电平为0，高电平为1（+5V电平）   RS-232 正电平为0，负电平为1（±15V电平）   RS-485 与RS-232类似，但是采用差分信号负逻辑     物理接口形式（硬件） COM口(cluster communication port)即串行通讯端口，简称串口。 9针(D型9针串口) 协议只有两种：RS-232和RS-485。不会是TTL电平的（除">
+<meta name="keywords" content="RFID">
+<meta property="og:type" content="article">
+<meta property="og:title" content="串口、COM口、TTL、RS-232">
+<meta property="og:url" content="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="概念 电平标准（电信号） TTL 低电平为0，高电平为1（+5V电平）   RS-232 正电平为0，负电平为1（±15V电平）   RS-485 与RS-232类似，但是采用差分信号负逻辑     物理接口形式（硬件） COM口(cluster communication port)即串行通讯端口，简称串口。 9针(D型9针串口) 协议只有两种：RS-232和RS-485。不会是TTL电平的（除">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/dubangtou.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/d9comkou.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/usb2ttl.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/usb2ttl2.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/usb2rs232.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/usb2rs232b.jpg">
+<meta property="og:image" content="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/usb2rs232c.jpg">
+<meta property="og:updated_time" content="2019-06-24T10:07:52.744Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="串口、COM口、TTL、RS-232">
+<meta name="twitter:description" content="概念 电平标准（电信号） TTL 低电平为0，高电平为1（+5V电平）   RS-232 正电平为0，负电平为1（±15V电平）   RS-485 与RS-232类似，但是采用差分信号负逻辑     物理接口形式（硬件） COM口(cluster communication port)即串行通讯端口，简称串口。 9针(D型9针串口) 协议只有两种：RS-232和RS-485。不会是TTL电平的（除">
+<meta name="twitter:image" content="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/dubangtou.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/"/>
+
+
+
+
+
+  <title>串口、COM口、TTL、RS-232 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">串口、COM口、TTL、RS-232</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-22T14:39:23+08:00">
+                2017-07-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h1><ul>
+<li>电平标准（电信号）<ul>
+<li>TTL<ul>
+<li>低电平为0，高电平为1（+5V电平）</li>
+</ul>
+</li>
+<li>RS-232<ul>
+<li>正电平为0，负电平为1（±15V电平）</li>
+</ul>
+</li>
+<li>RS-485<ul>
+<li>与RS-232类似，但是采用差分信号负逻辑</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>物理接口形式（硬件）<ul>
+<li><strong>COM口</strong>(cluster communication port)即串行通讯端口，简称<strong>串口</strong>。<ul>
+<li>9针(D型9针串口)<ul>
+<li>协议只有两种：RS-232和RS-485。不会是TTL电平的（除非特殊应用）</li>
+<li>一般只接出<ul>
+<li>RXD<ul>
+<li>Receive Data指示灯</li>
+</ul>
+</li>
+<li>TXD<ul>
+<li>Transmit Data指示灯</li>
+</ul>
+</li>
+<li>GND<ul>
+<li>(Ground)代表地线或0线</li>
+<li>直流电源的负极</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>不会接Vcc或者+3.3v的电源线，避免与目标设备上的供电冲突<ul>
+<li>Volt Current Condenser伏特电源电容器;</li>
+<li>直流电源的正极 </li>
+</ul>
+</li>
+</ul>
+</li>
+<li>4针杜邦头<ul>
+<li>协议是ttl</li>
+<li>电路板上常见</li>
+<li>经常还带有杜邦插针</li>
+<li>有时候有第五根针，3.3V电源端。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>USB</strong>(Universal Serial Bus)即“通用串行总线”</li>
+<li><strong>SATA</strong>(Serial Advanced Technology Attachment)<ul>
+<li>SATA（Serial ATA）口的硬盘又叫串口硬盘</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="实物图"><a href="#实物图" class="headerlink" title="实物图"></a>实物图</h1><p>4针杜邦头</p>
+<img src="/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/dubangtou.jpg">
+<p>D型9针串口</p>
+<img src="/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/d9comkou.jpg">
+<p>转TTL串口的小板。芯片为PL2303HX</p>
+<img src="/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/usb2ttl.jpg">
+<p>USB转TTL串口的小板。芯片为CP2102,多了+3.3V电源端，以适应不同的目标电路。</p>
+<img src="/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/usb2ttl2.jpg">
+<p>USB转 RS-232串口（D型9针接口）和 TTL串口</p>
+<img src="/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/usb2rs232.jpg">
+<img src="/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/usb2rs232b.jpg">
+<ul>
+<li>电平转换用的是MAX232</li>
+<li>TTL电平与RS232电平的专用<strong>双向转换</strong>芯片</li>
+</ul>
+<p>USB转RS-232串口（D型9针接口）</p>
+<img src="/2017/07/22/RFID/串口、COM口、USB、TTL、RS-232/usb2rs232c.jpg">
+<p>参考&amp;扩展</p>
+<ul>
+<li><a href="http://www.dzsc.com/data/2016-10-19/110834.html" target="_blank" rel="noopener">串口、COM口、TTL、RS-232的区别详解</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/RFID/" rel="tag"><i class="fa fa-tag"></i> RFID</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/07/22/RFID/mifare classic 卡密码攻击/" rel="prev" title="mifare classic 卡密码攻击">
+                mifare classic 卡密码攻击 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">187</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">59</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概念"><span class="nav-number">1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实物图"><span class="nav-number">2.</span> <span class="nav-text">实物图</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

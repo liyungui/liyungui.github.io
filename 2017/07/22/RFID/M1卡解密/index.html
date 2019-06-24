@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="RFID," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="ID卡ID卡，大家常说的低频卡 一般大部分情况下作为门禁卡或者饭卡 一般为厚一些的卡，是只读的，卡里面只保存有一串唯一的数字序号ID，读卡器只能读到ID号，然后通过跟后台数据库进行匹配，实际上操作的是对应ID号相关的数据库中的数据。 ID卡本身不存在任何其他数据，常见的攻击方法是ID卡复制，ID卡除了复制也没有其他研究的了，毕竟太简单了。 淘宝有卖的工具，两节7号电池，按读卡按钮读要复制的卡的ID">
+<meta name="keywords" content="RFID">
+<meta property="og:type" content="article">
+<meta property="og:title" content="M1卡解密">
+<meta property="og:url" content="http://yoursite.com/2017/07/22/RFID/M1卡解密/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="ID卡ID卡，大家常说的低频卡 一般大部分情况下作为门禁卡或者饭卡 一般为厚一些的卡，是只读的，卡里面只保存有一串唯一的数字序号ID，读卡器只能读到ID号，然后通过跟后台数据库进行匹配，实际上操作的是对应ID号相关的数据库中的数据。 ID卡本身不存在任何其他数据，常见的攻击方法是ID卡复制，ID卡除了复制也没有其他研究的了，毕竟太简单了。 淘宝有卖的工具，两节7号电池，按读卡按钮读要复制的卡的ID">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2017/07/22/RFID/M1卡解密/m1cpu.png">
+<meta property="og:image" content="http://yoursite.com/2017/07/22/RFID/M1卡解密/明码10进制.png">
+<meta property="og:image" content="http://yoursite.com/2017/07/22/RFID/M1卡解密/明码16进制.png">
+<meta property="og:updated_time" content="2019-06-24T10:07:52.740Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="M1卡解密">
+<meta name="twitter:description" content="ID卡ID卡，大家常说的低频卡 一般大部分情况下作为门禁卡或者饭卡 一般为厚一些的卡，是只读的，卡里面只保存有一串唯一的数字序号ID，读卡器只能读到ID号，然后通过跟后台数据库进行匹配，实际上操作的是对应ID号相关的数据库中的数据。 ID卡本身不存在任何其他数据，常见的攻击方法是ID卡复制，ID卡除了复制也没有其他研究的了，毕竟太简单了。 淘宝有卖的工具，两节7号电池，按读卡按钮读要复制的卡的ID">
+<meta name="twitter:image" content="http://yoursite.com/2017/07/22/RFID/M1卡解密/m1cpu.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/07/22/RFID/M1卡解密/"/>
+
+
+
+
+
+  <title>M1卡解密 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/07/22/RFID/M1卡解密/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">M1卡解密</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-07-22T14:39:23+08:00">
+                2017-07-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="ID卡"><a href="#ID卡" class="headerlink" title="ID卡"></a>ID卡</h1><p>ID卡，大家常说的低频卡</p>
+<p>一般大部分情况下作为门禁卡或者饭卡</p>
+<p>一般为厚一些的卡，是只读的，卡里面只保存有一串唯一的数字序号ID，读卡器只能读到ID号，然后通过跟后台数据库进行匹配，实际上操作的是对应ID号相关的数据库中的数据。</p>
+<p>ID卡本身不存在任何其他数据，常见的攻击方法是ID卡复制，ID卡除了复制也没有其他研究的了，毕竟太简单了。</p>
+<p>淘宝有卖的工具，两节7号电池，按读卡按钮读要复制的卡的ID，然后再按写卡按钮，把读到的ID号写入到空白卡中，即完成了卡复制工作。很多大街上配门禁卡的都拿着这种工具</p>
+<h1 id="M1卡和CPU卡"><a href="#M1卡和CPU卡" class="headerlink" title="M1卡和CPU卡"></a>M1卡和CPU卡</h1><img src="/2017/07/22/RFID/M1卡解密/m1cpu.png">
+<p>Mifare 1K卡，也就是M1卡，非接触智能卡。</p>
+<p>正版是菲利浦下属子公司恩智浦出品的芯片，但是我们现在用的卡大部分都是中国山寨的</p>
+<p>自从2008年M1卡被德国人破解了安全算法之后，CPU卡在逐渐替代M1卡</p>
+<h1 id="M1卡数据结构"><a href="#M1卡数据结构" class="headerlink" title="M1卡数据结构"></a>M1卡数据结构</h1><h2 id="1K卡和4K卡"><a href="#1K卡和4K卡" class="headerlink" title="1K卡和4K卡"></a>1K卡和4K卡</h2><p>目前能看到的有2种M1卡,分别为S50 S70,其实就是容量不一样, S50为1Kbyte  S70为4Kbyte</p>
+<p>主要介绍S50 即1K卡   4K卡很少见</p>
+<h2 id="1K卡数据结构"><a href="#1K卡数据结构" class="headerlink" title="1K卡数据结构"></a>1K卡数据结构</h2><p>S50容量1Kbyte，16个扇区(Sector),每个扇区4块（Block）（块0～3），共64块，按块号编址为0～63。</p>
+<p>每个扇区有独立的一组密码及访问控制。</p>
+<p>各扇区的块0、块1、块2为数据块，用于存贮数据；块3为控制块，存放密码A、存取控制、密码B。</p>
+<p>其中第0扇区的块0（即绝对地址0块）用于存放厂商代码，已经固化，不可更改。</p>
+<h1 id="特殊卡"><a href="#特殊卡" class="headerlink" title="特殊卡"></a>特殊卡</h1><h2 id="UID卡"><a href="#UID卡" class="headerlink" title="UID卡"></a>UID卡</h2><p>第0扇区的所有块都可以更改。</p>
+<p>而且该型卡有后门,可以绕过密码,直接读取数据,这卡的密码就是装饰,没用!</p>
+<h2 id="FUID"><a href="#FUID" class="headerlink" title="FUID"></a>FUID</h2><p>一次性可写ID号的卡</p>
+<p>空白的时候可以写入一次ID,以后就不能改了.</p>
+<p>这是对付读卡器有防复制功能的一种办法,也有叫穿透防火墙…</p>
+<h2 id="CUID"><a href="#CUID" class="headerlink" title="CUID"></a>CUID</h2><p>ID号可以做到反复擦写使用，再也不用担心用一次之后报废掉的问题</p>
+<h2 id="空白卡"><a href="#空白卡" class="headerlink" title="空白卡"></a>空白卡</h2><p>差不多类似 CUID</p>
+<h1 id="数据安全"><a href="#数据安全" class="headerlink" title="数据安全"></a>数据安全</h1><h2 id="安全手段"><a href="#安全手段" class="headerlink" title="安全手段"></a>安全手段</h2><ul>
+<li>明码</li>
+<li>加密</li>
+<li>校验位</li>
+<li>滚动码。刷一次卡,卡里的特定区块数据就变化一次,数据有的有规律,有的毫无规律…</li>
+<li>系统带黑名单功能。数据验证无法通过,将卡列到黑名单中,通过物业也许可恢复</li>
+</ul>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>明码10进制。17年7月7日到期</p>
+<img src="/2017/07/22/RFID/M1卡解密/明码10进制.png">
+<p>明码16进制。14年12月18日到期</p>
+<img src="/2017/07/22/RFID/M1卡解密/明码16进制.png">
+<h1 id="暴力破解"><a href="#暴力破解" class="headerlink" title="暴力破解"></a>暴力破解</h1><p>两个漏洞攻击方法</p>
+<h2 id="nested-authentication-攻击（验证漏洞攻击）"><a href="#nested-authentication-攻击（验证漏洞攻击）" class="headerlink" title="nested authentication 攻击（验证漏洞攻击）"></a>nested authentication 攻击（验证漏洞攻击）</h2><p>工具：mfoc<br>这一个要求是16个扇区中有默认密码存在，先探测出默认密码，然后利用默认密码跟卡建立通讯（如果密码不对读卡器无法与tag建立通讯），虽然读卡器不知道tag它在说什么，但是从tag的话中分析加暴力出它的加密方法（就是其他扇区密码）。其根本上还是猜解，但是从“只言片语”中分析可以使猜解时间变短。</p>
+<h2 id="darkside-攻击"><a href="#darkside-攻击" class="headerlink" title="darkside 攻击"></a>darkside 攻击</h2><p>工具：mfcuk（注意后面不是fuck……）<br>如果所有扇区都被加密，没有默认密码怎么办？后来发现加密算法还有一个漏洞：当读卡器发送的加密数据中的某8bit全部正确的时候tag会给读卡器发送一个加密的4bit的数据回复NACK（否定应答），其他任何情况下tag都会直接停止交互。然后我们再利用这4bit的加密的NACK分析，解出key，如果一个扇区的key破解出来，就可以再使用nested authentication 攻击破解其他扇区密码。</p>
+<p>由于破解算法的原理本身就不是100%成功的，所以如果长时间破解不出来，就停了，重新选个时间破解(每次都会重新换个nt)，跟运气也有些关系</p>
+<h3 id="MFCUK"><a href="#MFCUK" class="headerlink" title="MFCUK"></a>MFCUK</h3><p>欺诈性密码恢复工具</p>
+<p>给出很多可能的密码</p>
+<p>同一个密码只要出现三次以上，就可以把这个密码记下来。然后在MFOC.BAT里编辑加入这个密码进行尝试</p>
+<h3 id="Libnfc工具"><a href="#Libnfc工具" class="headerlink" title="Libnfc工具"></a>Libnfc工具</h3><p>目前用的比较多的是radiowar网站的nfcgui，就是给nfc-list  nfc-mfsetuid  nfc-mfclassic  这三个工具写了个gui界面，也可以使用命令行模式</p>
+<h3 id="PM3的darkside攻击"><a href="#PM3的darkside攻击" class="headerlink" title="PM3的darkside攻击"></a>PM3的darkside攻击</h3><p>Proxmark3</p>
+<h1 id="监听读卡器和卡通讯"><a href="#监听读卡器和卡通讯" class="headerlink" title="监听读卡器和卡通讯"></a>监听读卡器和卡通讯</h1><p>工具：PM3</p>
+<p>监控授权读卡器和tag间的<strong>加密数据</strong>交换，然后通过“XOR效验与算Key”程序算出密码来。</p>
+<p>一般是内部人员把读卡器中的SAM偷出来，SAM实际上就是保存读卡器中密码的一个模块，然后通过另外的读卡器插入SAM，用正常的授权的卡刷卡，然后监控交换数据，从而算出密码。</p>
+<h1 id="监听读卡器和电脑通讯"><a href="#监听读卡器和电脑通讯" class="headerlink" title="监听读卡器和电脑通讯"></a>监听读卡器和电脑通讯</h1><p>读卡器跟电脑通讯是明文传输(电脑中肯定没有加密芯片)</p>
+<p>在某种环境中，比如通过电脑程序导入密码到读卡器的时候，通过监控USB口（串口）数据通信，抓到的明文数据，包含了导入到读卡器中的密码明文</p>
+<p>参考&amp;扩展</p>
+<ul>
+<li><a href="https://www.cnblogs.com/cneseu/p/6828023.html" target="_blank" rel="noopener">IC卡解密从零开始学2 版本更新! 解密工具PN532-mfoc-mfcuk-GUI V2.1 By:lookyour</a> M1结构和流程工具</li>
+<li><a href="http://blog.sina.com.cn/s/blog_751ba6c30102uy9j.html" target="_blank" rel="noopener">Mifare 1K卡破解乱谈（二）</a> 两大漏洞攻击方法</li>
+<li><a href="https://www.freebuf.com/articles/wireless/8792.html" target="_blank" rel="noopener">RFID破解三两事</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/RFID/" rel="tag"><i class="fa fa-tag"></i> RFID</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/07/22/RFID/mifare classic 卡密码攻击/" rel="next" title="mifare classic 卡密码攻击">
+                <i class="fa fa-chevron-left"></i> mifare classic 卡密码攻击
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/04/26/Android/rxjava/" rel="prev" title="RxJava">
+                RxJava <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">187</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">59</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ID卡"><span class="nav-number">1.</span> <span class="nav-text">ID卡</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#M1卡和CPU卡"><span class="nav-number">2.</span> <span class="nav-text">M1卡和CPU卡</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#M1卡数据结构"><span class="nav-number">3.</span> <span class="nav-text">M1卡数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1K卡和4K卡"><span class="nav-number">3.1.</span> <span class="nav-text">1K卡和4K卡</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1K卡数据结构"><span class="nav-number">3.2.</span> <span class="nav-text">1K卡数据结构</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#特殊卡"><span class="nav-number">4.</span> <span class="nav-text">特殊卡</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#UID卡"><span class="nav-number">4.1.</span> <span class="nav-text">UID卡</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FUID"><span class="nav-number">4.2.</span> <span class="nav-text">FUID</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CUID"><span class="nav-number">4.3.</span> <span class="nav-text">CUID</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#空白卡"><span class="nav-number">4.4.</span> <span class="nav-text">空白卡</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#数据安全"><span class="nav-number">5.</span> <span class="nav-text">数据安全</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安全手段"><span class="nav-number">5.1.</span> <span class="nav-text">安全手段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实例"><span class="nav-number">5.2.</span> <span class="nav-text">实例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#暴力破解"><span class="nav-number">6.</span> <span class="nav-text">暴力破解</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#nested-authentication-攻击（验证漏洞攻击）"><span class="nav-number">6.1.</span> <span class="nav-text">nested authentication 攻击（验证漏洞攻击）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#darkside-攻击"><span class="nav-number">6.2.</span> <span class="nav-text">darkside 攻击</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MFCUK"><span class="nav-number">6.2.1.</span> <span class="nav-text">MFCUK</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Libnfc工具"><span class="nav-number">6.2.2.</span> <span class="nav-text">Libnfc工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PM3的darkside攻击"><span class="nav-number">6.2.3.</span> <span class="nav-text">PM3的darkside攻击</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#监听读卡器和卡通讯"><span class="nav-number">7.</span> <span class="nav-text">监听读卡器和卡通讯</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#监听读卡器和电脑通讯"><span class="nav-number">8.</span> <span class="nav-text">监听读卡器和电脑通讯</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

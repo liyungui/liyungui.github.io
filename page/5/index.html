@@ -262,6 +262,1865 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/UI性能优化/性能分析工具/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/01/Android/UI性能优化/性能分析工具/" itemprop="url">性能分析工具</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:14:53+08:00">
+                2019-03-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://juejin.im/collection/582c2ff36a226505e65d014c" target="_blank" rel="noopener">参考链接</a></p>
+<img src="/2019/03/01/Android/UI性能优化/性能分析工具/性能优化大图.png">
+<img src="/2019/03/01/Android/UI性能优化/性能分析工具/性能分析工具.png">
+<h1 id="官方工具"><a href="#官方工具" class="headerlink" title="官方工具"></a>官方工具</h1><h2 id="StrictMode"><a href="#StrictMode" class="headerlink" title="StrictMode"></a>StrictMode</h2><ul>
+<li><p>说明</p>
+<p>  顾名思义, “严格模式”, 主要用来限制应用做一些不符合性能规范的事情. </p>
+<p>  一般用来检测<strong>主线程中的耗时操作和阻塞</strong>. </p>
+<p>  开启StrictMode后, 如果线程中做一些诸如读写文件, 网络访问等操作, 将会在Log console输出一些警告, 警告信息包含Stack Trace来显示哪个地方出了问题.</p>
+</li>
+<li><p>文档</p>
+<p>  <a href="https://developer.android.com/reference/android/os/StrictMode.html" target="_blank" rel="noopener">https://developer.android.com/reference/android/os/StrictMode.html</a></p>
+</li>
+<li><p>作用</p>
+<p>  主要用来做主线程优化分析</p>
+</li>
+<li><p>示例</p>
+</li>
+</ul>
+<p>Example code to enable from early in your <code>Application</code>, <code>Activity</code>, or other <code>application component&#39;s</code> <code>onCreate()</code> method:</p>
+<pre><code>public void onCreate() {
+    if (DEVELOPER_MODE) {
+     StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+             .detectDiskReads()
+             .detectDiskWrites()
+             .detectNetwork()   // or .detectAll() for all detectable problems
+             .penaltyLog()
+             .build());
+     StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+             .detectLeakedSqlLiteObjects()
+             .detectLeakedClosableObjects()
+             .penaltyLog()
+             .penaltyDeath()
+             .build());
+    }
+    super.onCreate();
+}
+</code></pre><ul>
+<li><p>注意</p>
+<p>  StrictMode 不能检测到所有耗时操作</p>
+<p>  StrictMode 检测到的耗时操作不一定要全部修复（UI线程有时可以文件读写）</p>
+</li>
+</ul>
+<h2 id="Systrace"><a href="#Systrace" class="headerlink" title="Systrace"></a>Systrace</h2><ul>
+<li><p>说明</p>
+<p>  Systrace是一个收集和检测时间信息的工具, 它能显示<strong>CPU和时间</strong>被消耗在哪儿了, 每个进程和线程都在其CPU时间片内做了什么事儿. 而且会指示哪个地方出了问题, 以及给出Fix建议.</p>
+<p>  其以trace文件(html)的方式记录. 可以直接用Chrome浏览器打开查看. </p>
+</li>
+<li><p>文档</p>
+<pre><code>https://developer.android.com/studio/profile/systrace.html
+https://developer.android.com/studio/profile/systrace-walkthru.html
+https://developer.android.com/studio/profile/systrace-commandline.html?hl=fy
+</code></pre></li>
+<li><p>使用</p>
+<p>  Android Device Monitor 中  ，点击按钮开启，会生成html文件</p>
+</li>
+<li><p>作用</p>
+<p>  作用很多, 个人主要用来分析<strong>UI的绘制时间</strong>, 结合Hierarchy Viewer来提升UI性能.</p>
+<p>  也可以用来发现<strong>耗时操作</strong>.</p>
+</li>
+</ul>
+<h2 id="Hierarchy-Viewer"><a href="#Hierarchy-Viewer" class="headerlink" title="Hierarchy Viewer"></a>Hierarchy Viewer</h2><ul>
+<li><p>说明</p>
+<p>  Hierarchy Viewer提供了一个可视化的界面来观测<strong>布局的层级</strong>, 让我们可以优化布局层级, 删除多余的不必要的View层级, 提升布局速度.</p>
+  <img src="/2019/03/01/Android/UI性能优化/性能分析工具/HierarchyViewer.png">
+<p>  有必要说明下的是:</p>
+<p>  上图红框标出的三个点是关键分析数据. 左起依次代表View的Measure, Layout和Draw的性能. 另外颜色表示该View的该项时间指数, 分为:</p>
+<ul>
+<li>绿色, 表示该View的此项性能比该View Tree中超过50%的View都要快.</li>
+<li>黄色, 表示该View的此项性能比该View Tree中超过50%的View都要慢.</li>
+<li>红色, 表示该View的此项性能是View Tree中最慢的.</li>
+</ul>
+</li>
+<li><p>使用</p>
+<p>  <code>Android Device Monitor</code> –&gt; <code>Open Perspective(DDMS左边)</code> –&gt; <code>Hierarchy View</code></p>
+<p>  或者  SDK tools/ 目录下 运行</p>
+</li>
+<li><p>作用</p>
+<p>  用来做View层级分析, 可以分析出View Tree中的性能阻塞点, 以便对症下药, 提升布局性能.</p>
+</li>
+<li><p>注意</p>
+<p>  Hierarchy Viewer需要Root的机器(产品机未Root没有开启ViewServer)才可以执行.</p>
+<p>  可以使用<a href="https://github.com/romainguy/ViewServer" target="_blank" rel="noopener">第三方的开源的ViewServer</a>来协助我们在未Root的机器上使用Hierarchy Viewer分析.</p>
+</li>
+</ul>
+<h2 id="TraceView"><a href="#TraceView" class="headerlink" title="TraceView"></a>TraceView</h2><ul>
+<li><p>作用</p>
+<p>  分析<strong>方法调用栈以及其执行时间</strong>, 优化方法执行.</p>
+</li>
+</ul>
+<h3 id="如何使用TraceView"><a href="#如何使用TraceView" class="headerlink" title="如何使用TraceView"></a>如何使用TraceView</h3><p><a href="http://blog.jobbole.com/78995/" target="_blank" rel="noopener">基本用法</a></p>
+<p><a href="http://blog.csdn.net/androiddevelop/article/details/8223805" target="_blank" rel="noopener">基础到高阶</a> </p>
+<p>使用TraceView主要有两种方式：</p>
+<ul>
+<li><p>DDMS中操作。简单，测试范围不如代码精确</p>
+<pre><code>1. 打开DDMS，选择一个进程，然后按上面的“Start Method Profiling”按钮，等红色小点变成黑色以后就表示TraceView已经开始工作了。
+2. 操作一下app需要测试的功能
+3. 再按一下刚才按的按钮，等一会就会出现上面这幅图，然后就可以开始分析了。
+</code></pre></li>
+<li><p>代码。范围相对精确，更适合检测某一个方法的性能</p>
+<pre><code>1. android.os.Debug.startMethodTracing();和android.os.Debug.stopMethodTracing();
+2. 运行代码，找到trace文件，用DDMS打开。
+    trace文件默认在/sdcard目录中生成，也可以调用startMethodTracing(String traceName) 设置trace文件的文件名，
+    将trace文件复制到电脑中，然后用DDMS工具打开就会出现分析图
+</code></pre></li>
+</ul>
+<h3 id="TraceView界面"><a href="#TraceView界面" class="headerlink" title="TraceView界面"></a>TraceView界面</h3><p>界面包括上下两部分</p>
+<ul>
+<li>上面是测试的进程中每个线程的执行情况，每个线程占一行；</li>
+<li>下面是每个方法执行的指标值</li>
+</ul>
+<h4 id="方法执行指标"><a href="#方法执行指标" class="headerlink" title="方法执行指标"></a>方法执行指标</h4><ul>
+<li><p>纵轴</p>
+<p>  点一个方法后可以看到有两部分，</p>
+<ul>
+<li>Parents 表示调用这个方法的方法，可以叫做父方法</li>
+<li>Children 表示这个方法中调用的其他方法，可以叫做子方法</li>
+</ul>
+</li>
+<li><p>横轴</p>
+<ol>
+<li><p><strong>Incl Cpu Time</strong> </p>
+<p> inclusive ： 全包括的; 一切开支包括在内的 </p>
+<p>  这个方法以及这个方法的子方法一共执行的时间。所以在方法指标界面中，第一个方法 0(toplevel) 改指标总是100%</p>
+</li>
+<li><p><strong>Excl Cpu Time</strong></p>
+<p> Exclusive  ： 专用的; 单独的;</p>
+<p> 这个方法本身执行的时间（不包括这个方法的子方法）</p>
+</li>
+<li><p><strong>Incl Real Time</strong></p>
+</li>
+<li><p><strong>Excl Real Time</strong></p>
+</li>
+<li><p>Calls + Recur Calls / Total</p>
+<p> Recur ： 复发; 重现; 再发生; 回想;</p>
+<p> 这个指标非常重要！</p>
+<p> 这个方法执行的次数，Call表示这个方法调用的次数，Recur Call表示递归调用次数</p>
+</li>
+<li><p><strong>Cpu Time / Call</strong></p>
+<p> 最重要指标</p>
+<p> 这个方法每次调用占用的cpu时间（方法占用的cpu时间/方法调用次数=单位调用时间）</p>
+</li>
+<li><p><strong>Cpu Time 和 Real Time</strong></p>
+<p> Cpu Time 方法占用CPU的时间</p>
+<p> Real Time 方法的实际运行时间</p>
+<p> 因为CPU的上下文切换、阻塞、GC等原因，方法的实际执行时间要比Cpu Time 要稍微长一点。</p>
+</li>
+</ol>
+</li>
+</ul>
+<h2 id="Android-Profiler"><a href="#Android-Profiler" class="headerlink" title="Android Profiler"></a><a href="https://juejin.im/post/5b7cbf6f518825430810bcc6#heading-8" target="_blank" rel="noopener">Android Profiler</a></h2><ul>
+<li><p>说明</p>
+<p>  <strong>内存使用</strong>检测器, 可以实时检测当前Application的内存使用和释放等信息, 并以图形化界面展示.以<strong>字节</strong>为单位</p>
+<p>  Eclipse 使用 MAT</p>
+<p>  Android Studio 2 使用 Android Monitor</p>
+<p>  Android Studio 3 使用 Android Profiler</p>
+</li>
+<li><p>作用</p>
+<ul>
+<li>用来做内存分析, 内存泄露排查的不二之选. 可以结合heap viewer, allocation tracker来分析.</li>
+<li>可以导出hprof文件结合第三方的MAT工具分析泄露点.</li>
+</ul>
+</li>
+</ul>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>最好使用Android 8 及更高版本的手机</p>
+<h4 id="打开-Android-Profiler-窗口"><a href="#打开-Android-Profiler-窗口" class="headerlink" title="打开 Android Profiler 窗口"></a>打开 Android Profiler 窗口</h4><p>点击 <code>View &gt; Tool Windows &gt; Android Profiler</code> 打开 Android Profiler 窗口</p>
+<h4 id="启用高级分析"><a href="#启用高级分析" class="headerlink" title="启用高级分析"></a>启用高级分析</h4><p>Android 7.1 或更低版本的设备，默认情况下，没有启用高级分析。会显示一条消息，“Advanced profiling is unavailable for the selected process”。</p>
+<p>Android 8.0及更高版本上，始终为可调试应用启用高级分析</p>
+<p>启用高级分析以查看下列内容：</p>
+<ul>
+<li>Event 时间线</li>
+<li>分配的对象数</li>
+<li>垃圾回收 Event</li>
+</ul>
+<p>要启用高级分析，请按以下步骤操作：</p>
+<ul>
+<li>选择 <code>Run &gt; Edit Configurations</code></li>
+<li>在左侧窗格中选择您的应用模块。</li>
+<li>点击 <code>Profiling</code> 标签，然后勾选 <code>Enable advanced profiling</code>。</li>
+</ul>
+<p>重新构建并运行应用，即可获取完整的分析功能。</p>
+<p>注意，<strong>高级分析会减缓构建速度</strong>，所以仅当您想要开始分析应用时才启用此功能。</p>
+<h3 id="Memory-Profiler"><a href="#Memory-Profiler" class="headerlink" title="Memory Profiler"></a>Memory Profiler</h3><img src="/2019/03/01/Android/UI性能优化/性能分析工具/memory.png">
+<p><strong>已分配的Java对象数</strong></p>
+<ul>
+<li>Android 7.1 及更低版本的设备，在 Memory Profiler 连接至您运行的应用时才开始计数</li>
+<li>Android 8.0 及更高版本上，附带一个设备内置分析工具，可记录所有分配。</li>
+</ul>
+<p><strong>内存使用量</strong></p>
+<ul>
+<li>Android Profiler， 比老的Android Monitor监控的类别更多，会增加总的内存使用量</li>
+</ul>
+<p><strong>Java 堆内存使用量</strong></p>
+<ul>
+<li>应用的 Java 堆是从 Zygote 启动的，Android Profiler计入了为它分配的所有物理内存页面(比Android Monitor更准确)。</li>
+</ul>
+<p><strong>原生内存使用量</strong></p>
+<ul>
+<li>误报实际上是分析工具使用的内存。 未来版本中，将从数据中过滤掉。</li>
+</ul>
+<h4 id="查看内存分配"><a href="#查看内存分配" class="headerlink" title="查看内存分配"></a>查看内存分配</h4><p>显示内存中<strong>对象实例的分配回收及调用堆栈</strong></p>
+<ul>
+<li>Android 8.0 或更高版本，点击并按住时间线，并拖动选择您想要查看分配的区域</li>
+<li>Android 7.1 或更低版本，在 Memory Profiler 工具栏中点击 Record memory allocations 开始记录和停止记录。仅保存最新的 65535 个分配</li>
+</ul>
+<p>已分配对象的列表将显示在时间线下方，默认按类名称进行分组，并按其堆计数排序。</p>
+<img src="/2019/03/01/Android/UI性能优化/性能分析工具/memory2.png">
+<p><strong>Class Name</strong> 列 点击一个类名称，右侧 <strong>Instance View</strong> 窗格显示该类的每个实例，点击一个实例 ，下方 <strong>Call Stack</strong> 显示该实例被分配的线程和调用堆栈。</p>
+<h5 id="Shallow-Size和Retained-Size"><a href="#Shallow-Size和Retained-Size" class="headerlink" title="Shallow Size和Retained Size"></a>Shallow Size和Retained Size</h5><ul>
+<li><strong>Shallow size</strong> <strong>对象</strong>本身占用内存</li>
+<li><strong>Retained size</strong> 对象本身 加上 只有从该对象才能直接或间接访问到对象 占用内存；<strong>该对象被GC之后所能回收到内存</strong>。有助于理解内存结构和对象图中的依赖关系并找到根节点</li>
+</ul>
+<img src="/2019/03/01/Android/UI性能优化/性能分析工具/memory_retained_size.png">
+<p>上图中蓝色节点代表只有通过obj1才能直接或间接访问的对象</p>
+<p>左图，obj1的retained size是obj1、obj2、obj4的shallow size总和；右图的retained size是obj1、obj2、obj3、obj4的shallow size总和。</p>
+<h4 id="捕获堆转储"><a href="#捕获堆转储" class="headerlink" title="捕获堆转储"></a>捕获堆转储</h4><p>堆转储显示在您捕获堆转储时应用中<strong>哪些对象正在使用内存</strong>。 </p>
+<p>特别是在长时间的用户会话后，堆转储会显示您认为不应再位于内存中却仍在内存中的对象，从而帮助识别内存泄漏。 </p>
+<p>在 Memory Profiler 工具栏中点击 Dump Java heap 捕获堆转储。在转储堆期间，Java 内存量可能会暂时增加。因为堆转储与您的应用发生在同一进程中，并需要一些内存来收集数据。</p>
+<p>可以在应用代码的关键点调用 <code>dumpHprofData()</code> 创建堆转储，更精确地控制转储的创建时间</p>
+<p>默认按类名称进行分组，并按其保留的堆内存排序。</p>
+<img src="/2019/03/01/Android/UI性能优化/性能分析工具/memory_dump_heap.png">
+<p><strong>Class Name</strong> 列 点击一个类名称，<strong>Instance View</strong> 窗格显示该类的每个实例，点击一个实例，下方 <strong>References</strong>显示该对象的每个引用，点击实例名称旁的箭头可以查看其所有字段，点击一个字段名称查看其所有引用，右键点击该字段并选择 Go to Instance 查看某个字段的实例详情</p>
+<h4 id="将堆转储另存为-HPROF"><a href="#将堆转储另存为-HPROF" class="headerlink" title="将堆转储另存为 HPROF"></a>将堆转储另存为 HPROF</h4><p>保存堆转储以供日后查看</p>
+<p>点击时间线下方工具栏中的 Export heap dump as HPROF file ，将堆转储导出到一个 HPROF 文件中</p>
+<p>将此文件拖到一个空的编辑器窗口（或将其拖到文件标签栏中），您可以在 Android Studio 中重新打开该文件。</p>
+<p>要使用其他 HPROF 分析器（如 jhat），您需要将 HPROF 文件从 Android 格式转换为 Java SE HPROF 格式。 您可以使用 android_sdk/platform-tools/ 目录中提供的 hprof-conv 工具执行此操作。 运行包括以下两个参数的 hprof-conv 命令：原始 HPROF 文件和转换后 HPROF 文件的写入位置。 例如：</p>
+<p><code>hprof-conv heap-original.hprof heap-converted.hprof</code></p>
+<h4 id="分析内存的技巧"><a href="#分析内存的技巧" class="headerlink" title="分析内存的技巧"></a>分析内存的技巧</h4><p>在应用中引发内存泄漏的一种方式是，先让其运行一段时间，然后再检查堆。 泄漏在堆中可能逐渐汇聚到分配顶部（默认其保留的堆内存排序）。 不过，泄漏越小，您越需要运行更长时间的应用才能看到泄漏。</p>
+<p>您可以通过以下方式之一触发内存泄漏：</p>
+<ul>
+<li>将设备从纵向旋转为横向，然后在不同的 Activity 状态下反复操作多次。 旋转设备经常会导致应用泄漏 Activity、Context 或 View 对象，因为系统会重新创建 Activity，而如果您的应用在其他地方保持对这些对象之一的引用，系统将无法对其进行垃圾回收。</li>
+<li>处于不同的 Activity 状态时，在您的应用与另一个应用之间切换（导航到主屏幕，然后返回到您的应用）。</li>
+</ul>
+<h3 id="实例分析内存泄漏"><a href="#实例分析内存泄漏" class="headerlink" title="实例分析内存泄漏"></a>实例分析内存泄漏</h3><p>单例持有Activity</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        CommonUtils.getInstance(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CommonUtils</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> CommonUtils instance;</span><br><span class="line">    <span class="keyword">private</span> Context context;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">CommonUtils</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.context = context;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> CommonUtils <span class="title">getInstance</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            instance = <span class="keyword">new</span> CommonUtils(context);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>打开APP 横屏 竖屏，点击GC，发现内存没有下降，内存泄漏无疑</p>
+<p><strong>Depth：从任意 GC 根到所选实例的最短 hop 数</strong></p>
+<p>dump发现，MainActivity 有三个实例</p>
+<p>Depth 从上到下 是 2 ，0，3；0 代表该activity，可以被 gc 回收<br><img src="/2019/03/01/Android/UI性能优化/性能分析工具/第一个MainActivity.png"><br><img src="/2019/03/01/Android/UI性能优化/性能分析工具/第三个MainActivity.png"> </p>
+<p>第一个MainActivity 被 CommonUtils中 instance 持有，不可被回收</p>
+<p>第三个MainActivity 没被CommonUtils中 instance 持有</p>
+<ul>
+<li>第一次创建MainActivity 生成了 CommonUtils中 instance；再创建MainActivity的时候 它的上下文不会再次被持有</li>
+<li>这是我们<strong>当前看到</strong>的MainActivity。他当然不可能被销毁。</li>
+</ul>
+<p>Android profiler 分析内存泄漏的<strong>缺点</strong>：</p>
+<ul>
+<li><strong>效率太低</strong>；没有过滤(软引用，弱引用)功能，只能逐个查看实例及实例引用</li>
+<li>必须非常熟悉代码；</li>
+</ul>
+<h2 id="MAT"><a href="#MAT" class="headerlink" title="MAT"></a>MAT</h2><p>with incoming references ： 表示该类被 哪些外部对象 引用了</p>
+<p>with outgoing references : 表示 该类 持有了 哪些外部对象的引用</p>
+<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><p>为了 说明MAT 的强大 我们写一个稍微复杂的内存泄漏的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">在上面实例基础上</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> Link linkInstance;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        CommonUtils.getInstance(<span class="keyword">this</span>);</span><br><span class="line">        <span class="keyword">if</span> (linkInstance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            linkInstance = <span class="keyword">new</span> Link();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">new</span> MyThread().start();</span><br><span class="line">    &#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Link</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dosomething</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                sleep(<span class="number">1000</span>);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="生成报告"><a href="#生成报告" class="headerlink" title="生成报告"></a>生成报告</h3><p>打开 经过格式转过的hprof文件</p>
+<p>选择 Leak Suspect Report</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><h4 id="定位类实例列表"><a href="#定位类实例列表" class="headerlink" title="定位类实例列表"></a>定位类实例列表</h4><p>Overview – Histogram: Lists number of instances per class</p>
+<h4 id="定位类实例"><a href="#定位类实例" class="headerlink" title="定位类实例"></a>定位类实例</h4><p>在最上面可以输入包名(或者带完整包名的类名)，回车，只关心我们自己的类</p>
+<p>定位引用者对象列表</p>
+<p>类实例 右键 List objects -&gt; with incoming references</p>
+<h4 id="过滤-弱引用，软引用-幻影引用"><a href="#过滤-弱引用，软引用-幻影引用" class="headerlink" title="过滤 弱引用，软引用 幻影引用"></a>过滤 弱引用，软引用 幻影引用</h4><p>类实例 右键 -&gt;Path to Gc Root -&gt; exclude all phantom/weak/soft etc. references</p>
+<p>到此，就找到了真实的内存泄漏原因了</p>
+<h4 id="分析结果"><a href="#分析结果" class="headerlink" title="分析结果"></a>分析结果</h4><img src="/2019/03/01/Android/UI性能优化/性能分析工具/MainActivity1.png">
+<img src="/2019/03/01/Android/UI性能优化/性能分析工具/MainActivity2.png">
+<img src="/2019/03/01/Android/UI性能优化/性能分析工具/MainActivity3.png">
+<p>MainActivity的创建顺序如上所示，第三个是我们当前看到的</p>
+<p>共三个内存泄漏点</p>
+<ul>
+<li>CommonUtils的instance 所持有</li>
+<li>Link的linkInstance 所持有</li>
+<li>MyThread的线程 所持有<ul>
+<li>内部类会持有 外部类的引用</li>
+<li>thread 写了一个 while（true）的死循环 </li>
+</ul>
+</li>
+</ul>
+<h2 id="Android开发者模式"><a href="#Android开发者模式" class="headerlink" title="Android开发者模式"></a>Android开发者模式</h2><p>Android开发者模式中也提供了较多的用来监测性能的选项</p>
+<h2 id="adb-shell-dumpsys"><a href="#adb-shell-dumpsys" class="headerlink" title="adb shell dumpsys"></a>adb shell dumpsys</h2><p>该命令可以用户输出当前的系统状态信息.</p>
+<p>其中就有关于内存的选项:</p>
+<pre><code>$ adb shell dumpsys meminfo com.udinic.perfdemo
+</code></pre><p>该命令常用来查看当前进程的的内存使用状态, 是一个总体的预览.</p>
+<p>输出信息如下:</p>
+<img src="/2019/03/01/Android/UI性能优化/性能分析工具/memory_dumpsys.png">
+<h1 id="第三方工具"><a href="#第三方工具" class="headerlink" title="第三方工具"></a>第三方工具</h1><p>以下工具全部开源, 开源万岁…</p>
+<h2 id="Battery-Historian"><a href="#Battery-Historian" class="headerlink" title="Battery Historian"></a>Battery Historian</h2><ul>
+<li><p>说明</p>
+<p>  Google出品, 通过Android系统的bugreport文件来做<strong>电量使用</strong>分析的工具.</p>
+</li>
+<li><p>文档</p>
+<p>  <a href="https://github.com/google/battery-historian" target="_blank" rel="noopener">https://github.com/google/battery-historian</a></p>
+</li>
+</ul>
+<h2 id="Emmagee"><a href="#Emmagee" class="headerlink" title="Emmagee"></a>Emmagee</h2><ul>
+<li><p>说明</p>
+<p>  网易出品，在界面实时显示Android App的<strong>CPU, 内存, 网络, 电量</strong>使用情况. </p>
+<p>  支持Android 7.0 以下</p>
+</li>
+<li><p>文档</p>
+<p>  <a href="https://github.com/NetEase/Emmagee" target="_blank" rel="noopener">https://github.com/NetEase/Emmagee</a></p>
+</li>
+</ul>
+<h2 id="leakcanary"><a href="#leakcanary" class="headerlink" title="leakcanary"></a>leakcanary</h2><ul>
+<li><p>说明</p>
+<p>  Square出品, 必属精品.</p>
+<p>  类似与App探针的内存泄露监测工具.</p>
+<p>  集成到App中, 用来做内存问题预防最好不过了.</p>
+</li>
+<li><p>文档</p>
+<p>  <a href="https://github.com/square/leakcanary" target="_blank" rel="noopener">https://github.com/square/leakcanary</a></p>
+</li>
+</ul>
+<h2 id="AndroidDevMetrics"><a href="#AndroidDevMetrics" class="headerlink" title="AndroidDevMetrics"></a>AndroidDevMetrics</h2><ul>
+<li><p>说明</p>
+<p>  一个library, 用来检测Activity生命周期执行性能, Dagger2注入性能以及帧率性能的工具.</p>
+<p>  如果你的应用使用的Dagger2, 这个就比较必要了.</p>
+</li>
+<li><p>文档</p>
+<p>  <a href="https://github.com/frogermcs/AndroidDevMetrics" target="_blank" rel="noopener">https://github.com/frogermcs/AndroidDevMetrics</a></p>
+</li>
+</ul>
+<h2 id="BlockCanary"><a href="#BlockCanary" class="headerlink" title="BlockCanary"></a>BlockCanary</h2><ul>
+<li>说明</li>
+</ul>
+<p>非侵入式的性能监控组件</p>
+<ul>
+<li><p><a href="https://github.com/markzhai/AndroidPerformanceMonitor" target="_blank" rel="noopener">文档</a></p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1></li>
+<li><p><a href="https://blog.csdn.net/wanghao200906/article/details/79305126" target="_blank" rel="noopener">Android 性能优化 - 彻底解决内存泄漏</a></p>
+</li>
+<li><a href="https://blog.csdn.net/lmj623565791/article/details/58626355" target="_blank" rel="noopener">Android UI性能优化 检测应用中的UI卡顿</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/UI性能优化/内存泄漏检测及解决办法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/01/Android/UI性能优化/内存泄漏检测及解决办法/" itemprop="url">内存泄漏检测及解决办法</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:12:53+08:00">
+                2019-03-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.cnblogs.com/whoislcj/p/6001422.html" target="_blank" rel="noopener">Android性能优化之利用LeakCanary检测内存泄漏及解决办法</a>    </p>
+<p><a href="http://blog.csdn.net/u013495603/article/details/50696170" target="_blank" rel="noopener">安卓内存泄露成因和解决办法</a></p>
+<h1 id="什么是内存泄漏？"><a href="#什么是内存泄漏？" class="headerlink" title="什么是内存泄漏？"></a>什么是内存泄漏？</h1><p>如果在对象的生命周期本该结束的时候，这个对象还被一系列的引用，这就会导致内存泄漏。随着泄漏的累积，app将消耗完内存。</p>
+<p>它是造成应用程序OOM的主要原因之一</p>
+<h1 id="什么是LeakCanary？"><a href="#什么是LeakCanary？" class="headerlink" title="什么是LeakCanary？"></a>什么是LeakCanary？</h1><p><code>Square开源框架</code> ，是一个Android和Java的内存泄露检测库. <code>https://github.com/square/leakcanary</code></p>
+<p>如果检测到某个 activity 有内存泄露，LeakCanary 就是自动地显示一个通知，所以可以把它理解为 <code>傻瓜式的内存泄露检测工具</code> 。</p>
+<p>通过它可以大幅度减少开发中遇到的oom问题，大大提高APP的质量。</p>
+<h1 id="LeakCanary使用"><a href="#LeakCanary使用" class="headerlink" title="LeakCanary使用"></a>LeakCanary使用</h1><h2 id="集成"><a href="#集成" class="headerlink" title="集成"></a>集成</h2><p><code>build.gradle</code></p>
+<pre><code>dependencies {
+    debugCompile &apos;com.squareup.leakcanary:leakcanary-android:1.5&apos;
+    releaseCompile &apos;com.squareup.leakcanary:leakcanary-android-no-op:1.5&apos;
+    testCompile &apos;com.squareup.leakcanary:leakcanary-android-no-op:1.5&apos;
+}
+</code></pre><p><code>Application</code> 的onCreate中</p>
+<pre><code>if (LeakCanary.isInAnalyzerProcess(this)) {
+    // This process is dedicated to LeakCanary for heap analysis.
+    // You should not init your app in this process.
+    return;
+}
+LeakCanary.install(this);
+</code></pre><p>LeakCanary.install() 会返回一个预定义的 RefWatcher，同时也会启用一个 ActivityRefWatcher，用于自动监控调用 Activity.onDestroy() 之后泄露的 activity。</p>
+<h2 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h2><p>使用 <code>RefWatcher</code> 监控那些本该被回收的对象。</p>
+<pre><code>refWatcher.watch(schrodingerCat);
+</code></pre><h2 id="工作机制"><a href="#工作机制" class="headerlink" title="工作机制"></a>工作机制</h2><ol>
+<li><p>RefWatcher.watch() 创建一个 KeyedWeakReference 到要被监控的对象。</p>
+</li>
+<li><p>然后在后台线程检查引用是否被清除，如果没有，调用GC。</p>
+</li>
+<li><p>如果引用还是未被清除，把 heap 内存 dump 到 APP 对应的文件系统中的一个 .hprof 文件中。</p>
+</li>
+<li><p>在另外一个进程中的 HeapAnalyzerService 有一个 HeapAnalyzer 使用HAHA 解析这个文件。</p>
+</li>
+<li><p>得益于唯一的 reference key, HeapAnalyzer 找到 KeyedWeakReference，定位内存泄露。</p>
+</li>
+<li><p>HeapAnalyzer 计算 到 GC roots 的最短强引用路径，并确定是否是泄露。如果是的话，建立导致泄露的引用链。</p>
+</li>
+<li><p>引用链传递到 APP 进程中的 DisplayLeakService， 并以通知的形式展示出来。</p>
+</li>
+</ol>
+<h2 id="高阶自定义"><a href="#高阶自定义" class="headerlink" title="高阶自定义"></a>高阶自定义</h2><p>leak trace 之外，可以自定义高阶功能：</p>
+<pre><code>UI 样式 
+保存 leak trace 
+上传 leak trace 到服务器
+</code></pre><h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>可以通过 LeakCanary tag 看logcat日志排查</p>
+<h3 id="dump失败"><a href="#dump失败" class="headerlink" title="dump失败"></a>dump失败</h3><p>存储到达上限</p>
+<p>默认存储路径 <code>SD卡/Download/</code></p>
+<p>删除，重启APP即可</p>
+<h3 id="dump后分析很久"><a href="#dump后分析很久" class="headerlink" title="dump后分析很久"></a>dump后分析很久</h3><p>有时候dump后分析很久（10多分钟）；</p>
+<p>hrof文件过大（20MB）</p>
+<h1 id="LeakCanary捕获常见内存泄漏以及解决办法"><a href="#LeakCanary捕获常见内存泄漏以及解决办法" class="headerlink" title="LeakCanary捕获常见内存泄漏以及解决办法"></a>LeakCanary捕获常见内存泄漏以及解决办法</h1><h2 id="1-单例（静态成员变量）"><a href="#1-单例（静态成员变量）" class="headerlink" title="1. 单例（静态成员变量）"></a>1. 单例（静态成员变量）</h2><pre><code>public class LoginManager {
+    private static LoginManager mInstance;
+    private Context mContext;
+
+    private LoginManager(Context context) {
+        this.mContext = context;
+    }
+
+    public static LoginManager getInstance(Context context) {
+        if (mInstance == null) {
+            synchronized (LoginManager.class) {
+                if (mInstance == null) {
+                    mInstance = new LoginManager(context);
+                }
+            }
+        }
+        return mInstance;
+    }
+
+    public void dealData() {
+    }
+}
+</code></pre><p><strong>泄露原因：</strong></p>
+<p>单例持有Context对象，持有的Context对象生命周期比单例生命周期更短，导致Context无法被释放回收，造成内存泄漏</p>
+<p>允许的话，尽量使用使用Application 的 Context</p>
+<p>Application，Service，Activity三者的Context的应用场景如下：<br><img src="http://img.blog.csdn.net/20160219105432193" alt=""></p>
+<p><strong>LeakCanary检测结果如下：</strong></p>
+<p><img src="http://images2015.cnblogs.com/blog/950883/201610/950883-20161029133437718-1566183114.jpg" alt=""></p>
+<p><strong>解决方案：</strong></p>
+<p>保证Context和AppLication的生命周期一样</p>
+<pre><code>private LoginManager(Context context) {
+    this.mContext = context.getApplicationContext();
+}
+</code></pre><h2 id="2-非静态内部类-创建-静态实例"><a href="#2-非静态内部类-创建-静态实例" class="headerlink" title="2. 非静态内部类 创建 静态实例"></a>2. 非静态内部类 创建 静态实例</h2><pre><code>public class MainActivity extends AppCompatActivity {
+    private static Config mConfig;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        //模拟内存泄露
+        if (mConfig == null) {
+            mConfig = new Config();
+            mConfig.setSize(18);
+            mConfig.setTitle(&quot;老九门&quot;);
+        }
+        finish();
+    }
+
+    class Config {
+        private int size;
+        private String title;
+
+        public int getSize() {
+            return size;
+        }
+
+        public void setSize(int size) {
+            this.size = size;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+    }
+}
+</code></pre><p><strong>泄露原因：</strong></p>
+<p><strong>非静态内部类都会持有一个外部类引用</strong>，这里这个外部类就是MainActivity，然而内部类实例又是static静态变量，其生命周期与Application生命周期一样，所以在MainActivity关闭的时候，内部类静态实例依然持有对MainActivity的引用，导致MainActivity无法被回收释放，引发内存泄漏。</p>
+<p><strong>LeakCanary检测结果如下：</strong></p>
+<p><img src="http://images2015.cnblogs.com/blog/950883/201610/950883-20161031105459768-259924645.jpg" alt=""></p>
+<p><strong>解决方案：</strong></p>
+<p>将内部类改成静态内部类，不再持有对MainActivity的引用</p>
+<pre><code>static class Config {...}
+</code></pre><h2 id="3-非静态内部类-实现-异步线程"><a href="#3-非静态内部类-实现-异步线程" class="headerlink" title="3. 非静态内部类 实现 异步线程"></a>3. 非静态内部类 实现 异步线程</h2><p>Adapter， AsyncTask，Handlers，Threads，Timer Tasks，Runnable</p>
+<h3 id="1-）实现AsyncTask"><a href="#1-）实现AsyncTask" class="headerlink" title="1.）实现AsyncTask"></a>1.）实现AsyncTask</h3><pre><code>public class MainActivity extends AppCompatActivity {
+    private AsyncTask&lt;Void, Void, Integer&gt; asyncTask;
+    private TextView mTextView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        mTextView = (TextView) findViewById(R.id.text);
+        testAsyncTask();
+        finish();
+    }
+
+    private void testAsyncTask() {
+        asyncTask = new AsyncTask&lt;Void, Void, Integer&gt;() {
+            @Override
+            protected Integer doInBackground(Void... params) {
+                int i = 0;
+                while (!isCancelled()) {//模拟耗时操作
+                    i++;
+                    if (i &gt; 1000000000) {
+                        break;
+                    }
+                    Log.e(&quot;LeakCanary&quot;, &quot;asyncTask----&gt;&quot; + i);
+                }
+                return i;
+            }
+
+            @Override
+            protected void onPostExecute(Integer integer) {
+                super.onPostExecute(integer);
+                mTextView.setText(String.valueOf(integer));
+            }
+        };
+        asyncTask.execute();
+    }
+}
+</code></pre><p><strong>泄露原因：</strong></p>
+<p>在处理一个比较耗时的操作，还没处理结束MainActivity就执行了退出操作，但是此时AsyncTask依然持有对MainActivity的引用，导致MainActivity无法释放回收引发内存泄漏。</p>
+<p><strong>LeakCanary检测结果如下：</strong></p>
+<p><img src="http://images2015.cnblogs.com/blog/950883/201610/950883-20161029150616562-244317247.jpg" alt=""></p>
+<p><strong>解决方案：</strong></p>
+<p>在使用AsyncTask时，在Activity销毁时候也应该取消相应的任务，避免任务在后台执行浪费资源，进而避免内存泄漏的发生。</p>
+<pre><code>@Override
+protected void onDestroy() {
+    super.onDestroy();
+    destroyAsyncTask();
+}
+
+
+private void destroyAsyncTask() {
+    if (asyncTask != null &amp;&amp; !asyncTask.isCancelled()) {
+        asyncTask.cancel(true);
+    }
+    asyncTask = null;
+}
+</code></pre><p><strong>通用解决方案：</strong></p>
+<p>有些非静态内部类是没有cancel，remove等操作的，如网络请求的callBack</p>
+<p><strong>通用的解决方案是：使用静态内部类，静态内部类使用弱引用持有外部类的成员变量（记得判断VIEW是否为空）</strong></p>
+<p>public class AsyncActivity extends Activity {</p>
+<pre><code>TextView textView;
+AsyncTask task;
+
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_async);
+    textView = (TextView) findViewById(R.id.textView);
+
+    task = new BackgroundTask(textView).execute();
+}
+
+@Override
+protected void onDestroy() {
+    task.cancel(true);
+    super.onDestroy();
+}
+
+private static class BackgroundTask extends AsyncTask&lt;Void, Void, String&gt; {
+
+    private final WeakReference&lt;TextView&gt; textViewReference;
+
+    public BackgroundTask(TextView resultTextView) {
+        this.textViewReference = new WeakReference&lt;&gt;(resultTextView);
+    }
+
+    @Override
+    protected void onCancelled() {
+        // Cancel task. Code omitted.
+    }
+
+    @Override
+    protected String doInBackground(Void... params) {
+        // Do background work. Code omitted.
+        return &quot;some string&quot;;
+    }
+
+    @Override
+    protected void onPostExecute(String result) {
+        TextView view = textViewReference.get();
+        if (view != null) {
+            view.setText(result);
+        }
+    }
+}
+</code></pre><p>}</p>
+<h3 id="2-）-Handler-Runnable"><a href="#2-）-Handler-Runnable" class="headerlink" title="2.） Handler + Runnable"></a>2.） Handler + Runnable</h3><pre><code>public class MainActivity extends AppCompatActivity {
+    private Handler mHandler = new Handler();
+    private TextView mTextView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        mTextView = (TextView) findViewById(R.id.text);
+        mHandler.postDelayed(new Runnable() {//模拟内存泄露
+            @Override
+            public void run() {
+                mTextView.setText(&quot;lcj&quot;);
+            }
+        }, 3 * 60 * 1000);
+        finish();
+    }
+}
+</code></pre><p><strong>泄露原因：</strong></p>
+<p>上述代码通过内部类的方式创建mHandler对象,此时mHandler会隐式地持有一个外部类对象引用这里就是MainActivity，当执行postDelayed方法时，该方法会将你的Handler装入一个Message，并把这条Message推到MessageQueue中，MessageQueue是在一个Looper线程中不断轮询处理消息，那么当这个Activity退出时消息队列中还有未处理的消息或者正在处理消息，而消息队列中的Message持有mHandler实例的引用，mHandler又持有Activity的引用，所以导致该Activity的内存资源无法及时回收，引发内存泄漏。</p>
+<p><strong>LeakCanary检测结果如下：</strong></p>
+<p><img src="http://images2015.cnblogs.com/blog/950883/201610/950883-20161029142349078-91844742.jpg" alt=""></p>
+<p><strong>解决方案：</strong></p>
+<p>在Activity关闭退出的时候的移除消息队列中所有消息和所有的Runnable。</p>
+<pre><code>上述代码只需在onDestroy()函数中调用mHandler.removeCallbacksAndMessages(null);就行了。
+</code></pre><h2 id="4-WebView"><a href="#4-WebView" class="headerlink" title="4. WebView"></a>4. WebView</h2><pre><code>public class MainActivity5 extends AppCompatActivity {
+    private WebView mWebView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_web);
+        mWebView = (WebView) findViewById(R.id.web);
+        mWebView.loadUrl(&quot;http://www.cnblogs.com/whoislcj/p/5720202.html&quot;);
+    }
+}
+
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;LinearLayout
+    xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    android:id=&quot;@+id/activity_main&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:orientation=&quot;vertical&quot;&gt;
+
+    &lt;WebView
+        android:id=&quot;@+id/web&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;/&gt;
+&lt;/LinearLayout&gt;
+</code></pre><p><strong>泄露原因：</strong></p>
+<p>WebView解析网页时会申请Native堆内存用于保存页面元素，当页面较复杂时会有很大的内存占用。并且打开新页面时，为了能快速回退，之前页面占用的内存也不会释放。有时浏览十几个网页，都会占用几百兆的内存。这样加载网页较多时，会导致系统不堪重负，最终强制关闭应用，也就是出现应用闪退或重启。</p>
+<p>即使Activity关闭时在onDestroy中调用如下代码也是没有任何作用。</p>
+<pre><code>private void destroyWebView() {
+    if (mWebView != null) {
+        mLinearLayout.removeView(mWebView);
+        mWebView.pauseTimers();
+        mWebView.removeAllViews();
+        mWebView.destroy();
+        mWebView = null;
+    }
+}
+</code></pre><p><strong>LeakCanary检测到结果如下：</strong></p>
+<p><img src="http://images2015.cnblogs.com/blog/950883/201611/950883-20161101141536799-38733668.jpg" alt=""></p>
+<p><strong>解决方案：</strong></p>
+<ul>
+<li><strong>方案一（不完美）：使用getApplicationgContext</strong></li>
+</ul>
+<p>使用getApplicationgContext作为参数构建WebView，然后动态添加到一个ViewGroup中，最后退出的时候调用webView的销毁的函数。</p>
+<p>虽然也达到了防止内存溢出的效果，但是在有些网页弹出时候需要记住密码的对话框的时候，会出现Unable to add window – token null is not for an application 的错误，</p>
+<ul>
+<li><strong>方案二：独立进程</strong></li>
+</ul>
+<p>把使用了WebView的Activity(或者Service)放在单独的进程里。然后在检测到应用占用内存过大有可能被系统干掉或者它所在的Activity(或者Service)结束后，调用android.os.Process.killProcess(android.os.Process.myPid()); 主动Kill掉进程。由于系统的内存分配是以进程为准的，进程关闭后，系统会自动回收所有内存。</p>
+<pre><code>@Override
+protected void onDestroy() {
+    destroyWebView();
+    android.os.Process.killProcess(android.os.Process.myPid());
+    super.onDestroy();
+}
+
+private void destroyWebView() {
+    if (mWebView != null) {
+        mWebView.pauseTimers();
+        mWebView.removeAllViews();
+        mWebView.destroy();
+        mWebView = null;
+    }
+}
+</code></pre><p>manifest中对应的activity配置如下：</p>
+<pre><code>&lt;activity
+   android:name=&quot;.MainActivity5&quot;
+   android:process=&quot;com.whoislcj.webview&quot;/&gt;
+</code></pre><ul>
+<li><p><strong><a href="http://www.jianshu.com/p/79d79b8cbcfc" target="_blank" rel="noopener">完美解决方案</a></strong></p>
+<p>  <strong>在代码中动态添加</strong></p>
+<pre><code>WebView webView = new WebView(context);
+webViewLayout.addView(webView,layoutParams);//一定要指定布局参数，否则可能出现加载webview空白（其实是因为内容没加载出来，包裹内容默认的webview很小，看不到内容，以为是空白。滚动还是可以看到一丝丝内容的）
+</code></pre><p>  <strong>重点：</strong> 低于5.0版本的WebView中，先在parent中remove了WebView，WebView将无法进行destroy，就会造成内存的泄漏</p>
+<pre><code>@Override
+protected void onDestroy() {        
+    if (webView != null) {        
+        webView.clearCache(true); //清空缓存   
+        if (android.os.Build.VERSION.SDK_INT &gt;= android.os.Build.VERSION_CODES.LOLLIPOP) {            
+            if (webViewLayout != null) {                
+                webViewLayout.removeView(webView);            
+            }            
+        webView.removeAllViews();            
+        webView.destroy();        
+    }else {            
+        webView.removeAllViews();            
+        webView.destroy();            
+        if (webViewLayout != null) {                
+            webViewLayout.removeView(webView);           
+        }        
+     }  
+     webView = null;    
+  }   
+}
+</code></pre></li>
+</ul>
+<h2 id="5-资源未关闭造成的内存泄漏"><a href="#5-资源未关闭造成的内存泄漏" class="headerlink" title="5. 资源未关闭造成的内存泄漏"></a>5. 资源未关闭造成的内存泄漏</h2><p> 对于使用了 <code>BraodcastReceiver</code>，<code>ContentObserver</code>，<code>File</code>，<code>Cursor</code>，<code>Stream</code>，<code>Bitmap</code> <code>循环属性动画</code> 等资源的使用，应该在Activity销毁时及时关闭或者注销，否则这些资源将不会被回收，造成内存泄漏。</p>
+<h2 id="6-CookieSyncManager"><a href="#6-CookieSyncManager" class="headerlink" title="6. CookieSyncManager"></a>6. CookieSyncManager</h2><p>CookieSyncManager 是个全局静态单例，操作系统内部使用了 App 的 Activity 作为 Context 构造了它的实例。我们应该在 App 启动的时候，抢先帮系统创建这个单例，而且要用 applicationContext，让它不会引用到 Activity。</p>
+<h1 id="Leakcanary部分泄露警报无需修复"><a href="#Leakcanary部分泄露警报无需修复" class="headerlink" title="Leakcanary部分泄露警报无需修复"></a><a href="http://lynn8570.github.io/posts/some%20memory%20leaks%20that%20no%20need%20to%20be%20fixed/" target="_blank" rel="noopener">Leakcanary部分泄露警报无需修复</a></h1><p>leakcanary的工作原理，在上下文关闭之后，还未被释放的资源就会引爆内存泄露通知。但是不是所有的泄露都需要修复的。下面总结几个我的血泪史，希望以后不要重蹈覆辙。</p>
+<h2 id="1-InputMethodManager-sInstance泄露"><a href="#1-InputMethodManager-sInstance泄露" class="headerlink" title="1. InputMethodManager.sInstance泄露"></a>1. InputMethodManager.sInstance泄露</h2><p>InputMethodManager.sInstance静态引用泄露</p>
+<p>网上的方法都是通过反射，修复内存泄露。</p>
+<p>系统级别的泄露，你不泄露，别人也会泄露，而且整个android系统，只保留一个static instance的引用，所以这个修复，对整个系统的内存没有太大的改善。而且这个修复的隐患是，你有可能会在<strong>页面跳转遇到各种不可预测的编辑框无法获取焦点</strong>的问题</p>
+<h2 id="2-AsyncQueryHandler-没有quit"><a href="#2-AsyncQueryHandler-没有quit" class="headerlink" title="2. AsyncQueryHandler 没有quit"></a>2. AsyncQueryHandler 没有quit</h2><p>HandlerThread没有quit</p>
+<p>通过反射将这个sLooper强制退出</p>
+<p>修复的惨痛后果是，有些后台线程直接结束了</p>
+<h2 id="3-TextLine-sCached"><a href="#3-TextLine-sCached" class="headerlink" title="3. TextLine.sCached"></a>3. TextLine.sCached</h2><p>和inputManager一样，系统的静态引用而造成的泄露，但是这个泄露的修复，目前没有发现什么不良的影响</p>
+<h1 id="Native-内存泄漏检测"><a href="#Native-内存泄漏检测" class="headerlink" title="Native 内存泄漏检测"></a>Native 内存泄漏检测</h1><p>因为Android开发大部分都是应用层Java开发的缘故，Native内存分析没有太好的手段和工具。</p>
+<p>官方未提供直接可用的分析工具；第三方的一些LInux平台分析工具需要自己移植。</p>
+<p>关于这方面的文档比较少，可以参考下面两篇</p>
+<p><a href="https://wetest.qq.com/lab/view/359.html?from=adsout_qqtips_past2_359" target="_blank" rel="noopener">我这样减少了26.5M Java内存！</a> 腾讯WeTest上企鹅FM的内存优化，重点是Java内存泄漏</p>
+<p><a href="https://mp.weixin.qq.com/s/KtGfi5th-4YHOZsEmTOsjg" target="_blank" rel="noopener">微信 Android 终端内存优化实践</a> 提供了Native内存分析的思路</p>
+<h2 id="Android官方推荐的分析方法"><a href="#Android官方推荐的分析方法" class="headerlink" title="Android官方推荐的分析方法"></a>Android官方推荐的分析方法</h2><p>可以参考 Android官方文档 <a href="https://source.android.com/devices/tech/debug/native-memory" target="_blank" rel="noopener">调试本地内存使用</a>，手动分析Native内存使用。可能遇到的问题和挑战是：刷系统，分析效率低</p>
+<h2 id="自己开发自动化工具"><a href="#自己开发自动化工具" class="headerlink" title="自己开发自动化工具"></a>自己开发自动化工具</h2><h3 id="方案思路"><a href="#方案思路" class="headerlink" title="方案思路"></a>方案思路</h3><p>hook 拦截被测库的内存分配函数，记录分配的内存地址、大小、来源 so 库路径等信息，定期扫描分配与释放是否配对，输出不配对的记录信息</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/Android/Android动态运行时权限/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/30/Android/Android动态运行时权限/" itemprop="url">Android动态运行时权限</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T10:53:53+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="运行时申请权限"><a href="#运行时申请权限" class="headerlink" title="运行时申请权限"></a>运行时申请权限</h1><h2 id="新权限模型"><a href="#新权限模型" class="headerlink" title="新权限模型"></a>新权限模型</h2><p>权限分为：</p>
+<ul>
+<li>普通权限 <code>AndroidManifest.xml</code>文件中直接添加权限即可</li>
+<li>危险权限 动态获取权限</li>
+</ul>
+<p><strong>危险权限分为9组24种</strong></p>
+<img src="/2019/01/30/Android/Android动态运行时权限/危险权限.png">
+<h2 id="两个条件"><a href="#两个条件" class="headerlink" title="两个条件"></a>两个条件</h2><ul>
+<li>项目TargetSDKVersion &gt;=23</li>
+<li>手机系统 Android 6.0 以上</li>
+</ul>
+<p>直接访问权接导致app崩溃</p>
+<h3 id="targetSdkVersion-说明"><a href="#targetSdkVersion-说明" class="headerlink" title="targetSdkVersion 说明"></a>targetSdkVersion 说明</h3><ol>
+<li>targetSdkVersion版本号&lt;= 22时，不需要动态处理权限 。但有时应用程序会打不开。</li>
+<li><p>如果是之前的老版本升级上来的，系统会默认开启之前所有的权限。</p>
+<p> 比如之前的targetSdkVersion是21，后来升级之后变成了25，这个时候系统会自动授权。</p>
+<p> 一定要是升级变成的25，否则还是需要授权。</p>
+</li>
+</ol>
+<h2 id="申请流程"><a href="#申请流程" class="headerlink" title="申请流程"></a>申请流程</h2><ul>
+<li>检测是否有权限 <code>ContextCompat.checkSelfPermission()</code></li>
+<li>有权限，直接使用</li>
+<li><p>无权限，请求权限 <code>ActivityCompat.requestPermissions()</code></p>
+<ul>
+<li><p>根据需要设置权限说明</p>
+<p>  <code>ActivityCompat.shouldShowRequestPermissionRationale()</code></p>
+</li>
+<li><p>Activity中获取回调结果 </p>
+<p>  重写 <code>onRequestPermissionsResult()</code> </p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><ol>
+<li>运行时申请</li>
+<li>支持单个权限、多个权限申请</li>
+<li>无侵入式申请，无需关注权限申请的逻辑</li>
+<li>除了Activity、Fragment之外，还需要支持Service中申请</li>
+<li>对国产手机做兼容处理</li>
+</ol>
+<p>1和2，Google都有对应的API</p>
+<p>3 可以通过自定义注解+AOP切面方式来解决</p>
+<p>4 通过一个透明的Activity去申请权限，并且把申请结果返回来。Google提供的API只支持在Activity和Fragment中去申请权限</p>
+<p>5 国产安卓手机碎片化比较严重，特殊处理</p>
+<h1 id="流行的三方库"><a href="#流行的三方库" class="headerlink" title="流行的三方库"></a>流行的三方库</h1><table>
+<thead>
+<tr>
+<th>权限库</th>
+<th>是否使用注解</th>
+<th>是否支持链式调用</th>
+<th>是否支持Service</th>
+<th>是否适配国产机</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RxPermissions</td>
+<td>No</td>
+<td>Yes 基于RX的思想</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>PermissionsDispatcher</td>
+<td>Yes 编译时注解</td>
+<td>No</td>
+<td>No</td>
+<td>适配了小米</td>
+</tr>
+</tbody>
+</table>
+<h1 id="设计"><a href="#设计" class="headerlink" title="设计"></a>设计</h1><h2 id="概念定义"><a href="#概念定义" class="headerlink" title="概念定义"></a>概念定义</h2><ul>
+<li><strong>申请权限</strong>：弹出系统权限弹窗 <code>@NeedPermission</code></li>
+<li><strong>权限被拒绝</strong>：用户没有给权限，并且选中不再提示 <code>@PermissionCanceled</code></li>
+<li><strong>权限被取消</strong>：用户没有给权限，但是没有选中不再提示 <code>@PermissionDenied</code> </li>
+</ul>
+<p>注解都是声明在Method级别上的。</p>
+<h2 id="整体思路"><a href="#整体思路" class="headerlink" title="整体思路"></a>整体思路</h2><p>在我们的Activity、Fragment及Service中声明注解，然后在AOP中解析我们的注解，并把申请的权限传递给一个透明的Activity去处理，并把处理结果返回来。</p>
+<img src="/2019/01/30/Android/Android动态运行时权限/整体思路.png">
+<h2 id="可能会遇到的问题"><a href="#可能会遇到的问题" class="headerlink" title="可能会遇到的问题"></a>可能会遇到的问题</h2><ol>
+<li>不同型号的手机兼容问题（申请权限、跳设置界面）</li>
+<li>AOP解析注解以及传值问题</li>
+</ol>
+<h1 id="国产手机兼容"><a href="#国产手机兼容" class="headerlink" title="国产手机兼容"></a>国产手机兼容</h1><h2 id="兼容问题"><a href="#兼容问题" class="headerlink" title="兼容问题"></a>兼容问题</h2><ol>
+<li>无法弹出权限申请对话框 <code>ActivityCompat.shouldShowRequestPermissionRationale(Activity, String)</code> </li>
+<li>用户点击拒绝授权，却回调权限申请成功方法</li>
+<li>只能弹出一次权限申请，拒绝后就无法再弹出权限申请对话框</li>
+</ol>
+<h2 id="跳转到系统设置页面或者手机管家界面"><a href="#跳转到系统设置页面或者手机管家界面" class="headerlink" title="跳转到系统设置页面或者手机管家界面"></a>跳转到系统设置页面或者手机管家界面</h2><p>权限申请对话框不再弹出时，跳转到系统设置页面或者手机管家界面</p>
+<p>国产手机各个设置界面不一样，用通用的API跳转不到相应的APP设置界面，Aopermission采用了策略模式</p>
+<img src="/2019/01/30/Android/Android动态运行时权限/跳转到设置页.png">
+<p>如需做兼容，只需要在库里修改，调用方是不需要处理的。</p>
+<p>跳转到设置界面调用如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SettingUtil.go2Setting(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure>
+<p><a href="https://github.com/crazyqiang/Aopermission" target="_blank" rel="noopener">Aopermission</a> AOP方式封装的6.0运行时申请权限库</p>
+<p><a href="https://github.com/jokermonn/permissions4m" target="_blank" rel="noopener">permissions4m</a> 国产 Android 权限申请最佳适配方案。支持国产手机 5.0 权限申请。年久失修</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/23/Flutter/Flutter三方库/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/23/Flutter/Flutter三方库/" itemprop="url">Flutter三方库</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-23T10:47:29+08:00">
+                2019-01-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://github.com/flutter/plugins" target="_blank" rel="noopener">Flutter plugins汇总</a></p>
+<p><a href="https://pub.dartlang.org/packages/flutter_screenutil" target="_blank" rel="noopener">屏幕适配 flutter_screenutil</a></p>
+<p><a href="https://pub.dartlang.org/packages/url_launcher" target="_blank" rel="noopener">URL打开web 电话 短信 邮件 url_launcher</a></p>
+<p><a href="https://pub.dartlang.org/packages/flutter_refresh" target="_blank" rel="noopener">列表下拉刷新 加载更多 flutter_refresh</a></p>
+<p><a href="https://pub.dartlang.org/packages/flutter_spinkit" target="_blank" rel="noopener">加载动画 flutter_spinkit</a></p>
+<p><a href="https://pub.dartlang.org/packages/cupertino_icons" target="_blank" rel="noopener">iOS风格图标 cupertino_icons</a></p>
+<p><a href="https://pub.dartlang.org/flutter/packages?q=SharedPreferences" target="_blank" rel="noopener">存储 SharedPreferences</a></p>
+<p><a href="https://github.com/flutterchina/dio" target="_blank" rel="noopener">网络框架 dio</a></p>
+<p><a href="https://github.com/serenader2014/flutter_carousel_slider" target="_blank" rel="noopener">轮播图 carousel_slider</a></p>
+<p><a href="https://github.com/renefloor/flutter_cached_network_image" target="_blank" rel="noopener">图片加载 cached_network_image</a></p>
+<p><a href="https://github.com/flutter/plugins/tree/master/packages/share" target="_blank" rel="noopener">链接分享 share</a></p>
+<p><a href="https://github.com/flutter/plugins/tree/master/packages/webview_flutter" target="_blank" rel="noopener">WebView  <code>flutter_webview_plugin</code></a></p>
+<p><a href="https://github.com/crazecoder/flutter_bugly" target="_blank" rel="noopener">bugly flutter_bugly</a> </p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/20/web/php/PHP教程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/20/web/php/PHP教程/" itemprop="url">PHP教程</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-20T11:32:25+08:00">
+                2019-01-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index">
+                    <span itemprop="name">Web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><h2 id="PHP"><a href="#PHP" class="headerlink" title="PHP"></a>PHP</h2><p>Hypertext Preprocessor 超文本预处理器</p>
+<p>是一种通用开源脚本语言</p>
+<p><strong>弱类型语言</strong></p>
+<h2 id="PHP-文件"><a href="#PHP-文件" class="headerlink" title="PHP 文件"></a>PHP 文件</h2><ul>
+<li>默认文件扩展名是 “.php”</li>
+<li>可包含文本、HTML、JavaScript代码和 PHP 代码</li>
+<li>PHP 代码在服务器上执行，结果以纯 HTML 形式返回给浏览器<br>PHP 文件</li>
+</ul>
+<h1 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h1><h2 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h2><ul>
+<li>PHP 脚本以 <code>&lt;?php</code> 开始，以 <code>?&gt;</code>结束：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// PHP 代码</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>代码行必须以分号结束</li>
+</ul>
+<h2 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// 这是 PHP 单行注释</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">这是 </span></span><br><span class="line"><span class="comment">PHP 多行</span></span><br><span class="line"><span class="comment">注释</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<h1 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h1><h2 id="命名规则"><a href="#命名规则" class="headerlink" title="命名规则"></a>命名规则</h2><ul>
+<li><strong>以 $ 符号开始</strong>，后面跟变量名称</li>
+<li>变量名称以字母或者下划线开始</li>
+<li>变量名称只能包含字母数字字符以及下划线（A-z、0-9 和 _ ）</li>
+<li>变量名称区分大小写</li>
+</ul>
+<h2 id="创建-声明"><a href="#创建-声明" class="headerlink" title="创建/声明"></a>创建/声明</h2><p>弱类型语言，而且没有声明变量的命令。</p>
+<p>变量在第一次赋值时被创建</p>
+<h2 id="作用域"><a href="#作用域" class="headerlink" title="作用域"></a>作用域</h2><ul>
+<li>local 函数内可见</li>
+<li>global 函数外可见。函数内可以使用 <code>global</code>关键字访问</li>
+<li>static 使局部变量不被删除</li>
+<li>parameter 函数参数，函数内可见</li>
+</ul>
+<h3 id="全局变量"><a href="#全局变量" class="headerlink" title="全局变量"></a>全局变量</h3><p>全局变量存储在一个名为 <strong>$GLOBALS</strong>[index] 的数组中。 index 保存变量的名称。这个数组可以在函数内部访问</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$x=<span class="number">5</span>;</span><br><span class="line">$y=<span class="number">10</span>;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myTest</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">global</span> $x,$y;<span class="comment">//函数内访问全局变量需要使用global关键字</span></span><br><span class="line">    $y=$x+$y;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">myTest();</span><br><span class="line"><span class="keyword">echo</span> $y; <span class="comment">// 输出 15</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>上面的实例可以写成这样：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$x=<span class="number">5</span>;</span><br><span class="line">$y=<span class="number">10</span>;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myTest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    $GLOBALS[<span class="string">'y'</span>]=$GLOBALS[<span class="string">'x'</span>]+$GLOBALS[<span class="string">'y'</span>];</span><br><span class="line">&#125; </span><br><span class="line"> </span><br><span class="line">myTest();</span><br><span class="line"><span class="keyword">echo</span> $y;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="static"><a href="#static" class="headerlink" title="static"></a>static</h3><p>使局部变量不被删除。每次调用该函数时，static变量将会保留着函数前一次被调用时的值。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myTest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">static</span> $x=<span class="number">0</span>;<span class="comment">//只在第一次函数调用时赋值，然后保留着函数前一次被调用时的值</span></span><br><span class="line">    <span class="keyword">echo</span> $x;</span><br><span class="line">    $x++;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">myTest();<span class="comment">//0</span></span><br><span class="line">myTest();<span class="comment">//1</span></span><br><span class="line">myTest();<span class="comment">//2</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h1 id="常量"><a href="#常量" class="headerlink" title="常量"></a>常量</h1><ul>
+<li>常量名命名规则同变量名<ul>
+<li>常量用 define 声明</li>
+<li>变量 $变量名     </li>
+</ul>
+</li>
+<li>值不可变</li>
+<li>全局作用局</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bool define ( string $name , mixed $value [, bool $case_insensitive = <span class="keyword">false</span> ] )</span><br></pre></td></tr></table></figure>
+<p>默认大小写敏感</p>
+<h1 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h1><h2 id="Integer（整型）"><a href="#Integer（整型）" class="headerlink" title="Integer（整型）"></a>Integer（整型）</h2><p>支持10进制，16进制 <code>0x8C</code>，8进制 <code>047</code></p>
+<h2 id="Float（浮点型）"><a href="#Float（浮点型）" class="headerlink" title="Float（浮点型）"></a>Float（浮点型）</h2><h2 id="Boolean（布尔型）"><a href="#Boolean（布尔型）" class="headerlink" title="Boolean（布尔型）"></a>Boolean（布尔型）</h2><p>true, false</p>
+<h2 id="String（字符串）"><a href="#String（字符串）" class="headerlink" title="String（字符串）"></a>String（字符串）</h2><p>单引号，双引号</p>
+<h3 id="操作"><a href="#操作" class="headerlink" title="操作"></a>操作</h3><h4 id="拼接"><a href="#拼接" class="headerlink" title="拼接"></a>拼接</h4><p>并置运算符 <code>.</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line">$txt1=<span class="string">"Hello world!"</span>; </span><br><span class="line">$txt2=<span class="string">"What a nice day!"</span>; </span><br><span class="line"><span class="keyword">echo</span> $txt1 . <span class="string">" "</span> . $txt2; </span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h4 id="api"><a href="#api" class="headerlink" title="api"></a>api</h4><pre><code>strlen() 长度
+strpos() 子字符串在字符串中的位置。未找到返回 FALSE
+</code></pre><h3 id="EOF-heredoc"><a href="#EOF-heredoc" class="headerlink" title="EOF(heredoc)"></a>EOF(heredoc)</h3><h2 id="Array（数组）"><a href="#Array（数组）" class="headerlink" title="Array（数组）"></a>Array（数组）</h2><h2 id="Object（对象）"><a href="#Object（对象）" class="headerlink" title="Object（对象）"></a>Object（对象）</h2><h2 id="NULL（空值）"><a href="#NULL（空值）" class="headerlink" title="NULL（空值）"></a>NULL（空值）</h2><p>可以通过设置变量值为 NULL 来清空变量数据</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/17/Android/自定义Activity背景-奇葩的启动页实现方式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/17/Android/自定义Activity背景-奇葩的启动页实现方式/" itemprop="url">自定义Activity背景-奇葩的启动页实现方式</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-17T19:27:53+08:00">
+                2019-01-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>接受一个单Activity多View栈架构的APP，需要修改splash启动页。找了很久的代码，没有定位到关键实现。最后用笨方法，找对启动页图片的引用，发现是通过自定义Activity背景的方法实现。</p>
+<p>一般APP的Activity很快就会展示出来，很难展示出背景图片</p>
+<p>该APP有三个特性：</p>
+<ul>
+<li>使用RN混合开发</li>
+<li>RN热更新</li>
+<li>首页就是RN页面</li>
+</ul>
+<p>所以首页出来时间较久，跟常规启动页效果一样</p>
+<p><code>splash.xml</code></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span><br><span class="line"><span class="tag">&lt;<span class="name">layer-list</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:drawable</span>=<span class="string">"@color/white"</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">bitmap</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:gravity</span>=<span class="string">"center|fill_vertical|fill_horizontal"</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:src</span>=<span class="string">"@mipmap/ic_splash"</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">item</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">layer-list</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>无法设置宽高，通过 <code>center|fill_vertical|fill_horizontal</code> 实现图片居中完全展示</p>
+<p><code>styles.xml</code></p>
+<pre><code class="xml"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">"Default"</span> <span class="attr">parent</span>=<span class="string">"AppTheme.NoActionBar"</span>&gt;</span><span class="undefined"></span>
+<span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">"android:windowBackground"</span>&gt;</span>@drawable/splash<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span>
+<span class="undefined"></span><span class="tag">&lt;/<span class="name">style</span>&gt;</span>
+</code></pre>
+<p><code>AndroidManifest.xml</code></p>
+<p><code>`</code>xml</p>
+<activity android:name="com.shensz.course.module.main.activity.MainActivity" android:configchanges="keyboardHidden|orientation|screenSize" android:launchmode="singleTask" android:screenorientation="portrait" android:theme="@style/Default" android:windowsoftinputmode="adjustPan"></activity>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/mvvm databinding xml 常用表达式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/mvvm databinding xml 常用表达式/" itemprop="url">MVVM dataBinding 常用表达式</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:10:56+08:00">
+                2019-01-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程思想/" itemprop="url" rel="index">
+                    <span itemprop="name">编程思想</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>@{}和@={}</p>
+<pre><code>@{}单向绑定。VM变化会映射到View
+@={}双向绑定。VM变化会映射到View，View变化也会映射到VM。如EditText输入变化，VM值也会自动变化，不需getText
+VM的成员变量必须继承BaseObservable或定义为ObservableField类型。
+</code></pre><p>visibility</p>
+<pre><code>android:visibility=&quot;visible&quot; 
+android:visibility=&quot;@{titleVM.showBackIcon ? View.VISIBLE : View.GONE}&quot;
+引用View的属性，所以必须import View类型，
+    &lt;import type=&quot;android.view.View&quot; /&gt;
+否则报错：Identifiers must have user defined types from the XML file. View is missing it
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/mvvm和mvpvm/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1306,1620 +3165,11 @@ public interface OnLoginListener {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/Google官方MVP Sample代码解读/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/Google官方MVP Sample代码解读/" itemprop="url">Google官方MVP Sample代码解读</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:07:56+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.cnblogs.com/mengdd/p/5988104.html" target="_blank" rel="noopener">Google官方MVP Sample代码解读</a></p>
-<p><a href="http://blog.csdn.net/ljd2038/article/details/51477475" target="_blank" rel="noopener">Android官方MVP架构解读</a></p>
-<p><a href="https://github.com/boredream/DesignResCollection/tree/master/DesignResCollection_MVP" target="_blank" rel="noopener">一个简单项目（反馈页面）搞定 MVP + Mockito进行单元测试 + Espresso进行UI测试，配详细介绍文档</a></p>
-<h1 id="项目结构分析"><a href="#项目结构分析" class="headerlink" title="项目结构分析"></a>项目结构分析</h1><p>项目是一个备忘录。添加任务到待办任务列表。列表中标记任务已完成，任务详细页面修改任务内容，统计已完成的任务和未完成的任务数量。 </p>
-<p><img src="http://img.blog.csdn.net/20160522165007677" alt=""></p>
-<ul>
-<li><p>一个源码目录 <code>mian</code> ，四个测试目录 <code>androidTest</code> <code>androidTestMock</code> <code>mock</code> <code>test</code> 。</p>
-</li>
-<li><p>代码分包结构</p>
-<ul>
-<li>四个功能包：<ul>
-<li>任务的添加编辑(addedittask)。包内一般有类：xxActivity,xxFragment,xxPresenter,xxContract。<code>Presenter层</code>与<code>View层</code></li>
-<li>任务完成情况的统计(statistics)</li>
-<li>任务的详情(taskdetail)</li>
-<li>任务列表的显示(tasks)。</li>
-</ul>
-</li>
-<li>data包。数据源，数据库读写，网络请求，MVP架构中的 <code>Model层</code>。</li>
-<li>util包。工具类。</li>
-<li>在最外层存放了两接口BasePresenter和BaseView。Presenter层接口和View层接口的基类，项目中所有的Presenter接口和View层接口都继承自这两个接口。 </li>
-</ul>
-</li>
-</ul>
-<h1 id="MVP架构实现"><a href="#MVP架构实现" class="headerlink" title="MVP架构实现"></a>MVP架构实现</h1><h2 id="Model层的实现"><a href="#Model层的实现" class="headerlink" title="Model层的实现"></a>Model层的实现</h2><h3 id="public-interface-TasksDataSource"><a href="#public-interface-TasksDataSource" class="headerlink" title="public interface TasksDataSource"></a>public interface TasksDataSource</h3><pre><code>/**
- * For simplicity, only getTasks() and getTask() have callbacks.Consider adding callbacks to other methods
- */
-public interface TasksDataSource {
-    void getTasks(@NonNull LoadTasksCallback callback);
-    void getTask(@NonNull String taskId, @NonNull GetTaskCallback callback);
-    void saveTask(@NonNull Task task);
-    void completeTask(@NonNull Task task);//标记为已完成
-    void completeTask(@NonNull String taskId);
-    void activateTask(@NonNull Task task);//标记为进行中
-    void activateTask(@NonNull String taskId);
-    void clearCompletedTasks();
-    void refreshTasks();
-    void deleteAllTasks();
-    void deleteTask(@NonNull String taskId);
-</code></pre><h3 id="local数据源"><a href="#local数据源" class="headerlink" title="local数据源"></a>local数据源</h3><pre><code>/**
- * Concrete implementation of a data source as a db.
- */
-public class TasksLocalDataSource implements TasksDataSource {
-</code></pre><h3 id="remote数据源"><a href="#remote数据源" class="headerlink" title="remote数据源"></a>remote数据源</h3><pre><code>/**
- * Implementation of the data source that adds a latency simulating network.
- */
-public class TasksRemoteDataSource implements TasksDataSource {
-</code></pre><h3 id="数据三级缓存"><a href="#数据三级缓存" class="headerlink" title="数据三级缓存"></a>数据三级缓存</h3><pre><code>/**
- * Concrete implementation to load tasks from the data sources into a cache.
- * 
- * For simplicity, this implements a dumb synchronisation between locally persisted data and data
- * obtained from the server, by using the remote data source only if the local database doesn&apos;t
- * exist or is empty.
- */
-public class TasksRepository implements TasksDataSource {
-    Map&lt;String, Task&gt; mCachedTasks;
-    boolean mCacheIsDirty = false;
-
-    /**
-     * Gets tasks from cache, local data source (SQLite) or remote data source, whichever is available first.
-     * 
-     * LoadTasksCallback#onDataNotAvailable() is fired if all data sources fail to get the data.
-     */
-    @Override
-    public void getTasks(@NonNull final LoadTasksCallback callback) {
-        checkNotNull(callback);
-
-        // Respond immediately with cache if available and not dirty
-        if (mCachedTasks != null &amp;&amp; !mCacheIsDirty) {
-            callback.onTasksLoaded(new ArrayList&lt;&gt;(mCachedTasks.values()));
-            return;
-        }
-
-        if (mCacheIsDirty) {
-            // If the cache is dirty we need to fetch new data from the network.
-            getTasksFromRemoteDataSource(callback);
-        } else {
-            // Query the local storage if available. If not, query the network.
-            mTasksLocalDataSource.getTasks(new LoadTasksCallback() {
-                @Override
-                public void onTasksLoaded(List&lt;Task&gt; tasks) {
-                    refreshCache(tasks);
-                    callback.onTasksLoaded(new ArrayList&lt;&gt;(mCachedTasks.values()));
-                }
-
-                @Override
-                public void onDataNotAvailable() {
-                    getTasksFromRemoteDataSource(callback);
-                }
-            });
-        }
-    }
-
-    private void getTasksFromRemoteDataSource(@NonNull final LoadTasksCallback callback) {
-        mTasksRemoteDataSource.getTasks(new LoadTasksCallback() {
-            @Override
-            public void onTasksLoaded(List&lt;Task&gt; tasks) {
-                refreshCache(tasks);
-                refreshLocalDataSource(tasks);
-                callback.onTasksLoaded(new ArrayList&lt;&gt;(mCachedTasks.values()));
-            }
-
-            @Override
-            public void onDataNotAvailable() {
-                callback.onDataNotAvailable();
-            }
-        });
-    }
-
-    private void refreshCache(List&lt;Task&gt; tasks) {
-        if (mCachedTasks == null) {
-            mCachedTasks = new LinkedHashMap&lt;&gt;();
-        }
-        mCachedTasks.clear();
-        for (Task task : tasks) {
-            mCachedTasks.put(task.getId(), task);
-        }
-        mCacheIsDirty = false;
-    }
-
-    private void refreshLocalDataSource(List&lt;Task&gt; tasks) {
-        mTasksLocalDataSource.deleteAllTasks();
-        for (Task task : tasks) {
-            mTasksLocalDataSource.saveTask(task);
-        }
-    }
-</code></pre><p>实际使用的就是带三级缓存的数据源，它由手动实现的注入类Injection（该类在mock目录）提供:</p>
-<pre><code>public class Injection {
-    public static TasksRepository provideTasksRepository(@NonNull Context context) {
-        checkNotNull(context);
-        return TasksRepository.getInstance(FakeTasksRemoteDataSource.getInstance(),
-                TasksLocalDataSource.getInstance(context));
-    }
-}
-</code></pre><h2 id="contract"><a href="#contract" class="headerlink" title="contract"></a>contract</h2><pre><code>public interface BasePresenter {
-    void start();
-}
-
-public interface BaseView&lt;T&gt; {
-    void setPresenter(T presenter);
-}
-
-public interface AddEditTaskContract {
-
-    interface View extends BaseView&lt;Presenter&gt; {
-
-        void showEmptyTaskError();
-
-        void showTasksList();
-
-        void setTitle(String title);
-
-        void setDescription(String description);
-
-        boolean isActive();
-    }
-
-    interface Presenter extends BasePresenter {
-
-        void createTask(String title, String description);
-
-        void updateTask( String title, String description);
-
-        void populateTask();
-    }
-}
-</code></pre><h2 id="Presenter层的实现"><a href="#Presenter层的实现" class="headerlink" title="Presenter层的实现"></a>Presenter层的实现</h2><pre><code>/**
- * Listens to user actions from the UI ({@link AddEditTaskFragment}), retrieves the data and updates the UI as required.
- */
-public class AddEditTaskPresenter implements AddEditTaskContract.Presenter, TasksDataSource.GetTaskCallback {
-</code></pre><h2 id="View层的实现"><a href="#View层的实现" class="headerlink" title="View层的实现"></a>View层的实现</h2><ul>
-<li>View的实现是在Fragment中</li>
-<li><p>而在Activity中则是完成对Fragment的添加，Presenter的创建</p>
-<pre><code>// Create the presenter
-mAddEditTaskPresenter = new AddEditTaskPresenter(
-        taskId,
-        Injection.provideTasksRepository(getApplicationContext()),
-        addEditTaskFragment,
-        shouldLoadDataFromRepo);
-</code></pre></li>
-<li><p>官方对于采用Fragment的原因给出了两种解释。</p>
-<ul>
-<li>通过Activity和Fragment分离非常适合对于MVP架构的实现。Activity作为全局控制者将Presenter与View联系在一起。</li>
-<li>采用Fragment更有利于平板电脑的布局或者是多视图屏幕。</li>
-</ul>
-</li>
-</ul>
-<h1 id="单元测试"><a href="#单元测试" class="headerlink" title="单元测试"></a>单元测试</h1><ul>
-<li><p>MVP模式的主要优势就是便于为业务逻辑加上单元测试.</p>
-</li>
-<li><p>本例子中的单元测试是给TasksRepository和四个feature的Presenter加的.</p>
-</li>
-<li><p>单元测试的目录是  <code>mock</code> <code>test</code></p>
-</li>
-<li><p>单元测试使用的是 Junit + <a href="http://site.mockito.org/" target="_blank" rel="noopener">mockito</a></p>
-</li>
-</ul>
-<p>依赖配置</p>
-<pre><code>repositories { jcenter() }
-dependencies { testCompile &quot;org.mockito:mockito-core:1.+&quot; }
-</code></pre><p>Presenter的单元测试, Mock了View和Model, 测试调用逻辑, 如:</p>
-<pre><code>/**
- * Unit tests for the implementation of {@link AddEditTaskPresenter}.
- */
-public class AddEditTaskPresenterTest {
-
-    @Mock
-    private TasksRepository mTasksRepository;
-
-    @Mock
-    private AddEditTaskContract.View mAddEditTaskView;
-
-    /**
-     * {@link ArgumentCaptor} is a powerful Mockito API to capture argument values and use them to
-     * perform further actions or assertions on them.
-     */
-    @Captor
-    private ArgumentCaptor&lt;TasksDataSource.GetTaskCallback&gt; mGetTaskCallbackCaptor;
-
-    private AddEditTaskPresenter mAddEditTaskPresenter;
-
-    @Before
-    public void setupMocksAndView() {
-        // Mockito has a very convenient way to inject mocks by using the @Mock annotation. To
-        // inject the mocks in the test the initMocks method needs to be called.
-        MockitoAnnotations.initMocks(this);
-
-        // The presenter wont&apos;t update the view unless it&apos;s active.
-        when(mAddEditTaskView.isActive()).thenReturn(true);
-    }
-
-    @Test
-    public void saveNewTaskToRepository_showsSuccessMessageUi() {
-        // Get a reference to the class under test
-        mAddEditTaskPresenter = new AddEditTaskPresenter(
-                null, mTasksRepository, mAddEditTaskView, true);
-
-        // When the presenter is asked to save a task
-        mAddEditTaskPresenter.saveTask(&quot;New Task Title&quot;, &quot;Some Task Description&quot;);
-
-        // Then a task is saved in the repository and the view updated
-        verify(mTasksRepository).saveTask(any(Task.class)); // saved to the model
-        verify(mAddEditTaskView).showTasksList(); // shown in the UI
-    }
-</code></pre><h1 id="UI-测试"><a href="#UI-测试" class="headerlink" title="UI 测试"></a>UI 测试</h1><p>Espresso，Google官方提供的Android UI自动化测试的框架</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/google mvp clean 架构解读/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/google mvp clean 架构解读/" itemprop="url">google mvp clean 架构解读</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:07:56+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.jianshu.com/p/cba6663435c7" target="_blank" rel="noopener">学习 CleanArchitecture 心得体会</a> </p>
-<p><a href="https://github.com/googlesamples/android-architecture/tree/todo-mvp-clean/" target="_blank" rel="noopener">google mvp clean architecture sample</a></p>
-<p><a href="https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html" target="_blank" rel="noopener">uncle-bob Clean Architecture</a></p>
-<h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>google samples<br><img src="https://upload-images.jianshu.io/upload_images/1019822-cda363d399934d04.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/700" alt=""></p>
-<p>uncle-bob<br><img src="http://upload-images.jianshu.io/upload_images/1019822-b2acfd9ed6182541.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
-<p><strong>两个图其实是一个意思。都是三层结构</strong></p>
-<p>It’s based on the MVP sample, adding a <code>domain</code> layer between the <code>presentation</code> layer and <code>data</code> layar, splitting the app in three layers:</p>
-<ul>
-<li>PresentationLayer。 展示层，原来的MVP</li>
-<li>DomainLayer。 新加的层</li>
-<li><p>DataLayer。原来的数据层。</p>
-<p>  最底层，完全不知道 DomainLayer 和PresentationLayer 的存在。这是保证 <code>可测试性</code> <code>低耦合度</code> 的关键所在 </p>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/Clean 架构开发android应用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/Clean 架构开发android应用/" itemprop="url">Clean架构开发Android应用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:06:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>使用Clean架构开发Android应用详细指南 http://www.open-open.com/lib/view/open1455759692636.html
-</code></pre><p><strong>Clean 架构是向内依赖：内层不能依赖外层，即内层不知道有关外层的任何事情（此句道尽Clean架构）。</strong><br><img src="http://static.open-open.com/lib/uploadImg/20160218/20160218094131_195.png" alt=""></p>
-<p><strong>Clean架构可以使你的代码有如下特性：</strong></p>
-<ol>
-<li>独立于架构</li>
-<li>易于测试</li>
-<li>独立于UI</li>
-<li>独立于数据库</li>
-<li>独立于任何外部类库</li>
-</ol>
-<h2 id="Clean在Android中如何表现"><a href="#Clean在Android中如何表现" class="headerlink" title="Clean在Android中如何表现"></a>Clean在Android中如何表现</h2><p>一个应用可以有任意数目的层，但除非你的应用到处是企业级功能逻辑，一般需要这三层：</p>
-<ul>
-<li>外层：接口实现层</li>
-<li>中层：接口适配层</li>
-<li>内层：逻辑层</li>
-</ul>
-<p><strong>接口实现层是体现架构细节的地方</strong>。实现架构的代码是所有不用来解决问题的代码，这包括所有与安卓相关的东西，比如创建Activity和Fragment，发送Intent以及其他联网与数据库的架构相关的代码。图片中UI、Web、Devices、DB、External Interfaces是和架构相关的（android还是ios或是web）</p>
-<p><strong>接口适配层就是桥接逻辑层和架构层的代码，是胶水代码</strong>。mvc中的c，mvp的p。</p>
-<p><strong>逻辑层最重要，这里包含了真正解决问题的代码</strong>。这一层不包含任何实现架构的代码， 不用模拟器也应能运行这里的代码 。这样一来你的逻辑代码就有了易于测试、开发和维护的优点。这就是Clean架构的一个主要的好处。</p>
-<p>每一个位于核心层外部的层都应能将外部模型转成可以被内层处理的内部模型。内层不能持有属于外层的模型类的引用。</p>
-<p>为什么要进行模型转换呢？举个例子，当逻辑层的模型不能直接很优雅地展现给用户，或是需要同时展示多个逻辑层的模型时，最好创建一个ViewModel类来更好的进行UI展示。这样一来，你就需要一个属于外层的Converter类来将逻辑层模型转换成合适的ViewModel。</p>
-<p>再举一个例子：你从外部数据库层获得了ContentProvider的Cursor对象，外层首先要将这个对象转换成内层模型，再将它传给内层处理。</p>
-<h2 id="如何开始写Clean应用？"><a href="#如何开始写Clean应用？" class="headerlink" title="如何开始写Clean应用？"></a>如何开始写Clean应用？</h2><p><strong>开始写用例</strong></p>
-<p>一般来说一个安卓应用的结构如下：</p>
-<ul>
-<li><p>外层项目包：UI，Storage，Network等等。</p>
-</li>
-<li><p>中层项目包：Presenter，Converter。</p>
-</li>
-<li><p>内层项目包：Interactor，Model，Repository，Executor。</p>
-</li>
-</ul>
-<p><strong>外层体现了框架的细节。</strong></p>
-<p>UI– 包括所有的Activity，Fragment，Adapter和其他UI相关的Android代码。</p>
-<p>Storage– 用于让交互类获取和存储数据的接口实现类，包含了数据库相关的代码。包括了如ContentProvider或DBFlow等组件。</p>
-<p>Network– 网络操作。</p>
-<p><strong>中层是桥接实现代码与逻辑代码的Glue Code。</strong></p>
-<p>Presenter– presenter处理UI事件，如单击事件，通常包含内层Interactor的回调方法。这里需要注意不能持有外层UI的引用，所以通过持有接口而UI实现接口实现间接持有UI（mvp的做法）</p>
-<p>Converter– 负责将内外层的模型互相转换。内层不能持有外层引用，所以转换成ViewModule传给内层</p>
-<p><strong>内层真正解决问题的代码，这一层的类和对象不知道外层的任何信息，且应能在任何JVM下运行。</strong></p>
-<p>Interactor– Interactor中包含了解决问题的逻辑代码。这里的代码在后台执行，并通过回调方法向外层传递事件。在其他项目中这个模块被称为用例Use Case。一个项目中可能有很多小Interactor，这符合单一职责原则，而且这样更容易让人接受。一般mvp是在这里直接调用mvp方法。clean不能持有相对外层的引用，所以需要在本层再增加一个回调接口，让present去实现。</p>
-<p>Model– 在业务逻辑代码中操作的业务模型。</p>
-<p>Repository– 包含接口让外层类实现，如操作数据(获取/保存)的类等。不能持有外层引用，Interactor持有这些接口来获取和存储数据,外层需要实现这些接口（DB/External Interfaces就是这些接口的实现）。这也叫资源库模式Repository Pattern。</p>
-<p>Executor– 通过Worker Thread Executor让Interactor在后台执行。一般不需要修改这个包里的代码。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/重构！将Google官方Android MVP应用于已有项目/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/重构！将Google官方Android MVP应用于已有项目/" itemprop="url">重构将Google官方Android MVP应用于已有项目</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:05:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.jianshu.com/p/bb5df9b7e357" target="_blank" rel="noopener">重构！将Google官方Android MVP应用于已有项目</a></p>
-<p>采用MVP架构进行重构，代码量上相对于原项目时有所增加的</p>
-<h1 id="Google示例项目"><a href="#Google示例项目" class="headerlink" title="Google示例项目"></a>Google示例项目</h1><p><a href="https://github.com/googlesamples/android-architecture" target="_blank" rel="noopener">Android Architecture Blueprints [beta]</a></p>
-<h1 id="重构"><a href="#重构" class="headerlink" title="重构"></a>重构</h1><h2 id="建立两个Base接口，BaseView和BasePresenter"><a href="#建立两个Base接口，BaseView和BasePresenter" class="headerlink" title="建立两个Base接口，BaseView和BasePresenter"></a>建立两个Base接口，BaseView和BasePresenter</h2><pre><code>public interface BasePresenter {
-}
-
-public interface BaseView&lt;T&gt; {
-    void setPresenter(T presenter);//将Presenter实例传入view，调用时机为Presenter实现类的构造方法中
-}
-</code></pre><h2 id="创建契约类-统一管理View和Presenter的所有接口"><a href="#创建契约类-统一管理View和Presenter的所有接口" class="headerlink" title="创建契约类,统一管理View和Presenter的所有接口"></a>创建契约类,统一管理View和Presenter的所有接口</h2><pre><code>public interface MainActivityContract {
-
-    interface View extends BaseView&lt;Presenter&gt; {
-
-        void showError();
-
-        void showLoading();
-
-        void stopLoading();
-
-        void showResults(ArrayList&lt;String&gt; list);
-
-        void showNetworkError();
-
-    }
-
-    interface Presenter extends BasePresenter {
-
-        void loadPosts(String url, boolean clearing);
-
-        void refresh(String url);
-
-        void loadMore(String url);
-
-    }
-
-}
-</code></pre><h2 id="创建Presenter实现类"><a href="#创建Presenter实现类" class="headerlink" title="创建Presenter实现类"></a>创建Presenter实现类</h2><pre><code>public class MainActivityPresenter implements MainActivityContract.Presenter, NewsListener {
-
-    private MainActivityContract.View view;//持有View接口
-    private NewsModel model;//持有Model实现类
-
-    private ArrayList&lt;String&gt; list = new ArrayList&lt;String&gt;();
-
-    public MainActivityPresenter(MainActivityContract.View view) {
-        this.view = view;
-        this.view.setPresenter(this);//View设置Present
-        model = new NewsModel();
-    }
-
-    @Override
-    public void loadPosts(String url, boolean clearing) {
-        view.showLoading();
-        if (clearing) {
-            list.clear();
-        }
-        model.load(url, this);
-    }
-
-    @Override
-    public void refresh(String url) {
-        list.clear();
-        loadPosts(url, true);
-    }
-
-    @Override
-    public void loadMore(String url) {
-        model.load(url, this);
-    }
-
-    @Override
-    public void start() {
-
-    }
-
-    @Override
-    public void onSuccess(String result) {
-        list.add(result);
-        view.showResults(list);
-        view.stopLoading();
-
-    }
-
-    @Override
-    public void onError(String error) {
-        view.stopLoading();
-        view.showError();
-    }
-
-}
-</code></pre><h2 id="创建View实现类。-作为View和Presenter的桥梁，创建View和Presenter实现类的实例"><a href="#创建View实现类。-作为View和Presenter的桥梁，创建View和Presenter实现类的实例" class="headerlink" title="创建View实现类。 作为View和Presenter的桥梁，创建View和Presenter实现类的实例"></a>创建View实现类。 作为View和Presenter的桥梁，创建View和Presenter实现类的实例</h2><pre><code>public class MainActivity extends AppCompatActivity implements MainActivityContract.View {
-
-    private SwipeRefreshLayout refresh;
-    private TextView tvRefresh;
-    private TextView tvLoadMore;
-    private TextView tvContent;
-
-    private MainActivityContract.Presenter presenter;
-
-    private String cnnews = &quot;cnnews&quot;;
-    private String usanews = &quot;usanews&quot;;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        new MainActivityPresenter(this);//创建Presenter实例
-
-        refresh = (SwipeRefreshLayout) findViewById(R.id.refresh);
-        tvRefresh = (TextView) findViewById(R.id.tvRefresh);
-        tvLoadMore = (TextView) findViewById(R.id.tvLoadMore);
-        tvContent = (TextView) findViewById(R.id.tvContent);
-        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refresh.setRefreshing(false);
-            }
-        });
-        tvRefresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                presenter.refresh(cnnews);
-            }
-        });
-        tvLoadMore.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                presenter.loadMore(usanews);
-            }
-        });
-
-        presenter.loadPosts(cnnews, false);
-    }
-
-    @Override
-    public void showError() {
-        tvContent.setText(&quot;出现错误&quot;);
-    }
-
-    @Override
-    public void showLoading() {
-        refresh.setRefreshing(true);
-    }
-
-    @Override
-    public void stopLoading() {
-        refresh.setRefreshing(false);
-    }
-
-    @Override
-    public void showResults(ArrayList&lt;String&gt; list) {
-        String content = &quot;&quot;;
-        for (String string : list) {
-            if (!TextUtils.isEmpty(content)) {
-                content += &quot;\n&quot;;
-            }
-            content += string;
-            tvContent.setText(content + &quot;\n&quot;);
-        }
-    }
-
-    @Override
-    public void showNetworkError() {
-        tvContent.setText(&quot;网络错误&quot;);
-    }
-
-    @Override
-    public void setPresenter(MainActivityContract.Presenter presenter) {
-        if (null != presenter) {
-            this.presenter = presenter;
-        }
-    }
-}
-</code></pre><h2 id="Model实现类"><a href="#Model实现类" class="headerlink" title="Model实现类"></a>Model实现类</h2><p>Gson解析接口返回</p>
-<pre><code>public class News {
-    private String content;
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-}
-</code></pre><p>网络请求异步，返回接口需要接口回调</p>
-<pre><code>public interface NewsListener {
-
-    void onSuccess(String result);
-
-    void onError(String error);
-
-}
-</code></pre><p>Retrofit网络请求</p>
-<pre><code>public class NewsModel {
-
-    public void load(String url, final NewsListener listener) {
-        NewsAPI.get(url, new Callback&lt;News&gt;() {
-            @Override
-            public void onResponse(Call&lt;News&gt; call, Response&lt;News&gt; response) {
-                if (response.code() == 200) {
-                    listener.onSuccess(response.body().getContent());
-                }
-            }
-
-            @Override
-            public void onFailure(Call&lt;News&gt; call, Throwable t) {
-                listener.onError(call.request().url() + &quot; faild&quot;);
-                t.printStackTrace();
-            }
-        });
-
-    }
-}
-</code></pre><h2 id="mvp是如何互相持有的"><a href="#mvp是如何互相持有的" class="headerlink" title="mvp是如何互相持有的"></a>mvp是如何互相持有的</h2><p>View与Presenter</p>
-<pre><code>View中
-    new MainActivityPresenter(this);//创建Presenter实例
-
-    implements MainActivityContract.View
-    @Override
-    public void setPresenter(MainActivityContract.Presenter presenter) {
-        if (null != presenter) {
-            this.presenter = presenter;//持有了Presenter
-        }
-    }
-
-Presenter中
-    public MainActivityPresenter(MainActivityContract.View view) {
-        this.view = view;//持有了View
-        this.view.setPresenter(this);//View设置Present
-        model = new NewsModel();
-    }
-</code></pre><p>Presenter与Model</p>
-<pre><code>Model中
-    public void load(String url, final NewsListener listener) 
-
-Presenter中
-    public class MainActivityPresenter implements MainActivityContract.Presenter, NewsListener 
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/我不使用Android Data Binding的四个理由/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/我不使用Android Data Binding的四个理由/" itemprop="url">我不使用Android Data Binding的四个理由</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:04:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>我不使用Android Data Binding的四个理由  http://mafei.me/2016/08/14/%E8%AF%91%E6%96%87-%E6%88%91%E4%B8%8D%E4%BD%BF%E7%94%A8Android-Data-Binding%E7%9A%84%E5%9B%9B%E4%B8%AA%E7%90%86%E7%94%B1/
-</code></pre><h2 id="1、专家不建议这么做"><a href="#1、专家不建议这么做" class="headerlink" title="1、专家不建议这么做"></a>1、专家不建议这么做</h2><p>ButterKnife的作者Jake在下面这个github issue中直指要点。</p>
-<pre><code>data binding在最简单的场景下是比较有用的。
-但它并没有什么创新，所以在复杂度增加的情况下还是会像其他平台上的解决方案一样用起来非常痛苦（例如：XAML）。
-当这个库扩展到高级的情况下，将会迫使你把绑定的逻辑写到代码中，那里才是它真正该在的地方。
-</code></pre><p>事实上，我同意其中的两点：</p>
-<pre><code>1、它的扩展性并不好。
-2、业务逻辑应该在代码中。
-</code></pre><h2 id="2、它让你写出意大利面式的代码"><a href="#2、它让你写出意大利面式的代码" class="headerlink" title="2、它让你写出意大利面式的代码"></a>2、它让你写出意大利面式的代码</h2><p>一旦我们开始实现复杂的布局，将会使我们的Data Binding解决方案越来越复杂。</p>
-<p>首先我们将会面临下面的问题：</p>
-<pre><code>1、Layout 要求你给他们分别传递数据。
-
-2、你也可能想为你的布局创建不同的数据源。
-
-3、同样的问题也会在ViewStubs中发生。
-
-4、当你使用Picasso加载图片的时候，你需要为他实现一个自定义的data binding adapter，那样的话你就不能作为依赖mock和注入了。
-</code></pre><h2 id="3、单元测试也不能用了"><a href="#3、单元测试也不能用了" class="headerlink" title="3、单元测试也不能用了"></a>3、单元测试也不能用了</h2><p>我非常喜欢Robolectric和Mockito，他们节约了我很多时间在创建和运行测试实例的时候，没有了他们我将无法工作。</p>
-<p>Data Binding的一个特性对于我来说是一个bug：如果layout发生了异步更新，那就意味着在我设置了绑定之后单元测试中我无法确定view上的数据是否正确。</p>
-<h2 id="4、它比ButterKnife提供的功能少很多"><a href="#4、它比ButterKnife提供的功能少很多" class="headerlink" title="4、它比ButterKnife提供的功能少很多"></a>4、它比ButterKnife提供的功能少很多</h2>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/为什么要把Dagger2,MVP以及Rxjava引入项目中/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/为什么要把Dagger2,MVP以及Rxjava引入项目中/" itemprop="url">为什么要把Dagger2,MVP以及Rxjava引入项目中</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:03:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.jianshu.com/p/91c2bb8e6369" target="_blank" rel="noopener">为什么要把Dagger2,MVP以及Rxjava引入项目中</a></p>
-<p>毫无疑问在Android开发圈中这三个技术是经常被提及的,如此多的文章和开源项目在介绍他们,使用他们</p>
-<pre><code>其实我们大多数项目中是使用不到他们的,或者说对这些技术的需求不是很大,为什么这么说呢？
-</code></pre><ul>
-<li>大多数的开发者其实都是在开发功能模块比较少的小项目,对于这些项目来说,其实使用这些技术带来的好处相对于在开发时的所付出的时间来说其实性价比并不高。因为学习这些会有个学习曲线,并且这些技术并不会让你的开发速度加快,相反会让你多写很多代码,比如MVP和Dagger都会让你多写很多类和接口</li>
-</ul>
-<ul>
-<li><p>所以说我们开发小项目根本是感觉不到这些技术给我们带来的好处,也会困惑我们为什么要引入这些技术?</p>
-<pre><code>那为什么这些技术会这么火呢？
-</code></pre></li>
-</ul>
-<p>其实这些困惑大多出现在一直做功能模块比较少的小项目的开发者上。</p>
-<p>只要你做过比较大的项目,随着代码的增多你就会遇到代码的耦合,团队协作时冲突的解决,类依赖的复杂度等问题，其实这些技术就是来解决这些问题的,所以这些技术大项目用的非常多</p>
-<pre><code>这些技术出现是为了解决什么？
-</code></pre><p>想灵活运用一个技术,必然要了解这些技术为什么出现,出现是为了解决什么问题</p>
-<h2 id="MVP"><a href="#MVP" class="headerlink" title="MVP"></a>MVP</h2><p>我个人的理解就是 <code>解耦</code> 和 <code>扩展</code> 以及 <code>团队协作</code>。</p>
-<p>大多数文章都只是介绍了怎么写MVP接口,不懂为什么用他们,就算会写也只是在做复制粘贴</p>
-<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><ul>
-<li><p>我们需要用户点击按钮从网络获取一段新闻消息显示到TextView上,如果都在Activity中做这些事情,OK,非常爽,不用多写MVP相关的接口和类,啪啪啪一下就写完了</p>
-</li>
-<li><p>但是我们现在需求变了,我们要加入缓存,并且不用TextView显示,使用Toast显示,现在去改Activity,虽然麻烦,但是没问题，都是你写的。但是如果不是你写的,要把逻辑重新看一遍,并且如果改错的话,会影响之前已经写好的功能,这完全违背开闭原则</p>
-</li>
-<li><p>但是我们用MVP去开发,就可以缩小这些问题,我们只需要在Model层加入缓存逻辑,因为Presenter层拿到的是Model的接口,他只关心Model层返回的数据,至于你的接口是怎么实现的,你的数据是从网络还是数据库还是本地文件获取的,根本不必关心</p>
-</li>
-<li><p>Presenter拿到的是View的接口,Presenter从Model获取完数据,返回给View,就完成了他的工作,他根本不用管View是怎么实现的,使用TextView显示还是Toast显示,这些都是View的事情,所以他们每层只用把各自的事情做好根本不用管以外的事情</p>
-</li>
-<li><p>这样我们就可以把View,Presenter,Model给三个不同的人写,需求一变不会影响整个代码,将问题最小化,比如UI需求一变我们只用修改View层,出了问题可以马上定位,并且易于测试</p>
-</li>
-</ul>
-<h2 id="Dagger"><a href="#Dagger" class="headerlink" title="Dagger"></a>Dagger</h2><p>Dagger的门槛个人认为在这三个中是最高的</p>
-<p>很多只是讲怎么写这些类,注解该怎么用,都没讲为什么不直接new,为什么要把如此简单的事情弄这么复杂?</p>
-<p>其实这还是和项目的大小有关,因为它解决的问题就是大项目的需求</p>
-<h3 id="实例-1"><a href="#实例-1" class="headerlink" title="实例"></a>实例</h3><ul>
-<li><p>大型项目的实际情况是这样的</p>
-<pre><code>A a = new A();
-B b = new B(a);
-C c = new C(a,b);
-D d = new D(c);
-E e = new E(a,b,d);
-</code></pre></li>
-<li><p>以上例子,构建一个E,还要构建一堆其他的对象,并且其他对象的构建同样复杂,并且必须按顺序构建,而且需要的对象的生命周期都不一样,有些生命周期可能和Activity一样,有些可能是单例,所以在构建的时候还要考虑对象声明周期,考虑对象的来源,在大型项目,这很痛苦,不光用起老火,别人看代码也和看天书一样</p>
-</li>
-<li><p>所以这个时候依赖注入框架就派上用场了,我们只用专注于怎么实现功能,对象的依赖关系和生命周期,都让它来帮我们管理,一个Inject,它会按照依赖关系帮我们注入我们需要的对象,并且它会管理好每个对象的生命周期,在生命周期还没结束的情况下是不会重复new的,所以Dagger非常适合大项目,小项目开发者因为项目复杂度低,没遇到这些问题,所以不会理解为什么要用Dagger,让简单的new,变这么复杂</p>
-</li>
-</ul>
-<h2 id="RxJava"><a href="#RxJava" class="headerlink" title="RxJava"></a>RxJava</h2><p>提到Rxjava最多人都是用来处理 线程调度,回调地狱,加上Retrofit又支持Rxjava,所以大部分开发者都只会在请求网络和需要切换线程的时候用到Rxjava,其实它有一个最重要的特性,它可以让数据的流向更加直观,代码更清晰</p>
-<h3 id="实例-2"><a href="#实例-2" class="headerlink" title="实例"></a>实例</h3><ul>
-<li><p>一个庞大的项目,一个事件传递的过程可能要经历很多方法,方法套方法,每个方法的位置七零八落,一个个方法跳进去看,跳过去跳过来很容易把脑袋弄晕,不够直观,但是Rxjava可以把所有逻辑用链式加闭包的方式呈现,做了哪些操作,谁在前谁在后非常直观,逻辑清晰,维护就会非常轻松,就算不是你写的你也可以很快的了解</p>
-</li>
-<li><p>你可以把它看作一条河流,整个过程就是对里面的水流做进行加工,懂了这个特性我们才知道在复杂的逻辑中运用Rxjava是多么的重要</p>
-</li>
-</ul>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><ul>
-<li><p>学习新技术,我们不应该盲目的跟风,我们如果不知道这个技术为什么出现,出现是为了解决什么,我们也就不知道为什么运用它,我们就算在项目中使用也无法灵活运用,非常浅显的使用,复制粘贴一些模版代码,也根本无法扩展自己的思维</p>
-</li>
-<li><p>这些技术虽然比较适合大项目一点,但是还是建议各位开发者开始使用他们,使用他们能扩展自己的思维,让自己考虑耦合,扩展,团队协作之类大项目才会考虑的问题,你如果一直重复的按最简单的方式写项目,什么都不考虑,你就算是5年经验,也只是以第一年的经验重复5年</p>
-</li>
-<li><p>最后介绍一个将MVP,Dagger,Retrofit,Rxjava等技术相结合并用于快速开发的框架,如果想搭建一个新项目使用这些技术,改了包名就可以直接使用,包含详细的文档,相比于这些技术漫长的学习曲线,我们在实践中学习他们不是更快吗？</p>
-</li>
-</ul>
-<p><a href="https://github.com/JessYanCoding/MVPArms" target="_blank" rel="noopener">MVPArms Mvp快速集成框架</a></p>
-<p><a href="http://www.jianshu.com/p/48e66e879061" target="_blank" rel="noopener">MVPArms Mvp快速集成框架使用</a> </p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/ioc框架--注解和反射/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/ioc框架--注解和反射/" itemprop="url">分层架构与 M-V-X</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T08:58:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>ioc框架–注解和反射<br>来自张鸿洋博客 <a href="http://blog.csdn.net/lmj623565791/article/details/39269193" target="_blank" rel="noopener">http://blog.csdn.net/lmj623565791/article/details/39269193</a><br>IoC，控制反转（Inversion of Control，英文缩写为IoC）<br>1.为什么要ioc<br>    一个类里面需要用到很多个成员变量，传统的写法，你要用这些成员变量，那么你就new 出来用呗~~<br>    IoC的原则是：不要new，这样耦合度太高；你配置个xml文件，里面标明哪个类，里面用了哪些成员变量，等待加载这个类的时候，我帮你注入（new）进去；<br>    所以，在现代软件分层开发中，每一层要一个包放接口，一个包放实现类<br>        而ioc只要声明了成员变量+写个配置文件，有人帮你new；<br>        此时，在类中就可以把需要使用到的成员变量都声明成接口，<br>        然后你会发现，当实现类发生变化的时候，或者切换实现类，你只要在配置文件里面做个简单的修改。<br>        如果你用的就是实实在在的实现类，现在换实现类，你需要找到所有声明这个实现类的地方，逐个手动修改类名<br>    有人说，写个配置文件多麻烦。于是又出现了另一种方案。<br>    注解–在需要注入的成员变量上面加个注解<br>2.如何注入<br>    配置文件/注解 是如何实现注入的？<br>    其实就是把字符串类路径变成类。这就需要用到反射了。<br>3.注入框架实现–xUtils<br>    使用实例<br>        @ContentView(value = R.layout.activity_main)<br>        public class MainActivity extends BaseActivity {<br>            @ViewInject(R.id.id_btn)<br>            private Button mBtn1;<br>            @ViewInject(R.id.id_btn02)<br>            private Button mBtn2;<br>            public void onCreate(Bundle savedInstanceState) {<br>                super.onCreate(savedInstanceState);<br>                ViewUtils.inject(this);<br>            }<br>        }<br>    实现<br>        @Target(ElementType.TYPE)<br>        @Retention(RetentionPolicy.RUNTIME)<br>        public @interface ContentView<br>        {<br>            int value();<br>        }<br>        @Target(ElementType.FIELD)<br>        @Retention(RetentionPolicy.RUNTIME)<br>        public @interface ViewInject<br>        {<br>            int value();<br>        }<br>        public static void inject(Activity activity) {<br>            injectContentView(activity);<br>            injectViews(activity);<br>        }<br>        (1)注入主布局文件的代码<br>            private static void injectContentView(Activity activity) {<br>                Class&lt;? extends Activity&gt; clazz = activity.getClass();<br>                // 查询类上是否存在ContentView注解<br>                ContentView contentView = clazz.getAnnotation(ContentView.class);<br>                if (contentView != null)// 存在<br>                {<br>                    int contentViewLayoutId = contentView.value();<br>                    try<br>                    {<br>                        Method method = clazz.getMethod(“setContentView”, int.class);<br>                        method.setAccessible(true);<br>                        method.invoke(activity, contentViewLayoutId);<br>                    } catch (Exception e)<br>                    {<br>                        e.printStackTrace();<br>                    }<br>                }<br>            }<br>            通过传入的activity对象，获得它的Class类型，判断如果该类写了ContentView这个注解，读取它的value，然后得到setContentView这个方法，使用invoke进行调用；<br>        (2)注入Views<br>            private static void injectViews(Activity activity) {<br>                Class&lt;? extends Activity&gt; clazz = activity.getClass();<br>                Field[] fields = clazz.getDeclaredFields();<br>                // 遍历所有成员变量<br>                for (Field field : fields)<br>                {<br>                    ViewInject viewInjectAnnotation = field.getAnnotation(ViewInject.class);<br>                    if (viewInjectAnnotation != null){<br>                        int viewId = viewInjectAnnotation.value();<br>                        if (viewId != -1){<br>                            Log.e(“TAG”, viewId+””);<br>                            // 初始化View<br>                            try {<br>                                Method method = clazz.getMethod(“findViewById”, int.class);<br>                                Object resView = method.invoke(activity, viewId);<br>                                field.setAccessible(true);<br>                                field.set(activity, resView);<br>                            } catch (Exception e) {<br>                                e.printStackTrace();<br>                            }<br>                        }<br>                    }<br>                }<br>            }<br>            遍历类中声明的所有属性，找到存在ViewInject注解的属性并获取其value，然后去调用findViewById方法，最后把值设置给field</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2969,7 +3219,7 @@ E e = new E(a,b,d);
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">177</span>
+                  <span class="site-state-item-count">187</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2980,7 +3230,7 @@ E e = new E(a,b,d);
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2991,7 +3241,7 @@ E e = new E(a,b,d);
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-count">59</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

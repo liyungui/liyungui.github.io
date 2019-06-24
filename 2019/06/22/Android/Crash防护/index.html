@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Android," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="捕获所有异常虽然强行捕获所有运行时异常，会导致各种UI上的奇葩问题发生，但可以最大程度的保证APP正常运行，很多时候我们希望即使主线程抛出异常也不影响app的正常使用 核心：保证主线程Looper继续Loop try-catch机制的性能损耗研究方式： 函数耗时写两个一样逻辑的函数，一个包含try-catch代码块，一个不包含，分别循环调用百万次，通过System.nanoTime()来比较两个函">
+<meta name="keywords" content="Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Crash防护">
+<meta property="og:url" content="http://yoursite.com/2019/06/22/Android/Crash防护/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="捕获所有异常虽然强行捕获所有运行时异常，会导致各种UI上的奇葩问题发生，但可以最大程度的保证APP正常运行，很多时候我们希望即使主线程抛出异常也不影响app的正常使用 核心：保证主线程Looper继续Loop try-catch机制的性能损耗研究方式： 函数耗时写两个一样逻辑的函数，一个包含try-catch代码块，一个不包含，分别循环调用百万次，通过System.nanoTime()来比较两个函">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-06-24T10:07:52.688Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Crash防护">
+<meta name="twitter:description" content="捕获所有异常虽然强行捕获所有运行时异常，会导致各种UI上的奇葩问题发生，但可以最大程度的保证APP正常运行，很多时候我们希望即使主线程抛出异常也不影响app的正常使用 核心：保证主线程Looper继续Loop try-catch机制的性能损耗研究方式： 函数耗时写两个一样逻辑的函数，一个包含try-catch代码块，一个不包含，分别循环调用百万次，通过System.nanoTime()来比较两个函">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/06/22/Android/Crash防护/"/>
+
+
+
+
+
+  <title>Crash防护 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/22/Android/Crash防护/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Crash防护</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-22T11:26:53+08:00">
+                2019-06-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="捕获所有异常"><a href="#捕获所有异常" class="headerlink" title="捕获所有异常"></a>捕获所有异常</h1><p>虽然强行捕获所有运行时异常，会导致各种UI上的奇葩问题发生，但可以最大程度的保证APP正常运行，很多时候我们希望即使主线程抛出异常也不影响app的正常使用</p>
+<p><strong>核心：保证主线程Looper继续Loop</strong></p>
+<h2 id="try-catch机制的性能损耗"><a href="#try-catch机制的性能损耗" class="headerlink" title="try-catch机制的性能损耗"></a>try-catch机制的性能损耗</h2><p>研究方式：</p>
+<h3 id="函数耗时"><a href="#函数耗时" class="headerlink" title="函数耗时"></a>函数耗时</h3><p>写两个一样逻辑的函数，一个包含try-catch代码块，一个不包含，分别循环调用百万次，通过System.nanoTime()来比较两个函数百万次调用的耗时；</p>
+<p>测试发现基本无区别</p>
+<h3 id="反编译字节码"><a href="#反编译字节码" class="headerlink" title="反编译字节码"></a>反编译字节码</h3><p>反编译出指令发现加了try-catch块的代码跟没有加的代码运行时的指令是完全一致的</p>
+<p>如果程序运行过程中不产生异常的话，try catch 几乎是不会对运行产生任何影响的。只是在产生异常的时候jvm会追溯异常栈。这部分耗时就相对较高了。</p>
+<h2 id="异常类型"><a href="#异常类型" class="headerlink" title="异常类型"></a>异常类型</h2><p>Android的View绘制，事件分发，Activity启动，Activity的生命周期回调等等都是一个个的Message，系统会把这些Message插入到主线程中唯一的queue中，所有的消息都排队等待Looper将其取出，并在主线程执行</p>
+<ul>
+<li>一般线程异常。</li>
+<li>UI主线程异常。<ul>
+<li>View导致Choreographer异常。<ul>
+<li>可能黑白屏。关闭当前异常的界面</li>
+</ul>
+</li>
+<li>Activity异常。<ul>
+<li>生命周期异常。可能黑白屏。关闭当前异常的界面</li>
+</ul>
+</li>
+<li>四大组件生命周期异常。</li>
+</ul>
+</li>
+</ul>
+<h2 id="一般线程-默认的线程未捕获异常Handler"><a href="#一般线程-默认的线程未捕获异常Handler" class="headerlink" title="一般线程-默认的线程未捕获异常Handler"></a>一般线程-默认的线程未捕获异常Handler</h2><p><strong>Thread.UncaughtExceptionHandler</strong> 接口，处理 未捕获的异常</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">interface</span> <span class="title">UncaughtExceptionHandler</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">uncaughtException</span><span class="params">(Thread thread, Throwable ex)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Android中，应用进程fork出来后会为虚拟机中的每个线程设置一个默认的 UncaughtExceptionHandler – <strong>UncaughtHandler</strong></p>
+<p><strong>Thread.setDefaultUncaughtExceptionHandler(new UncaughtHandler());</strong></p>
+<p><strong>UncaughtHandler</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//RuntimeInit.java中的zygoteInit函数</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">zygoteInit</span><span class="params">(<span class="keyword">int</span> targetSdkVersion, String[] argv, ClassLoader classLoader)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> ZygoteInit.MethodAndArgsCaller </span>&#123;</span><br><span class="line">    ............</span><br><span class="line">    commonInit();</span><br><span class="line">    ............</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">commonInit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ...........</span><br><span class="line">    <span class="comment">/* set default handler; this applies to all threads in the VM */</span></span><br><span class="line">    Thread.setDefaultUncaughtExceptionHandler(<span class="keyword">new</span> UncaughtHandler());</span><br><span class="line">    ...........</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="思路：自定义UncaughtExceptionHandler"><a href="#思路：自定义UncaughtExceptionHandler" class="headerlink" title="思路：自定义UncaughtExceptionHandler"></a>思路：自定义UncaughtExceptionHandler</h3><p>我们可以给应用设置我们自定义的UncaughtExceptionHandler</p>
+<p>如果自定义UncaughtExceptionHandler捕获异常后不做任何处理：</p>
+<ul>
+<li>子线程发生未捕获异常，不会Crash。子线程被终止，主线程还在运行</li>
+<li><strong>主线程</strong>发生未捕获异常，会<strong>ANR</strong>。主线程被终止</li>
+</ul>
+<h2 id="UI主线程-消息循环机制"><a href="#UI主线程-消息循环机制" class="headerlink" title="UI主线程-消息循环机制"></a>UI主线程-消息循环机制</h2><p><strong>Android 消息循环机制：Handler和Looper</strong></p>
+<p>Android应用启动流程可知，进程创建完成之后，Android应用程序框架层就会在这个进程中 执行 主线程的入口方法 <strong>ActivityThread.main()</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//ActivityThread .java</span></span><br><span class="line"><span class="comment">//主线程的入口方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">     ......</span><br><span class="line"></span><br><span class="line">     <span class="comment">//创建主线程的Looper和MessageQueue</span></span><br><span class="line">     Looper.prepareMainLooper();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建一个ActivityThread实例，然后调用它的attach函数，</span></span><br><span class="line">    <span class="comment">//ActivityManagerService通过Binder进程间通信机制通知ActivityThread，启动应用首页</span></span><br><span class="line">     ActivityThread thread = <span class="keyword">new</span> ActivityThread();</span><br><span class="line">     thread.attach(<span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span> (sMainThreadHandler == <span class="keyword">null</span>) &#123;</span><br><span class="line">         sMainThreadHandler = thread.getHandler();</span><br><span class="line">     &#125;</span><br><span class="line">    .......</span><br><span class="line">   <span class="comment">//开启主线程的消息循环。</span></span><br><span class="line">     Looper.loop();</span><br><span class="line"></span><br><span class="line">     <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Main thread loop unexpectedly exited"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="思路：捕获每个消息循环的异常"><a href="#思路：捕获每个消息循环的异常" class="headerlink" title="思路：捕获每个消息循环的异常"></a>思路：捕获每个消息循环的异常</h3><ul>
+<li>通过Handler往主线程的queue中添加一个Runnable </li>
+<li>该Runnable是while死循环</li>
+<li>while死循环中调用Looper.loop()<ul>
+<li>使主线程又开始不断的读取queue中的Message并执行，也就是<strong>主线程并不会被阻塞</strong>。</li>
+<li>又可以保证<strong>以后</strong>主线程的<strong>所有异常</strong>都会从我们手动调用的Looper.loop()处抛出</li>
+</ul>
+</li>
+</ul>
+<p>Android应用的主线程是阻塞在ActivityThread.main()中的Looper.loop()的for(;;)循环里，后来for循环取到我们的runnable之后，程序的流程就阻塞在了我们的runnable里面了。</p>
+<p>必须通过Handler往主线程的queue中添加一个Runnable，而不能在主线程中直接开启while循环，原因还是会阻塞主线程</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Handler(Looper.getMainLooper()).post(</span><br><span class="line">	<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">           <span class="comment">//主线程异常拦截</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Looper.loop();<span class="comment">//主线程的异常会从这里抛出</span></span><br><span class="line">                &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">                                            </span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">   </span><br><span class="line">sUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();</span><br><span class="line"> <span class="comment">//所有线程异常拦截，由于主线程的异常都被我们catch住了，所以下面的代码拦截到的都是子线程的异常</span></span><br><span class="line">Thread.setDefaultUncaughtExceptionHandler(<span class="keyword">new</span> Thread.UncaughtExceptionHandler() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">uncaughtException</span><span class="params">(Thread t, Throwable e)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="View导致Choreographer异常-关闭页面"><a href="#View导致Choreographer异常-关闭页面" class="headerlink" title="View导致Choreographer异常-关闭页面"></a>View导致Choreographer异常-关闭页面</h2><p>可能会黑白屏</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//DefenseCore.java</span></span><br><span class="line"><span class="comment">//遍历错误堆栈，如果是Choreographer.doFrame()，可能会黑白屏</span></span><br><span class="line">StackTraceElement[] elements = error.getStackTrace();</span><br><span class="line"><span class="keyword">if</span> (elements == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = elements.length - <span class="number">1</span>; i &gt; -<span class="number">1</span>; i--) &#123;</span><br><span class="line">    <span class="keyword">if</span> (elements.length - i &gt; <span class="number">20</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    StackTraceElement element = elements[i];</span><br><span class="line">    <span class="keyword">if</span> (<span class="string">"android.view.Choreographer"</span>.equals(element.getClassName())</span><br><span class="line">            &amp;&amp; <span class="string">"Choreographer.java"</span>.equals(element.getFileName())</span><br><span class="line">            &amp;&amp; <span class="string">"doFrame"</span>.equals(element.getMethodName())) &#123;</span><br><span class="line">        dispatcher.mayBeBlackScreen(e);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Activity异常"><a href="#Activity异常" class="headerlink" title="Activity异常"></a>Activity异常</h2><h3 id="反射替换ActivityThread的Instrumentation"><a href="#反射替换ActivityThread的Instrumentation" class="headerlink" title="反射替换ActivityThread的Instrumentation"></a>反射替换ActivityThread的Instrumentation</h3><p>Android framework 通过<strong>Instrumentation</strong>来调用Activity的所有生命周期方法，通过反射替换ActivityThread的成员变量<strong>mInstrumentation</strong>来尝试修复Activity生命周期回调中的崩溃。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//HookInstrumentation.java</span></span><br><span class="line"><span class="comment">// 先获取到当前的ActivityThread对象</span></span><br><span class="line">Class&lt;?&gt; activityThreadClass = Class.forName(<span class="string">"android.app.ActivityThread"</span>);</span><br><span class="line">Method currentActivityThreadMethod = activityThreadClass.getDeclaredMethod(<span class="string">"currentActivityThread"</span>);</span><br><span class="line">currentActivityThreadMethod.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">Object currentActivityThread = currentActivityThreadMethod.invoke(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拿到原始的 mInstrumentation字段</span></span><br><span class="line">Field mInstrumentationField = activityThreadClass.getDeclaredField(<span class="string">"mInstrumentation"</span>);</span><br><span class="line">mInstrumentationField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">mOriginInstrumentation = (Instrumentation) mInstrumentationField.get(currentActivityThread);</span><br><span class="line">mCustomInstrumentation = <span class="keyword">new</span> DefenseInstrumentation(mOriginInstrumentation);</span><br><span class="line">mCustomInstrumentation.setExceptionDispatcher(mExceptionDispatcher);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建代理Instrumentation对象</span></span><br><span class="line">Instrumentation evilInstrumentation = mCustomInstrumentation;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 偷梁换柱</span></span><br><span class="line">mInstrumentationField.set(currentActivityThread, evilInstrumentation);</span><br></pre></td></tr></table></figure>
+<h3 id="反射为ActivityThread的Handler增加callback"><a href="#反射为ActivityThread的Handler增加callback" class="headerlink" title="反射为ActivityThread的Handler增加callback"></a>反射为ActivityThread的Handler增加callback</h3><p>反射ActivityThread的<strong>mH</strong>，给该<strong>Handler</strong>添加回调方法，因为在ActivityThread中该handler未实现callback</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//HookH.java</span></span><br><span class="line"><span class="comment">// 先获取到当前的ActivityThread对象</span></span><br><span class="line">Class activityThreadClass = Class.forName(<span class="string">"android.app.ActivityThread"</span>);</span><br><span class="line">Object activityThread = activityThreadClass.getDeclaredMethod(<span class="string">"currentActivityThread"</span>).invoke(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拿到原始的 mH字段</span></span><br><span class="line">Field mhField = activityThreadClass.getDeclaredField(<span class="string">"mH"</span>);</span><br><span class="line">mhField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">mHHandler = (Handler) mhField.get(activityThread);</span><br><span class="line">Field callbackField = Handler.class.getDeclaredField(<span class="string">"mCallback"</span>);</span><br><span class="line">callbackField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"><span class="comment">//设置mCallback</span></span><br><span class="line">callbackField.set(mHHandler, mCallback);</span><br></pre></td></tr></table></figure>
+<h2 id="Service和BroadcastReceiver异常"><a href="#Service和BroadcastReceiver异常" class="headerlink" title="Service和BroadcastReceiver异常"></a>Service和BroadcastReceiver异常</h2><p>Android framework 在调用四大组件生命周期的时候，如果出现了异常，会回调<strong>Instrumentation.onException()</strong>方法</p>
+<p>通过Instrumentation的方法onException返回true来尝试修复Service和BroadcastReceiver生命周期回调中的崩溃。同时手动执行framework未完成的代码，防止生命周期不完整引起的ANR</p>
+<h1 id="重启恢复"><a href="#重启恢复" class="headerlink" title="重启恢复"></a>重启恢复</h1><p>不对未捕获异常进行try-catch的话，那就只能让程序按照系统默认的处理杀掉进程。然后重启进程 恢复crash之前的Activity栈，达到比直接退出应用程序稍微好点的体验。实际使用时屏幕还是会有一个白屏闪烁，用户还是能够感知到APP崩溃了。有点鸡肋。</p>
+<p>在启动每个Activity都记录起Activity的class对象以及所需要的Intent对象，应用崩溃后重启进程再通过这些缓存起来的Intent对象一次性把所有的Activity都启动起来。</p>
+<p>但如果是启动过程中必现的BUG，这种方式会导致无限循环重启进程、恢复Activity。所以在一分钟内闪退两次就杀掉进程不再重启。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.jianshu.com/p/01b69d91a3a8" target="_blank" rel="noopener">Android开发之打造永不崩溃的APP——Crash防护</a></li>
+<li><a href="https://www.jianshu.com/p/76bff59b5418?utm_source=oschina-app" target="_blank" rel="noopener">如何优雅的避免android(安卓)运行时崩溃</a></li>
+<li><a href="https://blog.csdn.net/luoshengyang/article/details/6747696" target="_blank" rel="noopener">Android应用程序进程启动过程的源代码分析</a></li>
+<li><a href="https://blog.csdn.net/singwhatiwanna/article/details/50775201" target="_blank" rel="noopener">Android中MotionEvent的来源和ViewRootImpl</a></li>
+<li><a href="https://github.com/android-notes/Cockroach" target="_blank" rel="noopener">GitHub Cockroach</a></li>
+<li><a href="https://www.jianshu.com/p/76bff59b5418?utm_source=oschina-app" target="_blank" rel="noopener">DefenseCrash</a>  <strong>比较全面，View，Activity</strong><ul>
+<li><a href="https://github.com/xuuhaoo/DefenseCrash" target="_blank" rel="noopener">DefenseCrash GitHub</a></li>
+</ul>
+</li>
+<li><a href="https://blog.csdn.net/luweicheng24/article/details/88831327" target="_blank" rel="noopener">CrashDefend</a><ul>
+<li><a href="https://github.com/luweicheng24/CrashDefend" target="_blank" rel="noopener">CrashDefend GitHub</a></li>
+</ul>
+</li>
+<li><a href="https://juejin.im/post/5a38e9da51882506a463beb9" target="_blank" rel="noopener">GodBlessYou</a> <strong>koltin，修复Service和BroadcastReceiver中的Crash</strong><ul>
+<li><a href="https://github.com/ximsfei/GodBlessYou" target="_blank" rel="noopener">GodBlessYou GitHub</a></li>
+</ul>
+</li>
+<li><a href="https://www.javaworld.com/article/2076868/how-the-java-virtual-machine-handles-exceptions.html" target="_blank" rel="noopener">How the Java virtual machine handles exceptions</a></li>
+<li><a href="https://github.com/Sunzxyong/Recovery" target="_blank" rel="noopener">Recovery GitHub</a></li>
+<li><a href="https://blog.csdn.net/u010412719/article/details/50043865" target="_blank" rel="noopener">从字节码的角度来看try-catch-finally和return的执行顺序</a></li>
+<li><a href="https://www.jianshu.com/p/0a12a85809df" target="_blank" rel="noopener">浅谈Android的编舞者Choreographer</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"><i class="fa fa-tag"></i> Android</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/06/16/Android/AOP实现点击防抖的gradle插件/" rel="next" title="AOP实现点击防抖的gradle插件">
+                <i class="fa fa-chevron-left"></i> AOP实现点击防抖的gradle插件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/06/24/java基础/线程/" rel="prev" title="线程">
+                线程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">187</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">59</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#捕获所有异常"><span class="nav-number">1.</span> <span class="nav-text">捕获所有异常</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#try-catch机制的性能损耗"><span class="nav-number">1.1.</span> <span class="nav-text">try-catch机制的性能损耗</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#函数耗时"><span class="nav-number">1.1.1.</span> <span class="nav-text">函数耗时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#反编译字节码"><span class="nav-number">1.1.2.</span> <span class="nav-text">反编译字节码</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常类型"><span class="nav-number">1.2.</span> <span class="nav-text">异常类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一般线程-默认的线程未捕获异常Handler"><span class="nav-number">1.3.</span> <span class="nav-text">一般线程-默认的线程未捕获异常Handler</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#思路：自定义UncaughtExceptionHandler"><span class="nav-number">1.3.1.</span> <span class="nav-text">思路：自定义UncaughtExceptionHandler</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UI主线程-消息循环机制"><span class="nav-number">1.4.</span> <span class="nav-text">UI主线程-消息循环机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#思路：捕获每个消息循环的异常"><span class="nav-number">1.4.1.</span> <span class="nav-text">思路：捕获每个消息循环的异常</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#View导致Choreographer异常-关闭页面"><span class="nav-number">1.5.</span> <span class="nav-text">View导致Choreographer异常-关闭页面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Activity异常"><span class="nav-number">1.6.</span> <span class="nav-text">Activity异常</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#反射替换ActivityThread的Instrumentation"><span class="nav-number">1.6.1.</span> <span class="nav-text">反射替换ActivityThread的Instrumentation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#反射为ActivityThread的Handler增加callback"><span class="nav-number">1.6.2.</span> <span class="nav-text">反射为ActivityThread的Handler增加callback</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service和BroadcastReceiver异常"><span class="nav-number">1.7.</span> <span class="nav-text">Service和BroadcastReceiver异常</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#重启恢复"><span class="nav-number">2.</span> <span class="nav-text">重启恢复</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">3.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

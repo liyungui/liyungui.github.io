@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/30/java基础/java虚拟机/深入理解java虚拟机面试精华总结/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/24/java基础/java虚拟机/深入理解java虚拟机面试精华总结/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/04/30/java基础/java虚拟机/深入理解java虚拟机面试精华总结/" itemprop="url">未命名</a></h1>
+                <a class="post-title-link" href="/2019/06/24/java基础/java虚拟机/深入理解java虚拟机面试精华总结/" itemprop="url">未命名</a></h1>
         
 
         <div class="post-meta">
@@ -293,8 +293,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-30T18:47:20+08:00">
-                2019-04-30
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-24T18:07:52+08:00">
+                2019-06-24
               </time>
             
 
@@ -535,6 +535,1205 @@ pf.isEnQueued();//返回是否从内存中已经删除
 <p>为了更好地适应不同程序的内存状况，虚拟机并不是永远地要求对象的年龄必须达到了MaxTenuringThreshold才能晋级到老年代，如果在Servivor空间中相同年龄所有对象的大小总和大于Survivor空间的一半，年龄大于或等于该年龄的对象就可以直接进入到老年代，无须登到MaxTenuringThreshold中要求的年龄</p>
 <p>4.6.4 空间分配担保：</p>
 <p>在发生Minor GC 之前，虚拟机会检查老年代最大可 用的连续空间是否大于新生代所有对象总空间，如果这个条件成立，那么Minor DC可以确保是安全的。如果不成立，则虚拟机会查看HandlePromotionFailure设置值是否允许担保失败。如果允许那么会继续检查老年代最大可用的连续空间是否大于晋级到老年代对象的平均大小，如果大于，将尝试进行一次Minor GC，尽管这次MinorGC 是有风险的：如果小于，或者HandlePromotionFailure设置不允许冒险，那这时也要改为进行一次Full GC</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/24/java基础/线程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/24/java基础/线程/" itemprop="url">线程</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-24T16:31:53+08:00">
+                2019-06-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="进程内某个线程OOM，其他线程还能运行吗"><a href="#进程内某个线程OOM，其他线程还能运行吗" class="headerlink" title="进程内某个线程OOM，其他线程还能运行吗"></a>进程内某个线程OOM，其他线程还能运行吗</h1><p><strong>能</strong></p>
+<p><strong>堆进程内共享</strong></p>
+<p>在多线程环境下，每个线程拥有一个栈和一个程序计数器。栈和程序计数器用来保存线程的执行历史和线程的执行状态，是线程私有的资源。其他的资源（比如堆、地址空间、全局变量）是由同一个进程内的多个线程共享。</p>
+<p>一个线程抛出OOM异常后，它所占据的内存资源会全部被释放掉，从而不会影响其他线程的运行！</p>
+<h1 id="主线程异常退出，子线程还能运行么？"><a href="#主线程异常退出，子线程还能运行么？" class="headerlink" title="主线程异常退出，子线程还能运行么？"></a>主线程异常退出，子线程还能运行么？</h1><p><strong>能</strong></p>
+<p>线程不像进程，一个进程中的线程之间是没有父子之分的，都是平级关系。即线程都是一样的, 退出了一个不会影响另外一个。</p>
+<p>只有一个例外情况，如果这些子线程都是<strong>守护线程</strong>，那么子线程会随着主线程结束而结束。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/22/Android/Crash防护/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/22/Android/Crash防护/" itemprop="url">Crash防护</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-22T11:26:53+08:00">
+                2019-06-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="捕获所有异常"><a href="#捕获所有异常" class="headerlink" title="捕获所有异常"></a>捕获所有异常</h1><p>虽然强行捕获所有运行时异常，会导致各种UI上的奇葩问题发生，但可以最大程度的保证APP正常运行，很多时候我们希望即使主线程抛出异常也不影响app的正常使用</p>
+<p><strong>核心：保证主线程Looper继续Loop</strong></p>
+<h2 id="try-catch机制的性能损耗"><a href="#try-catch机制的性能损耗" class="headerlink" title="try-catch机制的性能损耗"></a>try-catch机制的性能损耗</h2><p>研究方式：</p>
+<h3 id="函数耗时"><a href="#函数耗时" class="headerlink" title="函数耗时"></a>函数耗时</h3><p>写两个一样逻辑的函数，一个包含try-catch代码块，一个不包含，分别循环调用百万次，通过System.nanoTime()来比较两个函数百万次调用的耗时；</p>
+<p>测试发现基本无区别</p>
+<h3 id="反编译字节码"><a href="#反编译字节码" class="headerlink" title="反编译字节码"></a>反编译字节码</h3><p>反编译出指令发现加了try-catch块的代码跟没有加的代码运行时的指令是完全一致的</p>
+<p>如果程序运行过程中不产生异常的话，try catch 几乎是不会对运行产生任何影响的。只是在产生异常的时候jvm会追溯异常栈。这部分耗时就相对较高了。</p>
+<h2 id="异常类型"><a href="#异常类型" class="headerlink" title="异常类型"></a>异常类型</h2><p>Android的View绘制，事件分发，Activity启动，Activity的生命周期回调等等都是一个个的Message，系统会把这些Message插入到主线程中唯一的queue中，所有的消息都排队等待Looper将其取出，并在主线程执行</p>
+<ul>
+<li>一般线程异常。</li>
+<li>UI主线程异常。<ul>
+<li>View导致Choreographer异常。<ul>
+<li>可能黑白屏。关闭当前异常的界面</li>
+</ul>
+</li>
+<li>Activity异常。<ul>
+<li>生命周期异常。可能黑白屏。关闭当前异常的界面</li>
+</ul>
+</li>
+<li>四大组件生命周期异常。</li>
+</ul>
+</li>
+</ul>
+<h2 id="一般线程-默认的线程未捕获异常Handler"><a href="#一般线程-默认的线程未捕获异常Handler" class="headerlink" title="一般线程-默认的线程未捕获异常Handler"></a>一般线程-默认的线程未捕获异常Handler</h2><p><strong>Thread.UncaughtExceptionHandler</strong> 接口，处理 未捕获的异常</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">interface</span> <span class="title">UncaughtExceptionHandler</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">uncaughtException</span><span class="params">(Thread thread, Throwable ex)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Android中，应用进程fork出来后会为虚拟机中的每个线程设置一个默认的 UncaughtExceptionHandler – <strong>UncaughtHandler</strong></p>
+<p><strong>Thread.setDefaultUncaughtExceptionHandler(new UncaughtHandler());</strong></p>
+<p><strong>UncaughtHandler</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//RuntimeInit.java中的zygoteInit函数</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">zygoteInit</span><span class="params">(<span class="keyword">int</span> targetSdkVersion, String[] argv, ClassLoader classLoader)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> ZygoteInit.MethodAndArgsCaller </span>&#123;</span><br><span class="line">    ............</span><br><span class="line">    commonInit();</span><br><span class="line">    ............</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">commonInit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ...........</span><br><span class="line">    <span class="comment">/* set default handler; this applies to all threads in the VM */</span></span><br><span class="line">    Thread.setDefaultUncaughtExceptionHandler(<span class="keyword">new</span> UncaughtHandler());</span><br><span class="line">    ...........</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="思路：自定义UncaughtExceptionHandler"><a href="#思路：自定义UncaughtExceptionHandler" class="headerlink" title="思路：自定义UncaughtExceptionHandler"></a>思路：自定义UncaughtExceptionHandler</h3><p>我们可以给应用设置我们自定义的UncaughtExceptionHandler</p>
+<p>如果自定义UncaughtExceptionHandler捕获异常后不做任何处理：</p>
+<ul>
+<li>子线程发生未捕获异常，不会Crash。子线程被终止，主线程还在运行</li>
+<li><strong>主线程</strong>发生未捕获异常，会<strong>ANR</strong>。主线程被终止</li>
+</ul>
+<h2 id="UI主线程-消息循环机制"><a href="#UI主线程-消息循环机制" class="headerlink" title="UI主线程-消息循环机制"></a>UI主线程-消息循环机制</h2><p><strong>Android 消息循环机制：Handler和Looper</strong></p>
+<p>Android应用启动流程可知，进程创建完成之后，Android应用程序框架层就会在这个进程中 执行 主线程的入口方法 <strong>ActivityThread.main()</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//ActivityThread .java</span></span><br><span class="line"><span class="comment">//主线程的入口方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">     ......</span><br><span class="line"></span><br><span class="line">     <span class="comment">//创建主线程的Looper和MessageQueue</span></span><br><span class="line">     Looper.prepareMainLooper();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建一个ActivityThread实例，然后调用它的attach函数，</span></span><br><span class="line">    <span class="comment">//ActivityManagerService通过Binder进程间通信机制通知ActivityThread，启动应用首页</span></span><br><span class="line">     ActivityThread thread = <span class="keyword">new</span> ActivityThread();</span><br><span class="line">     thread.attach(<span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span> (sMainThreadHandler == <span class="keyword">null</span>) &#123;</span><br><span class="line">         sMainThreadHandler = thread.getHandler();</span><br><span class="line">     &#125;</span><br><span class="line">    .......</span><br><span class="line">   <span class="comment">//开启主线程的消息循环。</span></span><br><span class="line">     Looper.loop();</span><br><span class="line"></span><br><span class="line">     <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Main thread loop unexpectedly exited"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="思路：捕获每个消息循环的异常"><a href="#思路：捕获每个消息循环的异常" class="headerlink" title="思路：捕获每个消息循环的异常"></a>思路：捕获每个消息循环的异常</h3><ul>
+<li>通过Handler往主线程的queue中添加一个Runnable </li>
+<li>该Runnable是while死循环</li>
+<li>while死循环中调用Looper.loop()<ul>
+<li>使主线程又开始不断的读取queue中的Message并执行，也就是<strong>主线程并不会被阻塞</strong>。</li>
+<li>又可以保证<strong>以后</strong>主线程的<strong>所有异常</strong>都会从我们手动调用的Looper.loop()处抛出</li>
+</ul>
+</li>
+</ul>
+<p>Android应用的主线程是阻塞在ActivityThread.main()中的Looper.loop()的for(;;)循环里，后来for循环取到我们的runnable之后，程序的流程就阻塞在了我们的runnable里面了。</p>
+<p>必须通过Handler往主线程的queue中添加一个Runnable，而不能在主线程中直接开启while循环，原因还是会阻塞主线程</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Handler(Looper.getMainLooper()).post(</span><br><span class="line">	<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">           <span class="comment">//主线程异常拦截</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Looper.loop();<span class="comment">//主线程的异常会从这里抛出</span></span><br><span class="line">                &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">                                            </span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">   </span><br><span class="line">sUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();</span><br><span class="line"> <span class="comment">//所有线程异常拦截，由于主线程的异常都被我们catch住了，所以下面的代码拦截到的都是子线程的异常</span></span><br><span class="line">Thread.setDefaultUncaughtExceptionHandler(<span class="keyword">new</span> Thread.UncaughtExceptionHandler() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">uncaughtException</span><span class="params">(Thread t, Throwable e)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="View导致Choreographer异常-关闭页面"><a href="#View导致Choreographer异常-关闭页面" class="headerlink" title="View导致Choreographer异常-关闭页面"></a>View导致Choreographer异常-关闭页面</h2><p>可能会黑白屏</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//DefenseCore.java</span></span><br><span class="line"><span class="comment">//遍历错误堆栈，如果是Choreographer.doFrame()，可能会黑白屏</span></span><br><span class="line">StackTraceElement[] elements = error.getStackTrace();</span><br><span class="line"><span class="keyword">if</span> (elements == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = elements.length - <span class="number">1</span>; i &gt; -<span class="number">1</span>; i--) &#123;</span><br><span class="line">    <span class="keyword">if</span> (elements.length - i &gt; <span class="number">20</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    StackTraceElement element = elements[i];</span><br><span class="line">    <span class="keyword">if</span> (<span class="string">"android.view.Choreographer"</span>.equals(element.getClassName())</span><br><span class="line">            &amp;&amp; <span class="string">"Choreographer.java"</span>.equals(element.getFileName())</span><br><span class="line">            &amp;&amp; <span class="string">"doFrame"</span>.equals(element.getMethodName())) &#123;</span><br><span class="line">        dispatcher.mayBeBlackScreen(e);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Activity异常"><a href="#Activity异常" class="headerlink" title="Activity异常"></a>Activity异常</h2><h3 id="反射替换ActivityThread的Instrumentation"><a href="#反射替换ActivityThread的Instrumentation" class="headerlink" title="反射替换ActivityThread的Instrumentation"></a>反射替换ActivityThread的Instrumentation</h3><p>Android framework 通过<strong>Instrumentation</strong>来调用Activity的所有生命周期方法，通过反射替换ActivityThread的成员变量<strong>mInstrumentation</strong>来尝试修复Activity生命周期回调中的崩溃。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//HookInstrumentation.java</span></span><br><span class="line"><span class="comment">// 先获取到当前的ActivityThread对象</span></span><br><span class="line">Class&lt;?&gt; activityThreadClass = Class.forName(<span class="string">"android.app.ActivityThread"</span>);</span><br><span class="line">Method currentActivityThreadMethod = activityThreadClass.getDeclaredMethod(<span class="string">"currentActivityThread"</span>);</span><br><span class="line">currentActivityThreadMethod.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">Object currentActivityThread = currentActivityThreadMethod.invoke(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拿到原始的 mInstrumentation字段</span></span><br><span class="line">Field mInstrumentationField = activityThreadClass.getDeclaredField(<span class="string">"mInstrumentation"</span>);</span><br><span class="line">mInstrumentationField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">mOriginInstrumentation = (Instrumentation) mInstrumentationField.get(currentActivityThread);</span><br><span class="line">mCustomInstrumentation = <span class="keyword">new</span> DefenseInstrumentation(mOriginInstrumentation);</span><br><span class="line">mCustomInstrumentation.setExceptionDispatcher(mExceptionDispatcher);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建代理Instrumentation对象</span></span><br><span class="line">Instrumentation evilInstrumentation = mCustomInstrumentation;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 偷梁换柱</span></span><br><span class="line">mInstrumentationField.set(currentActivityThread, evilInstrumentation);</span><br></pre></td></tr></table></figure>
+<h3 id="反射为ActivityThread的Handler增加callback"><a href="#反射为ActivityThread的Handler增加callback" class="headerlink" title="反射为ActivityThread的Handler增加callback"></a>反射为ActivityThread的Handler增加callback</h3><p>反射ActivityThread的<strong>mH</strong>，给该<strong>Handler</strong>添加回调方法，因为在ActivityThread中该handler未实现callback</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//HookH.java</span></span><br><span class="line"><span class="comment">// 先获取到当前的ActivityThread对象</span></span><br><span class="line">Class activityThreadClass = Class.forName(<span class="string">"android.app.ActivityThread"</span>);</span><br><span class="line">Object activityThread = activityThreadClass.getDeclaredMethod(<span class="string">"currentActivityThread"</span>).invoke(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拿到原始的 mH字段</span></span><br><span class="line">Field mhField = activityThreadClass.getDeclaredField(<span class="string">"mH"</span>);</span><br><span class="line">mhField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">mHHandler = (Handler) mhField.get(activityThread);</span><br><span class="line">Field callbackField = Handler.class.getDeclaredField(<span class="string">"mCallback"</span>);</span><br><span class="line">callbackField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"><span class="comment">//设置mCallback</span></span><br><span class="line">callbackField.set(mHHandler, mCallback);</span><br></pre></td></tr></table></figure>
+<h2 id="Service和BroadcastReceiver异常"><a href="#Service和BroadcastReceiver异常" class="headerlink" title="Service和BroadcastReceiver异常"></a>Service和BroadcastReceiver异常</h2><p>Android framework 在调用四大组件生命周期的时候，如果出现了异常，会回调<strong>Instrumentation.onException()</strong>方法</p>
+<p>通过Instrumentation的方法onException返回true来尝试修复Service和BroadcastReceiver生命周期回调中的崩溃。同时手动执行framework未完成的代码，防止生命周期不完整引起的ANR</p>
+<h1 id="重启恢复"><a href="#重启恢复" class="headerlink" title="重启恢复"></a>重启恢复</h1><p>不对未捕获异常进行try-catch的话，那就只能让程序按照系统默认的处理杀掉进程。然后重启进程 恢复crash之前的Activity栈，达到比直接退出应用程序稍微好点的体验。实际使用时屏幕还是会有一个白屏闪烁，用户还是能够感知到APP崩溃了。有点鸡肋。</p>
+<p>在启动每个Activity都记录起Activity的class对象以及所需要的Intent对象，应用崩溃后重启进程再通过这些缓存起来的Intent对象一次性把所有的Activity都启动起来。</p>
+<p>但如果是启动过程中必现的BUG，这种方式会导致无限循环重启进程、恢复Activity。所以在一分钟内闪退两次就杀掉进程不再重启。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.jianshu.com/p/01b69d91a3a8" target="_blank" rel="noopener">Android开发之打造永不崩溃的APP——Crash防护</a></li>
+<li><a href="https://www.jianshu.com/p/76bff59b5418?utm_source=oschina-app" target="_blank" rel="noopener">如何优雅的避免android(安卓)运行时崩溃</a></li>
+<li><a href="https://blog.csdn.net/luoshengyang/article/details/6747696" target="_blank" rel="noopener">Android应用程序进程启动过程的源代码分析</a></li>
+<li><a href="https://blog.csdn.net/singwhatiwanna/article/details/50775201" target="_blank" rel="noopener">Android中MotionEvent的来源和ViewRootImpl</a></li>
+<li><a href="https://github.com/android-notes/Cockroach" target="_blank" rel="noopener">GitHub Cockroach</a></li>
+<li><a href="https://www.jianshu.com/p/76bff59b5418?utm_source=oschina-app" target="_blank" rel="noopener">DefenseCrash</a>  <strong>比较全面，View，Activity</strong><ul>
+<li><a href="https://github.com/xuuhaoo/DefenseCrash" target="_blank" rel="noopener">DefenseCrash GitHub</a></li>
+</ul>
+</li>
+<li><a href="https://blog.csdn.net/luweicheng24/article/details/88831327" target="_blank" rel="noopener">CrashDefend</a><ul>
+<li><a href="https://github.com/luweicheng24/CrashDefend" target="_blank" rel="noopener">CrashDefend GitHub</a></li>
+</ul>
+</li>
+<li><a href="https://juejin.im/post/5a38e9da51882506a463beb9" target="_blank" rel="noopener">GodBlessYou</a> <strong>koltin，修复Service和BroadcastReceiver中的Crash</strong><ul>
+<li><a href="https://github.com/ximsfei/GodBlessYou" target="_blank" rel="noopener">GodBlessYou GitHub</a></li>
+</ul>
+</li>
+<li><a href="https://www.javaworld.com/article/2076868/how-the-java-virtual-machine-handles-exceptions.html" target="_blank" rel="noopener">How the Java virtual machine handles exceptions</a></li>
+<li><a href="https://github.com/Sunzxyong/Recovery" target="_blank" rel="noopener">Recovery GitHub</a></li>
+<li><a href="https://blog.csdn.net/u010412719/article/details/50043865" target="_blank" rel="noopener">从字节码的角度来看try-catch-finally和return的执行顺序</a></li>
+<li><a href="https://www.jianshu.com/p/0a12a85809df" target="_blank" rel="noopener">浅谈Android的编舞者Choreographer</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/16/Android/AOP实现点击防抖的gradle插件/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/16/Android/AOP实现点击防抖的gradle插件/" itemprop="url">AOP实现点击防抖的gradle插件</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-16T18:10:53+08:00">
+                2019-06-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="为什么使用AOP"><a href="#为什么使用AOP" class="headerlink" title="为什么使用AOP"></a>为什么使用AOP</h1><p>对旧代码零入侵</p>
+<h1 id="为什么选择-ASM-实现-AOP"><a href="#为什么选择-ASM-实现-AOP" class="headerlink" title="为什么选择 ASM 实现 AOP"></a>为什么选择 ASM 实现 AOP</h1><p>因为ASM的语法更通俗易懂，并且与gradle的联动效果更好，能够非常方便的修改字节码</p>
+<p>AspectJ在这些维度的比较上实在显得笨重。</p>
+<h1 id="支持的点击事件"><a href="#支持的点击事件" class="headerlink" title="支持的点击事件"></a>支持的点击事件</h1><ul>
+<li>View.OnClickListener</li>
+<li>AdapterView.OnItemClickListener</li>
+</ul>
+<h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><p>常规的集成</p>
+<p>不需要配置混淆规则，因为纯字节码操作，没任何反射</p>
+<h2 id="设置防抖间隔时间"><a href="#设置防抖间隔时间" class="headerlink" title="设置防抖间隔时间"></a>设置防抖间隔时间</h2><p>默认 300 milliseconds</p>
+<p><code>DebouncedPredictor.FROZEN_WINDOW_MILLIS = 400L</code></p>
+<h2 id="忽略某些点击方法"><a href="#忽略某些点击方法" class="headerlink" title="忽略某些点击方法"></a>忽略某些点击方法</h2><p>推荐 在 gradle 中配置，会自动 添加 <code>@Debounce</code>注解</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">debounce &#123;</span><br><span class="line">  // enable log</span><br><span class="line">  loggable = true</span><br><span class="line">  // java bytecode descriptor: [class: [methods]]</span><br><span class="line">  exclusion = [&quot;com/smartdengg/clickdebounce/ClickProxy&quot;: [&apos;onClick(Landroid/view/View;)V&apos;,</span><br><span class="line">                                                           &apos;onItemClick(Landroid/widget/AdapterView;Landroid/view/View;IJ)V&apos;]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>某些匿名内部类不太好在 gradle中配置，手动 添加 <code>@Debounce</code>注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.setOnClickListener(<span class="keyword">new</span> View.OnClickListener() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="meta">@Debounced</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><p><a href="https://github.com/SmartDengg/click-debounce" target="_blank" rel="noopener">click-debounce</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/13/web/nginx使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/13/web/nginx使用/" itemprop="url">nginx使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-13T12:54:14+08:00">
+                2019-06-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web/" itemprop="url" rel="index">
+                    <span itemprop="name">web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h1><p>Nginx (engine x) 是一个<strong>高性能</strong>(占有内存少，并发能力强)<strong>高可扩展</strong>的 HTTP和反向代理web服务器，同时也提供了IMAP/POP3/SMTP服务。</p>
+<p>高并发的情况下，Nginx是Apache服务不错的替代品</p>
+<p>兼容性：Linux系统,Windows NT系统</p>
+<h1 id="版本选择"><a href="#版本选择" class="headerlink" title="版本选择"></a>版本选择</h1><p>Nginx高性能，高可扩展。但并非指随便下载一款事先编译好的，就能满足要求，尤其是<strong>不建议使用官方编译好的Windows版本</strong></p>
+<h2 id="官方编译的Windows版本基本事实："><a href="#官方编译的Windows版本基本事实：" class="headerlink" title="官方编译的Windows版本基本事实："></a>官方编译的Windows版本基本事实：</h2><ol>
+<li><p>使用的是内生Win32 API，不是通过Cygwin的模拟层。</p>
+</li>
+<li><p>仅用了select()连接方法，无缘高性能、高可扩展。</p>
+</li>
+<li><p>Nginx运行时有两种进程，一个是主进程，一个是工作进程。Windows版的，只有一个有效的工作进程，虽然你可以运行多个工作进程。</p>
+</li>
+<li><p>没有windows服务进程版，计划在下个版本加入。</p>
+</li>
+</ol>
+<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="Mac版安装"><a href="#Mac版安装" class="headerlink" title="Mac版安装"></a>Mac版安装</h2><ol>
+<li>安装Command Line tools</li>
+</ol>
+<p><code>xcode-select --install</code></p>
+<ol start="2">
+<li>安装brew</li>
+</ol>
+<p><code>ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;</code></p>
+<ol start="3">
+<li>安装nginx</li>
+</ol>
+<p><code>brew install nginx</code></p>
+<p>安装完毕的提示</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">==&gt; Caveats</span><br><span class="line">==&gt; openssl</span><br><span class="line">A CA file has been bootstrapped using certificates from the SystemRoots</span><br><span class="line">keychain. To add additional certificates (e.g. the certificates added in</span><br><span class="line">the System keychain), place .pem files in</span><br><span class="line">  /usr/local/etc/openssl/certs</span><br><span class="line"></span><br><span class="line">and run</span><br><span class="line">  /usr/local/opt/openssl/bin/c_rehash</span><br><span class="line"></span><br><span class="line">openssl is keg-only, which means it was not symlinked into /usr/local,</span><br><span class="line">because Apple has deprecated use of OpenSSL in favor of its own TLS and crypto libraries.</span><br><span class="line"></span><br><span class="line">If you need to have openssl first in your PATH run:</span><br><span class="line">  echo &apos;export PATH=&quot;/usr/local/opt/openssl/bin:$PATH&quot;&apos; &gt;&gt; ~/.bash_profile</span><br><span class="line"></span><br><span class="line">For compilers to find openssl you may need to set:</span><br><span class="line">  export LDFLAGS=&quot;-L/usr/local/opt/openssl/lib&quot;</span><br><span class="line">  export CPPFLAGS=&quot;-I/usr/local/opt/openssl/include&quot;</span><br><span class="line"></span><br><span class="line">==&gt; nginx</span><br><span class="line">Docroot is: /usr/local/var/www</span><br><span class="line"></span><br><span class="line">The default port has been set in /usr/local/etc/nginx/nginx.conf to 8080 so that</span><br><span class="line">nginx can run without sudo.</span><br><span class="line"></span><br><span class="line">nginx will load all files in /usr/local/etc/nginx/servers/.</span><br><span class="line"></span><br><span class="line">To have launchd start nginx now and restart at login:</span><br><span class="line">  brew services start nginx</span><br><span class="line">Or, if you don&apos;t want/need a background service you can just run:</span><br><span class="line">  nginx</span><br></pre></td></tr></table></figure>
+<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h1><p><code>brew services start nginx</code></p>
+<p>访问 <a href="http://localhost:8080/" target="_blank" rel="noopener">http://localhost:8080/</a></p>
+<p>重启</p>
+<p><code>brew services restart nginx</code></p>
+<h1 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h1><h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p><code>/usr/local/etc/nginx/nginx.conf</code></p>
+<p>参考&amp;扩展</p>
+<ul>
+<li><a href="http://nginx.org/en/" target="_blank" rel="noopener">官方文档</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/04/网络/反向代理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/04/网络/反向代理/" itemprop="url">反向代理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-04T12:51:53+08:00">
+                2019-06-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="直接访问"><a href="#直接访问" class="headerlink" title="直接访问"></a>直接访问</h1><p>直接访问目标网站</p>
+<p>用户直接找到房东租房的这种情况</p>
+<h1 id="正向代理-forward-proxy"><a href="#正向代理-forward-proxy" class="headerlink" title="正向代理 forward proxy"></a>正向代理 forward proxy</h1><p>客户端向代理服务器发送一个请求并指定目标，然后代理服务器向目标服务器转交请求并将获得的内容返回给客户端。</p>
+<p>这种代理其实在生活中是比较常见的，比如科学上网技术，其用到的就是代理技术。</p>
+<p><strong>正向代理，其实是”代理服务器”代理了”客户端”，去和”目标服务器”进行交互</strong></p>
+<p>租房子的时候，一般情况下，我们很难联系到房东，因为有些房东为了图方便，只把自己的房屋信息和钥匙交给中介了。而房客想要租房子，只能通过中介才能联系到房东。而对于房东来说，他可能根本不知道真正要租他的房子的人是谁，他只知道是中介在联系他。</p>
+<h2 id="正向代理的用途"><a href="#正向代理的用途" class="headerlink" title="正向代理的用途"></a>正向代理的用途</h2><h3 id="突破访问限制"><a href="#突破访问限制" class="headerlink" title="突破访问限制"></a>突破访问限制</h3><p> 通过代理服务器，可以突破自身IP访问限制，访问国外网站，教育网等。即，租客可以通过中介，来解决无法联系上房东的问题。</p>
+<h2 id="提高访问速度"><a href="#提高访问速度" class="headerlink" title="提高访问速度"></a>提高访问速度</h2><p>通常代理服务器都设置一个较大的硬盘缓冲区，会将部分请求的响应保存到<strong>缓冲区</strong>中，当其他用户再访问相同的信息时， 则直接由缓冲区中取出信息，传给用户，以提高访问速度。即，中介手里留存了很多房源信息和钥匙，可以直接带租客去看房。</p>
+<h2 id="隐藏客户端真实IP"><a href="#隐藏客户端真实IP" class="headerlink" title="隐藏客户端真实IP"></a>隐藏客户端真实IP</h2><h1 id="反向代理-reverse-proxy"><a href="#反向代理-reverse-proxy" class="headerlink" title="反向代理 reverse proxy"></a>反向代理 reverse proxy</h1><p>以代理服务器来接受internet上的连接请求，然后将请求转发给内部网络上的服务器，并将从服务器上得到的结果返回给internet上请求连接的客户端</p>
+<p><strong>反向代理，其实是”代理服务器”代理了”目标服务器”，去和”客户端”进行交互。</strong></p>
+<p>租房子的时候，我们以为我们接触的是房东，其实有时候也有可能并非房主本人，有可能是他的亲戚、朋友，甚至是二房东。但是我们并不知道和我们沟通的并不是真正的房东。这种帮助真正的房主租房的二房东其实就是反向代理服务器。这个过程就是反向代理。</p>
+<h2 id="反向代理的用途"><a href="#反向代理的用途" class="headerlink" title="反向代理的用途"></a>反向代理的用途</h2><h3 id="隐藏服务器真实IP"><a href="#隐藏服务器真实IP" class="headerlink" title="隐藏服务器真实IP"></a>隐藏服务器真实IP</h3><p>使用反向代理，可以对客户端隐藏服务器的IP地址。即，租客并不房东知道的真实身份。</p>
+<h3 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h3><p>反向代理服务器可以做负载均衡，根据所有真实服务器的负载情况，将客户端请求分发到不同的真实服务器上。即，二房东发现房主本人很忙，于是找到房主的妻子帮忙处理租房事宜。</p>
+<h3 id="提高访问速度-1"><a href="#提高访问速度-1" class="headerlink" title="提高访问速度"></a>提高访问速度</h3><p>反向代理服务器可以对于静态内容及短时间内有大量访问请求的动态内容提供<strong>缓存</strong>服务，提高访问速度。即，二房东同样有房屋信息和钥匙。</p>
+<h3 id="提供安全保障"><a href="#提供安全保障" class="headerlink" title="提供安全保障"></a>提供安全保障</h3><p>反向代理服务器可以作为应用层防火墙，为网站提供对基于Web的攻击行为（例如DoS/DDoS）的防护，更容易排查恶意软件等。还可以为后端服务器统一提供加密和SSL加速（如SSL终端代理），提供HTTP访问认证等。</p>
+<h1 id="联系与区别"><a href="#联系与区别" class="headerlink" title="联系与区别"></a>联系与区别</h1><h2 id="共同点"><a href="#共同点" class="headerlink" title="共同点"></a>共同点</h2><ul>
+<li>位置：都是位于客户端和真实服务器之间</li>
+<li>功能：都是把客户端的请求转发给服务器，再把服务器的响应转发给客户端</li>
+<li>都能提高访问速度。</li>
+</ul>
+<h2 id="不同点"><a href="#不同点" class="headerlink" title="不同点"></a>不同点</h2><h3 id="代理的目标不同"><a href="#代理的目标不同" class="headerlink" title="代理的目标不同"></a>代理的目标不同</h3><ul>
+<li>正向代理其实是客户端的代理，帮助客户端访问其无法访问的服务器资源。</li>
+<li>反向代理则是服务器的代理，帮助服务器做负载均衡，安全防护等。</li>
+</ul>
+<h3 id="架设者不同"><a href="#架设者不同" class="headerlink" title="架设者不同"></a>架设者不同</h3><ul>
+<li>正向代理一般是客户端架设的，在自己的机器上和代理服务器上安装一个代理软件。</li>
+<li>反向代理一般是服务器架设的，比如在自己的机器集群中部署一个反向代理服务器。</li>
+</ul>
+<h3 id="客户端和服务端可见性"><a href="#客户端和服务端可见性" class="headerlink" title="客户端和服务端可见性"></a>客户端和服务端可见性</h3><ul>
+<li>正向代理中，隐藏客户端IP。服务器不知道真正的客户端到底是谁，以为访问自己的就是真实的客户端。</li>
+<li>反向代理中，隐藏服务器IP。客户端不知道真正的服务器是谁，以为自己访问的就是真实的客户端。</li>
+</ul>
+<h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><ul>
+<li>正向代理主要是用来解决访问限制问题。</li>
+<li>反向代理则是提供负载均衡、安全防护等作用。</li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://juejin.im/post/5c737a976fb9a049a81ff5a7" target="_blank" rel="noopener">漫话：如何给女朋友解释什么是反向代理？</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/02/手机/Exchange邮箱服务实现跨平台同步日历和联系人/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/02/手机/Exchange邮箱服务实现跨平台同步日历和联系人/" itemprop="url">Exchange邮箱服务实现跨平台同步日历和通讯录</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-02T16:58:14+08:00">
+                2019-06-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/手机/" itemprop="url" rel="index">
+                    <span itemprop="name">手机</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h1><p>同步小米的日程提醒和通讯录到iPhone</p>
+<p>使用网易163的Exchange服务，可以实现日历，通讯录，邮件的跨平台（Windows、Mac、Android、iPhone）同步</p>
+<h1 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h1><h2 id="添加Exchange邮箱账号"><a href="#添加Exchange邮箱账号" class="headerlink" title="添加Exchange邮箱账号"></a>添加Exchange邮箱账号</h2><p>进入日历 – 右上角 设置 – 日历账号管理 – 添加账号；</p>
+<p>最后跳转到的页面和 电子邮件 添加账户 界面是一样的；</p>
+<p>所以可以直接在桌面 点击 电子邮件</p>
+<p><strong>特别注意：</strong> </p>
+<ul>
+<li>需要添加 EXchange 邮箱类型；默认一般都是IMAP，POP3，是不支持同步服务的</li>
+<li>网易163默认开启了第三方授权码登录，如果发现密码错误，使用授权码登录或者关闭授权码</li>
+</ul>
+<h2 id="添加日程提醒事件到-邮箱账号"><a href="#添加日程提醒事件到-邮箱账号" class="headerlink" title="添加日程提醒事件到 邮箱账号"></a>添加日程提醒事件到 邮箱账号</h2><p>日历 默认添加的日程提醒事件 是 小米云账号</p>
+<p>可以设置 邮箱账号为 默认日程账号；以后添加的事件都是到 邮箱账号了</p>
+<p>添加事件的时候 可以选择 日历账号；之前添加的事件也可以编辑，修改日历账号</p>
+<h2 id="同步"><a href="#同步" class="headerlink" title="同步"></a>同步</h2><p>添加/修改 事件 完毕，进入 设置  – 同步；即已经把事件同步到邮箱账号了</p>
+<p>在iPhone上同样添加账号，日历设置中显示 Exchange账户日历，同步，即可看到同步过来的事件了</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/21/Android/Raw和Asset/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/05/21/Android/Raw和Asset/" itemprop="url">Raw和Asset</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-21T19:19:53+08:00">
+                2019-05-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="联系"><a href="#联系" class="headerlink" title="联系"></a>联系</h1><ul>
+<li><p>相同点：<br>  两个文件夹下的文件都不会被编译成二进制文件，都会被原封不动的放到apk中。</p>
+</li>
+<li><p>不同点：</p>
+<ul>
+<li>asset下的文件不会被映射到R文件中，raw下的文件会被映射到R文件中(可以使用R.raw.xxx引用)。</li>
+<li>asset下可以有目录结构，raw下不能有目录结构。</li>
+</ul>
+</li>
+</ul>
+<h1 id="获取文件路径"><a href="#获取文件路径" class="headerlink" title="获取文件路径"></a>获取文件路径</h1><h2 id="asset"><a href="#asset" class="headerlink" title="asset"></a>asset</h2><p><code>&quot;file:///android_asset/Kotlin与ava共存.mp4&quot;</code></p>
+<p>此种路径仅可用于webview加载</p>
+<h2 id="raw"><a href="#raw" class="headerlink" title="raw"></a>raw</h2><p><code>String uri = &quot;android.resource://&quot; + getPackageName() + &quot;/&quot; + R.raw.video;</code></p>
+<p>通过assets目录构造URI，不能用来播放视频，也不能播放音频。在raw目录下的文件构造URI可以播放音频，也能播放视频</p>
 
           
         
@@ -853,1180 +2052,11 @@ pf.isEnQueued();//返回是否从内存中已经删除
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/19/RN/RN优化/RN内存优化/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/19/RN/RN优化/RN内存优化/" itemprop="url">RN内存优化</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-19T14:28:26+08:00">
-                2019-04-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h1><p>减少内存占用</p>
-<h1 id="ListView-内存没有复用"><a href="#ListView-内存没有复用" class="headerlink" title="ListView 内存没有复用"></a>ListView 内存没有复用</h1><p>0.43 引入了一个新的FlatList组件，完全解决了ListView的内存回收问题</p>
-<p>强烈建议升级版本</p>
-<p>不升级的话，自己实现这套机制</p>
-<h1 id="图片"><a href="#图片" class="headerlink" title="图片"></a>图片</h1><p>在Android上问题会相对多一些</p>
-<h2 id="Fresco重复初始化"><a href="#Fresco重复初始化" class="headerlink" title="Fresco重复初始化"></a>Fresco重复初始化</h2><p>RN的底层图片框架库用的是Fresco，而我们主App中用的也是Fresco底层库，这里就会重复初始化。</p>
-<p>当主App中的Fresco进行初始化之后，如果RN中也进行一次初始化，实际上之前那部分内存并没有被释放，会出现内存泄漏。</p>
-<h2 id="图片编码方式"><a href="#图片编码方式" class="headerlink" title="图片编码方式"></a>图片编码方式</h2><p>RN框架采用的图片编解码用的是ARGB_8888，但实际上大部分情况下可以采用RGB_565编码，图片在内存当中的大小可以减少50%。</p>
-<p>不过有些业务可能也真的需要一些透明的背景，需要Alpha通道，所以也提供了一些API来针对特殊图片，让它采用ARGB_8888进行编解码。</p>
-<p>这样既解决内存问题，也满足了业务的需求。</p>
-<h2 id="图片内存回收"><a href="#图片内存回收" class="headerlink" title="图片内存回收"></a>图片内存回收</h2><p>RN页面退出之前，建议强制调用Fresco框架的<strong>clearMemoryCach</strong>e方法，通知Fresco清除内存缓存。可以保证GC及时地把这些图片内存给回收掉，避免整个APP的内存占用过高，经过实践验证这也很有效地解决了内存问题。</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.jqhtml.com/34513.html" target="_blank" rel="noopener">RN框架在京东无线端的实践</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/15/电脑使用/mac/Homebrew使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/15/电脑使用/mac/Homebrew使用/" itemprop="url">Homebrew使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-15T18:32:53+08:00">
-                2019-04-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Homebrew是什么"><a href="#Homebrew是什么" class="headerlink" title="Homebrew是什么"></a>Homebrew是什么</h1><p>The missing package manager for macOS (or Linux)</p>
-<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><pre><code>/usr/bin/ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;
-</code></pre><h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><h2 id="安装-1"><a href="#安装-1" class="headerlink" title="安装"></a>安装</h2><pre><code>brew install wget
-</code></pre><h3 id="安装路径"><a href="#安装路径" class="headerlink" title="安装路径"></a>安装路径</h3><p> 默认安装路径 <code>/usr/local/Cellar</code></p>
-<p> <code>brew list 软件名</code> 获取安装路径</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://brew.sh/" target="_blank" rel="noopener">官网</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/11/网络/TCP三次握手四次挥手/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/11/网络/TCP三次握手四次挥手/" itemprop="url">TCP三次握手四次挥手</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-11T17:51:53+08:00">
-                2019-04-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/网络/" itemprop="url" rel="index">
-                    <span itemprop="name">网络</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="三次握手，四次挥手"><a href="#三次握手，四次挥手" class="headerlink" title="三次握手，四次挥手"></a>三次握手，四次挥手</h1><img src="/2019/04/11/网络/TCP三次握手四次挥手/三次握手.png">
-<img src="/2019/04/11/网络/TCP三次握手四次挥手/四次挥手.png">
-<h1 id="TCP标志位"><a href="#TCP标志位" class="headerlink" title="TCP标志位"></a>TCP标志位</h1><p>SYN，ACK，FIN 存放在TCP的标志位(一共6个)</p>
-<p><strong>SYN</strong>：<strong>同步</strong>序列编号(Synchronize Sequence Numbers)</p>
-<ul>
-<li>请求创建连接</li>
-<li>同步的是初始序列编号(ISN,Initialize Sequence Numbers)<ul>
-<li>初始序列号是<strong>随机</strong>生成的</li>
-</ul>
-</li>
-<li>SYN=1</li>
-</ul>
-<p><strong>FIN</strong>：<strong>结束</strong>连接(Finish)</p>
-<ul>
-<li>请求关闭连接</li>
-<li>FIN=1</li>
-<li>在四次分手时，我们发现FIN发了两遍。这是因为TCP的连接是双向的，一次FIN只能关闭一个方向。</li>
-</ul>
-<p><strong>ACK</strong>：<strong>确认</strong>字符(Acknowledgement）</p>
-<ul>
-<li><strong>确认接受</strong></li>
-<li>ACK为1表示确认号有效，为0表示报文中不包含确认信息，忽略确认号字段</li>
-</ul>
-<p>三次握手和四次分手，在回应的时候都会加上ACK=1，表示消息接收到了，并且在建立连接以后的发送数据时，都需加上ACK=1,来表示数据接收成功。</p>
-<h1 id="TCP包编号"><a href="#TCP包编号" class="headerlink" title="TCP包编号"></a>TCP包编号</h1><p><strong>seq</strong>: <strong>序列号</strong>(Sequence)</p>
-<ul>
-<li><p>数据包序列编号。</p>
-<p>  发送一个数据会被拆成多个数据包来发送，序列号就是对每个数据包进行编号，这样接受方才能对数据包进行再次拼接。</p>
-</li>
-<li><p>初始序列号是<strong>随机</strong>生成的</p>
-</li>
-</ul>
-<p><strong>ack</strong>: <strong>确认</strong>字符(Acknowledgement）</p>
-<ul>
-<li><p>ack=seq+1</p>
-<p>  也是下一个数据包的序列编号seq</p>
-</li>
-</ul>
-<h1 id="TCP状态"><a href="#TCP状态" class="headerlink" title="TCP状态"></a>TCP状态</h1><ul>
-<li><strong>LISTEN</strong> - 某个Socket处于<strong>监听</strong>，侦听来自远方TCP端口的连接请求;</li>
-<li><strong>SYN-SENT</strong> - 已发送SYN报文</li>
-<li><strong>SYN-RECEIVED</strong> - 已接受SYN报文</li>
-<li><strong>ESTABLISHED</strong>- 已建立连接</li>
-<li><strong>FIN-WAIT-1</strong> - 已发送FIN报文，等待对方FIN报文</li>
-<li><strong>FIN-WAIT-2</strong> - 已发送FIN报文，已收到对方ACK报文，等待对方FIN报文；此时已是<strong>半连接</strong>（告诉对方，我暂时还有点数据需要传送给你，稍后再关闭连接）；<code>FIN_WAIT_1</code>状态下，收到了对方同时带FIN标志和ACK标志的报文时，可以直接进入<code>TIME_WAIT</code>状态，而无须经过<code>FIN_WAIT_2</code>状态。</li>
-<li><strong>LAST-ACK</strong> - 等待对方最后的ACK</li>
-<li><strong>TIME-WAIT</strong> -已收到对方FIN报文，已发送ACK报文，等待足够的时间（至少一个报文的来回时间）以确保对方成功接受ACK报文；如果超时没有再次收到 FIN 报文，则代表对方成功接受 ACK 报文，可以进入 CLOSED 状态。这个状态需要<strong>特别注意</strong></li>
-<li><strong>CLOSED</strong> - 连接已关闭；也是初始状态</li>
-<li><strong>CLOSING</strong> - <strong>比较特殊少见</strong>，双方几乎同时close某Socket；发送FIN报文，马上收到对方FIN(正常应收到ACK)</li>
-<li><strong>CLOSE_WAIT</strong> - 等待关闭；已收到FIN报文，已发送ACK报文，此时等待己方去关闭连接（如果己方没有数据要发送，发送FIN报文，收到ACK即可关闭连接）</li>
-</ul>
-<h1 id="为什么需要三次握手"><a href="#为什么需要三次握手" class="headerlink" title="为什么需要三次握手"></a>为什么需要三次握手</h1><p><strong>为了避免资源浪费</strong></p>
-<p>更细的话，这个问题从两个方面来回答</p>
-<ul>
-<li>三次握手才能确认两端的收发能力；没有确认收发能力发送数据浪费资源</li>
-<li>避免建立不必要连接。<ul>
-<li>两次握手就建立连接话（客户端发送连接请求，服务端接收到并发送确认），如果一个连接请求在网络中跑的慢，超时了，客户端重发请求，跑的慢的请求最后到了服务器，服务端就会创建两个连接，浪费资源；</li>
-<li>加第三次握手（客户端确认），客户端在接受到一个服务器的ACK后，后面的ACK就可以抛弃。</li>
-</ul>
-</li>
-</ul>
-<h1 id="为什么需要四次分手"><a href="#为什么需要四次分手" class="headerlink" title="为什么需要四次分手"></a>为什么需要四次分手</h1><p>由于TCP连接是全双工(双向)的，因此每个方向都必须单独进行关闭。每个方向的关闭又需要请求和确认，所以一共就4次</p>
-<p>原则是当一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接。收到一个 FIN只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍能发送数据。首先进行关闭的一方将执行主动关闭，而另一方执行被动关闭。</p>
-<h1 id="初始序列号-ISN-为什么要随机生成"><a href="#初始序列号-ISN-为什么要随机生成" class="headerlink" title="初始序列号(ISN)为什么要随机生成"></a>初始序列号(ISN)为什么要随机生成</h1><p>如果ISN是固定的，攻击者很容易猜出后续的确认号</p>
-<h1 id="半连接队列"><a href="#半连接队列" class="headerlink" title="半连接队列"></a>半连接队列</h1><p>服务器第一次收到客户端的 SYN 之后，就会处于 SYN_RCVD 状态，此时双方还没有完全建立其连接，服务器会把此种状态下请求连接放在一个队列里，我们把这种队列称之为<strong>半连接队列</strong>。</p>
-<h2 id="SYN-ACK-重传"><a href="#SYN-ACK-重传" class="headerlink" title="SYN-ACK 重传"></a>SYN-ACK 重传</h2><p>服务器发送完SYN-ACK包，如果未收到客户确认包，服务器进行首次重传，等待一段时间仍未收到客户确认包，进行第二次重传，如果重传次数超 过系统规定的<strong>最大重传次数</strong>，系统将该连接信息从半连接队列中删除。</p>
-<p>注意，每次重传等待的<strong>超时时间</strong>不一定相同，一般会是指数增长，例如间隔时间为 1s, 2s, 4s, 8s, ….</p>
-<h2 id="SYN攻击"><a href="#SYN攻击" class="headerlink" title="SYN攻击"></a>SYN攻击</h2><p>DDoS攻击的一种</p>
-<p>最常见又最容易被利用的一种攻击手法</p>
-<p>利用TCP协议缺陷，短时间内不断向服务器发送大量的半连接请求（伪造不存在的IP），服务器回复确认包，并等待客户的确认，由于源地址是不存在的，服务器需要不断的重发直至超时，这些伪造的SYN包将长时间占用未连接队列，正常的SYN请求被丢弃，目标系统运行缓慢，严重者引起网络堵塞甚至系统瘫痪。</p>
-<h3 id="防范"><a href="#防范" class="headerlink" title="防范"></a>防范</h3><h4 id="注册表设置"><a href="#注册表设置" class="headerlink" title="注册表设置"></a>注册表设置</h4><p>启用 SynAttackProtect ，指定 SYN_RCVD 状态中的 TCP 连接阈值，超过 SynAttackProtect 时，触发 SYN flood 保护</p>
-<h4 id="丰富带宽资源"><a href="#丰富带宽资源" class="headerlink" title="丰富带宽资源"></a>丰富带宽资源</h4><h4 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h4><p>最有效的方法</p>
-<p>当然前提是攻击在防护带宽范围之内，也就是为什么第二条推荐带宽资源，这是保证在防火墙前面不会造成堵塞</p>
-<h1 id="全连接队列"><a href="#全连接队列" class="headerlink" title="全连接队列"></a>全连接队列</h1><p>已经完成三次握手，建立起连接的就会放在全连接队列中。</p>
-<p>如果队列满了就有可能会出现丢包现象。</p>
-<h1 id="三次握手过程中可以携带数据吗"><a href="#三次握手过程中可以携带数据吗" class="headerlink" title="三次握手过程中可以携带数据吗"></a>三次握手过程中可以携带数据吗</h1><p><strong>第三次握手可以携带数据</strong></p>
-<p>此时客户端已经处于 established 状态，也就是说，对于客户端来说，他已经建立起连接了，并且也已经知道服务器的接收、发送能力是正常的了，所以能携带数据页没啥毛病。</p>
-<p>假如第一次握手可以携带数据的话，恶意攻击者根本就不理服务器的接收、发送能力是否正常，疯狂着重复发 SYN 报文。这会让服务器花费很多时间、内存空间来接收这些报文。让服务器更加容易受到攻击了。</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://juejin.im/post/5caed6925188251ac6386c7b" target="_blank" rel="noopener">关于三次握手与四次挥手面试官想考我们什么？</a></li>
-<li><a href="https://baijiahao.baidu.com/s?id=1593714120815701015&amp;wfr=spider&amp;for=pc" target="_blank" rel="noopener">对TCP三次握手四次分手还不清楚，超简单解析</a></li>
-<li><a href="https://baike.baidu.com/item/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/7794287?fr=aladdin#2" target="_blank" rel="noopener">四次挥手</a></li>
-<li><a href="https://juejin.im/post/5cb93204f265da039955d770" target="_blank" rel="noopener">漫画：一招学会TCP的三次握手和四次挥手</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/11/Android/UI性能优化/内存Code部分的占用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/11/Android/UI性能优化/内存Code部分的占用/" itemprop="url">内存Code部分的占用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-11T16:43:53+08:00">
-                2019-04-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>加载 dex，so文件 占用的内存</p>
-<p><strong>工具</strong>：Linux /proc/<pid>/smaps 文件分析脚本</pid></p>
-<p>python代码 (本目录下 smap.py文件)：<a href="https://gist.github.com/LanderlYoung/aedd0e1fe09214545a7f20c40c01776c" target="_blank" rel="noopener">https://gist.github.com/LanderlYoung/aedd0e1fe09214545a7f20c40c01776c</a></p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://wetest.qq.com/lab/view/359.html?from=adsout_qqtips_past2_359" target="_blank" rel="noopener">我这样减少了26.5M Java内存！</a> 腾讯WeTest上企鹅FM的内存优化</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/29/RN/RN之Native处理异常/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/29/RN/RN之Native处理异常/" itemprop="url">RN之Native处理异常</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-29T17:41:12+08:00">
-                2019-03-29
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="https://blog.csdn.net/sinat_17775997/article/details/70511410" target="_blank" rel="noopener">React Native for Android 异常处理概览</a></p>
-<p>研究RN框架异常的动机在于，我们需要建立起一套针对性的容错机制，毕竟它还是一个不够成熟的框架。期望能够做到的效果就是，对于每一个RN页面的启动，我们能够在<strong>进入页面至退出页面</strong>期间侦测所有发生的<strong>RN相关</strong>的崩溃，然后根据崩溃来考虑该页面是否该有降级策略、判断框架是否真的能够支持稳定迭代。</p>
-<p>并且，集中地处理崩溃，也有利于我们后续对框架稳定性进行针对性的统计与优化。即使最后还是最简单粗暴的try-catch，这个catch的位置也是一门艺术。</p>
-<p><strong>异常种类</strong></p>
-<ul>
-<li>产生位置<ul>
-<li>JS</li>
-<li>Java </li>
-<li>C++</li>
-</ul>
-</li>
-<li>产生时期<ul>
-<li>启动期</li>
-<li>运行期</li>
-</ul>
-</li>
-</ul>
-<h1 id="启动期异常"><a href="#启动期异常" class="headerlink" title="启动期异常"></a>启动期异常</h1><h2 id="框架启动流程"><a href="#框架启动流程" class="headerlink" title="框架启动流程"></a>框架启动流程</h2><p>ReactActivity.onCreate 调用 ReactActivityDelegate.loadApp 开始核心启动流程</p>
-<ul>
-<li><strong>预初始化</strong>：<ul>
-<li>初始化ReactRootView与ReactInstanceManager实例</li>
-</ul>
-</li>
-<li><strong>创建React上下文</strong>：由ReactRootView.startReactApplication一路走下来，会用懒加载方式创建React上下文，通过进入ReactInstanceManager.ReactContextInitAsyncTask这个AsyncTask中执行上下文创建的工作，里面执行的东西可以说是所有的Java部分初始化内容（收集与注册提供的Native/JS/View模块、初始化CatalystInstance（负责核心Bridge相关）、运行JSBundle、将界面展示到ReactRootView上等）。</li>
-</ul>
-<h2 id="预初始化"><a href="#预初始化" class="headerlink" title="预初始化"></a>预初始化</h2><p>涉及了so加载的操作，可以在 ReactRootView.startReactApplication外部再加一层try-catch</p>
-<h2 id="创建React上下文阶段"><a href="#创建React上下文阶段" class="headerlink" title="创建React上下文阶段"></a>创建React上下文阶段</h2><p>RN有捕获异常，但是仅仅只用 <code>DevSupportManager</code> 去处理，当不使用 <code>develop support</code> 时，会直接抛出异常。</p>
-<p>不使用dev support时</p>
-<ul>
-<li>传入一个Handler去专门处理启动期的崩溃</li>
-<li>用<code>ReactInstanceManagerBuilder.setNativeModuleCallExceptionHandler()</code> 传入的ExceptionHandler 统一去处理崩溃</li>
-</ul>
-<h2 id="运行期异常"><a href="#运行期异常" class="headerlink" title="运行期异常"></a>运行期异常</h2><ol>
-<li>JS调用Native产生异常<ul>
-<li>Native模块不存在</li>
-<li>Native模块函数原型不一致</li>
-<li>Native模块执行的异常</li>
-</ul>
-</li>
-<li>Native调用JS异常<ul>
-<li>JS模块不存在</li>
-<li>JS模块函数原型不一致</li>
-<li>JS模块执行的异常</li>
-</ul>
-</li>
-<li>JS本身代码执行的异常</li>
-<li>UI操作的异常</li>
-</ol>
-<h3 id="运行线程"><a href="#运行线程" class="headerlink" title="运行线程"></a>运行线程</h3><p>RN维护了三个线程的MessageQueue，所有的操作都会被push到上面运行</p>
-<ul>
-<li><strong>NativeQueue</strong> 运行Native模块函数的线程（通常由JS发起），后台线程；</li>
-<li><strong>JSQueue</strong> 运行JS的线程，后台线程。</li>
-<li><strong>UIQueue</strong> 专门做UI操作，使用Android里面的<strong>主线程</strong>；</li>
-</ul>
-<p>初始化 <code>ReactInstanceManager</code> 时传的Handler 可以处理上面的前7种异常，我们需要单独处理UI操作异常</p>
-<p>UI操作，其实是调用的UIManagerModule这个Java模块进行的操作，但是实际上它不是马上被同步执行的，而是仅仅只有一个入队列的操作。所有的UI操作都通过Choreographer来驱动执行，那这个时候虽然是在主线程运行，但是不在上面任何一个MessageQueue里面了，于是上面的方式捕获不到。</p>
-<h3 id="UI操作的异常"><a href="#UI操作的异常" class="headerlink" title="UI操作的异常"></a>UI操作的异常</h3><p>UI操作的异常默认由 <code>ReactContext.handleException</code> 处理，追踪发现是 RN React上下文创建时设给它一个Handler，只在develop support时才起作用</p>
-<p>初始化ReactContext时</p>
-<ul>
-<li>在使用develop support时设给它DevSupportManagerImpl</li>
-<li>否则使用传入的NativeModuleExceptionHandler</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/字符串分割/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/字符串分割/" itemprop="url">字符串分割</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:51:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>1、如果用“.”作为分隔的话，必须是如下写法：String.split(&quot;\\.&quot;),这样才能正确的分隔开，不能用String.split(&quot;.&quot;);
-</code></pre><p>2、如果用“|”作为分隔的话，必须是如下写法：String.split(“\|”),这样才能正确的分隔开，不能用String.split(“|”);<br>“.”和“|”都是转义字符，必须得加”\“;<br>String[] split = EditWorksActivity.selectedWorkServiceId.trim().split(“\|”);</p>
-<p>而且分隔出来的字符串可能带有不可见特殊部分，可能出现equal 不成立bug</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/URL和URI/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/URL和URI/" itemprop="url">URL和URI</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:50:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>Android 从网页中跳转到APP http://blog.csdn.net/buptlzx/article/details/9837137
-</code></pre><p>就Android平台而言，URI主要分三个部分：<code>scheme, authority, path</code>。其中<code>authority</code>又分为<code>host和port</code>。格式如下： </p>
-<pre><code>scheme://host:port/path 
-</code></pre><p>举个实际的例子： </p>
-<pre><code>content://com.example.project:200/folder/subfolder/etc 
-\---------/  \--------------/ \-/ \-------------------/ 
-scheme              host      port         path 
-                     \-----------/ 
-                        authority    
-</code></pre><p>data flag </p>
-<pre><code>&lt;data android:host=&quot;string&quot; 
-      android:mimeType=&quot;string&quot; 
-      android:path=&quot;string&quot; 
-      android:pathPattern=&quot;string&quot; 
-      android:pathPrefix=&quot;string&quot; 
-      android:port=&quot;string&quot; 
-      android:scheme=&quot;string&quot; /&gt; 
-</code></pre><p>api</p>
-<pre><code>Uri uri = intent.getData();  
-       System.out.println(&quot;scheme:&quot;+scheme);  
-       if (uri != null) {  
-           String host = uri.getHost();  
-           String dataString = intent.getDataString();  
-           String id = uri.getQueryParameter(&quot;d&quot;);  
-           String path = uri.getPath();  
-           String path1 = uri.getEncodedPath();  
-           String queryString = uri.getQuery();  
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/18/">18</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2076,7 +2106,7 @@ scheme              host      port         path
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">177</span>
+                  <span class="site-state-item-count">187</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2087,7 +2117,7 @@ scheme              host      port         path
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">9</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2098,7 +2128,7 @@ scheme              host      port         path
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">57</span>
+                  <span class="site-state-item-count">59</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
