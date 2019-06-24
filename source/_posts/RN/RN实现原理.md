@@ -29,18 +29,17 @@ RN版本 `0.48.4`
 - **JavascriptModuleRegistry**：JS Module映射表
 - **NativeModuleRegistry**：Java Module映射表
 
-页面真正渲染出来以后，它实际上还是Native代码，React Native的作用就是把JavaScript代码映射成Native代码以及实现两端
-的通信
+页面真正渲染出来以后，它实际上还是Native代码，React Native的作用就是把JavaScript代码映射成Native代码以及实现两端的通信
 
 所以我们在React Native基础框架搭建的过程中，指导思路之一就是弱化Native与RN的边界与区别，让业务开发组感受不到两者的区别，从而简化开发流程。
 
 有了对React Native框架的整体理解，我们来继续分析一个RN页面是如何启动并渲染出来的，这也是我们关心的主要问题。后续的基础框架的搭建、JS Bundle分包加载、渲染性能优化
 等都会围绕着着一块做文章。
 
+# 启动流程
+
 ReactActivity的ReactRootView调用自己的startReactApplication()方法启动了整个RN页面，在启动的过程
 中先去创建页面上下文ReactContext，然后再去加载、执行并将JavaScript映射成Native Widget，最终一个RN页面就显示在了用户面前
-
-# 启动流程
 
 主要关注以下五个问题
 

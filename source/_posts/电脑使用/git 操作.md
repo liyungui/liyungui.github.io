@@ -204,7 +204,7 @@ git revert与reset的区别是git revert会生成一个新的提交来撤销某�
 5. `git push`推送本地仓库到远程仓库
 
 
-6. `git clone`从远程仓库克隆到本地仓库（会在本地仓库根目录下生成新文件夹）（克隆是默认主机名为origin，可用 -o指定主机名）
+6. `git clone`从远程仓库克隆到本地仓库（会在本地仓库根目录下生成新文件夹）（克隆是默认主机名为origin，可用 -o指定主机名;默认克隆master分支，可用 -b 指定分支名）
 
 	git clone -o jQuery https://github.com/jquery/jquery.git
 
@@ -399,6 +399,8 @@ commit ID | 代码提交作者 | 提交时间 | 代码位于文件中的行数 |
 	f604879e (yingyinl              2014-09-23 23:39:55 -0700   42) 
 
 这样，我们就可以知道commit ID了，然后使用命令：git show commitID来看
+
+对应 AS git 插件中的 `git -- annotate`
 
 # git-flow 工作流程 #
 

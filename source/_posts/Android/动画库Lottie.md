@@ -99,6 +99,26 @@ animation.getAnimatedFraction() 返回进度[minFrame,maxFrame]。如果没设�
 
 	v7的24版本带的v4包，找不到 android.support.v4.util.ArraySet
 
+# 缩放
+
+会自动将AE中的px转为dp，大部分都能保持一致
+
+如果尺寸不是很合适，有两个解决方案
+
+## scaleType
+
+`LottieAnimationView ` 继承了ImageView scaleType
+
+## Scaling Up/Down
+
+`LottieAnimationView` 和 `LottieDrawable` 支持`setScale(float)` 按比例缩放
+
+**注意：不要重复调用**
+
+```java
+lottieAnimationView.setScale(1 / mContext.getResources().getDisplayMetrics().density);
+```
+
 # 卡顿问题
 
 全屏动画卡顿问题特别严重
