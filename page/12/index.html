@@ -262,6 +262,1372 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/10/Android/Android加载网络图片为Bitmap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/10/Android/Android加载网络图片为Bitmap/" itemprop="url">Android加载网络图片为Bitmap</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-10T16:56:18+08:00">
+                2018-12-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="HttpURLConnection下载"><a href="#HttpURLConnection下载" class="headerlink" title="HttpURLConnection下载"></a>HttpURLConnection下载</h1><ul>
+<li><p>注意二次采样，防止OOM</p>
+<pre><code>options.inJustDecodeBounds = true;
+BitmapFactory.decodeResource(getResources(), R.id.myimage, options);
+ 设置为true 时，返回的BitMap 将为 Null
+</code></pre></li>
+<li><p>读取网络图片常用的是decodeStream，但是如果需要读取两次，第二次读的时候流已经改变，读取的是null。可以用字节数组存储流，以后可以多次使用</p>
+</li>
+</ul>
+<p>代码：</p>
+<pre><code>public static Observable&lt;Bitmap&gt; getHttpBitmap(String drawableUrl, final int reqWidth, final int reqHeight) {
+    return Observable
+            .just(drawableUrl)
+            .filter(new Func1&lt;String, Boolean&gt;() {
+                @Override
+                public Boolean call(String s) {
+                    if (TextUtils.isEmpty(s)) {
+                        return false;
+                    }
+                    return true;
+                }
+            })
+            .map(new Func1&lt;String, Bitmap&gt;() {
+                @Override
+                public Bitmap call(String s) {
+                    try {
+                        HttpURLConnection conn = (HttpURLConnection) new URL(s).openConnection();
+                        //设置超时时间为6000毫秒，conn.setConnectionTiem(0);表示没有时间限制
+                        conn.setConnectTimeout(6000);
+                        //连接设置获得数据流
+                        conn.setDoInput(true);
+                        //不使用缓存
+                        conn.setUseCaches(false);
+                        //此方法用于在预先不知道内容长度时启用没有进行内部缓冲的 HTTP请求正文的流
+                        conn.setChunkedStreamingMode(51200); // 128K
+                        conn.connect();
+                        InputStream is = conn.getInputStream();
+                        if (is != null) {
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inJustDecodeBounds = true;
+                            byte[] data = inputStream2ByteArr(is);
+                            BitmapFactory.decodeByteArray(data, 0, data.length, options);
+                            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+                            options.inJustDecodeBounds = false;
+                            //解析得到图片
+                            return BitmapFactory.decodeByteArray(data, 0, data.length, options);
+                        }
+                        is.close();
+                    } catch (Exception e) {
+                        throw Exceptions.propagate(e);
+                    }
+                    return null;
+                }
+            })
+            .subscribeOn(Schedulers.io());
+}
+
+/**
+ * 输入流转成字节数组(重复读取)
+ *
+ * @param inputStream
+ * @return
+ * @throws IOException
+ */
+
+public static byte[] inputStream2ByteArr(InputStream inputStream) throws IOException {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    byte[] buff = new byte[1024];
+    int len = 0;
+    while ((len = inputStream.read(buff)) != -1) {
+        outputStream.write(buff, 0, len);
+    }
+    inputStream.close();
+    outputStream.close();
+    return outputStream.toByteArray();
+}
+
+/**
+ * 计算options.InSampleSize值 此算法可根据需求改动
+ *
+ * @param options
+ * @param reqWidth  期望宽
+ * @param reqHeight 期望高
+ * @return
+ */
+
+public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    // 源图片的高度和宽度
+    final int height = options.outHeight;
+    final int width = options.outWidth;
+    int inSampleSize = 1;
+    if (height &gt; reqHeight || width &gt; reqWidth) {
+        // 计算出实际宽高和目标宽高的比率
+        final int heightRatio = Math.round((float) height / (float) reqHeight);
+        final int widthRatio = Math.round((float) width / (float) reqWidth);
+        // 选择宽和高中最小的比率作为inSampleSize的值，这样可以保证最终图片的宽和高
+        // 一定都会大于等于目标的宽和高。
+        inSampleSize = heightRatio &lt; widthRatio ? heightRatio : widthRatio;
+    }
+    return inSampleSize;
+}
+</code></pre><h1 id="glide"><a href="#glide" class="headerlink" title="glide"></a>glide</h1><pre><code>public  void getBitmap(Context context, String uri, final GlideLoadBitmapCallback callback) {
+    Glide.with(context)
+            .load(uri)
+            .asBitmap()
+            .centerCrop()
+            .override(150, 150)
+            .into(new SimpleTarget&lt;Bitmap&gt;() {
+                @Override
+                public void onResourceReady(Bitmap bitmap, GlideAnimation anim) {
+                    callback.getBitmapCallback(bitmap);
+                }
+            });
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/06/Android/Android设备唯一标识符/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/06/Android/Android设备唯一标识符/" itemprop="url">Android设备唯一标识符</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-06T17:18:53+08:00">
+                2018-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="常用的获取设备唯一标识符的方法"><a href="#常用的获取设备唯一标识符的方法" class="headerlink" title="常用的获取设备唯一标识符的方法"></a>常用的获取设备唯一标识符的方法</h1><ul>
+<li><strong>IMEI</strong> International Mobile Equipment Identity <ul>
+<li>无插卡模块的设备无法获取。如pad</li>
+<li>需要用户授权。获取Android 6 开始动态权限获取</li>
+</ul>
+</li>
+<li><strong>SIM Serial Num</strong><ul>
+<li>对应 SIM卡。不插卡时无法获取， CDMA卡支持不充分</li>
+</ul>
+</li>
+<li><strong>Mac</strong> Media Access Control Address<ul>
+<li>网卡地址</li>
+<li>手机必须具有上网功能</li>
+<li>Android6.0 运行时权限修改geMacAddress()返回的mac地址永远是一样的， 但是可以其他途径获取。 </li>
+<li>属于Android系统的保护信息，高版本系统获取的话容易失败，返回0000000</li>
+</ul>
+</li>
+<li><strong>ANDROID_ID</strong><ul>
+<li>设备首次运行(恢复出厂设置)，系统会随机生成一64位的数字(16进制保存)</li>
+<li>部分定制ROM bug，所有设备都一样</li>
+<li><code>Settings.System.getString(getContentResolver(), Settings.System.ANDROID_ID);</code></li>
+</ul>
+</li>
+<li><strong>DEVICE_ID</strong><ul>
+<li>根据不同的手机设备返回IMEI，MEID或者ESN码</li>
+<li>非手机设备(没有通话硬件，如Wifi设备，TV，音乐播放器)没有</li>
+<li>需要用户授权。获取Android 6 开始动态权限获取DEVICE_ID </li>
+<li>部分定制ROM bug，所有设备都一样</li>
+<li><code>((TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();</code></li>
+</ul>
+</li>
+<li><strong>Serial Number</strong> 设备序列号 <ul>
+<li>部分定制ROM bug。比如比如红米手机返回的就是连续的非随机数    - <code>android.os.Build.SERIAL</code> </li>
+</ul>
+</li>
+<li><strong>UniquePsuedoID</strong><ul>
+<li>硬件信息拼装而成</li>
+</ul>
+</li>
+<li><strong>Installtion ID</strong><ul>
+<li>程序首次运行时生成一个ID。重装会变化，常用来跟踪应用安装量</li>
+</ul>
+</li>
+</ul>
+<h1 id="方案一"><a href="#方案一" class="headerlink" title="方案一"></a>方案一</h1><p>ANDROID_ID 拼接     Serial Number。不需要权限</p>
+<pre><code>String androidID = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+String id = androidID + Build.SERIAL;
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/06/Android/Mac运行Windows程序/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/06/Android/Mac运行Windows程序/" itemprop="url">Mac运行Windows程序</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-06T11:32:09+08:00">
+                2018-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="可选方案"><a href="#可选方案" class="headerlink" title="可选方案"></a>可选方案</h1><p>根据方便程度和难度，有以下四种</p>
+<ul>
+<li><p>CrossOver。 最简单。收费</p>
+</li>
+<li><p>Wineskin。 难一些。免费，制作/移植为Mac程序</p>
+</li>
+<li><p>虚拟机。 耗资源</p>
+</li>
+<li><p>双系统。 需重启切换</p>
+</li>
+</ul>
+<h1 id="Wineskin使用"><a href="#Wineskin使用" class="headerlink" title="Wineskin使用"></a>Wineskin使用</h1><p><a href="http://wineskin.urgesoftware.com" target="_blank" rel="noopener">下载安装</a></p>
+<p>安装Engines</p>
+<p>update Wrapper Version</p>
+<p>Create New Blank Wrapper 一路install，初始化完成</p>
+<p>View wrapper in Finder，看APP 包的位置(/Users/‘用户名目录’/Applications/Wineskin)</p>
+<p>右键显示包内容</p>
+<p>把Windows程序所有文件拷贝到drive_c 目录下(右键，显示原身)</p>
+<p>双击包内容根目录下的Wineskin.app开始配置程序 – Advanced</p>
+<pre><code>Windows Ext -- 选择刚才的exe文件
+Custom Commands -- 中填写export LANG=zh_CN.UTF-8 代表设置系统语言为中文
+Set Screen Option -- 关闭检测GPU，其他默认 -- Done
+Test Run -- 试运行 能够看到效果
+</code></pre><p>如果出现乱码，说明没有下载中文字库。在配置中选择Tools 工具。Winetricks 配置基础环境。在字库中增加中文字库，选择fonts中的cjkfonts。选中后Run 即可</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/26/Android/OOM总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/26/Android/OOM总结/" itemprop="url">OOM总结</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-26T11:36:53+08:00">
+                2018-11-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="常规OOM–Java堆内存不够导致的OOM"><a href="#常规OOM–Java堆内存不够导致的OOM" class="headerlink" title="常规OOM–Java堆内存不够导致的OOM"></a>常规OOM–Java堆内存不够导致的OOM</h1><pre><code>java.lang.OutOfMemoryError: 
+    Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM
+</code></pre><p>下面是几个关于Android官方声明内存限制阈值的API：</p>
+<pre><code>ActivityManager.getMemoryClass()：     虚拟机java堆大小的上限，分配对象时突破这个大小就会OOM
+ActivityManager.getLargeMemoryClass()：manifest中设置largeheap=true时虚拟机java堆的上限
+Runtime.getRuntime().maxMemory() ：    当前虚拟机实例的内存使用上限，为上述两者之一
+Runtime.getRuntime().totalMemory() ：  当前已经申请的内存，包括已经使用的和还没有使用的
+Runtime.getRuntime().freeMemory() ：   上一条中已经申请但是尚未使用的那部分。那么已经申请并且正在使用的部分used=totalMemory() - freeMemory()
+ActivityManager.MemoryInfo.totalMem:   设备总内存
+ActivityManager.MemoryInfo.availMem:   设备当前可用内存
+/proc/meminfo                                           记录设备的内存信息
+</code></pre><p> <strong>通常认为OOM发生是由于java堆内存不够用了</strong>，即</p>
+<pre><code>Runtime.getRuntime().maxMemory()这个指标满足不了申请堆内存大小时
+</code></pre><p>这种OOM可以非常方便的验证（比如: 通过new byte[]的方式尝试申请超过阈值maxMemory()的堆内存）</p>
+<h2 id="图片消耗内存计算"><a href="#图片消耗内存计算" class="headerlink" title="图片消耗内存计算"></a>图片消耗内存计算</h2><pre><code>Bitmap.Config.ALPHA_8：只有透明度，8位。
+Bitmap.Config.ARGB_4444：16位。显示图片不清楚
+Bitmap.Config.ARGB_8888：32位。Bitmap默认，最占空间
+Bitmap.Config.RGB_565：16位。性能优化最常使用
+
+2000*2000*4 bytes =15M
+</code></pre><h2 id="Bitmap是否需要调用-recycle"><a href="#Bitmap是否需要调用-recycle" class="headerlink" title="Bitmap是否需要调用 recycle()"></a>Bitmap是否需要调用 recycle()</h2><p>Bitmap需调用 recycle() 是历史问题，在 Android 3.0之前，Bitmap 的图片数据是在底层C中处理的，因此在 Android3.0 之前 recycle() 是应该调用的</p>
+<p>现在在 Bitmap 置 null 后图片数据会被GC回收。 </p>
+<h1 id="不可思议的OOM"><a href="#不可思议的OOM" class="headerlink" title="不可思议的OOM"></a><a href="https://www.jianshu.com/p/e574f0ffdb42" target="_blank" rel="noopener">不可思议的OOM</a></h1><p><strong>特征：崩溃时java堆内存和设备物理内存都充足</strong></p>
+<p><strong>关键字：</strong></p>
+<p><code>Could not allocate JNI Env</code>, <code>pthread_create failed</code></p>
+<h2 id="OOM-一"><a href="#OOM-一" class="headerlink" title="OOM 一"></a>OOM 一</h2><pre><code>java.lang.OutOfMemoryError: 
+    Could not allocate JNI Env
+
+在Android6.0，Android7.0上各个机型均有发生
+
+文件描述符(FD)数受限导致创建线程时JNIENV创建不成功
+</code></pre><h2 id="OOM-二"><a href="#OOM-二" class="headerlink" title="OOM 二"></a>OOM 二</h2><pre><code>java.lang.OutOfMemoryError: 
+    pthread_create (1040KB stack) failed: Out of memory
+在Android7.0及以上的华为手机（EmotionUI_5.0及以上）
+
+线程数受限导致创建线程时clone failed
+
+Threads上限: 500
+</code></pre><h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><p>基于Android6.0的代码进行简单分析</p>
+<p>Android虚拟机最终抛出OutOfMemoryError的代码位于 <code>/art/runtime/thread.cc</code></p>
+<pre><code>void Thread::ThrowOutOfMemoryError(const char* msg)
+参数msg携带了OOM时的错误信息
+</code></pre><p>        <br>搜索代码可以发现以下几个地方调用了上述方法抛出OutOfMemoryError错误</p>
+<p><strong>第一个地方是堆操作时</strong></p>
+<p>Java堆OOM</p>
+<pre><code>系统源码文件：
+    /art/runtime/gc/heap.cc
+函数：
+    void Heap::ThrowOutOfMemoryError(Thread* self, size_t byte_count, AllocatorType allocator_type)
+抛出时的错误信息：
+    oss &lt;&lt; &quot;Failed to allocate a &quot; &lt;&lt; byte_count &lt;&lt; &quot; byte allocation with &quot; &lt;&lt; total_bytes_free  &lt;&lt; &quot; free bytes and &quot; &lt;&lt; PrettySize(GetFreeMemoryUntilOOME()) &lt;&lt; &quot; until OOM&quot;;
+</code></pre><p>这种抛出的其实就是堆内存不够用的时候，即前面提到的申请堆内存大小超过了Runtime.getRuntime().maxMemory()</p>
+<p><strong>第二个地方是创建线程时</strong></p>
+<p>线程创建时OOM</p>
+<pre><code>系统源码文件：
+    /art/runtime/thread.cc
+函数：
+    void Thread::CreateNativeThread(JNIEnv* env, jobject java_peer, size_t stack_size, bool is_daemon)
+抛出时的错误信息：
+    &quot;Could not allocate JNI Env&quot;
+  或者
+    StringPrintf(&quot;pthread_create (%s stack) failed: %s&quot;, PrettySize(stack_size).c_str(), strerror(pthread_create_result)));
+</code></pre><p>对比错误信息，可以知道我们遇到的OOM崩溃就是这个时机，即创建线程的时候（Thread::CreateNativeThread）产生的。</p>
+<h1 id="导致OOM发生的原因"><a href="#导致OOM发生的原因" class="headerlink" title="导致OOM发生的原因"></a>导致OOM发生的原因</h1><p>综上，可以导致OOM的原因有以下几种：</p>
+<h2 id="文件描述符-fd-数目超限"><a href="#文件描述符-fd-数目超限" class="headerlink" title="文件描述符(fd)数目超限"></a>文件描述符(fd)数目超限</h2><p>即<strong>proc/pid/fd</strong>下文件数目突破<strong>/proc/pid/limits</strong>中的限制。</p>
+<p>可能的发生场景有：</p>
+<p>短时间内大量请求导致socket的fd数激增，大量（重复）打开文件等</p>
+<h3 id="proc-pid-limits"><a href="#proc-pid-limits" class="headerlink" title="/proc/pid/limits"></a>/proc/pid/limits</h3><p>linux 系统对<strong>对应进程的限制</strong></p>
+<p>用排除法筛选上面文件中的 limits：</p>
+<ul>
+<li>Max stack size，Max processes 的限制是整个系统的，不是针对某个进程的，排除；</li>
+<li>Max locked memory ，排除，后面会分析，线程创建过程中分配线程私有 stack 使用的 mmap 调用没有设置 MAP_LOCKED，所以这个限制与线程创建过程无关 ；</li>
+<li>Max pending signals，c 层信号个数阈值，无关，排除 ；</li>
+<li>Max msgqueue size，Android IPC 机制不支持消息队列，排除。</li>
+<li><strong>Max open files</strong> 这一项限制最可疑。表示 每个进程最大打开文件的数目，进程 每打开一个文件就会产生一个文件描述符 fd（记录在 /proc/pid/fd 下面），这个限制表明 fd 的数目不能超过 Max open files 规定的数目。线程创建过程中涉及到文件描述符</li>
+</ul>
+<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><p>触发大量网络连接（每个连接处于独立的线程中）并保持，每打开一个 socket 都会增加一个 fd（/proc/pid/fd 下多一项）</p>
+<p>注：不只有这一种增加 fd 数的方式，也可以用其他方法，比如打开文件，创建 handlerthread 等等</p>
+<p>实验结果：当 fd 数目到达 /proc/pid/limits 中规定的 Max open files 时，继续开线程确实会导致 OOM 的产生</p>
+<p>此外从 虚拟机的 Log 中看出，还有一个关键的信息 <code>art: ashmem_create_region failed for &#39;indirect ref table&#39;: Too many open files</code></p>
+<h2 id="线程数超限"><a href="#线程数超限" class="headerlink" title="线程数超限"></a>线程数超限</h2><p>即<strong>proc/pid/status</strong>中记录的线程数（threads项）突破<strong>/proc/sys/kernel/threads-max</strong>中规定的<strong>每个进程创建线程数目的上限</strong></p>
+<p>可能的发生场景有：</p>
+<p>app内多线程使用不合理，如多个不共享线程池的OKhttpclient；<br><strong>rxjava的Scheduler.io使用不合理极易导致OOM</strong>(自增无上限的线程池，每个线程保活60s)</p>
+<h3 id="验证-1"><a href="#验证-1" class="headerlink" title="验证"></a>验证</h3><p>创建大量的空线程（不做任何事情，直接 sleep）</p>
+<p>实验结果：在 Android7.0 及以上的华为手机（EmotionUI_5.0 及以上）的手机产生 OOM，这些手机的线程数限制都很小 (应该是华为 rom 特意修改的 limits)，每个进程只允许最大同时开 500 个线程，因此很容易复现了。</p>
+<h2 id="传统的java堆内存超限"><a href="#传统的java堆内存超限" class="headerlink" title="传统的java堆内存超限"></a>传统的java堆内存超限</h2><p>即申请堆内存大小超过了 Runtime.getRuntime().maxMemory()</p>
+<h2 id="32位系统进程逻辑空间被占满导致OOM"><a href="#32位系统进程逻辑空间被占满导致OOM" class="headerlink" title="32位系统进程逻辑空间被占满导致OOM"></a>32位系统进程逻辑空间被占满导致OOM</h2><p>低概率</p>
+<p>每个线程通常需要 mapp 1MB 左右的 stack 空间（stack 大小可以自行设置），32 为系统进程逻辑地址 4GB，用户空间少于 3GB。逻辑地址空间不够（已用逻辑空间地址可以查看 /proc/pid/status 中的 VmPeak/VmSize 记录）</p>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h1 id="监控措施"><a href="#监控措施" class="headerlink" title="监控措施"></a>监控措施</h1><p>可以利用linux的inotify机制进行监控:</p>
+<pre><code>watch /proc/pid/fd来监控app打开文件的情况,
+watch /proc/pid/task来监控线程使用情况．
+</code></pre><p>捕获到OutOfMemoryError 时记录 /proc/pid 目录下的如下信息：</p>
+<ol>
+<li><p>/proc/pid/fd 目录下文件数 (fd 数)</p>
+</li>
+<li><p>/proc/pid/status 中 threads 项（当前线程数目）</p>
+</li>
+</ol>
+<h1 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h1><p><a href="https://github.com/piece-the-world/OOMDemo" target="_blank" rel="noopener">POC(Proof of concept) 代码</a></p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><p><a href="https://www.jianshu.com/p/31f207782915" target="_blank" rel="noopener">Android进阶性能调优；不可思议的OOM</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/20/Android/BadTokenException异常修复/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/20/Android/BadTokenException异常修复/" itemprop="url">BadTokenException异常修复</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-20T15:12:53+08:00">
+                2018-11-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>android.view.WindowManager$BadTokenException
+
+解决方案
+该异常表示不能添加窗口，通常是所要依附的view已经不存在导致的。
+[解决方案]：Dialog&amp;AlertDialog，WindowManager不能正确使用时，经常会报出该异常，原因比较多，几个常见的场景如下：
+1.上一个页面没有destroy的时候，之前的Activity已经接收到了广播。如果此时之前的Activity进行UI层面的操作处理，就会造成crash。UI层面的刷新，一定要注意时机，建议使用set_result来代替广播的形式进行刷新操作，避免使用广播的方式，代码不直观且容易出错。
+2.Dialog在Actitivty退出后弹出。在Dialog调用show方法进行显示时，必须要有一个Activity作为窗口的载体，如果Activity被销毁，那么导致Dialog的窗口载体找不到。建议在Dialog调用show方法之前先判断Activity是否已经被销毁。
+3.Service&amp;Application弹出对话框或WindowManager添加view时，没有设置window type为TYPE_SYSTEM_ALERT。需要在调用dialog.show()方法前添加dialog.getWindow().SetType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT)。
+4.6.0的系统上, (非定制 rom 行为)若没有给予悬浮窗权限, 会弹出该问题, 可以通过Settings.canDrawOverlays来判断是否有该权限.
+5.某些不稳定的MIUI系统bug引起的权限问题，系统把Toast也当成了系统级弹窗，android6.0的系统Dialog弹窗需要用户手动授权，若果app没有加入SYSTEM_ALERT_WINDOW权限就会报这个错。需要加入给app加系统Dialog弹窗权限，并动态申请权限，不满足第一条会出现没权限闪退，不满足第二条会出现没有Toast的情况。
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/20/Android/Android开发规范/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/20/Android/Android开发规范/" itemprop="url">Android开发规范</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-20T11:12:53+08:00">
+                2018-11-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>主要来自于平时开发过程的总结</p>
+<h1 id="不是所有错误都能追溯到用户代码"><a href="#不是所有错误都能追溯到用户代码" class="headerlink" title="不是所有错误都能追溯到用户代码"></a>不是所有错误都能追溯到用户代码</h1><p>默认的堆栈打印，并不是所有错误都能追溯到用户代码</p>
+<p>所以有必要通过一些规范，帮助我们定位bug</p>
+<pre><code>java.lang.IndexOutOfBoundsException
+Inconsistency detected. Invalid view holder adapter positionViewHolder{47a36d8 position=18 id=-1, oldPos=-1, pLpos:-1 no parent} 
+android.support.v7.widget.RecyclerView{fb87ab4 VFED..... .......D 0,0-1080,1433 #7f0e00cd app:id/recycler_view}, 
+adapter:com.shensz.common.component.multitype.MultiTypeAdapter@22746dd, 
+layout:android.support.v7.widget.LinearLayoutManager@e3eb252, 
+context:com.shensz.course.module.main.activity.MainActivity@46fd75b
+
+1 android.support.v7.widget.RecyclerView$Recycler.validateViewHolderForOffsetPosition(ProGuard:5447)
+2 android.support.v7.widget.RecyclerView$Recycler.tryGetViewHolderForPositionByDeadline(ProGuard:5629)
+3 android.support.v7.widget.GapWorker.prefetchPositionWithDeadline(ProGuard:285)
+4 android.support.v7.widget.GapWorker.flushTaskWithDeadline(ProGuard:342)
+5 android.support.v7.widget.GapWorker.flushTasksWithDeadline(ProGuard:358)
+6 android.support.v7.widget.GapWorker.prefetch(ProGuard:365)
+7 android.support.v7.widget.GapWorker.run(ProGuard:396)
+8 android.os.Handler.handleCallback(Handler.java:743)
+9 android.os.Handler.dispatchMessage(Handler.java:95)
+10 android.os.Looper.loop(Looper.java:150)
+11 android.app.ActivityThread.main(ActivityThread.java:5546)
+12 java.lang.reflect.Method.invoke(Native Method)
+13 com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:794)
+14 com.android.internal.os.ZygoteInit.main(ZygoteInit.java:684)
+</code></pre><h2 id="保证工程内view的id独一无二"><a href="#保证工程内view的id独一无二" class="headerlink" title="保证工程内view的id独一无二"></a>保证工程内view的id独一无二</h2><h2 id="保证工程内RecyclerView的adapter类独一无二"><a href="#保证工程内RecyclerView的adapter类独一无二" class="headerlink" title="保证工程内RecyclerView的adapter类独一无二"></a>保证工程内RecyclerView的adapter类独一无二</h2><h2 id="保证工程内RecyclerView的LayoutManager类独一无二"><a href="#保证工程内RecyclerView的LayoutManager类独一无二" class="headerlink" title="保证工程内RecyclerView的LayoutManager类独一无二"></a>保证工程内RecyclerView的LayoutManager类独一无二</h2>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/15/Android/Android-Support-Library详细介绍/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/15/Android/Android-Support-Library详细介绍/" itemprop="url">Android Support Library详细介绍</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-15T10:48:25+08:00">
+                2018-11-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://www.jianshu.com/p/a5aa5f209895" target="_blank" rel="noopener">参考</a></p>
+<pre><code>com.android.support:support-v4 v4包
+com.android.support:support-compat v4 compat包
+com.android.support:appcompat-v7 v7 compat包
+</code></pre><h1 id="为什么提供"><a href="#为什么提供" class="headerlink" title="为什么提供"></a>为什么提供</h1><ul>
+<li>向后兼容</li>
+<li>提供不适合打包进framework的功能<ul>
+<li>Android官方对App开发提供了推荐设计，希望Android应用都有相对一致的交互设计来减少用户的使用成本，希望三方App类似系统应用从而完美融入到Android生态系统中。但是这都仅仅是推荐，不要求开发者一定要这样，如果有这种需求就可以使用官方支持包提供的这些功能，避免重复造轮子。如支持包中的DrawerLayout、Snackbar等类都是这种情况。</li>
+</ul>
+</li>
+<li>支持不同形态的设备<ul>
+<li>通过使用支持包来在不同形态设备上提供功能，如手机、电视、可穿戴设备等。</li>
+</ul>
+</li>
+</ul>
+<p>各个依赖包可以在 <code>&lt;sdk&gt;/extras/android/support/</code>文件夹下查看，如果该路径下没有，打开SDK Tools更新SDK即可。</p>
+<h1 id="V4-Support-Libraries"><a href="#V4-Support-Libraries" class="headerlink" title="V4 Support Libraries"></a>V4 Support Libraries</h1><h2 id="引入整个v4包"><a href="#引入整个v4包" class="headerlink" title="引入整个v4包"></a>引入整个v4包</h2><pre><code>com.android.support:support-v4
+</code></pre><p>Android Support Library <strong>24.2.0</strong>及之后的版本中，为了增强效率和减小APK的大小起见，Android将V4包<strong>拆分成5个包</strong></p>
+<ul>
+<li>v4 compat library <code>compile &#39;com.android.support:support-compat:24.2.1&#39;</code></li>
+<li>v4 core-utils library <code>compile &#39;com.android.support:support-core-utils:24.2.1&#39;</code></li>
+<li>v4 core-ui library <code>compile &#39;com.android.support:support-core-ui:24.2.1&#39;</code></li>
+<li>v4 media-compat library <code>compile &#39;com.android.support:support-media-compat:24.2.1&#39;</code></li>
+<li>v4 fragment library <code>compile &#39;com.android.support:support-fragment:24.2.1&#39;</code><br>  跟fragment相关部分，V4这个子库依赖了其他4个子库，所以我们一旦依赖这个库就会自动导入其他4个子库</li>
+</ul>
+<p>考虑到V4的向后兼容，工程中依赖V4这个依赖包时默认是包含拆分后的5个包的</p>
+<p>为了节省APK大小，建议在开发过程中根据实际情况依赖对应的V4包，移除不必要的V4包。</p>
+<p>拆包并不一定代表能够真的解决问题，V4各子包的依赖关系如下，可见即使拆包之后，要用到V4中的某个API时，依赖包并没有减小多少：</p>
+<img src="/2018/11/15/Android/Android-Support-Library详细介绍/v4包依赖关系.png">
+<h1 id="V7-Support-Libraries"><a href="#V7-Support-Libraries" class="headerlink" title="V7 Support Libraries"></a>V7 Support Libraries</h1><p>最初发布时就以各个独立库的形式发布的。</p>
+<h2 id="v7-appcompat-library"><a href="#v7-appcompat-library" class="headerlink" title="v7 appcompat library"></a>v7 appcompat library</h2><p>这个包支持对Action Bar接口的设计模式、Material Design接口的实现等，核心类有ActionBar、AppCompatActivity、AppCompatDialog、ShareActionProvider等，在AS中的依赖方式如下：</p>
+<pre><code>compile &apos;com.android.support:appcompat-v7:24.2.1&apos;
+</code></pre><p>注意：这个包需要依赖android-support-v4。</p>
+<h2 id="v7-cardview-library"><a href="#v7-cardview-library" class="headerlink" title="v7 cardview library"></a>v7 cardview library</h2><p>支持cardview控件，使用Material Design语言设计，卡片式的信息展示，在电视App中有广泛的使用，在AS中的依赖方式如下：</p>
+<pre><code>compile &apos;com.android.support:cardview-v7:24.2.1&apos;
+</code></pre><h2 id="v7-gridlayout-library"><a href="#v7-gridlayout-library" class="headerlink" title="v7 gridlayout library"></a>v7 gridlayout library</h2><p>一个支持GridLayout布局的support包，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:gridlayout-v7:24.2.1
+</code></pre><h2 id="v7-mediarouter-library"><a href="#v7-mediarouter-library" class="headerlink" title="v7 mediarouter library"></a>v7 mediarouter library</h2><p>一个用于设备间音频、视频交换显示的support包，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:mediarouter-v7:24.2.1
+</code></pre><h2 id="v7-palette-library"><a href="#v7-palette-library" class="headerlink" title="v7 palette library"></a>v7 palette library</h2><p>该库提供了palette类，使用这个类可以很方便提取出图片中主题色。比如在音乐App中，从音乐专辑封面图片中提取出专辑封面图片的主题色，然后将播放界面的背景色设置为封面的主题色，随着播放音乐的改变，播放界面的背景色也会巧妙的跟着改变，从而提供更好的用户体验。，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:palette-v7:24.2.1
+</code></pre><h2 id="v7-recyclerview-library"><a href="#v7-recyclerview-library" class="headerlink" title="v7 recyclerview library"></a>v7 recyclerview library</h2><p>核心类是RecyclerView，用于替换ListView、GridView，具体可以查阅RecyclerView方面的资料，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:recyclerview-v7:24.2.1
+</code></pre><h2 id="v7-Preference-Support-Library"><a href="#v7-Preference-Support-Library" class="headerlink" title="v7 Preference Support Library"></a>v7 Preference Support Library</h2><p>一个用于支持各种控件存储配置数据的support包，比如CheckBoxPreference和ListPreference，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:preference-v7:24.2.1
+</code></pre><h1 id="V8-Support-Library"><a href="#V8-Support-Library" class="headerlink" title="V8 Support Library"></a>V8 Support Library</h1><p>V8 Support Library支持的最低SDK版本是Android 2.3即API Level 9。</p>
+<h2 id="v8-renderscript-library"><a href="#v8-renderscript-library" class="headerlink" title="v8 renderscript library"></a>v8 renderscript library</h2><p>一个用于渲染脚本的support包，在AS中按照如下方式配置即可正常使用：</p>
+<pre><code>defaultConfig {
+    renderscriptTargetApi 18
+    renderscriptSupportModeEnabled true
+}
+</code></pre><h1 id="V13-Support-Library"><a href="#V13-Support-Library" class="headerlink" title="V13 Support Library"></a>V13 Support Library</h1><p>这个包的作用主要是为Android3.2（API Level 13）及以上的系统提供更多地Framgnet特性支持，使用它的原因在于，android-support-v4中虽然也对Fragment做了支持，由于要兼容低版本，导致他是自行实现的 Fragment 效果，在高版本的 Fragment 的一些特性丢失了，而对于 v13以上的 sdk 版本，我们可以使用更加有效，特性更多的代码，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:support-v13:24.2.1
+</code></pre><h1 id="Multidex-Support-Library"><a href="#Multidex-Support-Library" class="headerlink" title="Multidex Support Library"></a>Multidex Support Library</h1><p>该support包用于使用多dex技术编译APP，当一个应用的方法数超过65536个时需要使用multidex配置，关于multidex的更多信息，可以参见如何编译超过65K方法数的应用，在AS中的依赖方式如下：</p>
+<pre><code>compile &apos;com.android.support:multidex:1.0.0&apos;
+</code></pre><h1 id="Annotations-Support-Library"><a href="#Annotations-Support-Library" class="headerlink" title="Annotations Support Library"></a>Annotations Support Library</h1><p>一个支持注解的support包，在AS中的依赖方式如下：</p>
+<pre><code>compile &apos;com.android.support:support-annotations:24.2.1&apos;
+</code></pre><h1 id="Design-Support-Library"><a href="#Design-Support-Library" class="headerlink" title="Design Support Library"></a>Design Support Library</h1><p>一个用于支持Design Patterns的support包，它提供了Material Desgin设计风格的控件，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:design:24.2.1
+</code></pre><h1 id="Custom-Tabs-Support-Library"><a href="#Custom-Tabs-Support-Library" class="headerlink" title="Custom Tabs Support Library"></a>Custom Tabs Support Library</h1><p>一个提供了在应用中添加和管理custom tabs的support包，在Google IO 2015中有介绍，在AS中的依赖方式如下：</p>
+<pre><code>compile &apos;com.android.support:customtabs:24.2.1&apos;
+</code></pre><h1 id="Percent-Support-Library"><a href="#Percent-Support-Library" class="headerlink" title="Percent Support Library"></a>Percent Support Library</h1><p>一个提供了百分比布局的support包，通过这个包可以实现百分比布局，在AS中的依赖方式如下：</p>
+<pre><code>com.android.support:percent:24.2.1
+</code></pre><h1 id="AndroidX"><a href="#AndroidX" class="headerlink" title="AndroidX"></a>AndroidX</h1><p>如果使用support为27.1.1的相关依赖库时。可能需要所有相关的support 库都为27.1.1。如果其中有bug的话，可能需要所有的都去升级，存在一个绑定关系，而且正式版的发布周期也很长。</p>
+<p>通过AndroidX，可以<strong>实时</strong>实现特性和修复bug，升级<strong>个别</strong>依赖，不需要对使用的所有其他库进行更新。</p>
+<p>为了给开发者一定迁移的时间，所以28.0.0的稳定版本还是采用android.support。但是所有后续的功能版本都将采用androidx。</p>
+<h2 id="迁移"><a href="#迁移" class="headerlink" title="迁移"></a>迁移</h2><p>Android Studio 3.2 Canary中添加了一键迁移的功能 <code>Refactor -&gt; Migrate to AndroidX</code></p>
+<p>首先你的gradle版本至少为3.2.0以上，以及compileSdkVersion为28以上。</p>
+<pre><code>classpath &apos;com.android.tools.build:gradle:3.2.0+&apos;
+</code></pre><p>如果你是一个新项目，如果使用AndroidX相关依赖，需要在gradle.properties文件里添加配置：</p>
+<pre><code>android.useAndroidX=true
+android.enableJetifier=true
+</code></pre><p>如果你想使用AndroidX，但是之前的不迁移，可以这样配置：</p>
+<pre><code>android.useAndroidX=true
+android.enableJetifier=false
+</code></pre><h1 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h1><h2 id="找不到-android-support-v4-util-ArraySet"><a href="#找不到-android-support-v4-util-ArraySet" class="headerlink" title="找不到 android.support.v4.util.ArraySet"></a>找不到 android.support.v4.util.ArraySet</h2><p>指定v7版本为27。24版本是的v7包中的v4是没有该类的</p>
+<h2 id="找不到-android-support-v4-animation-AnimatorCompatHelper"><a href="#找不到-android-support-v4-animation-AnimatorCompatHelper" class="headerlink" title="找不到 android.support.v4.animation.AnimatorCompatHelper"></a>找不到 android.support.v4.animation.AnimatorCompatHelper</h2><p>在support包 24,25都有</p>
+<p>在support包26的时候这个类没有了。</p>
+<p>网上的修复方案：</p>
+<pre><code>configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details -&gt;
+        def requested = details.requested
+        if (requested.group == &apos;com.android.support&apos;) {
+            if (!requested.name.startsWith(&quot;multidex&quot;)) {
+                details.useVersion &apos;24.1.0&apos;
+            }
+        }
+    }
+}
+</code></pre><p>由于项目需要27的一些类，不能改低版本</p>
+<p><strong>解决方案：复制相关类</strong></p>
+<p>建包 android.support.v4.animation（在目录 main-&gt;java 文件夹下开始建包名）</p>
+<p>在电脑中安装的sdk的目录下搜索 AnimatorCompatHelper，右键，跳转到所在文件夹，复制所有相关java文件到刚刚新建的文件包下即可</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/14/Android/Android中View的绘制/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/11/14/Android/Android中View的绘制/" itemprop="url">Android中View的绘制.md</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-14T17:54:53+08:00">
+                2018-11-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="View的绘制原理"><a href="#View的绘制原理" class="headerlink" title="View的绘制原理"></a>View的绘制原理</h1><p>View通过刷新来绘制视图，为了不让画面掉帧，Android系统4.1之后通过发出<strong>VSYNC</strong>(垂直同步)信号进行屏幕绘制，。为了不掉帧，View的绘制需要在<strong>16ms</strong>之内完成。如果执行耗时太长或者需要频繁刷新，那么View就不合适了，影响用户体验和性能。</p>
+<h1 id="SurfaceView"><a href="#SurfaceView" class="headerlink" title="SurfaceView"></a>SurfaceView</h1><p> SurfaceView内部是在子线程进行页面刷新，使用了双缓冲机制，性能比View更好</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/14/Android/Android画板实现/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1069,1473 +2435,11 @@ public class PaletteView extends View {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/27/Flutter/Android内嵌混合Flutter-跨平台的渐进式解决方案/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/27/Flutter/Android内嵌混合Flutter-跨平台的渐进式解决方案/" itemprop="url">Android内嵌混合Flutter-跨平台的渐进式解决方案</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-27T11:00:04+08:00">
-                2018-09-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Flutter工程只作为一个module引入工程，代码入侵极小，Android工程和Flutter工程都可以独立运行。</p>
-<p>可以只从一个view/一个页面开始来让Flutter参与到项目中去</p>
-<p>写此文时，GDD 2018已经结束，使用的是会上发布的preview 2版本，即<code>Flutter 0.8.2 • channel beta •</code></p>
-<h1 id="创建工程"><a href="#创建工程" class="headerlink" title="创建工程"></a>创建工程</h1><h2 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h2><pre><code>项目根目录
-    ├── 原生安卓工程 (android) AS打开此工程，可独立运行
-        ├── app module
-        ├── 其他 module
-    └── Flutter module (flutter_lib) AS打开此工程，可独立运行
-        ├── .android (纯Flutter工程flutter_app 没有.前缀)
-            ├── app 
-            ├── Flutter (纯Flutter工程flutter_app 没有该module)
-        ├── lib
-            ├── main.dart
-        ├── .ios (纯Flutter工程flutter_app 没有.前缀)
-</code></pre><table>
-<thead>
-<tr>
-<th>区别</th>
-<th>Flutter module工程中的Android工程</th>
-<th>纯Flutter应用工程中的Android工程</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>文件夹名称</td>
-<td>.android</td>
-<td>android</td>
-</tr>
-<tr>
-<td>包含的module</td>
-<td>app和Flutter</td>
-<td>app</td>
-</tr>
-<tr>
-<td>说明</td>
-<td>app只提供了入口Activity，Flutter包含了插件扩展及原生工程调用的接口</td>
-<td>app包含入口Activity及插件扩展</td>
-</tr>
-<tr>
-<td>说明</td>
-<td>app供Flutter自身开发调试，Flutter作为module供Android原生调用</td>
-<td>app作为Android工程运行及打包</td>
-</tr>
-</tbody>
-</table>
-<h2 id="创建Android工程"><a href="#创建Android工程" class="headerlink" title="创建Android工程"></a>创建Android工程</h2><p>这里勾选上kotlin支持。准备用kotlin实现Android原生</p>
-<h2 id="创建Flutter-module"><a href="#创建Flutter-module" class="headerlink" title="创建Flutter module"></a>创建Flutter module</h2><p>flutter create -t module flutter_lib</p>
-<h2 id="引用Flutter-module"><a href="#引用Flutter-module" class="headerlink" title="引用Flutter module"></a>引用Flutter module</h2><p>android根目录 setting.gradle</p>
-<pre><code> //加入下面配置
-setBinding(new Binding([gradle: this]))
-evaluate(new File(
-        settingsDir.parentFile,
-        &apos;flutter_lib/.android/include_flutter.groovy&apos;
-))
-</code></pre><p>app的 build.gradle</p>
-<pre><code>...
-dependencies {
-    ...
-    // 加入下面配置
-    implementation project(&apos;:flutter&apos;)
-}    
-</code></pre><p>AS打开android工程，重新构建项目，即可成功的将Flutter加入Android工程(即生成 <code>根目录/flutter_lib/.android/Flutter</code>)。    </p>
-<h1 id="Android工程中使用Flutter组件"><a href="#Android工程中使用Flutter组件" class="headerlink" title="Android工程中使用Flutter组件"></a>Android工程中使用Flutter组件</h1><p>Flutter提供了两种方式让Android工程来引用组件</p>
-<ul>
-<li><p>一种是View</p>
-<p>  <code>FlutterView createView(Activity activity, final Lifecycle lifecycle, final String initialRoute)</code></p>
-</li>
-<li><p>一种是Fragment</p>
-<p>  <code>FlutterFragment createFragment(String initialRoute)</code></p>
-</li>
-</ul>
-<h2 id="实例：作为页面的根View"><a href="#实例：作为页面的根View" class="headerlink" title="实例：作为页面的根View"></a>实例：作为页面的根View</h2><pre><code>class MainActivity : AppCompatActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        val flutterView = Flutter.createView(this@MainActivity, lifecycle, &quot;route1&quot;)
-        val layout = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-        val layout = FrameLayout.LayoutParams(600, 1200)
-        addContentView(flutterView, layout)
-    }
-}
-</code></pre><h3 id="setContentView然后addContentView的原因–防止启动黑屏"><a href="#setContentView然后addContentView的原因–防止启动黑屏" class="headerlink" title="setContentView然后addContentView的原因–防止启动黑屏"></a>setContentView然后addContentView的原因–防止启动黑屏</h3><p><strong>设置FlutterView加载完成之前展示给用户的界面。</strong> 当然大部分情况下用户根本感知不到这个界面Flutter就已经加载完成了，但我们仍需要它</p>
-<ul>
-<li>虽然FLutter的加载速度非常快，但是这个过程依然存在</li>
-<li>如果没有这个界面的话在Activity的加载过程会出现一个黑色的闪屏，用户体验差</li>
-<li>debug模式下Flutter的加载速度并不是非常快，这个界面可以给开发人员看<ul>
-<li>实际测试发现，即使这样处理，在测试机上debug有黑色闪屏，release正常<ul>
-<li>可能测试机太渣，直接新建一个helloworld工程(kotlin)冷启动都会有明显白屏</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h1 id="Flutter工程中根据route创建组件"><a href="#Flutter工程中根据route创建组件" class="headerlink" title="Flutter工程中根据route创建组件"></a>Flutter工程中根据route创建组件</h1><p>可以通过window的全局变量中获取到当前的routeName，这个值正是上面通过原生工程传给Flutter的标识，有了这个标识就可以简单的做判断来进行不同的组件创建了：<br>import ‘dart:ui’;<br>import ‘package:flutter/material.dart’;</p>
-<p>void main() =&gt; runApp(_widgetForRoute(window.defaultRouteName));</p>
-<p>//根据不同的标识创建不同的组件给原生工程调用<br>Widget _widgetForRoute(String route) {<br>  switch (route) {<br>    case ‘route1’:<br>      return SomeWidget(…);<br>    case ‘route2’:<br>      return SomeOtherWidget(…);<br>    default:<br>      return Center(<br>        child: Text(‘Unknown route: $route’, textDirection: TextDirection.ltr),<br>      );<br>  }<br>}</p>
-<h1 id="让Flutter模块支持热加载"><a href="#让Flutter模块支持热加载" class="headerlink" title="让Flutter模块支持热加载"></a>让Flutter模块支持热加载</h1><p>项目根目录/flutter_lib下执行</p>
-<pre><code>flutter attach
-</code></pre><p>代码执行后，监听服务会等待并监听debug应用中flutter的状态</p>
-<p>然后AS中以正常方式调试运行android，当flutter的view或Fragment激活时会触发文件同步。</p>
-<p>终端输出如下</p>
-<pre><code>Waiting for a connection from Flutter on Le X620...
-Done.
-Syncing files to device Le X620...                           2.3s
-🔥  To hot reload changes while running, press &quot;r&quot;. To hot restart (and rebuild state), press &quot;R&quot;.
-An Observatory debugger and profiler on Le X620 is available at: http://127.0.0.1:61500/
-For a more detailed help message, press &quot;h&quot;. To detach, press &quot;d&quot;; to quit, press &quot;q&quot;.
-</code></pre><p>修改flutter工程中的dart代码文件，保存后在<strong>终端中</strong>点击r键即可进行热加载，R键进行热重启。</p>
-<h1 id="签名打包"><a href="#签名打包" class="headerlink" title="签名打包"></a>签名打包</h1><p>常规打包操作即可</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/13/Android/Travis-CI-使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/13/Android/Travis-CI-使用/" itemprop="url">Travis CI 使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-13T11:31:14+08:00">
-                2018-09-13
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="关于"><a href="#关于" class="headerlink" title="关于"></a>关于</h1><p>新兴的开源持续集成构建项目，与jenkins，GO的明显的特点在于</p>
-<ul>
-<li><p>采用yaml格式，简洁清新独树一帜。</p>
-</li>
-<li><p>在线环境，不用本地部署</p>
-</li>
-</ul>
-<p>目前大多数的github项目都已经移入到Travis CI的构建队列中</p>
-<h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><h2 id="GitHub-生成供Travis使用的token"><a href="#GitHub-生成供Travis使用的token" class="headerlink" title="GitHub 生成供Travis使用的token"></a>GitHub 生成供Travis使用的token</h2><ul>
-<li><p>Settings – Developer settings – Personal access tokens</p>
-</li>
-<li><p>填写token的描述，如hexoblog</p>
-</li>
-<li><p>选择repo</p>
-</li>
-<li><p>Generate token</p>
-</li>
-<li><p>复制生成的token(只允许看见一次)</p>
-</li>
-</ul>
-<h2 id="Travis-设置集成仓库"><a href="#Travis-设置集成仓库" class="headerlink" title="Travis 设置集成仓库"></a>Travis 设置集成仓库</h2><ul>
-<li><p>使用GitHub账号登录 <a href="https://travis-ci.org" target="_blank" rel="noopener">Travis 免费网站</a>(com是付费私有仓库)</p>
-</li>
-<li><p>Settings – 打开需要集成的仓库 – Settings 页面</p>
-<ul>
-<li><p>Environment Variables 新增一个变量记录token(变量名HEXO_TOKEN)</p>
-<p>  <code>如果有仓库未同步过来，手动同步 Sync account</code></p>
-</li>
-<li><p>Cron Jobs 设置需要构建的分支名</p>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="配置-travis-yml"><a href="#配置-travis-yml" class="headerlink" title="配置 .travis.yml"></a>配置 <code>.travis.yml</code></h2><p>项目根目录下新建 <code>.travis.yml</code> 文件</p>
-<h3 id="hexo-博客构建"><a href="#hexo-博客构建" class="headerlink" title="hexo 博客构建"></a>hexo 博客构建</h3><p>node_js 实现的md生成静态博客系统</p>
-<pre><code>language: node_js
-node_js: stable
-cache:
-  apt: true
-  directories:
-  - node_modules
-before_install:
-- export TZ=&apos;Asia/Shanghai&apos;
-install:
-- npm install
-script:
-- hexo clean
-- hexo g &amp;&amp; gulp
-after_script:
-- git clone https://${GH_REF} .deploy_git
-- cd .deploy_git
-- git checkout master
-- cd ../
-- mv .deploy_git/.git/ ./public/
-- cd ./public
-- git config user.name &quot;lyg&quot;
-- git config user.email &quot;liyungui@163.com&quot;
-- git add .
-- git commit -m &quot;Travis CI Auto Builder at `date +&quot;%Y-%m-%d %H:%M&quot;`&quot;
-- git push --force --quiet &quot;https://${HEXO_TOKEN}@${GH_REF}&quot; master:master
-branches:
-  only:
-  - master
-env:
-  global:
-  - GH_REF: github.com/liyungui/liyungui.github.io.git
-notifications:
-  email:
-  - liyungui89@163.com
-  on_success: change
-  on_failure: always
-</code></pre><ul>
-<li>HEXO_TOKEN：集成配置的token变量名</li>
-<li>GH_REF：GitHub仓库地址(不要https://前缀)</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/06/Android/动画库Lottie/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/06/Android/动画库Lottie/" itemprop="url">动画库Lottie</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-06T16:18:53+08:00">
-                2018-09-06
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Lottie 是一个可以解析AE( Adobe After Effects )上的插件Bodymovin导出的json文件(依赖png文件)实现在移动设备上渲染的动画库。</p>
-<p>优点：</p>
-<p><strong>开发高效，文件体积小，展示效果好，性能消耗小，控制灵活，服务器更新动画，跨平台</strong>。比gif体积小，效果好(AE导出gif有白边)，可以重复播放指定帧指定次数</p>
-<p>缺陷：</p>
-<p>系统版本有要求。支持 Android(Jellybean/API16 及以上)，ios(8.0)，RN</p>
-<p>不支持交互动画。只能播放类型动画</p>
-<p><a href="https://github.com/airbnb/lottie-android" target="_blank" rel="noopener">github</a></p>
-<p><a href="http://airbnb.io/lottie/android/android.html" target="_blank" rel="noopener">官方文档</a></p>
-<h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><h2 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h2><pre><code>compile &apos;com.airbnb.android:lottie:2.6.0&apos;
-</code></pre><h2 id="xml"><a href="#xml" class="headerlink" title="xml"></a>xml</h2><pre><code>&lt;com.airbnb.lottie.LottieAnimationView
- android:id=&quot;@+id/animation_view&quot;
- android:layout_width=&quot;wrap_content&quot;
- android:layout_height=&quot;wrap_content&quot;
- app:lottie_fileName=&quot;hello-world.json&quot;
- app:lottie_loop=&quot;true&quot;
- app:lottie_autoPlay=&quot;true&quot; /&gt;
-</code></pre><h2 id="资源目录"><a href="#资源目录" class="headerlink" title="资源目录"></a>资源目录</h2><p> Lottie animations can load animations from:</p>
-<ul>
-<li>A json animation in src/main/res/raw.</li>
-<li>A json file in src/main/assets.</li>
-<li>A zip file in src/main/assets. See images docs for more info.</li>
-<li>A url to a json or zip file.</li>
-<li>A json string. The source can be from anything including your own network stack.</li>
-<li>An InputStream to either a json file or a zip file.</li>
-</ul>
-<p>依赖图片存放目录</p>
-<ul>
-<li>src/main/assets/image. image可以是其他名字</li>
-</ul>
-<p>示例json文件放于 raw 目录，图片放于 assets/image</p>
-<h2 id="设置依赖图片目录"><a href="#设置依赖图片目录" class="headerlink" title="设置依赖图片目录"></a>设置依赖图片目录</h2><p><strong>必须设置</strong>，否则报错</p>
-<pre><code>LottieAnimationView.setImageAssetsFolder(&quot;image/&quot;);
-</code></pre><p>至此，动画<strong>成功显示</strong>在界面上了</p>
-<h2 id="API控制"><a href="#API控制" class="headerlink" title="API控制"></a>API控制</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">LottieAnimationView.setMinAndMaxFrame(<span class="number">0</span>, <span class="number">34</span>);</span><br><span class="line"></span><br><span class="line">LottieAnimationView.setRepeatMode(LottieDrawable.RESTART);</span><br><span class="line">LottieAnimationView.setRepeatCount(<span class="number">0</span>);</span><br><span class="line">	<span class="comment">//0，表示不重复</span></span><br><span class="line">	<span class="comment">//LottieDrawable.INFINITE，无限重复</span></span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">LottieAnimationView.playAnimation();<span class="comment">//播放动画</span></span><br><span class="line"></span><br><span class="line">LottieAnimationView.addAnimatorListener(Animator.AnimatorListener）<span class="comment">//监听动画状态</span></span><br><span class="line">LottieAnimationView.removeAllAnimatorListeners();</span><br><span class="line"></span><br><span class="line">LottieAnimationView.addAnimatorUpdateListener(ValueAnimator.AnimatorUpdateListener)<span class="comment">//监听播放进度</span></span><br><span class="line">LottieAnimationView.removeAllUpdateListeners() <span class="comment">//慎用，会导致动画无法播放</span></span><br><span class="line">LottieAnimationView.removeUpdateListener(ValueAnimator.AnimatorUpdateListener)</span><br><span class="line"></span><br><span class="line"><span class="comment">//播放进度回调中</span></span><br><span class="line">animation.getAnimatedValue() 返回进度[<span class="number">0</span>,<span class="number">1</span>]</span><br><span class="line">animation.getAnimatedFraction() 返回进度[minFrame,maxFrame]。如果没设置，也是返回[<span class="number">0</span>,<span class="number">1</span>]</span><br></pre></td></tr></table></figure>
-<h1 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h1><ul>
-<li><p>可能会v4包冲突</p>
-<p>  移除lottie的v4包</p>
-<pre><code>compile (&quot;com.airbnb.android:lottie:2.6.1&quot;){exclude group: &quot;com.android.support.v4&quot;}
-</code></pre></li>
-<li><p>保持v7依赖的版本为27</p>
-<p>  v7的24版本带的v4包，找不到 android.support.v4.util.ArraySet</p>
-</li>
-</ul>
-<h1 id="缩放"><a href="#缩放" class="headerlink" title="缩放"></a>缩放</h1><p>会自动将AE中的px转为dp，大部分都能保持一致</p>
-<p>如果尺寸不是很合适，有两个解决方案</p>
-<h2 id="scaleType"><a href="#scaleType" class="headerlink" title="scaleType"></a>scaleType</h2><p><code>LottieAnimationView</code> 继承了ImageView scaleType</p>
-<h2 id="Scaling-Up-Down"><a href="#Scaling-Up-Down" class="headerlink" title="Scaling Up/Down"></a>Scaling Up/Down</h2><p><code>LottieAnimationView</code> 和 <code>LottieDrawable</code> 支持<code>setScale(float)</code> 按比例缩放</p>
-<p><strong>注意：不要重复调用</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lottieAnimationView.setScale(<span class="number">1</span> / mContext.getResources().getDisplayMetrics().density);</span><br></pre></td></tr></table></figure>
-<h1 id="卡顿问题"><a href="#卡顿问题" class="headerlink" title="卡顿问题"></a>卡顿问题</h1><p>全屏动画卡顿问题特别严重</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//硬件加速，开启之后瞬间丝滑</span></span><br><span class="line">animationView.useHardwareAcceleration(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//合并路径 默认是关闭的，根据自己需求调整</span></span><br><span class="line">animationView.enableMergePathsForKitKatAndAbove(<span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
-<h1 id="回收图片资源的时机"><a href="#回收图片资源的时机" class="headerlink" title="回收图片资源的时机"></a>回收图片资源的时机</h1><ul>
-<li>设置图片资源</li>
-<li>onDetachedFromWindow；即设置可见性为gone，且把view remove</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">---LottieAnimationView---</span><br><span class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDetachedFromWindow</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (isAnimating()) &#123;</span><br><span class="line">    cancelAnimation();</span><br><span class="line">    wasAnimatingWhenDetached = <span class="keyword">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  recycleBitmaps();</span><br><span class="line">  <span class="keyword">super</span>.onDetachedFromWindow();</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setImageResource</span><span class="params">(<span class="keyword">int</span> resId)</span> </span>&#123;</span><br><span class="line">  recycleBitmaps();</span><br><span class="line">  cancelLoaderTask();</span><br><span class="line">  <span class="keyword">super</span>.setImageResource(resId);</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="meta">@VisibleForTesting</span> <span class="function"><span class="keyword">void</span> <span class="title">recycleBitmaps</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="comment">// AppCompatImageView constructor will set the image when set from xml</span></span><br><span class="line">  <span class="comment">// before LottieDrawable has been initialized</span></span><br><span class="line">  <span class="keyword">if</span> (lottieDrawable != <span class="keyword">null</span>) &#123;</span><br><span class="line">    lottieDrawable.recycleBitmaps();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">---LottieDrawable---</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">recycleBitmaps</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (imageAssetManager != <span class="keyword">null</span>) &#123;</span><br><span class="line">    imageAssetManager.recycleBitmaps();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">--ImageAssetManager</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">recycleBitmaps</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">synchronized</span> (bitmapHashLock) &#123;</span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;String, LottieImageAsset&gt; entry : imageAssets.entrySet()) &#123;</span><br><span class="line">      LottieImageAsset asset = entry.getValue();</span><br><span class="line">      Bitmap bitmap = asset.getBitmap();</span><br><span class="line">      <span class="keyword">if</span> (bitmap != <span class="keyword">null</span>) &#123;</span><br><span class="line">        bitmap.recycle();</span><br><span class="line">        asset.setBitmap(<span class="keyword">null</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/31/Android/Java代码设置margin/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/31/Android/Java代码设置margin/" itemprop="url">Java代码设置margin</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-31T18:22:53+08:00">
-                2018-08-31
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>api</p>
-<pre><code>ViewGroup.MarginLayoutParams.setMargins(left, top, right, bottom)
-
-直接的子类有: 
-    FrameLayout.LayoutParams,         
-    LinearLayout.LayoutParams and 
-    RelativeLayout.LayoutParams.
-</code></pre><p>创建一个MarginLayoutParams时,需要以View本身的布局参数对象为基础,否则可能丢失一些原本的布局属性. </p>
-<pre><code>/**
- * 设置某个View的margin
- *
- * @param view
- * @param leftPx
- * @param rightPx
- * @param topPx
- * @param bottomPx
- * @return
- */
-public static boolean setViewMargin(View view, int leftPx, int rightPx, int topPx, int bottomPx) {
-    if (view == null) {
-        return false;
-    }
-
-    ViewGroup.MarginLayoutParams marginParams = null;
-
-    //获取view的margin设置参数
-    ViewGroup.LayoutParams params = view.getLayoutParams();
-    if (params instanceof ViewGroup.MarginLayoutParams) {
-        marginParams = (ViewGroup.MarginLayoutParams) params;
-    } else {
-        //不存在时创建一个新的参数
-        marginParams = new ViewGroup.MarginLayoutParams(params);
-    }
-
-    //设置margin
-    marginParams.setMargins(leftPx, topPx, rightPx, bottomPx);
-    view.setLayoutParams(marginParams);
-
-    return true;
-}
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/31/Android/Linux命令行更新SDK/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/31/Android/Linux命令行更新SDK/" itemprop="url">Linux命令行更新SDK</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-31T18:22:53+08:00">
-                2018-08-31
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>cd ~/android-sdk-linux/tools/
-./android list sdk --extended
-    输出
-        Packages available for installation or update: 11
-        ----------
-        id: 1 or &quot;android-28&quot;
-             Type: Platform
-             Desc: Android SDK Platform 28
-                   Revision 6
-        ----------
-        id: 2 or &quot;android-27&quot;
-             Type: Platform
-             Desc: Android SDK Platform 27
-                   Revision 3
-./android update sdk -u -f --filter android-27
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/24/Android/X5内核使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/24/Android/X5内核使用/" itemprop="url">X5内核使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-24T15:40:53+08:00">
-                2018-08-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="X5内核概述"><a href="#X5内核概述" class="headerlink" title="X5内核概述"></a>X5内核概述</h1><ul>
-<li>对系统WebView的聚合包装</li>
-<li>加载失败会切换到系统内核</li>
-<li>当手机上有宿主（QQ、微信或QQ空间）时共享宿主的内核，没有可用的内核时会自己去下载内核</li>
-</ul>
-<h1 id="坑"><a href="#坑" class="headerlink" title="坑"></a>坑</h1><p>项目使用的是版本 <code>43500SDK_43656Core</code></p>
-<h2 id="暂时不提供64位的so文件"><a href="#暂时不提供64位的so文件" class="headerlink" title="暂时不提供64位的so文件"></a>暂时不提供64位的so文件</h2><p>解决方案：强制APP使用32位so</p>
-<ul>
-<li><p>指定只保留32位so库</p>
-<pre><code>android{
-    defaultConfig{
-        ndk{abiFilters &quot;armeabi&quot;}
-    }
-}
-
-如果配置后编译报错，在gradle.properties文件中加上 Android.useDeprecatedNdk=true； 
-</code></pre></li>
-<li><p>指定目录下必须有so文件(否则打包无该目录)</p>
-<pre><code>build.gradle中配置的so加载目录:jniLibs.srcDir:customerDir
-
-如果没有该项配置则so加载目录默认为：src/main/jniLibs
-
-将.so文件放置该目录的armeabi文件夹下
-    没有该目录则新建一个
-    APP中没有使用到.so文件则需要拷贝任意一个32位的so文件到该目录下
-        如果没有合适的so可以到官网http://x5.tencent.com/tbs/sdk.html下载官网“SDK接入示例“,拷贝对应目录下的liblbs.so文件
-</code></pre></li>
-</ul>
-<h2 id="如何判断已加载了x5内核"><a href="#如何判断已加载了x5内核" class="headerlink" title="如何判断已加载了x5内核"></a>如何判断已加载了x5内核</h2><p>参考sdk说明文件之 <code>无法加载x5内核的解决方案.doc</code></p>
-<ol>
-<li>webview的<strong>getX5WebViewExtension()</strong>返回非null表示已加载了x5内核webview</li>
-<li>app打开<a href="http://soft.imtt.qq.com/browser/tes/feedback.html" target="_blank" rel="noopener">测试网页</a>，显示000000表示加载的是系统内核，显示大于零的数字表示加载了x5内核（该数字是x5内核版本号）</li>
-</ol>
-<h3 id="共享使用微信手Q的内核"><a href="#共享使用微信手Q的内核" class="headerlink" title="共享使用微信手Q的内核"></a>共享使用微信手Q的内核</h3><p>微信扫下面的二维码打开网页，如果显示的数字是00000说明您的手机微信没有安装内核</p>
-<p>微信扫下面的二维码安装内核43906版本</p>
-<h2 id="初次初始化失败"><a href="#初次初始化失败" class="headerlink" title="初次初始化失败"></a>初次初始化失败</h2><p>经测试，第一次启动APP(Application中)加载X5内核，很大概率失败，重启即可加载成功。解决方案比较暴力，<strong>初始化失败重启APP</strong></p>
-<p>下载的X5内核存储在 <code>sd卡/tencent/tbs</code>，只会下载一次(即删除该目录，重启APP也不会重新下载，测试过程无数次恢复出厂设置)</p>
-<p>wifi条件下下载x5内核24M左右，耗时90秒左右</p>
-<pre><code>QbSdk.setDownloadWithoutWifi(true);//默认只允许在WiFi环境下载
-
-//监控内核初始化状态
-QbSdk.initX5Environment(sContext, new QbSdk.PreInitCallback() {
-    @Override
-    public void onCoreInitFinished() {
-        Logger.d(String.format(&quot;%s:onCoreInitFinished:&quot;, TAG));
-    }
-
-    /**
-     * X5内核初始化后回调，在onCoreInitFinished()之后
-     * @param isX5Core ，true表示X5内核加载成功。加载失败会切换到系统内核
-     */
-    @Override
-    public void onViewInitFinished(boolean isX5Core) {
-        mX5InitSuccess = b;
-        Logger.d(String.format(&quot;%s:onViewInitFinished:%b&quot;, TAG, b));
-        if (!b &amp;&amp; handler != null) {
-            handler.onInitErrot();
-        }
-    }
-});
-
-//监控内核下载状态
-QbSdk.setTbsListener(new TbsListener() {
-    @Override
-    public void onDownloadFinish(int i) {
-        Logger.d(String.format(&quot;%s:onDownloadFinish:%d&quot;, TAG, i));
-    }
-
-    @Override
-    public void onInstallFinish(int i) {
-        Logger.d(String.format(&quot;%s:onInstallFinish:%d&quot;, TAG, i));
-    }
-
-    @Override
-    public void onDownloadProgress(int i) {
-        Logger.d(String.format(&quot;%s:onDownloadProgress:%d&quot;, TAG, i));
-    }
-});
-</code></pre><h2 id="静态集成"><a href="#静态集成" class="headerlink" title="静态集成"></a>静态集成</h2><p>X5内核大小约24M，对App包大小产生一定量的增加</p>
-<p>如下<a href="http://soft.tbs.imtt.qq.com/17421/tbs_res_imtt_tbs_release_integrateWithX5core_43500SDK_43656Core.zip" target="_blank" rel="noopener">下载地址</a>是静态集成X5内核的方法</p>
-<p>1.导入jar包:</p>
-<pre><code>tbs_sdk_thirdapp_v3.5.0.1063_43500_staticwithdownload_withoutGame_obfs_20171011_195714.jar
-</code></pre><p>2.导入内核文件</p>
-<pre><code>将解压tbs_core_3.6.0.1108_043656_20171123_120752_static.apk得到的.so文件放入工程的src/mian/libs目录下。
-</code></pre><p>3.按照官网指引进行替换系统webview</p>
-<pre><code>https://x5.tencent.com/tbs/guide/sdkInit.html 参照官网“SDK集成步骤”中的：1、2、3、6、10
-</code></pre><p>打开webview前调用QbSdk.preinstallStaticTbs()。(建议在application的oncreate中异步线程中调用)。</p>
-<h1 id="TBS-Studio-调试-运行在X5内核的-Webview"><a href="#TBS-Studio-调试-运行在X5内核的-Webview" class="headerlink" title="TBS Studio 调试 运行在X5内核的 Webview"></a>TBS Studio 调试 运行在X5内核的 Webview</h1><h2 id="TBS-Studio"><a href="#TBS-Studio" class="headerlink" title="TBS Studio"></a>TBS Studio</h2><p>TBS Studio是面向基于TBS的Web开发者和移动应用开发商（包括微信、手Q，三方App等）打造的开发服务整体解决方案，以提升广大开发者在真机环境下的开发效率，并帮助开发者分析和优化网页的设计，主要功能有网页Inspector调试，网页性能分析等。</p>
-<h2 id="应用背景"><a href="#应用背景" class="headerlink" title="应用背景"></a>应用背景</h2><p>我们在卓越网校安卓app中，使用了x5内核。</p>
-<h2 id="TBS-Studio-包下载"><a href="#TBS-Studio-包下载" class="headerlink" title="TBS Studio 包下载"></a>TBS Studio 包下载</h2><p>TBS Studio是面向基于TBS的Web开发者和移动应用开发商（包括微信、手Q，三方App等）打造的开发服务整体解决方案，以提升广大开发者在真机环境下的开发效率，并帮助开发者分析和优化网页的设计，主要功能有网页Inspector调试，网页性能分析等。</p>
-<h2 id="应用背景-1"><a href="#应用背景-1" class="headerlink" title="应用背景"></a>应用背景</h2><p>我们在卓越网校安卓app中，使用了x5内核。</p>
-<h2 id="TBS-Studio-包下载-1"><a href="#TBS-Studio-包下载-1" class="headerlink" title="TBS Studio 包下载"></a>TBS Studio 包下载</h2><p><a href="http://mcaredown.3g.qq.com/browser/tes/TBS_Studio_win64_v1.3.1_2017062311.zip" target="_blank" rel="noopener">win64</a>、<a href="http://mcaredown.3g.qq.com/browser/tes/TBS_Studio_win_v1.3.1_2017061615.zip" target="_blank" rel="noopener">win32</a>、<a href="http://mcaredown.3g.qq.com/browser/tes/TBS_Studio_mac_v1.3.1_2017061617.dmg.zip" target="_blank" rel="noopener">mac</a></p>
-<h3 id="运行环境"><a href="#运行环境" class="headerlink" title="运行环境"></a>运行环境</h3><p>PC环境: 当前支持Windows和mac操作系统。<br>手机环境：Android 4.4+，机型包括华为，小米，三星等主流机型。<br>调试宿主App（需要接入x5内核）：微信、手Q、QQ音乐、QZone、京东等</p>
-<h3 id="连接设置"><a href="#连接设置" class="headerlink" title="连接设置"></a>连接设置</h3><p>pc 连接手机，允许 USB 调试。<br>打开需要调试的目标程序<br>打开TBS Studio 启动连接检测。<br>详细过程：<a href="http://bbs.mb.qq.com/thread-1416936-1-1.html" target="_blank" rel="noopener">http://bbs.mb.qq.com/thread-1416936-1-1.html</a>    </p>
-<p>部分机型 adb 连接不上解决</p>
-<p>使用内置adb包（ win下载, mac下载），手动启动adb（使用homebrew下载：brew cask install android-platform-tools）<br>运行 adb devices<br> 找到设备，点击重置，再次“启动检测”<br>未找到设备，或者offline<br>① 运行命令 adb kill-server -&gt; adb start-server -&gt; adb devices<br>② 重拔usb链接调试设备<br>③ 重启调试设备<br>仍然无法连接上<br>打开终端，输入：system_profiler SPUSBDataType，查看Mac系统所有USB设备信息，找到相应的厂商Vender ID<br>终端进入/Users/user/.android，应该有一个adb_usb.ini文件，如果没有就创建，然后将上面的Vender ID 单独一行加入到该文件，然后退出。<br>运行 adb devices。如果列表中找到相应设备，则连接成功。再次打开TBS Studio，检测连接进入调试。<br>)、<a href="http://mcaredown.3g.qq.com/browser/tes/TBS_Studio_mac_v1.3.1_2017061617.dmg.zip" target="_blank" rel="noopener">mac</a></p>
-<p>运行环境</p>
-<p>PC环境: 当前支持Windows和mac操作系统。<br>手机环境：Android 4.4+，机型包括华为，小米，三星等主流机型。<br>调试宿主App（需要接入x5内核）：微信、手Q、QQ音乐、QZone、京东等</p>
-<p>连接设置</p>
-<p>pc 连接手机，允许 USB 调试。<br>打开需要调试的目标程序<br>打开TBS Studio 启动连接检测。<br>详细过程：<a href="http://bbs.mb.qq.com/thread-1416936-1-1.html" target="_blank" rel="noopener">http://bbs.mb.qq.com/thread-1416936-1-1.html</a>    </p>
-<p>部分机型 adb 连接不上解决</p>
-<ol>
-<li>使用内置adb包（ win下载, mac下载），手动启动adb（使用homebrew下载：brew cask install android-platform-tools）<br>运行 adb devices</li>
-<li>找到设备，点击重置，再次“启动检测”<br> 未找到设备，或者offline<br> ① 运行命令 adb kill-server -&gt; adb start-server -&gt; adb devices<br> ② 重拔usb链接调试设备<br> ③ 重启调试设备</li>
-<li>仍然无法连接上<br>打开终端，输入：system_profiler SPUSBDataType，查看Mac系统所有USB设备信息，找到相应的厂商Vender ID<br>终端进入/Users/user/.android，应该有一个adb_usb.ini文件，如果没有就创建，然后将上面的Vender ID 单独一行加入到该文件，然后退出。<br>运行 adb devices。如果列表中找到相应设备，则连接成功。再次打开TBS Studio，检测连接进入调试。</li>
-</ol>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/17/Android/阻止系统Media扫描指定文件夹/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/17/Android/阻止系统Media扫描指定文件夹/" itemprop="url">阻止系统Media扫描指定文件夹</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-17T11:48:53+08:00">
-                2018-08-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>最近项目需求不让系统图库扫描到APP的图片或者不想对用户浏览图片造成影响</p>
-<p>Android提供了对此的支持</p>
-<p><strong>.nomedia文件/文件夹</strong>：让系统不扫描父文件夹下所有媒体文件(图片，mp3,视频)</p>
-<p>例如：sd卡根目录/myapp，里面有我们的图片，不想让系统扫描到图库，直接在该文件夹下，添加 <code>.nomedia文件/文件夹</code></p>
-<p>之前已经扫描出来的资源图片/视频等等，添加nomedia文件后还是会显示。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/16/Android/webview上传图片/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/16/Android/webview上传图片/" itemprop="url">webview上传图片</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-16T18:20:53+08:00">
-                2018-08-16
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>最近项目需要在ViewWeb页面上点击 <code>&lt;input type=&quot;file&quot;&gt;</code>，调用手机系统相册来上传图片，开发过程中发现无法正常唤起系统相册来选择图片</p>
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>既然浏览器可以，那先参考一下android brower的代码-_-</p>
-<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><ul>
-<li>重写WebChromeClient。系统升级API使用的delete，而不是@deprecated。谨慎做好系统兼容<strong>(大坑一)</strong><ul>
-<li>openFileChooser<ul>
-<li>是系统方法<ul>
-<li>不需要 @Override <strong>(大坑二)</strong></li>
-<li>非继承，所以需要额外添加混淆规则 <strong>(大坑三)</strong></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>onShowFileChooser</li>
-</ul>
-</li>
-<li>在WebViewActivity中接收选择到的文件Uri</li>
-<li>回调接口把文件Uri传给页面。即使取消选择也必须回调，否则阻塞页面 <strong>(大坑四)</strong><ul>
-<li>WebChromeClient提供了回调接口</li>
-</ul>
-</li>
-</ul>
-<h2 id="重写WebChromeClient的openFileChooser-和onShowFileChooser"><a href="#重写WebChromeClient的openFileChooser-和onShowFileChooser" class="headerlink" title="重写WebChromeClient的openFileChooser()和onShowFileChooser()"></a>重写WebChromeClient的openFileChooser()和onShowFileChooser()</h2><pre><code>// For Android &lt; 3.0
-public void openFileChooser(ValueCallback&lt;Uri&gt; uploadMsg) {
-    if (mUploadMessage != null) {
-        mUploadMessage.onReceiveValue(null);
-    }
-    mUploadMessage = uploadMsg;
-    mHandler.openFileChooser(&quot;*/*&quot;);
-}
-// For Android 3.0+
-public void openFileChooser(ValueCallback uploadMsg, String acceptType) {
-    if (mUploadMessage != null) {
-        mUploadMessage.onReceiveValue(null);
-    }
-    mUploadMessage = uploadMsg;
-    String type = TextUtils.isEmpty(acceptType) ? &quot;*/*&quot; : acceptType;
-    mHandler.openFileChooser(type);
-}
-// For Android &gt; 4.1.1
-public void openFileChooser(ValueCallback&lt;Uri&gt; uploadMsg, String acceptType, String capture) {
-    if (mUploadMessage != null) {
-        mUploadMessage.onReceiveValue(null);
-    }
-    mUploadMessage = uploadMsg;
-    String type = TextUtils.isEmpty(acceptType) ? &quot;*/*&quot; : acceptType;
-    mHandler.openFileChooser(type);
-}
-//Android 5.0+
-@Override
-@SuppressLint(&quot;NewApi&quot;)
-public boolean onShowFileChooser(WebView webView, ValueCallback&lt;Uri[]&gt; filePathCallback, WebChromeClient.FileChooserParams fileChooserParams) {
-    if (mFilePathCallback != null) {
-        mFilePathCallback.onReceiveValue(null);
-    }
-    mFilePathCallback = filePathCallback;
-    String type = &quot;*/*&quot;;
-    if (fileChooserParams != null &amp;&amp; fileChooserParams.getAcceptTypes() != null
-            &amp;&amp; fileChooserParams.getAcceptTypes().length &gt; 0) {
-        type = fileChooserParams.getAcceptTypes()[0];
-    }
-    mHandler.openFileChooser(type);
-    return true;
-}
-</code></pre><h2 id="回调传递文件Uri"><a href="#回调传递文件Uri" class="headerlink" title="回调传递文件Uri"></a>回调传递文件Uri</h2><pre><code>public void notifyFileChooser(Uri uri) {
-    if(mUploadMessage != null) {
-        mUploadMessage.onReceiveValue(uri);
-        mUploadMessage = null;
-    }
-
-    if(mFilePathCallback != null) {
-        if(uri == null){
-            mFilePathCallback.onReceiveValue(null);
-        } else {
-            Uri[] uris = new Uri[]{uri};
-            mFilePathCallback.onReceiveValue(uris);
-        }
-        mFilePathCallback = null;
-    }
-}
-</code></pre><h2 id="退出页面时收尾"><a href="#退出页面时收尾" class="headerlink" title="退出页面时收尾"></a>退出页面时收尾</h2><p><strong>修复页面被阻塞bug</strong></p>
-<p>调用系统app选择文件的时候，若弹出选择框，cancel掉选择框之后，发现webview无响应了，无法刷新，加载，点击，甚至退出这个activity也无法加载！后果很严重~</p>
-<p>原因是当你选择上传文件的时候，webview的<strong>ValueCallback对象（就是选择图片的回调）会持有这个webview，在没有收到回调之前，你无法对这个webview做任何的操作！</strong></p>
-<p>知道原因之后，就很好解决了，如果cancel了，那么直接调用该对象的onReceiveValue()方法，传入null即可，webview就可以正常操作了</p>
-<pre><code>public void reset() {
-    if(mUploadMessage != null) {
-        mUploadMessage.onReceiveValue(null);
-        mUploadMessage = null;
-    }
-
-    if(mFilePathCallback != null) {
-        mFilePathCallback.onReceiveValue(null);
-        mFilePathCallback = null;
-    }
-
-}
-</code></pre><h2 id="添加权限"><a href="#添加权限" class="headerlink" title="添加权限"></a>添加权限</h2><pre><code>&lt;uses-permission android:name=&quot;android.permission.INTERNET&quot; /&gt;
-&lt;uses-permission android:name=&quot;android.permission.WRITE_EXTERNAL_STORAGE&quot; /&gt;
-&lt;uses-permission android:name=&quot;android.permission.MOUNT_UNMOUNT_FILESYSTEMS&quot; /&gt;
-&lt;uses-permission android:name=&quot;android.permission.CAMERA&quot; /&gt;
-</code></pre><h2 id="添加混淆规则"><a href="#添加混淆规则" class="headerlink" title="添加混淆规则"></a>添加混淆规则</h2><pre><code>-keepclassmembers class * extends android.webkit.WebChromeClient{
-    public void openFileChooser(...);
-}
-</code></pre><h1 id="部分系统版本无法实现上传-大坑五"><a href="#部分系统版本无法实现上传-大坑五" class="headerlink" title="部分系统版本无法实现上传(大坑五)"></a>部分系统版本无法实现上传(大坑五)</h1><p>android 4.4更改webkit内核为chromium，<strong>4.4.0到4.4.2</strong>删除了该API，开发团队解释，正在开发一个新的更好的共有的api，会在正式版本上推出。结果呢，在4.4.3版本，又把这个api加回来了。简直是花样作死啊！一般升级api的套路：@deprecated掉旧的api，加入新的api并保留对原有api的支持</p>
-<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><h3 id="用js调用java方法，强烈推荐"><a href="#用js调用java方法，强烈推荐" class="headerlink" title="用js调用java方法，强烈推荐"></a>用js调用java方法，强烈推荐</h3><h3 id="使用第三方webview"><a href="#使用第三方webview" class="headerlink" title="使用第三方webview"></a>使用第三方webview</h3><p>比如腾讯x5内核</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/11/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><span class="page-number current">12</span><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/13/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/11/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><span class="page-number current">12</span><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/13/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2585,7 +2489,7 @@ public boolean onShowFileChooser(WebView webView, ValueCallback&lt;Uri[]&gt; fil
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">187</span>
+                  <span class="site-state-item-count">195</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2596,7 +2500,7 @@ public boolean onShowFileChooser(WebView webView, ValueCallback&lt;Uri[]&gt; fil
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2607,7 +2511,7 @@ public boolean onShowFileChooser(WebView webView, ValueCallback&lt;Uri[]&gt; fil
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">59</span>
+                  <span class="site-state-item-count">60</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

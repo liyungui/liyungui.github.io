@@ -262,6 +262,1961 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/Android/retrofit使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/Android/retrofit使用/" itemprop="url">retrofit使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T15:47:53+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="OkHttp"><a href="#OkHttp" class="headerlink" title="OkHttp"></a>OkHttp</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p><strong>OkHttp</strong> 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟<strong>HttpClient</strong>, <strong>HttpUrlConnection</strong>的职责是一样的</p>
+<p>Android 4.4后，HttpURLConnection底层实现已被OkHttp替换。可见OkHttp的性能已经被Google认同</p>
+<p>volley, retrofit, android-async-http 帮你封装了具体的请求，线程切换以及数据转换</p>
+<p>android-async-http内部实现是基于HttpClient, 6.0之后系统不再自带HttpClient，在最近的更新中将HttpClient的所有代码copy了一份进来，所以还能使用</p>
+<p>Volley是官方出的，可以支持HttpUrlConnection, HttpClient, OkHttp，如果习惯使用Volley，直接写个OkHttp扩展就行了。</p>
+<h2 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h2><ul>
+<li>支持HTTP2.0/SPDY</li>
+<li>socket自动选择最好路线，并支持自动重连</li>
+<li>拥有自动维护的socket连接池，减少握手次数</li>
+<li>拥有队列线程池，轻松写并发</li>
+<li>拥有Interceptors轻松处理请求与响应（比如GZIP压缩,LOG打印请求日志等）</li>
+<li>实现基于Headers的缓存策略</li>
+</ul>
+<h2 id="OkHttp-发送HTTP请求的初步分析"><a href="#OkHttp-发送HTTP请求的初步分析" class="headerlink" title="OkHttp 发送HTTP请求的初步分析"></a>OkHttp 发送HTTP请求的初步分析</h2><p>Dispatcher类 中有两个集合分别为：runningAsyncCalls、readyAsyncCalls分别存放正在执行的请求，等待执行的请求</p>
+<p>该类中有一个ThreadPoolExecutor线程池(核心线程0，最大线程Integer.MAX_VALUE，队列Integer.MAX_VALUE，保活60秒)执行器，利用该执行器来执行<strong>异步请求</strong>的execute方法。异步请求发送在非当前工作线程，即创建异步请求的线程，而是从线程池中获取一条线程执行网络请求。同步请求则直接是在当前工作线程中执行。</p>
+<p>该类对<strong>异步请求</strong>的管理是通过maxRequests、maxRequestsPerHost进行控制的，前者控制线程池中同时运行的最大请求数，防止同时运行线程过多，造成OOM。后者限制了同一hostname下的请求数，防止一个应用占用的网络资源过多，优化用户体验。</p>
+<h2 id="设置最大并发数"><a href="#设置最大并发数" class="headerlink" title="设置最大并发数"></a>设置最大并发数</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient().dispatcher(). maxRequests(<span class="number">8</span>);</span><br><span class="line">OkHttpClient().dispatcher().setMaxRequestsPerHost(<span class="number">8</span>);</span><br></pre></td></tr></table></figure>
+<h1 id="一、应用示例–get请求"><a href="#一、应用示例–get请求" class="headerlink" title="一、应用示例–get请求"></a>一、应用示例–get请求</h1><p>下面以聚合数据平台的免费的一个笑话的接口为例 </p>
+<pre><code>接口文档地址：https://www.juhe.cn/docs/api/id/95。 
+接口地址：http://japi.juhe.cn/joke/content/list.from。
+请求参数说明：
+    sort    string    是    类型，desc:指定时间之前发布的，asc:指定时间之后发布的
+     page    int    否    当前页数,默认1
+     pagesize    int    否    每次返回条数,默认1,最大20
+     time    string    是    时间戳（10位），如：1418816972
+     key    string    是    您申请的key
+</code></pre><p><strong>添加依赖</strong></p>
+<pre><code>compile &apos;com.squareup.retrofit2:retrofit:2.0.2&apos;
+compile &apos;com.squareup.retrofit2:converter-gson:2.0.0&apos;  
+compile &apos;com.google.code.gson:gson:2.3&apos;
+</code></pre><p><strong>根据返回json数据建立自己的javabean</strong></p>
+<p>JokeInfo</p>
+<p><strong>定义服务接口 –retrofit把API请求转为接口</strong></p>
+<pre><code>public interface JokeService {
+    @GET(&quot;/joke/content/list.from&quot;)
+    Call&lt;JokeInfo&gt; getJokeInfoList(@Query(&quot;sort&quot;) String sort, @Query(&quot;page&quot;) int page, @Query(&quot;pagesize&quot;) int pagesize, @Query(&quot;time&quot;) String time, @Query(&quot;key&quot;) String key);
+}
+</code></pre><p><strong>封装retrofit的包装类（单例模式）</strong></p>
+<pre><code>public class RetrofitWrapper {
+    private static RetrofitWrapper instance;
+    private Context mContext;
+    private Retrofit retrofit;
+
+    private RetrofitWrapper() {
+        retrofit = new Retrofit.Builder().baseUrl(Constant.BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
+    }
+
+    public static RetrofitWrapper getInstance() {
+        if (instance == null) {
+            synchronized (RetrofitWrapper.class) {
+                if (instance == null) {
+                    instance = new RetrofitWrapper();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public &lt;T&gt; T create(Class&lt;T&gt; service) {
+        return retrofit.create(service);
+    }
+
+    public class Constant {
+        public static final String BASE_URL = &quot;http://api2.juheapi.com&quot;;
+    }
+}
+</code></pre><p><strong>调用接口（Activity中）</strong></p>
+<pre><code>JokeService jokeService = RetrofitWrapper.getInstance().create(JokeService.class); //RetrofitWrapper.getInstance()就是获取一个retrofit对象
+Call&lt;JokeInfo&gt; call = jokeService.getJokeInfoList(&quot;desc&quot;, 1, 2, &quot;1418816972&quot;, &quot;eb46c85bea73462583e38b84c3a25c4b&quot;);
+call.enqueue(new Callback&lt;JokeInfo&gt;() {
+    @Override
+    public void onResponse(Call&lt;JokeInfo&gt; call, Response&lt;JokeInfo&gt; response) {
+        JokeInfo ji = response.body();
+        //这里显示了列表中的第一条的内容，所以get(0)
+        Toast.makeText(MainActivity.this, ji.getResult().getData().get(0).getContent(), Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onFailure(Call&lt;JokeInfo&gt; call, Throwable t) {
+        Toast.makeText(MainActivity.this, t.getMessage(), Toast.LENGTH_LONG).show();
+    }
+});
+</code></pre><h1 id="二、概念描述"><a href="#二、概念描述" class="headerlink" title="二、概念描述"></a>二、概念描述</h1><h2 id="请求URL"><a href="#请求URL" class="headerlink" title="请求URL"></a>请求URL</h2><p><code>@Url</code></p>
+<pre><code>@GET
+public Call&lt;ResponseBody&gt; profilePicture(@Url String url);
+</code></pre><h3 id="How-Urls-Resolve-Against-Your-Base-Url"><a href="#How-Urls-Resolve-Against-Your-Base-Url" class="headerlink" title="How Urls Resolve Against Your Base Url"></a>How Urls Resolve Against Your Base Url</h3><p>完整url（包括 scheme）–不管baseUrl，直接访问</p>
+<pre><code>Retrofit retrofit = Retrofit.Builder()  
+    .baseUrl(&quot;https://your.api.url/&quot;);
+    .build();
+
+UserService service = retrofit.create(UserService.class);  
+service.profilePicture(&quot;https://s3.amazon.com/profile-picture/path&quot;);
+
+// request url results in:
+// https://s3.amazon.com/profile-picture/path
+</code></pre><p>非完整url（不包括 scheme）–拼接到baseUrl后访问</p>
+<pre><code>Retrofit retrofit = Retrofit.Builder()  
+    .baseUrl(&quot;https://your.api.url/&quot;);
+    .build();
+
+UserService service = retrofit.create(UserService.class);  
+service.profilePicture(&quot;profile-picture/path&quot;);
+
+// request url results in:
+// https://your.api.url/profile-picture/path
+</code></pre><p>非完整url（不包括 scheme）且以 <code>/</code>开头 –拼接到baseUrl中的 <code>host</code> 后访问。  urls that start with a <code>leading slash</code> will be appended to only the <code>base url’s host</code> url</p>
+<pre><code>Retrofit retrofit = Retrofit.Builder()  
+    .baseUrl(&quot;https://your.api.url/v2/&quot;); //升级了接口，v2版本
+    .build();
+
+UserService service = retrofit.create(UserService.class);  
+service.profilePicture(&quot;/profile-picture/path&quot;);
+
+// request url results in:
+// https://your.api.url/profile-picture/path
+</code></pre><h2 id="请求路径-Path-Parameters"><a href="#请求路径-Path-Parameters" class="headerlink" title="请求路径 Path Parameters"></a>请求路径 Path Parameters</h2><p><code>@Path</code> </p>
+<pre><code>@GET(&quot;group/{id}/users&quot;)
+Call&lt;List&lt;User&gt;&gt; groupList(@Path(&quot;id&quot;) int groupId);
+
+@GET(&quot;group/{id}/users&quot;)
+Call&lt;List&lt;User&gt;&gt; groupList(@Path(&quot;id&quot;) int groupId, @Query(&quot;sort&quot;) String sort); 
+
+@GET(&quot;group/{id}/users&quot;)
+Call&lt;List&lt;User&gt;&gt; groupList(@Path(&quot;id&quot;) int groupId, @QueryMap Map&lt;String, String&gt; options);
+</code></pre><h2 id="请求方法"><a href="#请求方法" class="headerlink" title="请求方法"></a>请求方法</h2><p><code>GET, POST, PUT, DELETE, HEAD</code></p>
+<h2 id="请求参数-Query-Parameters"><a href="#请求参数-Query-Parameters" class="headerlink" title="请求参数 Query Parameters"></a>请求参数 Query Parameters</h2><p><code>@Query()</code> ，如果传入 <code>null</code> ，retrofit 会自动忽略改参数</p>
+<pre><code>public interface FutureStudioClient {  
+    @GET(&quot;/tutorials&quot;)
+    Call&lt;List&lt;Tutorial&gt;&gt; getTutorials(
+        @Query(&quot;page&quot;) Integer page
+    );
+
+    @GET(&quot;/tutorials&quot;)
+    Call&lt;List&lt;Tutorial&gt;&gt; getTutorials(
+            @Query(&quot;page&quot;) Integer page,
+            @Query(&quot;order&quot;) String order,
+            @Query(&quot;author&quot;) String author,
+            @Query(&quot;published_at&quot;) Date date
+    );
+} 
+方法2，如果后面三个参数传null，效果和方法1一样
+</code></pre><p><code>@QueryMap</code></p>
+<pre><code>Call&lt;List&lt;News&gt;&gt; getNews(@QueryMap Map&lt;String, String&gt; options);
+</code></pre><h2 id="请求体"><a href="#请求体" class="headerlink" title="请求体"></a>请求体</h2><ul>
+<li><code>@RequestBody</code></li>
+<li><p><code>@Body</code> <strong>自定义请求体格式</strong></p>
+<ul>
+<li>使用创建Retrofit对象时定义的转换器。没有定义转换器只能用 <code>@RequestBody</code></li>
+<li>json格式请求体： {“passWord”:”134”,”userName”:”lili”}</li>
+</ul>
+</li>
+<li><p><code>@FormUrlEncoded 和 @Field/@FieldMap</code> <strong>Url编码</strong></p>
+<ul>
+<li>userName=lili&amp;passWord=123</li>
+</ul>
+</li>
+<li><p><code>@Multipart 和 @Part</code> 分割线分割</p>
+</li>
+</ul>
+<p>示例：</p>
+<pre><code>@POST(&quot;users/new&quot;)
+Call&lt;User&gt; createUser(@Body User user);
+    Caused by: java.lang.IllegalArgumentException: Unable to create @Body converter for class com.xuehu365.xuehu.User (parameter #1)
+    Caused by: java.lang.IllegalArgumentException: Could not locate RequestBody converter for class com.xuehu365.xuehu.User.
+        Tried:
+            * retrofit2.BuiltInConverters
+            * retrofit2.GsonConverterFactory
+    出现这个错误的原因是retrofit版本太低，2.0.0-beta版本不支持@body，升级最新版本即可解决
+
+@FormUrlEncoded
+@POST(&quot;user/edit&quot;)
+Call&lt;User&gt; updateUser(@Field(&quot;first_name&quot;) String first, @Field(&quot;last_name&quot;) String last);
+
+@Headers({&quot;Content-type:application/json;charset=UTF-8&quot;})
+@POST(&quot;auth/update_user_info&quot;)
+   Call&lt;UserInfoResultBean&gt; updateUserBirthday(@Body RequestBody body);       
+    HashMap&lt;String, Long&gt; map = new HashMap&lt;&gt;();
+    map.put(&quot;birthday&quot;, date);
+    String json = new Gson().toJson(map);
+    RequestBody body = RequestBody.create(MediaType.parse(&quot;application/json;charset=UTF-8&quot;), json);
+    NetService.getInstance().getService().updateUserBirthday(body)
+
+Call&lt;User&gt; update(@FieldMap Map&lt;String, String&gt; fields);
+
+@Multipart
+@PUT(&quot;user/photo&quot;)
+Call&lt;User&gt; updateUser(@Part(&quot;photo&quot;) RequestBody photo, @Part(&quot;description&quot;) RequestBody description);
+</code></pre><h2 id="请求头操作-HEADER-MANIPULATION"><a href="#请求头操作-HEADER-MANIPULATION" class="headerlink" title="请求头操作 HEADER MANIPULATION"></a>请求头操作 HEADER MANIPULATION</h2><ul>
+<li><p>静态</p>
+<pre><code>@Headers(&quot;Cache-Control: max-age=640000&quot;)
+@GET(&quot;widget/list&quot;)
+Call&lt;List&lt;Widget&gt;&gt; widgetList();
+
+@Headers({
+    &quot;Accept: application/vnd.github.v3.full+json&quot;,
+    &quot;User-Agent: Retrofit-Sample-App&quot;
+})
+@GET(&quot;users/{username}&quot;)
+Call&lt;User&gt; getUser(@Path(&quot;username&quot;) String username);
+</code></pre></li>
+<li><p>动态</p>
+<pre><code>@GET(&quot;user&quot;)
+Call&lt;User&gt; getUser(@Header(&quot;Authorization&quot;) String authorization)
+</code></pre></li>
+<li><p>OkHttp interceptor</p>
+<p>  Headers that need to be added to every request can be specified using an OkHttp interceptor.</p>
+</li>
+</ul>
+<h2 id="返回体转换器"><a href="#返回体转换器" class="headerlink" title="返回体转换器"></a>返回体转换器</h2><pre><code>Gson: com.squareup.retrofit2:converter-gson  
+Jackson: com.squareup.retrofit2:converter-jackson  
+Moshi: com.squareup.retrofit2:converter-moshi  
+Protobuf: com.squareup.retrofit2:converter-protobuf  
+Wire: com.squareup.retrofit2:converter-wire  
+Simple XML: com.squareup.retrofit2:converter-simplexml  
+Scalars (primitives, boxed, and String): com.squareup.retrofit2:converter-scalars 
+
+自定义转换器，需要继承Converter.Factory，在build adapter时传入我们自定义转换器即可使用
+</code></pre><h2 id="Interceptor"><a href="#Interceptor" class="headerlink" title="Interceptor"></a>Interceptor</h2><pre><code>httpClient.addInterceptor(new Interceptor()
+</code></pre><h3 id="开启OkHttp自带Interceptor-打印请求和响应log"><a href="#开启OkHttp自带Interceptor-打印请求和响应log" class="headerlink" title="开启OkHttp自带Interceptor 打印请求和响应log"></a>开启OkHttp自带Interceptor 打印请求和响应log</h3><p>Since logging isn’t integrated by default anymore in Retrofit 2, we need to add a logging interceptor for OkHttp. </p>
+<p>Luckily OkHttp already ships with this interceptor and you only need to activate it for your OkHttpClient.</p>
+<p>The developers of OkHttp have released a separate logging interceptor project, which implements logging for OkHttp.</p>
+<ol>
+<li><p>You can add it to your project with a quick edit of your <code>build.gradle</code>:</p>
+<pre><code>compile &apos;com.squareup.okhttp3:logging-interceptor:3.3.1&apos;  
+</code></pre></li>
+<li><p><code>your OkHttpClient class</code>:</p>
+<pre><code>OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+
+// add your other interceptors …
+
+// add logging as last interceptor
+HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+// set your desired log level
+logging.setLevel(Level.BODY);
+httpClientBuilder.addInterceptor(logging);  // &lt;-- this is the important line!
+</code></pre></li>
+<li><p><code>your retrofit use your custom OkHttpClient defined above</code></p>
+<pre><code>new Retrofit.Builder().client(BaseOkHttpClient.getInstance())...
+</code></pre></li>
+</ol>
+<h3 id="Log-Levels"><a href="#Log-Levels" class="headerlink" title="Log Levels"></a>Log Levels</h3><p>Logging too much information will blow up your Android monitor, that’s why OkHttp’s logging interceptor has four log levels: <code>NONE</code>, <code>BASIC</code>, <code>HEADERS</code>, <code>BODY</code>. </p>
+<h3 id="遇到的问题：NoClassDefFoundError-Failed-resolution-of-Lokhttp3-internal-Platform"><a href="#遇到的问题：NoClassDefFoundError-Failed-resolution-of-Lokhttp3-internal-Platform" class="headerlink" title="遇到的问题：NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;"></a>遇到的问题：NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;</h3><pre><code>java.lang.NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;
+    at okhttp3.logging.HttpLoggingInterceptor$Logger$1.log(HttpLoggingInterceptor.java:112)
+    at okhttp3.logging.HttpLoggingInterceptor.intercept(HttpLoggingInterceptor.java:160)
+    at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.java:92)
+    at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.java:67)
+</code></pre><ul>
+<li><p><a href="http://stackoverflow.com/questions/39545629/noclassdeffounderror-failed-resolution-of-lokhttp3-internal-platform" target="_blank" rel="noopener">版本一致</a>，<strong>没有解决</strong></p>
+<pre><code>compile &apos;com.squareup.okhttp3:logging-interceptor:3.4.1&apos;
+compile &apos;com.squareup.okhttp3:okhttp:3.4.1&apos;
+
+甚至让retrofit 移除okhttp 
+compile (&apos;com.squareup.retrofit2:retrofit:2.1.0&apos;) {
+    // exclude Retrofit’s OkHttp peer-dependency module and define your own module import
+    exclude module: &apos;okhttp&apos;
+}
+</code></pre></li>
+<li><p><a href="http://stackoverflow.com/questions/35578135/noclassdeffounderror-for-okhttpclient" target="_blank" rel="noopener">方法数超限，开启 multiDex</a>，<strong>搞定</strong></p>
+<pre><code>defaultConfig {
+    ...
+    multiDexEnabled true
+}
+
+dependencies {
+    compile &apos;com.android.support:multidex:1.0.0&apos;
+}
+</code></pre></li>
+<li><p>总结</p>
+<p>  retrofit2 升级到2.1.0，okhttp3 升级到3.4.1 开启multiDex</p>
+<pre><code>compile &apos;com.squareup.retrofit2:retrofit:2.1.0&apos;
+compile &apos;com.squareup.retrofit2:converter-gson:2.1.0&apos;
+compile &apos;com.squareup.okhttp3:logging-interceptor:3.4.1&apos;
+compile &apos;com.squareup.okhttp3:okhttp:3.4.1&apos;    
+
+compile &apos;com.android.support:multidex:1.0.0&apos;
+</code></pre></li>
+</ul>
+<h3 id="自定义Interceptor实现-添加get方法通用查询参数-优雅log"><a href="#自定义Interceptor实现-添加get方法通用查询参数-优雅log" class="headerlink" title="自定义Interceptor实现 添加get方法通用查询参数 + 优雅log"></a>自定义Interceptor实现 添加get方法通用查询参数 + 优雅log</h3><pre><code>http://blog.yzapp.cn/Retrofit1.html
+
+OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+httpClientBuilder.addInterceptor(new Interceptor() {
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+        Request originalRequest = chain.request();
+        HttpUrl originalHttpUrl = originalRequest.url();
+
+        HttpUrl url = originalHttpUrl.newBuilder()
+                .addQueryParameter(&quot;appId&quot;, &quot;xuehu&quot;)
+                .addQueryParameter(&quot;clientType&quot;, &quot;3&quot;)
+                .addQueryParameter(&quot;version&quot;, &quot;v1.0&quot;)
+                .addQueryParameter(&quot;clientVersion&quot;, App.getAppVsersion())
+                .build();
+
+        Request.Builder requestBuilder = originalRequest.newBuilder()
+                .url(url)
+                .method(originalRequest.method(), originalRequest.body());
+
+        Request request = requestBuilder.build();
+        Response response = chain.proceed(request);
+
+        MediaType contentType = null;
+        String bodyString = null;
+        if (response.body() != null) {
+            contentType = response.body().contentType();
+            bodyString = response.body().string();
+        }
+        LogHelp.d(&quot;lyg&quot;, &quot;request: &quot; + request.method() + request.url());
+        LogHelp.d(&quot;lyg&quot;, &quot;response: &quot; + response.code() + &quot;\n&quot; + bodyString);
+        if (response.body() != null) {// 深坑！打印body后原ResponseBody会被清空，需要重新设置body
+            ResponseBody body = ResponseBody.create(contentType, bodyString);
+            return response.newBuilder().body(body).build();
+        } else {
+            return response;
+        }
+    }
+});
+</code></pre><h2 id="泛型封装的失败"><a href="#泛型封装的失败" class="headerlink" title="泛型封装的失败"></a>泛型封装的失败</h2><p>尝试封装一个通用的请求方法</p>
+<pre><code>public class PostAPI&lt;B, T&gt; {
+    public void post(String url, B body, BaseCallBack&lt;Response&lt;T&gt;&gt; callBack) {
+        PostService service = BaseRetrofit.getInstance().create(PostService.class);
+        Call&lt;Response&lt;T&gt;&gt; call = service.post(url, body);
+        call.enqueue(callBack);
+    }
+}
+
+public interface PostService {
+    @POST
+    &lt;B, T&gt; Call&lt;Response&lt;T&gt;&gt; post(@Url String url, B b);
+}
+</code></pre><p>报错</p>
+<pre><code>java.lang.IllegalArgumentException: Method return type must not include a type variable or wildcard: retrofit2.Call&lt;com.xuehu365.xuehu.model.response.Response&lt;T&gt;&gt;
+</code></pre><h1 id="结合rxjava"><a href="#结合rxjava" class="headerlink" title="结合rxjava"></a>结合rxjava</h1><p>不结合rxjava</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//定义接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BusinessService</span> </span>&#123;</span><br><span class="line">	<span class="meta">@GET</span>(<span class="string">"nats/info"</span>)</span><br><span class="line">	<span class="function">Call&lt;NatsInfoBean&gt; <span class="title">getNatsConfig</span><span class="params">(@Query(<span class="string">"clazz_plan_id"</span>)</span> String clazz_plan_id)</span>;</span><br><span class="line">	<span class="comment">//rxjava</span></span><br><span class="line">	<span class="meta">@GET</span>(<span class="string">"nats/info"</span>)</span><br><span class="line">    <span class="function">Observable&lt;NatsInfoBean&gt; <span class="title">getNatsConfig</span><span class="params">(@Query(<span class="string">"clazz_plan_id"</span>)</span> String clazz_plan_id)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NetService</span> </span>&#123;	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> BusinessService <span class="title">getBusinessService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (mBusinessService == <span class="keyword">null</span>) &#123;</span><br><span class="line">            mBusinessService = getRetrofit().create(BusinessService.class);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mBusinessService;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> Retrofit <span class="title">getRetrofit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (mRetrofit == <span class="keyword">null</span>) &#123;</span><br><span class="line">            mRetrofit = <span class="keyword">new</span> Retrofit.Builder()</span><br><span class="line">                    .client(getBaseOkHttpClientBuilder().build())</span><br><span class="line">                    .addConverterFactory(GsonConverterFactory.create(CustomGson.getsInstance().getGson()))</span><br><span class="line">                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())<span class="comment">//rxjava才需要</span></span><br><span class="line">                    .baseUrl(ConstDef.BASE_URL)</span><br><span class="line">                    .build();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mRetrofit;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//使用接口</span></span><br><span class="line">NetService.getInstance().getBusinessService()</span><br><span class="line">	.enqueue(<span class="keyword">new</span> Callback&lt;NatsInfoBean&gt;()&#123;&#125;);</span><br><span class="line"><span class="comment">//使用接口,rxjava</span></span><br><span class="line">NetService.getInstance().getBusinessService()</span><br><span class="line">	.subscribe(<span class="keyword">new</span> Subscriber&lt;OrderStatusBean&gt;()&#123;&#125;)</span><br></pre></td></tr></table></figure>
+<p><strong>总结：</strong></p>
+<ul>
+<li>定义接口返回值为 <code>Observable</code>。原来为 <code>Call</code></li>
+<li>创建 <code>Retrofit实例</code>时额外 <code>addCallAdapterFactory(RxJavaCallAdapterFactory.create())</code></li>
+<li>调用接口获取返回值改为 <code>观察者模式</code>。原来是 <code>Callback</code></li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><p><a href="http://www.jianshu.com/p/77d418e7b5d6" target="_blank" rel="noopener">OkHttp, Retrofit, Volley应该选择哪一个？</a> </p>
+<p><a href="http://www.jianshu.com/p/45cb536be2f4" target="_blank" rel="noopener">Retrofit分析-漂亮的解耦套路</a> </p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MjM5NDkxMTgyNw==&amp;mid=2653057382&amp;idx=2&amp;sn=68c882cc9fc197f67ad7caba80630314#wechat_redirect" target="_blank" rel="noopener">Retrofit初探和简单使用</a> </p>
+<p><a href="https://github.com/square/retrofit" target="_blank" rel="noopener">github地址</a> </p>
+<p><a href="http://square.github.io/retrofit/" target="_blank" rel="noopener">文档地址</a> </p>
+<p><a href="https://futurestud.io/blog/retrofit-2-upgrade-guide-from-1-9" target="_blank" rel="noopener">用法详解系列</a> </p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/数据库/sql/sql使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/数据库/sql/sql使用/" itemprop="url">SQL使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T15:47:53+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="SQL"><a href="#SQL" class="headerlink" title="SQL"></a>SQL</h1><p><strong>Structured Query Language</strong>, 结构化查询语言</p>
+<p>操作 关系型数据库（用表存储数据）的 标准 非过程性语言。</p>
+<p>为加强SQL的语言能力，各厂商在实现标准中增加了过程性语言的特征。如Oracle的PL/SQL 过程性处理能力，SQL Server、Sybase的T-SQL</p>
+<h1 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h1><pre><code>不区分大小写。推荐关键字大写，自定义的小写
+每条语句以分号结尾
+注释符号是 #
+</code></pre><h1 id="数据库服务器–数据库–表"><a href="#数据库服务器–数据库–表" class="headerlink" title="数据库服务器–数据库–表"></a>数据库服务器–数据库–表</h1><p>数据库服务器有多个数据库组成，每个数据库有多个表。表中存储着数据。</p>
+<p>一般一个工程项目对应一个数据库，一个JavaBean对应一个表。</p>
+<p>元数据：数据库，表，列的定义信息</p>
+<h2 id="数据库服务器–mysql"><a href="#数据库服务器–mysql" class="headerlink" title="数据库服务器–mysql"></a>数据库服务器–mysql</h2><p>要特别注意连接，备份命令是在cmd窗口执行，要注意和sql语句区分，是没有分号的。特别注意！！</p>
+<h3 id="CentOS安装MySQL"><a href="#CentOS安装MySQL" class="headerlink" title="CentOS安装MySQL"></a>CentOS安装MySQL</h3><p>CentOS 7上把MySQL从默认软件列表中移除了，用MariaDB来代替，所以我们必须要去官网上进行下载</p>
+<pre><code>wget http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm 
+
+rpm -ivh mysql-community-release-el7-5.noarch.rpm
+
+yum -y install mysql mysql-server mysql-devel
+</code></pre><h3 id="启动MySQL"><a href="#启动MySQL" class="headerlink" title="启动MySQL"></a>启动MySQL</h3><pre><code>service mysqld start
+</code></pre><h3 id="设置MySQL数据库服务器密码"><a href="#设置MySQL数据库服务器密码" class="headerlink" title="设置MySQL数据库服务器密码"></a>设置MySQL数据库服务器密码</h3><pre><code>mysqladmin -u root password dbroot@quanlist2018
+</code></pre><h3 id="连接MySQL数据库服务器"><a href="#连接MySQL数据库服务器" class="headerlink" title="连接MySQL数据库服务器"></a>连接MySQL数据库服务器</h3><pre><code>mysql -u root -p
+密码默认为空
+</code></pre><h3 id="允许用户远程连接"><a href="#允许用户远程连接" class="headerlink" title="允许用户远程连接"></a>允许用户远程连接</h3><p>登录MySQL后</p>
+<pre><code>grant all privileges on *.* to &apos;root&apos;@&apos;%&apos; identified by &apos;dbroot@quanlist2018&apos; with grant option;
+FLUSH PRIVILEGES;
+exit
+
+&apos;root&apos;@&apos;%&apos; identified by &apos;dbroot@quanlist2018&apos;
+表示root用户可以在任意地址用密码dbroot@quanlist2018登录
+</code></pre><h3 id="备份与恢复数据库"><a href="#备份与恢复数据库" class="headerlink" title="备份与恢复数据库"></a>备份与恢复数据库</h3><ul>
+<li><p>备份数据库：连接mysql服务器前</p>
+<pre><code>mysqldump -u root -p db_name&gt;c:/1.sql
+</code></pre></li>
+<li><p>恢复数据库：必须要先创建数据库，然后导入备份的sql文件</p>
+<pre><code>备份。在cmd窗口
+    mysql -u root -p db_name&lt;c:/1.sql
+恢复。在mysql窗口中（连接mysql服务器后）
+    use db_name;
+    source c:/1.sql;
+</code></pre></li>
+</ul>
+<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><pre><code>1.创建数据库
+    create database [if not exists] db_name [character set xxx] [collate xxx]
+    *创建一个名称为mydb1的数据库。
+        create database mydb1;
+    *创建一个使用utf8（中间没有杆）字符集的mydb2数据库。
+        create database mydb2 character set utf8;
+    *创建一个使用utf8字符集，并带校对规则（校对规则是下划线连接）的mydb3数据库。
+        create database mydb3 character set utf8 collate utf8_bin ;
+2.查看数据库
+    show databases;查看所有数据库
+    show create database db_name; 查看数据库的创建方式
+3.修改数据库
+    alter database db_name [character set xxx] [collate xxxx]
+4.删除数据库
+    drop database [if exists] db_name;
+5.使用数据库
+    切换使用的数据库 use db_name; （数据库特有关键字，不用加database）
+    查看当前使用的数据库 select database();注意不要忘了括号
+</code></pre><hr>
+<h2 id="表"><a href="#表" class="headerlink" title="表"></a>表</h2><pre><code>1.创建表
+        create table tab_name(
+            field1 type,
+            field2 type,
+            ...
+            fieldn type
+        )[character set xxx][collate xxx];
+
+        ****java和mysql的数据类型比较
+            String  ----------------------  char(n) varchar(n) 注意是var+char。 
+                                                定长是固定长度，自动补齐。变长是根据存储内容决定长度。
+                                                但都不能超过定义长度n.定长胜在效率，变长胜在节省空间。
+            byte short int long float double -------------- tinyint  smallint int bigint float double。
+                                                    长度分别    1        2        4    8        4        8字节
+            boolean ------------------ bit 0/1
+            Date ------------------ Date、Time、DateTime、timestamp
+            FileInputStream FileReader  ------------------------------ 大数据类型 Blob Text
+            字符和日期型数据应包含在单引号中
+
+            *创建一个员工表employee
+            create table employee(
+                id int primary key auto_increment ,
+                name varchar(20),
+                gender bit default 1,
+                birthday date,
+                entry_date date,
+                job varchar(20),
+                salary double,
+                resume text
+            );
+
+            约束:
+                primary key 主键，不空切唯一。一般其后都紧跟着auto_increment 主键字段必须是数字类型(非数字无法自增长)。主键无法更改（更改主键，插入数据库就无法知道修改的列）
+                auto_increment只有主键可以自动增长    
+                unique
+                not null
+                外键约束，一般是和多表设计一起理解。看后面
+    2.查看表信息
+        show tables 查看当前数据库中的所有的表
+        show create table tab_name    查看当前数据库表建表语句 
+        desc tab_name 查看表结构。（表特有关键字，所以不用加table）
+    3.修改表
+        alter table add列/drop列/change列名/modify列类型/character set
+        rename table to  重命名表(不要忘记了to)
+
+            *在上面员工表的基本上增加一个image列。
+                alter table employee add image blob;
+            *修改job列，使其长度为60。
+                alter table employee modify job varchar(60);
+            *删除gender列。
+                alter table employee drop gender;
+            *表名改为user。
+                rename table employee to user;
+            *修改表的字符集为utf8
+                alter table user character set gbk; 
+            *列名name修改为username    
+                alter table user change name username varchar(20);
+
+    4.删除表
+        drop table tab_name;
+</code></pre><hr>
+<h2 id="表记录-数据"><a href="#表记录-数据" class="headerlink" title="表记录(数据)"></a>表记录(数据)</h2><pre><code>1.增加一条记录insert into values  其实可以用逗号分隔一次性插入多条记录。
+    insert into tab_name [(field1,filed2,.......)] values (value1,value2,.......)[,(value1,value2,...)];
+    *values中的数据必须与列的排列位置相对应。
+    *插入空值：不要把该列加入列列表  或  值写为null
+    *如果要插入所有字段可以省写列列表，直接按表中字段顺序写值列表insert into tab_name values(value1,value2,......);
+    *字符和日期型数据应包含在单引号中&apos;zhang&apos; &apos;2013-04-20&apos;
+    *mysql中乱码的原因与解决：
+        客户端发送数据时使用的编码和服务器处理数据时使用的编码不相同
+        show variables like &apos;character%&apos;;可以获得服务器使用的编码。
+        %表示任意个字符，下划线_表示一个字符。 模糊匹配like。
+        解决方法
+                (1)set names xxxx; --- 连接后通知服务器和当前客户端进行交互时使用的编码集（每个客户端连接后都需要设置）
+                (2)修改服务器中的my.ini配置文件，修改服务器默认 认为的客户端的编码
+    *练习：使用insert语句向表中插入四个员工的信息。
+    insert into emp (name,birthday,entry_date,job,salary) values (&apos;张飞&apos;,&apos;1990-09-09&apos;,&apos;2000-01-01&apos;,&apos;打手&apos;,999);
+    insert into emp values (null,&apos;黄忠&apos;,1,&apos;1970-05-05&apos;,&apos;2001-01-01&apos;,&apos;战神&apos;,1000,null);
+    insert into emp (name,birthday,entry_date,job,salary) values (&apos;关羽&apos;,&apos;1989-08-08&apos;,&apos;2000-01-01&apos;,&apos;财神&apos;,9999)
+                                                                    ,(&apos;赵云&apos;,&apos;1991-07-07&apos;,&apos;2000-01-02&apos;,&apos;保安&apos;,888);
+
+2.修改表列记录 update  set
+        update tab_name set field1=expr1 [,field2=expr1] [where 语句]
+        *SET子句指示要修改哪些列和要给予哪些值（可以是表达式，比如field+10，表示增加10）。
+        *WHERE子句指定应更新哪些行。如没有WHERE子句，则更新所有的行。
+    *where字句中可以使用：
+                        *比较运算符：    
+                                    = &gt; &lt; &gt;= &lt;= &lt;&gt;  （不等于是&lt;&gt;,特别注意）
+                                    between 10 and 20 值在10到20之间  
+                                    in(10,20,3)值是10或20或30
+                                    like &apos;张pattern&apos; pattern可以是%或者_，如果是%则表示任意多字符，此例中张三丰 张飞 张abcd ，如果是_则表示一个字符张_，张飞符合。
+                                    is null
+
+                        *逻辑运算符
+                            在多个条件直接可以使用逻辑运算符 and or not
+
+            ~将所有员工薪水修改为5000元。
+                update employee set salary=5000;
+            ~将姓名为’张飞’的员工薪水修改为3000元。
+                update employee set salary=3000 where name = &apos;张飞&apos;;
+            ~将姓名为’关羽’的员工薪水修改为4000元,job改为ccc。
+                update employee set salary=4000,job=&apos;ccc&apos; where name=&apos;关羽&apos;;
+            ~将刘备的薪水在原有基础上增加1000元。    
+                update employee set salary=salary+1000 where name=&apos;刘备&apos;;
+
+
+3.删除表行操作 delete
+        delete from tab_name [where ....]
+        *如果不跟where语句则删除整张表中的数据
+        *delete只能用来删除一行记录，不能值删除一行记录中的某一列值（这是update操作）。
+        *delete是删除表中选中的数据，表还在。删除表要 drop table
+        truncate是删除表中所有数据。直接删除表，然后创建一张结构一样（具有相同列）的新表。这种删除不能在事务中恢复。
+                当删除表中所有数据时，truncate比delete更高效。
+
+        *实验：
+            ~删除表中名称为’张飞’的记录。
+                delete from employee where name=&apos;张飞&apos;;
+            ~删除表中所有记录。
+                delete from employee;
+            ~使用truncate删除表中记录。
+                truncate employee;
+
+
+    4.select操作
+    （1）select [distinct] *|field1 [,field2] from tab_name 其中from指定从哪张表筛选，*表示查找所有列，也可以指定一个列列表明确指定要查找的列，distinct用来剔除重复行。
+                查询表中所有学生的信息。
+                select * from exam;
+                查询表中所有学生的姓名和对应的英语成绩。
+                select name,english from exam;
+                过滤表中重复数据。
+                select distinct english from exam;
+    （2）select 也可以使用表达式，并且可以使用 as 别名 。（as可以省略，直接空格跟别名）
+                在所有学生分数上加10分特长分显示。
+                select name,english+10,chinese+10,math+10 from exam;
+                统计每个学生的总分。
+                select name,english+chinese+math from exam;
+                使用别名表示学生总分。
+                select name,english+chinese+math as 总成绩 from exam;
+                select name,english+chinese+math 总成绩 from exam;
+                select name english from exam;这个很容易出错。其实是省略as的别名。
+    （3）使用where子句，进行过滤查询。
+        实际应用中，where子句都是动态构造的。多条件查询构造sql技巧，where 1=1 and ......
+                 ~查询英语成绩大于90分的同学
+                    select name,english from exam where english &gt; 90;
+                ~查询总分大于230分的所有同学
+                    select name 姓名,english+chinese+math 总成绩 from exam where english+chinese+math&gt;230;
+                ~查询英语分数在 80－100之间的同学。
+                    select * from exam where english between 80 and 100;
+                ~查询数学分数为75,76,77的同学。
+                    select * from exam where math in(75,76,77);
+                ~查询所有姓张的学生成绩。
+                    select * from exam where name like &apos;张%&apos;;
+                    select * from exam where name like &apos;张_&apos;;
+                    select * from exam where name like &apos;张__&apos;;
+                ~查询数学分&gt;70，语文分&gt;80的同学。
+                    select * from exam where math&gt;70 and chinese&gt;80;
+                ~查找缺考数学的学生的姓名
+                    select name from exam where math is null;
+
+    （4）Order by field [asc|desc]按指定列排序，可以是别名。
+                Asc 升序、Desc 降序，其中asc为默认值
+                ORDER BY 子句应位于SELECT语句的结尾。
+            *练习：
+                对数学成绩排序后输出。
+                select * from exam order by math desc;
+                对总分排序按从高到低的顺序输出
+                select name ,(ifnull(math,0)+ifnull(chinese,0)+ifnull(english,0)) 总成绩 from exam order by 总成绩 desc;
+                对姓张的学生成绩排序输出
+                select name ,(ifnull(math,0)+ifnull(chinese,0)+ifnull(english,0)) 总成绩 from exam where name like &apos;张%&apos; order by 总成绩 desc;
+    null和任何数运算结果都为null
+    ifnull(col,0)如果某列的值为null，用0替代
+    （5）聚合函数：技巧,先不要管聚合函数要干嘛，先把要求的内容查出来再包上聚合函数即可。
+            ~1.count(列) -- 统计符合条件的记录共有几条
+                ~统计一个班级共有多少学生？
+                    select count(*) from exam;
+                ~统计数学成绩大于70的学生有多少个？
+                    select count(*) from exam where math&gt;70;
+                ~统计总分大于230的人数有多少？
+                    select count(name) from exam where math+english+chinese&gt;230;
+            ~2.sum(列) --Sum函数返回满足where条件的行的和
+                ~统计一个班级数学总成绩？
+                    select sum(math) from exam;    
+                ~统计一个班级语文、英语、数学各科的总成绩
+                    select sum(chinese),sum(english),sum(math) from exam;
+                ~统计一个班级语文、英语、数学的成绩总和
+                    select sum(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
+                ~统计一个班级语文成绩平均分
+                    select sum(chinese)/count(name) from exam
+            ~3.AVG --函数返回满足where条件的一列的平均值
+                ~求一个班级数学平均分？
+                    select avg(math) from exam;
+                ~求一个班级总分平均分？            
+                select avg(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
+            ~4.MAX/MIN--函数返回满足where条件的一列的最大/最小值    
+                ~求班级最高分和最低分
+                select max(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
+                select min(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
+    (6)分组查询--GROUP BY
+            ~对订单表中商品归类后，显示每一类商品的总价
+                select id,product,sum(price) from orders group by product;
+            ~查询购买了几类商品，并且每类总价大于100的商品
+                select product,sum(price) from orders group by product having sum(price)&gt;100;
+            ~查询单价小于100 但是总价大于100的商品。
+                select product from orders where price&lt;100 group by product having sum(price)&gt;100;
+
+        where 在最前面进行过滤，不能使用别名和聚合函数
+        having 在分组之后进行过滤，可以使用别名和聚合函数,having中用到的列，必须在前面使用过才可以用
+
+    （7）重点：综合运用 Select from where group by having order by 
+                    Mysql在执行sql语句时的执行顺序：from where select group by having order by
+            *分析：        
+                select math+english+chinese as 总成绩 from exam where 总成绩 &gt;250; ---- 不成功
+                select math+english+chinese as 总成绩 from exam having 总成绩 &gt;250; --- 成功
+                select math+english+chinese as 总成绩 from exam group by 总成绩 having 总成绩 &gt;250; ----成功
+                select  math+english+chinese as 总成绩 from exam order by 总成绩;----成功
+                select * from exam as 成绩 where 成绩.math&gt;85; ---- 成功
+</code></pre><hr>
+<h1 id="多表设计-–-外键约束"><a href="#多表设计-–-外键约束" class="headerlink" title="多表设计 – 外键约束"></a>多表设计 – 外键约束</h1><img src="/2018/12/20/数据库/sql/sql使用/外键.png">
+<pre><code>1.创建表时指定约束：foreign key (dept_id) references dept(id)
+        create table dept(
+        id int primary key auto_increment,
+        name varchar(30)
+    );
+    insert into dept values(null,&apos;财务部&apos;);
+    insert into dept values(null,&apos;人事部&apos;);
+    insert into dept values(null,&apos;销售部&apos;);
+    insert into dept values(null,&apos;科技部&apos;);
+
+    create table emp(
+        id int primary key auto_increment,
+        name varchar(30),
+        dept_id int,
+        foreign key (dept_id) references dept(id)
+    );
+    insert into emp values (null,&apos;奥巴马&apos;,1);
+    insert into emp values (null,&apos;乔峰&apos;,2);    
+    insert into emp values (null,&apos;哈利波特&apos;,3);
+    insert into emp values (null,&apos;朴乾&apos;,4);
+    insert into emp values (null,&apos;萨达姆&apos;,4);
+
+
+
+2.外键约束：
+        （1）增加外键：
+            可以明确指定外键的名称，如果不指定外键的名称,mysql会自动为你创建一个外键名称。
+            RESTRICT : 只要本表格里面有指向主表的数据， 在主表里面就无法删除相关记录。
+            CASCADE : 如果在foreign key 所指向的那个表里面删除一条记录，那么在此表里面的跟那个key一样的所有记录都会一同删掉。
+            alter table book add [constraint FK_BOOK] foreign key(pubid) references pub_com(id) [on delete restrict] [on update restrict];
+
+        （2）删除外键
+            alter table 表名 drop foreign key 外键（区分大小写，外键名可以desc 表名查看）;
+
+
+3.主键约束：
+        （1）增加主键（自动增长，只有主键可以自动增长）primary key(id)
+            Alter table tb add primary key(id) [auto_increment];
+        （2）删除主键
+            alter table 表名 drop primary key
+        （3）增加自动增长
+            Alter table employee modify id int auto_increment;
+        （4）删除自动增长
+            Alter table tb modify id int;        
+</code></pre><hr>
+<h1 id="多表设计"><a href="#多表设计" class="headerlink" title="多表设计"></a>多表设计</h1><img src="/2018/12/20/数据库/sql/sql使用/多表设计.png">
+<pre><code>一对一（311教室和20130405班级，两方都是一）:在任意一方保存另一方的主键
+一对多、多对一（班级和学生，其中班级为1，学生为多）：在多的一方保存一的一方的主键
+多对多（教师和学生，两方都是多）：使用中间表，保存对应关系
+
+        create table orderitem(
+            order_id varchar(100),
+            product_id varchar(100),
+            buynum int ,
+            primary key(order_id,product_id), #联合主键,两列的值加在一起作为这张表的主键使用
+            foreign key(order_id) references orders(id),
+            foreign key(product_id) references products(id)
+        );
+</code></pre><hr>
+<h1 id="多表查询"><a href="#多表查询" class="headerlink" title="多表查询"></a>多表查询</h1><pre><code>create table dept(
+        id int primary key auto_increment,
+        name varchar(30)
+    );
+    insert into dept values(null,&apos;caiwu&apos;);
+    insert into dept values(null,&apos;renshi&apos;);
+    insert into dept values(null,&apos;xingzheng&apos;);
+
+    create table emp(
+        id int primary key auto_increment,
+        name varchar(30),
+        dept_id int
+    );
+    insert into emp values (null,&apos;cw&apos;,1);
+    insert into emp values (null,&apos;rs&apos;,2);    
+    insert into emp values (null,&apos;xx&apos;,5);
+
+
+mysql&gt; select * from dept;
+    +----+-----------+
+    | id | name      |
+    +----+-----------+
+    |  1 | caiwu     |
+    |  2 | renshi    |
+    |  3 | xingzheng |
+mysql&gt; select * from emp;
+    +----+------+---------+
+    | id | name | dept_id |
+    +----+------+---------+
+    |  1 | cw   |       1 |
+    |  2 | rs   |       2 |
+    |  3 | xx   |       5 |
+    +----+------+---------+
+
+1.笛卡尔积查询：两张表中一条一条对应的记录，m条记录和n条记录查询，最后得到m*n条记录，其中很多错误数据
+    select * from dept,emp;
+
+    mysql&gt; select * from dept,emp;
+            +----+-----------+----+------+---------+
+            | id | name      | id | name | dept_id |
+            +----+-----------+----+------+---------+
+            |  1 | caiwu     |  1 | cw   |       1 |
+            |  2 | renshi    |  1 | cw   |       1 |
+            |  3 | xingzheng |  1 | cw   |       1 |
+            |  1 | caiwu     |  2 | rs   |       2 |
+            |  2 | renshi    |  2 | rs   |       2 |
+            |  3 | xingzheng |  2 | rs   |       2 |
+            |  1 | caiwu     |  3 | xx   |       5 |
+            |  2 | renshi    |  3 | xx   |       5 |
+            |  3 | xingzheng |  3 | xx   |       5 |
+            +----+-----------+----+------+---------+
+2.内连接：查询两张表中都有的关联数据,相当于利用条件从笛卡尔积结果中筛选出了正确的结果。
+inner join on
+    select * from dept,emp            where dept.id=emp.dept_id;
+    select * from dept inner join emp on dept.id=emp.dept_id;
+
+    mysql&gt; select * from dept,emp where dept.id=emp.dept_id;
+            +----+--------+----+------+---------+
+            | id | name   | id | name | dept_id |
+            +----+--------+----+------+---------+
+            |  1 | caiwu  |  1 | cw   |       1 |
+            |  2 | renshi |  2 | rs   |       2 |
+    mysql&gt; select * from dept inner join emp on dept.id=emp.dept_id;
+            +----+--------+----+------+---------+
+            | id | name   | id | name | dept_id |
+            +----+--------+----+------+---------+
+            |  1 | caiwu  |  1 | cw   |       1 |
+            |  2 | renshi |  2 | rs   |       2 |
+            +----+--------+----+------+---------+
+3.外连接
+    （1）左外连接：在内连接的基础上增加左边有右边没有的结果
+    left join on
+                mysql&gt; select * from dept left join emp on dept.id=emp.dept_id;
+                        +----+-----------+------+------+---------+
+                        | id | name      | id   | name | dept_id |
+                        +----+-----------+------+------+---------+
+                        |  1 | caiwu     |    1 | cw   |       1 |
+                        |  2 | renshi    |    2 | rs   |       2 |
+                        |  3 | xingzheng | NULL | NULL |    NULL |
+                        +----+-----------+------+------+---------+
+    （2）右外连接：在内连接的基础上增加右边有左边没有的结果
+    right join on
+                mysql&gt; select * from dept right join emp on dept.id=emp.dept_id;
+                        +------+--------+----+------+---------+
+                        | id   | name   | id | name | dept_id |
+                        +------+--------+----+------+---------+
+                        |    1 | caiwu  |  1 | cw   |       1 |
+                        |    2 | renshi |  2 | rs   |       2 |
+                        | NULL | NULL   |  3 | xx   |       5 |
+                        +------+--------+----+------+---------+
+
+    （3）全外连接：在内连接的基础上增加左边有右边没有的和右边有左边没有的结果
+    full join on  --mysql不支持全外连接
+        left join on
+        union
+        right join on ;--mysql可以使用此种方式间接实现全外连接
+
+        mysql&gt; select * from dept left join emp on dept.id=emp.dept_id
+            -&gt; union
+            -&gt; select * from dept right join emp on dept.id=emp.dept_id;
+                +------+-----------+------+------+---------+
+                | id   | name      | id   | name | dept_id |
+                +------+-----------+------+------+---------+
+                |    1 | caiwu     |    1 | cw   |       1 |
+                |    2 | renshi    |    2 | rs   |       2 |
+                |    3 | xingzheng | NULL | NULL |    NULL |
+                | NULL | NULL      |    3 | xx   |       5 |
+                +------+-----------+------+------+---------+
+</code></pre><h1 id="分页查询-limit"><a href="#分页查询-limit" class="headerlink" title="分页查询 limit"></a>分页查询 limit</h1><pre><code>逻辑分页：检索出所有数据存到集合中，需要时从集合中拿
+    优点：一次查询，多次使用。减少数据库访问
+    缺点：数据过大占内存，数据更新有延迟
+物理分页：只检索需要的数据
+            不同数据库有不同的物理分页指令，mysql是limit startIndex,count （索引编号从0开始）
+                    select * from customer limit 0,1; 从表中第一条数据开始取一条记录。
+</code></pre><h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><pre><code>    create user estore identified by &apos;estore&apos;;
+授权：
+    grant all on estore.* to estore;
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/常见开源许可证差异/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/电脑使用/常见开源许可证差异/" itemprop="url">常见开源许可证差异</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T10:47:53+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <img src="/2018/12/20/电脑使用/常见开源许可证差异/1.png">
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/mac/vmware10 安装mac10.9系统/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/电脑使用/mac/vmware10 安装mac10.9系统/" itemprop="url">VMware10安装Mac10.9系统</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T10:46:53+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="vmware10-安装mac10-9系统"><a href="#vmware10-安装mac10-9系统" class="headerlink" title="vmware10 安装mac10.9系统"></a>vmware10 安装mac10.9系统</h2><p>开始下载了一个mac10.10 的iso格式镜像，发现vmware10最高支持mac10.9，强装也是失败。</p>
+<pre><code>超详细VMware Workstation 10安装OS X Mavericks http://www.oschina.net/question/1039213_158319?fromerr=KYsGXefA
+</code></pre><p>一路下一步，选择磁盘步骤，点击mac的磁盘工具，选择磁盘，分区，完毕，退出磁盘工具，选择刚才分区的磁盘，下一步。</p>
+<p>键盘布局选择 中文-简体</p>
+<p>传输信息到这台mac 选择 不传输任何信息</p>
+<p>Apple id登录 选择 不登录跳过</p>
+<h2 id="安装darwin6-iso-实现拖拽文件和自动适应分辨率"><a href="#安装darwin6-iso-实现拖拽文件和自动适应分辨率" class="headerlink" title="安装darwin6.iso 实现拖拽文件和自动适应分辨率"></a>安装darwin6.iso 实现拖拽文件和自动适应分辨率</h2><p>关机，虚拟机–cd/dvd–设置 选择 D:\down\darwin6.iso</p>
+<p>开机，桌面双击 VMware tools，安装</p>
+<h2 id="VMsvga2-v1-2-5-OS-10-6-10-8-pkg-的作用："><a href="#VMsvga2-v1-2-5-OS-10-6-10-8-pkg-的作用：" class="headerlink" title="VMsvga2_v1.2.5_OS_10.6-10.8.pkg 的作用："></a>VMsvga2_v1.2.5_OS_10.6-10.8.pkg 的作用：</h2><p>要观看优酷之类在线视频或玩小游戏得安装vm显卡驱动VMsvga2_Docs</p>
+<p>安装此驱动会出现不能自动适应分辨率 ，分辨率 要手动调整</p>
+<p>但显示dock图标滑动比较流畅</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/kali无法识别BCM43XX系列无线网卡/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/kali无法识别BCM43XX系列无线网卡/" itemprop="url">kali无法识别BCM43XX系列无线网卡</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:13:53+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>打开终端，输入<br>cat /etc/apt/sources.list</p>
+<p>看看里面有没有一下三行kali官方源的地址（如果是断网安装，kali的默认源可能不会写入到这个文件里），<br>如果没有，请在/etc/apt/sources.list中入这三行。<br>deb <a href="http://http.kali.org/kali" target="_blank" rel="noopener">http://http.kali.org/kali</a> kali main non-free contrib<br>deb-src <a href="http://http.kali.org/kali" target="_blank" rel="noopener">http://http.kali.org/kali</a> kali main non-free contrib<br>deb <a href="http://security.kali.org/kali-security" target="_blank" rel="noopener">http://security.kali.org/kali-security</a> kali/updates main contrib non-free</p>
+<p>加入之后就可以对整个系统进行更新了，终端中输入：<br>apt-get update &amp;&amp; apt-get dist-upgrade</p>
+<p>解决kali无法识别BCM43XX系列无线网卡问题（我的博通 BCM 4312）<br>安装BCM43XX系列无线网卡驱动：<br>aptitude update &amp;&amp; aptitude install wireless-toolsaptitude install firmware-b43-lpphy-installer<br>完成之后注销或者重启电脑，<br>在终端中输入 iwconfig 即可看到无线网卡已经识别</p>
+<p>关于BCM43XX系列的无线网卡驱动请参考Debian官方文档：<br><a href="http://wiki.debian.org/bcm43xx" target="_blank" rel="noopener">http://wiki.debian.org/bcm43xx</a><br>老的博通系列网卡可能需要 firmware-b43legacy-installer 安装包</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ettercap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ettercap/" itemprop="url">Kali ettercap</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:12:53+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="ettercap"><a href="#ettercap" class="headerlink" title="ettercap"></a>ettercap</h1><p>开源的嗅探工具，中间人攻击工具：ARP欺骗，DNS欺骗，劫持，Dos攻击工具</p>
+<p>有GUI</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ferret和hamster劫持登录会话/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ferret和hamster劫持登录会话/" itemprop="url">Kali ferret和hamster劫持登录会话</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:12:53+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>ferret    英[ˈferɪt] n.    雪貂，白鼬; （经常性的） 搜索者，侦探; 细丝（带）;</p>
+<p>hamster    英[ˈhæmstə(r)] n.    &lt;动&gt;仓鼠;</p>
+<p>ferret 分析登录数据(包括tcpdump/wireshark封包数据，以及实时数据)</p>
+<p>hamster 重放登录请求</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/Dsniff工具集/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/Dsniff工具集/" itemprop="url">Kali Dsniff工具集</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:11:53+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>Dsniff工具集</p>
+<p>嗅探工具，中间人攻击工具：ARP欺骗，DNS欺骗，劫持</p>
+<pre><code>arpspoof
+dnsspoof
+driftnet
+Msgsnarf
+Urlsnarf
+Mailsnarf
+Filesnarf
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ARP欺骗/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -544,1529 +2499,11 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/中间人攻击/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/中间人攻击/" itemprop="url">Kali中间人攻击</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:09:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><strong>中间人攻击，Man-in-the-Middle Attack，简称“MITM攻击”</strong></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/ubuntu创建应用快捷方式/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/ubuntu创建应用快捷方式/" itemprop="url">Ubuntu创建应用快捷方式</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:07:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>sudo vim /usr/share/applications/Studio.desktop
-</code></pre><p>内容如下：</p>
-<pre><code>[Desktop Entry]
-Name = Studio
-Comment= android studio
-Exec=/home/lyg/android-studio/bin/studio.sh //应用路径
-Icon=/home/lyg/android-studio/bin/studio.png //图标路径
-Terminal=false
-Type=Application
-</code></pre><p><strong>特别注意：</strong></p>
-<ul>
-<li>文件内容每行都不允许有空格<ul>
-<li>有空格不是有效的桌面快捷方式<ul>
-<li>双击，会报 <code>应用启动出错</code></li>
-<li>软件中心找不到该快捷方式</li>
-<li>无法拖到Laugh，拖过去会回弹</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/ubuntu常见错误/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/ubuntu常见错误/" itemprop="url">Ubuntu常见错误</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:07:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="sudo-apt-update-无法获得锁"><a href="#sudo-apt-update-无法获得锁" class="headerlink" title="sudo apt update 无法获得锁"></a><code>sudo apt update</code> 无法获得锁</h1><ul>
-<li><p>错误：</p>
-<ul>
-<li>无法获得锁 <code>/var/lib/dpkg/lock 资源暂时不可用.</code></li>
-</ul>
-</li>
-<li><p><strong>原因：</strong></p>
-<ul>
-<li><ol>
-<li>其他窗口在使用资源，正在进行更新</li>
-</ol>
-</li>
-<li><ol start="2">
-<li>软件中心正在安装</li>
-</ol>
-</li>
-<li><ol start="3">
-<li>某些软件异常终结。比如上次更新某个软件异常错误或强制退出</li>
-</ol>
-</li>
-</ul>
-</li>
-<li><p><strong>解决方案：</strong></p>
-<ul>
-<li>关闭其他使用资源的窗口</li>
-<li>等待其他软件安装完毕</li>
-<li><p>删除锁</p>
-<p>  sudo rm   /var/lib/dpkg/lock<br>  sudo dpkg –configure -a //重新进行配置设置<br>  sudo apt update</p>
-</li>
-</ul>
-</li>
-</ul>
-<h1 id="sudo-dpkg-configure-a-config-dat被锁"><a href="#sudo-dpkg-configure-a-config-dat被锁" class="headerlink" title="sudo dpkg --configure -a config.dat被锁"></a><code>sudo dpkg --configure -a</code> config.dat被锁</h1><ul>
-<li><p><strong>错误：</strong></p>
-<pre><code>debconf: DbDriver &quot;config&quot;: /var/cache/debconf/config.dat is locked by another process: Resource temporarily unavailable
-</code></pre></li>
-<li><p><strong>解决方案：</strong></p>
-<pre><code>sudo lsof /var/cache/debconf/config.dat
-
-lsof: WARNING: can&apos;t stat() fuse.gvfsd-fuse file system /run/user/1000/gvfs
-  Output information may be incomplete.
-COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF    NODE NAME
-frontend 8149 root    4uW  REG    8,6    49446 4070702 /var/cache/debconf/config.dat
-
-sudo kill 8149
-</code></pre></li>
-</ul>
-<h1 id="sudo-source-etc-profile-找不到source命令"><a href="#sudo-source-etc-profile-找不到source命令" class="headerlink" title="sudo source /etc/profile 找不到source命令"></a><code>sudo source /etc/profile</code> 找不到source命令</h1><p>用su直接切换到root，再执行</p>
-<pre><code>source /etc/profile
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/ubuntu驱动/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/ubuntu驱动/" itemprop="url">Ubuntu驱动</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:07:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="是否已经成功安装显卡驱动"><a href="#是否已经成功安装显卡驱动" class="headerlink" title="是否已经成功安装显卡驱动"></a>是否已经成功安装显卡驱动</h1><pre><code>sudo apt-get install mesa-utils  //安装mesa-utils
-glxinfo | grep rendering
-如果结果是“yes”，证明显卡 驱动已经成功安装。
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/linux系统管理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/linux系统管理/" itemprop="url">Linux系统管理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:05:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <ol>
-<li>查看当前日历 cal</li>
-<li>显示/设置时间 date</li>
-<li>当前进程快照 ps report a snapshot of the current processes</li>
-<li>动态显示进程 top display Linux processes</li>
-<li>终止进程 kill</li>
-<li>关机重启 reboot、shutdown、init</li>
-<li>检测磁盘空间 df report file system disk space usage</li>
-<li>文件/文件夹占用磁盘空间 estimate file space usage</li>
-<li>查看/配置网卡信息 ifconfig network interface configure</li>
-<li>测试远程主机连通性 ping </li>
-<li>创建/更新用户 useradd create a new user or update default new user information</li>
-<li>查看所用用户 cat /etc/passwd</li>
-<li>passwd - change user password</li>
-<li>userdel - delete a user account and related files</li>
-<li>groupadd - create a new group</li>
-<li>查看所有用户组 cat /etc/group 或 groupmod连按两次tab</li>
-<li>usermod - modify a user account</li>
-<li>groupmod - modify a group definition on the system</li>
-<li>su - change user ID or become superuser</li>
-<li>exit - cause normal process termination</li>
-<li>ssh — OpenSSH SSH client (remote login program)</li>
-<li>whoami - print effective userid</li>
-</ol>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Linux U盘启动制作/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Linux U盘启动制作/" itemprop="url">Linux U盘启动制作</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T08:58:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="启动盘制作工具"><a href="#启动盘制作工具" class="headerlink" title="启动盘制作工具"></a>启动盘制作工具</h1><p>主要的功能就是将系统ISO写到U盘</p>
-<p><strong>Universal-USB-Installer</strong></p>
-<p><strong>Unetbootin</strong></p>
-<p>将Liux操作系统ISO写到U盘</p>
-<p>有Windows版和Linux版</p>
-<p>Unetbootin-windows</p>
-<p><strong>ULtraISO</strong></p>
-<p>还能修复MBR。有些U盘无法启动(黑屏光标一闪一闪)就是因为MBR问题</p>
-<p><strong>Win32 Disk Imager</strong></p>
-<p>Windows平台兼容性更强。</p>
-<p>Kali 2.17.3 镜像用ULtraISO写到U盘在一台计算机上能启动，在另外一台计算机启动报 <code>Failed to load ldlinux.c32</code> 错误</p>
-<h1 id="制作方法"><a href="#制作方法" class="headerlink" title="制作方法"></a>制作方法</h1><p>CDlinux 为例，Ubuntu，Kali 都一样</p>
-<p>需要的软件有：ULtraISO, Unetbootin-windows-latest</p>
-<p>需要的硬件有: 一个1GB以上的U盘，（先格式化为F32格式))，并检测是否带有MBR扇区（没有则无法启动）</p>
-<p>需要的镜像有：CDlinux0.9.7.1_SSE.ISO</p>
-<ol>
-<li>FAT32格式化U盘，快速格式化。</li>
-<li>写入CDlinux ISO 到U盘<ol>
-<li>启动Unetbootin-windows-latest</li>
-<li>磁盘镜像选择CDlinux ISO文件</li>
-<li>驱动器选择U盘。</li>
-<li>点击确定按钮就开始制作。</li>
-<li>制作完成，选择“退出”按钮</li>
-</ol>
-</li>
-<li><p>配置 syslinux.cfg文件(非必须)</p>
-<pre><code>default vesamenu.c32
-prompt 0
-menu title Please select the startup mode--Jack
-timeout 100
-
-label unetbootindefault
-menu label Default Chinese
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=zh_CN.UTF-8
-
-label unetbootindefault
-menu label Default No Parameters Mode
-kernel /ubnkern
-append initrd=/ubninit 
-
-label ubnentry0
-menu label Safe Graphics Mode
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_SAFEG=yes
-
-label ubnentry1
-menu label (de_DE) Deutsch
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=de_DE.UTF-8
-
-label ubnentry2
-menu label (en_CA) English
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=en_CA.UTF-8
-
-label ubnentry3
-menu label (en_GB) English
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=en_GB.UTF-8
-
-label ubnentry4
-menu label (en_US) English
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=en_US.UTF-8
-
-label ubnentry5
-menu label (fr_CA) French
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=fr_CA.UTF-8
-
-label ubnentry6
-menu label (fr_CH) French
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=fr_CH.UTF-8
-
-label ubnentry7
-menu label (fr_FR) French
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=fr_FR.UTF-8
-
-label ubnentry8
-menu label (ja_JP) Japanese
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=ja_JP.UTF-8
-
-label ubnentry9
-menu label (ko_KR) Korean
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=ko_KR.UTF-8
-
-label ubnentry10
-menu label (ru_RU) Russian
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=ru_RU.UTF-8
-
-label ubnentry11
-menu label (zh_CN) Chinese
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=zh_CN.UTF-8
-
-label ubnentry12
-menu label (zh_TW) Chinese
-kernel /CDlinux/bzImage
-append initrd=/CDlinux/initrd quiet CDL_LANG=zh_TW.UTF-8
-
-label ubnentry13
-menu label MemTest86+:  a thorough, stand alone memory tester for x86
-kernel /CDlinux/boot/memtest.bin.gz
-append initrd=/ubninit
-</code></pre></li>
-<li><p>写入 MBR扇区((非必须))</p>
-<p> 没有MBR扇区就无法启动。启动后黑屏，只有一个光标在最左上角一闪一闪</p>
-<p> UltraISO V9.2起包含制作启动U盘的功能</p>
-<ol>
-<li>打开ULtraISO软件</li>
-<li>点击“启动”菜单，选择“写入硬盘镜像…”</li>
-<li>硬盘驱动器选择U盘的盘符</li>
-<li>点击便捷启动–&gt;写入新的硬盘主引导记录(MBR)–&gt;USB-HDD+</li>
-</ol>
-</li>
-</ol>
-<p>5.重启电脑，选择USB启动</p>
-<h1 id="隐藏U盘的CDLinux系统"><a href="#隐藏U盘的CDLinux系统" class="headerlink" title="隐藏U盘的CDLinux系统"></a>隐藏U盘的CDLinux系统</h1><h2 id="文件属性设置为隐藏"><a href="#文件属性设置为隐藏" class="headerlink" title="文件属性设置为隐藏"></a>文件属性设置为隐藏</h2><p>制作完启动盘后,把所有的CDLinux文件属性设置为隐藏掉</p>
-<h2 id="制作一个隐藏分区，把CDLinux装在隐藏分区中"><a href="#制作一个隐藏分区，把CDLinux装在隐藏分区中" class="headerlink" title="制作一个隐藏分区，把CDLinux装在隐藏分区中"></a>制作一个隐藏分区，把CDLinux装在隐藏分区中</h2><p>想法是这样的：</p>
-<ul>
-<li>用ULtraISO制作U盘启动CDLinux，ULtraISO只是机械的把CDlinux0.9.7.1_SSE.iso中的文件拷贝到U盘里，并没有产生其他的文件</li>
-<li>利用这个功能，把可以正常启动进入CDLinux的U盘，重新刻录到U盘</li>
-</ul>
-<p>制作步骤：</p>
-<ul>
-<li>使用ULtraISO把我们已经制作成功的启动CDLinuxU盘所有文件，制作成一个ISO文件</li>
-<li>用ULtraISO把这个ISO文件写入到U盘的隐藏分区<ul>
-<li>点击“启动”菜单，选择“写入硬盘镜像…”</li>
-<li>选择硬盘驱动器和映像文件</li>
-<li>在隐藏启动分区选择“隐藏”</li>
-<li>点击“格式化”选择格式化保证U盘比较干净</li>
-<li>点击“写入”按钮</li>
-<li>等待完成并退出。再次重启，可以正常启动进入CDLinux系统</li>
-</ul>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Linux文件系统/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Linux文件系统/" itemprop="url">Linux文件系统</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T08:58:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="一、linux版本"><a href="#一、linux版本" class="headerlink" title="一、linux版本"></a>一、linux版本</h1><img src="/2018/12/20/电脑使用/linux/Linux文件系统/linux-1.jpg">
-<img src="/2018/12/20/电脑使用/linux/Linux文件系统/linux-2.jpg">
-<h1 id="二、-类Unix系统目录结构"><a href="#二、-类Unix系统目录结构" class="headerlink" title="二、 类Unix系统目录结构"></a><a href="http://www.ruanyifeng.com/blog/2012/02/a_history_of_unix_directory_structure.html" target="_blank" rel="noopener">二、 类Unix系统目录结构</a></h1><p><img src="http://image.beekka.com/blog/201202/bg2012020601.jpg" alt=""></p>
-<h2 id="目录结构的来历"><a href="#目录结构的来历" class="headerlink" title="目录结构的来历"></a>目录结构的来历</h2><p><strong>规定</strong></p>
-<ul>
-<li>第一块盘，专门放系统程序，挂载的目录点为根目录<strong>“/“</strong>（<strong>斜杠</strong>）</li>
-<li>第二块盘，专门放用户自己的程序，挂载的目录点取名为/usr。<ul>
-<li>两块盘的目录结构完全相同</li>
-<li>第一块盘的目录（/bin, /sbin, /lib, /tmp…）都在/usr目录下重新出现一次。</li>
-</ul>
-</li>
-<li>第三块盘，用于存放用户的数据，挂载的目录点取名为/home</li>
-</ul>
-<p>这种目录结构就延续了下来。随着硬盘容量越来越大，各个目录的含义进一步得到明确</p>
-<ul>
-<li><code>/</code>：存放系统程序，也就是At&amp;t开发的Unix程序。</li>
-<li><code>/usr</code>：存放Unix系统商（比如IBM和HP）开发的程序。</li>
-<li><code>/usr/local</code>：存放用户自己安装的程序。</li>
-<li><code>/opt</code>：在某些系统，用于存放第三方厂商开发的程序，所以取名为option，意为”选装”。</li>
-</ul>
-<h2 id="用户目录"><a href="#用户目录" class="headerlink" title="用户目录"></a>用户目录</h2><pre><code>/home/user
-~
-</code></pre><h2 id="上一目录"><a href="#上一目录" class="headerlink" title="上一目录"></a>上一目录</h2><pre><code>- 上一目录。最近一次切换目录之前的目录
-</code></pre><h2 id="相对路径、绝对路径"><a href="#相对路径、绝对路径" class="headerlink" title="相对路径、绝对路径"></a>相对路径、绝对路径</h2><p>绝对路径： /home</p>
-<p>相对路径： <code>. 当前目录</code> <code>.. 父目录</code></p>
-<h1 id="常用的linux文件权限："><a href="#常用的linux文件权限：" class="headerlink" title="常用的linux文件权限："></a>常用的linux文件权限：</h1><pre><code>444 r--r--r--
-600 rw-------
-644 rw-r--r--
-666 rw-rw-rw-
-700 rwx------
-744 rwxr--r--
-755 rwxr-xr-x
-777 rwxrwxrwx
-</code></pre><h2 id="文件和文件夹"><a href="#文件和文件夹" class="headerlink" title="文件和文件夹"></a>文件和文件夹</h2><pre><code>drwxr-xr-x d表示文件夹（ubuntu用绿色字体展示文件夹名）
--rwxr-xr-x -表示文件（ubuntu用白色字体展示文件名）
-</code></pre><h2 id="文件所有者、用户组、其他用户"><a href="#文件所有者、用户组、其他用户" class="headerlink" title="文件所有者、用户组、其他用户"></a>文件所有者、用户组、其他用户</h2><p>从左至右，1-3位数字代表文件所有者的权限，4-6位数字代表同组用户的权限，7-9数字代表其他用户的权限。</p>
-<h2 id="权限值"><a href="#权限值" class="headerlink" title="权限值"></a>权限值</h2><p>读取的权限等于4，用r表示；写入的权限等于2，用w表示；执行的权限等于1，用x表示；</p>
-<p><strong>通过4、2、1的组合，得到以下几种权限：</strong></p>
-<pre><code>0（没有权限）；
-4（读取权限）；
-5（4+1 | 读取+执行）；
-6（4+2 | 读取+写入）；
-7（4+2+1 | 读取+写入+执行）
-</code></pre><p>以755为例：</p>
-<pre><code>1-3位7等于4+2+1，rwx，所有者具有读取、写入、执行权限；
-4-6位5等于4+1+0，r-x，同组用户具有读取、执行权限但没有写入权限；
-7-9位5，同上，也是r-x，其他用户具有读取、执行权限但没有写入权限。
-</code></pre><h2 id="chmod语法"><a href="#chmod语法" class="headerlink" title="chmod语法"></a>chmod语法</h2><p><strong>语法为：chmod abc file</strong></p>
-<p>其中a,b,c各为一个数字，分别表示User、Group、及Other的权限（对应u,g,o，a表示三者一起设置）。</p>
-<pre><code>r=4，w=2，x=1
-若要rwx属性则4+2+1=7；
-若要rw-属性则4+2=6；
-若要r-x属性则4+1=7。
-</code></pre><p>范例：</p>
-<pre><code>chmod a=rwx file 
-和
-chmod 777 file 
-效果相同
-
-chmod ug=rwx,o=x file 
-和
-chmod 771 file 
-效果相同
-
-若用chmod 4755 filename可使此程序具有root的权限
-</code></pre><h1 id="三、-ubuntu-设置终端文字大小"><a href="#三、-ubuntu-设置终端文字大小" class="headerlink" title="三、 ubuntu 设置终端文字大小"></a>三、 ubuntu 设置终端文字大小</h1><pre><code>调大： ctr + shift + +
-调小： ctr + -
-</code></pre><h1 id="终端命令技巧"><a href="#终端命令技巧" class="headerlink" title="终端命令技巧"></a>终端命令技巧</h1><ul>
-<li><p>输出命令帮助</p>
-<pre><code>命令 -- help
-man 命令
-    man后可以跟手册名指定要查阅的手册
-</code></pre></li>
-<li><p>自动补全功能</p>
-<pre><code>Tab键 自动补全功能
-    按一次tab，当前输入自动补全具唯一性，自动补全
-            不具唯一性，没有反应
-    连按两次tab，提示自动补全的候选项
-</code></pre></li>
-<li><p>历史命令</p>
-<pre><code>上下键 选中历史命令
-history 列出所有执行过的命令
-</code></pre></li>
-<li><p>多参</p>
-<pre><code>多参数可以只写一个 - 
-</code></pre></li>
-<li><p>查看命令位置</p>
-<pre><code>which 命令
-</code></pre></li>
-</ul>
-<h1 id="四、-文件操作命令"><a href="#四、-文件操作命令" class="headerlink" title="四、 文件操作命令"></a>四、 文件操作命令</h1><pre><code>ls 列出目录显式（非隐藏）文件/文件夹名称。list directory contents
-    ls -l 列出目录显式（非隐藏）文件/文件夹属性
-    ls - alh 列出目录所有文件/文件夹属性，文件大小格式化输出
-ll 列出当前目录所有文件/文件夹属性
-pwd 显示当前路径 print name of current/working directory
-cd 跳转目录
-clear 清空屏幕。 其实是假操作，往上翻还是能找到之前的记录
-touch 更新文件时间戳，不存在则创建新文件 change file timestamps
-cat 阅读/连接文件 concatenate files and print on the standard output
-more 分屏显示文件 file perusal filter for crt viewing 
-gpedit 编辑文件
-mkdir 创建目录 make directories
-rmdir 移除空目录 remove empty directories
-rm 删除文件/文件夹 remove files or directories
-    -r, -R, --recursive
-          remove directories and their contents recursively
-    -f, --force
-          ignore nonexistent files and arguments, never prompt
-grep [-选项] &apos;搜索内容&apos; 文件名 搜索文件内容
-find 查找文件 search for files in a directory hierarchy
-cp 拷贝文件/文件夹 copy files and directories
-mv 移动/重命名文件 move (rename) files
-tar tar归档工具 The GNU version of the tar archiving utility
-gzip 解压/压缩 compress or expand files
-bzip2
-zip、unzip
-chmod 修改文件权限
-chown 修改文件所有者
-chgrp 修改文件所属组
-</code></pre><h1 id="五、-输出重定向"><a href="#五、-输出重定向" class="headerlink" title="五、 输出重定向"></a>五、 输出重定向</h1><pre><code>&gt; 重定向（覆盖已有内容）
-&gt;&gt; 追加方式重定向
-</code></pre><h1 id="六、-管道"><a href="#六、-管道" class="headerlink" title="六、 管道"></a>六、 管道</h1><pre><code>| 一个命令的输出通过管道作为后一个命令的输入
-</code></pre><h1 id="七、-链接文件"><a href="#七、-链接文件" class="headerlink" title="七、 链接文件"></a>七、 链接文件</h1><p>硬链接：其实相当于复制源文件，只能链接文件。默认链接方式<br><br>软链接：不占磁盘空间，源文件删除则软链接失效。</p>
-<ul>
-<li><p>如果软链接文件与源文件不同目录，源文件必须用绝对路径</p>
-<p>  ln -s 源文件 链接文件</p>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Linux的su和su -/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Linux的su和su -/" itemprop="url">Linux的su和su -</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T08:58:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="su命令和su-作用"><a href="#su命令和su-作用" class="headerlink" title="su命令和su - 作用"></a>su命令和su - 作用</h2><p>切换用户。切换到root用户可以省略用户名</p>
-<h2 id="su命令和su-命令-区别"><a href="#su命令和su-命令-区别" class="headerlink" title="su命令和su -命令 区别"></a>su命令和su -命令 区别</h2><p>是否改变 <code>shell</code> <code>工作目录</code> <code>环境变量</code></p>
-<h3 id="su"><a href="#su" class="headerlink" title="su"></a>su</h3><p><code>shell</code> 未切换，原来用户（默认普通用户登录）</p>
-<p><code>工作目录</code> 未切换，原来用户（默认普通用户登录）</p>
-<p><code>环境变</code> 未切换，原来用户（默认普通用户登录）</p>
-<pre><code>wina66@ubuntu:~$ su
-Password: 
-root@ubuntu:/home/wina66# pwd
-/home/wina66
-root@ubuntu:/home/wina66# echo $PATH
-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
-root@ubuntu:/home/wina66# 
-</code></pre><h3 id="su-1"><a href="#su-1" class="headerlink" title="su -"></a>su -</h3><p><code>shell</code> 切换，新用户（默认普通用户登录）</p>
-<p><code>工作目录</code> 切换，新用户（默认普通用户登录）</p>
-<p><code>环境变</code> 切换，新用户（默认普通用户登录）</p>
-<pre><code>wina66@ubuntu:~$ su -
-Password: 
-root@ubuntu:~# pwd
-/root
-root@ubuntu:~# echo $PATH
-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
-root@ubuntu:~# 
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/8/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/10/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/8/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/10/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2116,7 +2553,7 @@ root@ubuntu:~#
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">187</span>
+                  <span class="site-state-item-count">195</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2127,7 +2564,7 @@ root@ubuntu:~#
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2138,7 +2575,7 @@ root@ubuntu:~#
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">59</span>
+                  <span class="site-state-item-count">60</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

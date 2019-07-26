@@ -262,6 +262,1514 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/enum 使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/enum 使用/" itemprop="url">enum使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:46:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="emun也是class"><a href="#emun也是class" class="headerlink" title="emun也是class"></a>emun也是class</h2><p>经过反编译知道，enum也是被编译成了一个class文件。</p>
+<pre><code>public final class RoomType extends java.lang.Enum{ }
+</code></pre><p>如果命名意义明确，enum可以单独作为一个类。</p>
+<h2 id="枚举项的值默认为从0开始递增的int值"><a href="#枚举项的值默认为从0开始递增的int值" class="headerlink" title="枚举项的值默认为从0开始递增的int值"></a>枚举项的值默认为从0开始递增的int值</h2><pre><code>enum MyEnum{
+    FIRST_ELEMENT,
+    SECOND_ELEMENT,
+}
+ordinal()返回值的序列号，从0开始
+</code></pre><h2 id="自定义枚举项的值"><a href="#自定义枚举项的值" class="headerlink" title="自定义枚举项的值"></a>自定义枚举项的值</h2><pre><code>enum FruitEnum {
+    APPLE(1), ORANGE(2); //调用构造函数来构造枚举项
+
+    private int value = 0;
+
+    private FruitEnum(int value) { //必须是private的构造方法，否则编译错误
+        this.value = value;
+    }
+
+    public static FruitEnum valueOf(int value) { //值(这里是int，可以使string等)到enum的转换函数
+        switch (value) {
+        case 1:
+            return APPLE;
+        case 2:
+            return ORANGE;
+        default:
+            return null;
+        }
+    }
+
+    public int value() { //enum到值的转换函数
+        return this.value;
+    }
+}
+
+如果是int到enum自然排序转换，还可以调用values()(系统api，返回enum数组)
+public enum RoomType {
+    Single(&quot;single&quot;), Group(&quot;group&quot;);
+
+    String value;
+
+    RoomType(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public static RoomType fromInt(int i) {//参数只能是索引
+        return values()[i];
+    }
+}
+RoomType.fromInt(0) 返回的是第一个enum项Single
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/注解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/注解/" itemprop="url">注解</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:45:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <ul>
+<li>注释是给人看的提示信息</li>
+<li>注解是给程序看的提示信息</li>
+</ul>
+<p>注解就像程序中的一个小标记,我们可以根据有没有这个标记,有这个标记属性的值是什么,来控制我们程序进行不同的处理</p>
+<h2 id="注解3种基本类型"><a href="#注解3种基本类型" class="headerlink" title="注解3种基本类型"></a>注解3种基本类型</h2><pre><code>a.标记注释    --没有变量，只有名称标识。例如 @annotation
+b.单一值注释  --在标记注释的基础上提供一段数据。如 @annotation(&quot;data&quot;)
+                只需设置一个属性值（只有一个属性，或者其他属性都有默认值），使用时可省略属性名
+c.完整注释    --可以包括多个数据成员，每个数据成员由名称和值构成。 @annotation(val1=&quot;data1&quot;,val2=&quot;data2&quot;)
+</code></pre><p>java定义的一些注解:</p>
+<pre><code>@Override: 限定重写父类方法, 该注解只能用于方法
+@Deprecated: 用于表示某个程序元素(类, 方法等)已过时
+@SuppressWarnings: 抑制编译器警告. 
+</code></pre><h2 id="自定义注解-interface"><a href="#自定义注解-interface" class="headerlink" title="自定义注解 @interface"></a>自定义注解 @interface</h2><p><strong>定义属性</strong></p>
+<ul>
+<li>在自定义注解中声明属性,像接口中定义方法</li>
+<li>可以通过default关键字来声明默认值</li>
+<li>属性的类型必须是:<ul>
+<li>String</li>
+<li>八种基本类型</li>
+<li>枚举类型</li>
+<li>其他注解类型</li>
+<li>Class类型</li>
+<li>这些类型的一维数组</li>
+</ul>
+</li>
+</ul>
+<p><strong>赋值属性</strong></p>
+<p>如果注解中只有一个属性且属性名value需要被赋值,赋值时 value= 可以被省略,直接给值即可</p>
+<p><strong>元注解修饰</strong></p>
+<pre><code>@Retention: 用于指定该 Annotation 可以保留的域, 
+    RetentionPolicy.SOURCE: 编译器直接丢弃这种策略的注释
+        @Override、@SuppressWarnings等，这类注解就是用于标识，可以用作一些检验
+    RetentionPolicy.CLASS: 编译器将把注解记录在 class 文件中. 当运行 Java 程序时, JVM 不会保留注解. 这是默认值
+        在编译时根据注解标识，动态生成一些类或者生成一些xml。因为没有反射，效率和直接调用方法没什么区别
+        使用这类注解的项目有：ParcelableGenerator、butterknife 、androidAnnotaion等。
+    RetentionPolicy.RUNTIME:编译器将把注释记录在 class 文件中. 当运行 Java 程序时, JVM 会保留注解. 程序可以通过反射获取该注释
+        见得最多，在运行时拿到类的Class对象，然后遍历其方法、变量，判断有无注解声明，然后做一些事情
+@Target：指定注解用于什么地方. ElementType[]
+    public enum ElementType { 
+        TYPE, //Class, interface or enum declaration. 
+        FIELD, //Field declaration. 
+        METHOD, //Method declaration. 
+        PARAMETER, //Parameter declaration. 
+        CONSTRUCTOR, //Constructor declaration. 
+        LOCAL_VARIABLE, //Local variable declaration. 
+        ANNOTATION_TYPE, //Annotation type declaration. PACKAGE //Package declaration.
+    }
+@Documented: 被该元修饰的 Annotation 类将被 javadoc 工具提取成文档.
+@Inherited: 被它修饰的 Annotation 将具有继承性.如果某个类使用了被 @Inherited 修饰的 Annotation, 则其子类将自动具有该注解
+</code></pre><p><strong>实例</strong> 遍历类中声明的所有属性，找到存在ViewInject注解的属性并获取其value，然后去调用findViewById方法，最后把值设置给field</p>
+<pre><code>@Target(ElementType.FIELD)  
+@Retention(RetentionPolicy.RUNTIME)  
+public @interface ViewInject  
+{  
+    int value();  
+    int parentId() default 0;  
+}
+
+private static void injectViews(Activity activity) {  
+    Class&lt;? extends Activity&gt; clazz = activity.getClass();  
+    Field[] fields = clazz.getDeclaredFields();  
+    // 遍历所有成员变量  
+    for (Field field : fields)  
+    {   
+        ViewInject viewInjectAnnotation = field.getAnnotation(ViewInject.class);  
+        if (viewInjectAnnotation != null){  
+            int viewId = viewInjectAnnotation.value();  
+            if (viewId != -1){  
+                Log.e(&quot;TAG&quot;, viewId+&quot;&quot;);  
+                // 初始化View  
+                try {  
+                    Method method = clazz.getMethod(&quot;findViewById&quot;, int.class);  
+                    Object resView = method.invoke(activity, viewId);  
+                    field.setAccessible(true);  
+                    field.set(activity, resView);  
+                } catch (Exception e) {  
+                    e.printStackTrace();  
+                }  
+            }  
+        }  
+    }            
+} 
+</code></pre><p>(3)反射注解<br>    sun定义了 AnnotatedElement 接口,在这个几口中定义了反射注解的api,而Class Field Method Constructor Package … 都实现了这个接口,具有这些api<br>        getAnnotation(Class<t> annotationClass)<br>        isAnnotationPresent(Class&lt;? extends Annotation&gt; annotationClass) </t></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/线程锁/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/线程锁/" itemprop="url">线程锁</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:44:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://www.cnblogs.com/qifengshi/p/6831055.html" target="_blank" rel="noopener">Java中锁分类</a></p>
+<h1 id="乐观锁-悲观锁"><a href="#乐观锁-悲观锁" class="headerlink" title="乐观锁/悲观锁"></a>乐观锁/悲观锁</h1><p>区别在于看待并发同步的角度/态度。</p>
+<p><strong>悲观锁</strong>认为对于同一个数据的并发操作，一定是会发生修改的，不加锁的并发操作一定会出问题。</p>
+<ul>
+<li>适合写操作非常多的场景</li>
+<li>悲观锁在Java中的使用，就是利用各种锁。</li>
+</ul>
+<p><strong>乐观锁</strong>则认为对于同一个数据的并发操作，是不会发生修改的，不加锁的并发操作是没有问题的。</p>
+<ul>
+<li>适合读操作非常多的场景</li>
+<li>乐观锁在Java中的使用，是无锁编程，常常采用的是CAS算法，典型的例子就是原子类，通过CAS自旋实现原子操作的更新。</li>
+</ul>
+<h1 id="公平锁-非公平锁"><a href="#公平锁-非公平锁" class="headerlink" title="公平锁/非公平锁"></a>公平锁/非公平锁</h1><p><strong>公平锁</strong>是指多个线程按照申请锁的顺序来获取锁。</p>
+<p><strong>非公平锁</strong>是指多个线程获取锁的顺序并不是按照申请锁的顺序，有可能后申请的线程比先申请的线程优先获取锁。有可能，会造成优先级反转或者饥饿现象。</p>
+<p><code>ReentrantLock(Re entrant Lock)</code>，通过构造函数指定该锁是否是公平锁，默认是非公平锁。非公平锁的优点在于吞吐量比公平锁大。通过AQS(AbstractQueuedSynchronizer)实现线程调度</p>
+<p><code>Synchronized</code>，非公平锁。</p>
+<h1 id="可重入锁"><a href="#可重入锁" class="headerlink" title="可重入锁"></a>可重入锁</h1><p>又名递归锁，是指同一个线程在外层方法获取锁的时候，在进入内层方法会自动获取锁。</p>
+<p>可重入锁的一个好处是可一定程度避免死锁。</p>
+<p><code>ReentrantLock</code> <code>Synchronized</code>,都是可重入锁。</p>
+<pre><code>synchronized void setA() throws Exception{
+    Thread.sleep(1000);
+    setB();
+}
+
+synchronized void setB() throws Exception{
+    Thread.sleep(1000);
+}
+
+如果不是可重入锁的话，setB可能不会被当前线程执行，可能造成死锁。
+</code></pre><h1 id="独享锁-共享锁"><a href="#独享锁-共享锁" class="headerlink" title="独享锁/共享锁"></a>独享锁/共享锁</h1><p><strong>独享锁</strong>是指该锁一次只能被一个线程所持有。</p>
+<p><strong>共享锁</strong>是指该锁可被多个线程所持有。</p>
+<p>独享锁与共享锁也是通过AQS来实现的，通过实现不同的方法，来实现独享或者共享。</p>
+<p><code>ReentrantLock</code>，独享锁。</p>
+<p><code>Synchronized</code>，独享锁。</p>
+<p><code>ReadWriteLock</code>，读锁是共享锁，写锁是独享锁。读锁的共享锁可保证并发读是非常高效的，读写，写读 ，写写的过程是互斥的。</p>
+<h1 id="互斥锁-同步锁-读写锁"><a href="#互斥锁-同步锁-读写锁" class="headerlink" title="互斥锁/同步锁/读写锁"></a>互斥锁/同步锁/读写锁</h1><p>上面讲的独享锁/共享锁就是一种广义的说法，互斥锁/读写锁就是具体的实现。</p>
+<p><strong>互斥锁</strong>：两个线程不能同时运行，一个线程运行完毕，另一个才能运行</p>
+<ul>
+<li>具有唯一性和排它性</li>
+<li>无序</li>
+</ul>
+<p><strong>同步锁</strong>：也是不能同时运行，但是必须安照某种次序来运行</p>
+<ul>
+<li>一种特殊互斥</li>
+<li>互斥的基础上</li>
+<li>有序访问</li>
+</ul>
+<p><strong>读写锁</strong>:</p>
+<p>1）多个读者可以同时进行读<br>2）写者必须互斥（只允许一个写者写，也不能读者写者同时进行）<br>3）写者优先于读者（一旦有写者，则后续读者必须等待，唤醒时优先考虑写者）  </p>
+<h1 id="分段锁"><a href="#分段锁" class="headerlink" title="分段锁"></a>分段锁</h1><p>其实是一种锁的设计，并不是具体的一种锁，对于ConcurrentHashMap而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。<br>我们以ConcurrentHashMap来说一下分段锁的含义以及设计思想，ConcurrentHashMap中的分段锁称为Segment，它即类似于HashMap（JDK7与JDK8中HashMap的实现）的结构，即内部拥有一个Entry数组，数组中的每个元素又是一个链表；同时又是一个ReentrantLock（Segment继承了ReentrantLock)。<br>当需要put元素的时候，并不是对整个hashmap进行加锁，而是先通过hashcode来知道他要放在那一个分段中，然后对这个分段进行加锁，所以当多线程put的时候，只要不是放在一个分段中，就实现了真正的并行的插入。<br>但是，在统计size的时候，可就是获取hashmap全局信息的时候，就需要获取所有的分段锁才能统计。<br>分段锁的设计目的是细化锁的粒度，当操作不需要更新整个数组的时候，就仅仅针对数组中的一项进行加锁操作。</p>
+<h1 id="偏向锁-轻量级锁-重量级锁"><a href="#偏向锁-轻量级锁-重量级锁" class="headerlink" title="偏向锁/轻量级锁/重量级锁"></a>偏向锁/轻量级锁/重量级锁</h1><p>这三种锁是指锁的状态，并且是针对Synchronized。</p>
+<p>Java 5通过引入锁升级的机制来实现高效Synchronized。</p>
+<p>这三种锁的状态是通过 <code>对象监视器在对象头中的字段</code> 来表明的。</p>
+<p><strong>偏向锁</strong>是指一段同步代码一直被一个线程所访问，那么该线程会自动获取锁。降低获取锁的代价。</p>
+<p><strong>轻量级锁</strong>是指当锁是偏向锁的时候，被另一个线程所访问，偏向锁就会升级为轻量级锁，其他线程会通过自旋的形式尝试获取锁，不会阻塞，提高性能。</p>
+<p><strong>重量级锁</strong>是指当锁为轻量级锁的时候，另一个线程虽然是自旋，但自旋不会一直持续下去，当自旋一定次数的时候，还没有获取到锁，就会进入阻塞，该锁膨胀为重量级锁。重量级锁会让其他申请的线程进入阻塞，性能降低。</p>
+<h1 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h1><p>自旋锁是指尝试获取锁的线程不会立即阻塞，而是采用循环(jvm默认是10次)的方式去尝试获取锁，这样的好处是减少线程上下文切换的消耗，缺点是循环会消耗CPU。</p>
+<p>自旋锁是采用让当前线程不停地的在循环体内执行实现的，当循环的条件被其他线程改变时 才能进入临界区。如下</p>
+<pre><code>public class SpinLock {
+
+  private AtomicReference&lt;Thread&gt; sign =new AtomicReference&lt;&gt;();
+
+  public void lock(){
+    Thread current = Thread.currentThread();
+    while(!sign .compareAndSet(null, current)){
+    }
+  }
+
+  public void unlock (){
+    Thread current = Thread.currentThread();
+    sign .compareAndSet(current, null);
+  }
+}
+</code></pre><p>使用了CAS原子操作，lock函数将owner设置为当前线程，并且预测原来的值为空。unlock函数将owner设置为null，并且预测值为当前线程。</p>
+<p>当有第二个线程调用lock操作时由于owner值不为空，导致循环一直被执行，直至第一个线程调用unlock函数将owner设置为null，第二个线程才能进入临界区。</p>
+<p>由于自旋锁只是将当前线程不停地执行循环体，不进行线程状态的改变，所以响应速度更快。但当线程数不停增加时，性能下降明显，因为每个线程都需要执行，占用CPU时间。如果线程竞争不激烈，并且保持锁的时间短，适合使用自旋锁。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/如何正确停止线程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/如何正确停止线程/" itemprop="url">如何正确停止线程</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:42:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>http://blog.csdn.net/liranke/article/details/8270543
+</code></pre><p>关于如何正确停止线程，这篇文章(<a href="http://forward.com.au/javaProgramming/HowToStopAThread.html" target="_blank" rel="noopener">how to stop thread</a>)给出了一个很好的答案, 总结起来就下面3点（在停止线程时）：</p>
+<ol>
+<li><p>使用violate boolean变量来标识线程是否停止</p>
+</li>
+<li><p>停止线程时，需要调用停止线程的interrupt()方法，因为线程有可能在wait()或sleep(), 提高停止线程的即时性</p>
+</li>
+<li><p>对于blocking IO的处理，尽量使用InterruptibleChannel来代替blocking IO</p>
+</li>
+</ol>
+<p>核心如下：</p>
+<pre><code>private volatile Thread myThread;
+
+public void stopMyThread() {
+    Thread tmpThread = myThread;
+    myThread = null;
+    if (tmpThread != null) {
+        tmpThread.interrupt();
+    }
+}
+
+public void run() {
+    if (myThread == null) {
+       return; // stopped before started.
+    }
+    try {
+        // all the run() method&apos;s code goes here
+        ...
+        // do some work
+
+        Thread.yield(); // let another thread have some time perhaps to stop this one.
+
+        if (Thread.currentThread().isInterrupted()) {
+           throw new InterruptedException(&quot;Stopped by ifInterruptedStop()&quot;);
+        }
+
+        // do some more work
+        ...
+    } catch (Throwable t) {
+       // log/handle all errors here
+    }
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/日期时间类和格式化输出/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/日期时间类和格式化输出/" itemprop="url">日期时间类和格式化输出</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:42:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>JAVA下的日期时间类和格式化输出 http://jiankeafei.iteye.com/blog/230928
+</code></pre><p>SimpleDateFormat的格式：</p>
+<p>   在实例化SimpleDateFormat时，采用”yyyy-MM-dd HH:mm:ss”这样的构造参数，可以对输出的格式进行设置。而字符串中的字母代表的含义如下：</p>
+<pre><code>G 年代标志符
+y 年
+M 月
+d 日
+h 时 在上午或下午 (1~12)
+H 时 在一天中 (0~23)
+m 分
+s 秒
+S 毫秒
+E 星期
+D 一年中的第几天
+F 一月中第几个星期几
+w 一年中第几个星期
+W 一月中第几个星期
+a 上午 / 下午 标记符 
+k 时 在一天中 (1~24)
+K 时 在上午或下午 (0~11)
+z 时区
+</code></pre><p>  除了上述具有实际含义的字母之外，还可以配合诸如：空格、：、-等进行格式化设置。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/匿名内部类只能访问final修饰的外部变量/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/匿名内部类只能访问final修饰的外部变量/" itemprop="url">匿名内部类只能访问final修饰的外部变量</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>匿名内部类用法</p>
+<pre><code>public class TryUsingAnonymousClass {
+    public void useMyInterface() {
+        final Integer number = 123;
+        System.out.println(number);
+
+        MyInterface myInterface = new MyInterface() {
+            @Override
+            public void doSomething() {
+                System.out.println(number);
+            }
+        };
+        myInterface.doSomething();
+
+        System.out.println(number);
+    }
+}
+</code></pre><p>编译后的结果</p>
+<pre><code>class TryUsingAnonymousClass$1
+        implements MyInterface {
+    private final TryUsingAnonymousClass this$0;
+    private final Integer paramInteger;
+
+    TryUsingAnonymousClass$1(TryUsingAnonymousClass this$0, Integer paramInteger) {
+        this.this$0 = this$0;
+        this.paramInteger = paramInteger;
+    }
+
+    public void doSomething() {
+        System.out.println(this.paramInteger);
+    }
+}
+</code></pre><ul>
+<li>匿名内部类最终用会编译成一个单独的类</li>
+<li>被该类使用的变量会以构造函数参数的形式传递给该类</li>
+<li>如果变量 不定义成final的，在匿名内部类被可以被修改，进而造成和外部的不一致的问题，为了避免这种不一致的情况，Java 规定匿名内部类只能访问final修饰的外部变量。</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/反射final成员变量/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/反射final成员变量/" itemprop="url">反射final成员变量</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>利用反射对修饰符为final的成员变量进行修改 http://my.oschina.net/dxqr/blog/215504
+</code></pre><h2 id="非final成员变量"><a href="#非final成员变量" class="headerlink" title="非final成员变量"></a>非final成员变量</h2><pre><code>class Entity {
+    public int i = 1;
+}    
+
+try {
+    Entity e = new Entity();
+    System.out.println(&quot;before: &quot; + e.i);
+
+    Field f = Entity.class.getDeclaredField(&quot;i&quot;);
+    f.setInt(e, 2);
+    // 或者 f.set(e, 2);// java会自动装箱拆箱
+    System.out.println(&quot;after: &quot; + e.i);
+} catch (Exception e) {
+    e.printStackTrace();
+}
+</code></pre><h2 id="final成员变量"><a href="#final成员变量" class="headerlink" title="final成员变量"></a>final成员变量</h2><pre><code>class Entity {
+    public final int i = 1;
+}
+</code></pre><p>反射会报异常:</p>
+<pre><code>java.lang.IllegalAccessException: Can not set final int field com.test.Entity.i to (int)2
+</code></pre><p>修改成员变量的final修饰符,使其变为public int i = 1;具体方法如下:</p>
+<pre><code>try {
+    Entity e = new Entity();
+    System.out.println(&quot;before: &quot; + e.i);
+
+    Field f = Entity.class.getDeclaredField(&quot;i&quot;);
+
+    Field modifiersField = Field.class.getDeclaredField(&quot;modifiers&quot;);
+    modifiersField.setAccessible(true);
+    System.out.println(f.getModifiers()); // 输出17:表示修饰符为:public final
+    modifiersField.setInt(f, f.getModifiers() &amp; ~Modifier.FINAL);
+    System.out.println(f.getModifiers());// 输出1:表示修饰符已经被修改为:public
+
+    f.setAccessible(true);
+    f.setInt(e, 2);
+    System.out.println(&quot;after: &quot; + e.i);//输出还是1.没修过成功
+} catch (Exception e) {
+    e.printStackTrace();
+}
+</code></pre><p>发现还是没有修改成功。会不会跟是基本数据类型有关？修改成员变量的数据类型为 Integer</p>
+<pre><code>class Entity {
+    public final Integer i = 1;
+}
+</code></pre><p>然后再执行,发现结果已经被修改了</p>
+<p><strong>final成员变量，对象数据类型可以修改,基本数据类型不能修改</strong></p>
+<p><strong>final成员变量，final String s = new String(“a”); 可以修改,final String s = “a” 不能修改</strong></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/数组转list陷阱/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/数组转list陷阱/" itemprop="url">数组list陷阱</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>String[] artistTypes = getResources().getStringArray(R.array.artist_type);
+List&lt;String&gt; list = Arrays.asList(artistTypes); 
+</code></pre><p>上面代码是毫无问题的。</p>
+<pre><code>String[] artistTypes = getResources().getStringArray(R.array.artist_type);
+ArrayList&lt;String&gt; list = (ArrayList&lt;String&gt;) Arrays.asList(artistTypes); 
+</code></pre><p>运行报错。java.util.Arrays$ArrayList cannot be cast to java.util.ArrayList</p>
+<p>这就说明，Arrays.asList转出来的是Arrays$ArrayList（内部类），只是和java.util.ArrayList名字相同。</p>
+<p>为什么转为List不报错呢？因为Arrays$ArrayList实现了List接口</p>
+<pre><code>public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements Cloneable, Serializable, RandomAccess {
+
+public class Arrays {
+    private static class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements
+            List&lt;E&gt;, Serializable, RandomAccess {
+</code></pre><p>研究过程发现</p>
+<pre><code>Arrays.asList转出来的是Arrays$ArrayList继承AbstractList。remove，add等method在AbstractList中是默认throw UnsupportedOperationException而且不作任何操作。
+java.util.Arrays$ArrayList继承了静态数组 大小 固定不变的特性。
+</code></pre><p>找了很久，找到下面的解决方法</p>
+<pre><code>List myList = new ArrayList(); 
+String[] myStringArray = new String[] {&quot;Java&quot;, &quot;is&quot;, &quot;Cool&quot;};
+Collections.addAll(myList, myStringArray);
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/泛型/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1016,1610 +2524,11 @@ Object object = list.get(0);//取出来的是Object，毫无意义
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/26/Android/三方ROM/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/26/Android/三方ROM/" itemprop="url">三方ROM</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-26T14:29:33+08:00">
-                2019-03-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>第三方ROM，就是非手机原厂官方推出的ROM</p>
-<img src="/2019/03/26/Android/三方ROM/rom.png">
-<h1 id="魔趣Mokee"><a href="#魔趣Mokee" class="headerlink" title="魔趣Mokee"></a>魔趣Mokee</h1><p>国内最大的非营利性开源ROM。早期基于CM，现在基于AOSP</p>
-<p>原生体验，不是很适应</p>
-<h1 id="CyanogenMod-CM-amp-Lineage-OS"><a href="#CyanogenMod-CM-amp-Lineage-OS" class="headerlink" title="CyanogenMod (CM) &amp; Lineage OS"></a>CyanogenMod (CM) &amp; Lineage OS</h1><p>CyanogenMod (CM) 曾经是全球范围内最流行的第三方开源安卓 ROM 固件</p>
-<p>CM停止开发后，开源社区将会重组 CM 项目并改名为 LineageOS</p>
-<h1 id="Resurrection-Remix"><a href="#Resurrection-Remix" class="headerlink" title="Resurrection Remix"></a><a href="https://post.smzdm.com/p/751360/" target="_blank" rel="noopener">Resurrection Remix</a></h1><p>一个自由度非常高的ROM </p>
-<p>如果说安卓刷机都是瞎折腾，那么终结者就是Resurrection Remix，别无他途</p>
-<p><a href="https://www.resurrectionremix.com/" target="_blank" rel="noopener">官网</a></p>
-<h2 id="SlimRoms"><a href="#SlimRoms" class="headerlink" title="SlimRoms"></a>SlimRoms</h2><p>安卓4.x时代，<strong>自定义向的鼻祖</strong>，但在安卓5.x掉队。</p>
-<h2 id="Bliss-ROM"><a href="#Bliss-ROM" class="headerlink" title="Bliss ROM"></a>Bliss ROM</h2><p>安卓5.x时代，也叫BlissPop，Slim的接盘侠，蓝莲花标识深入人心，在安卓6.x被RR超车。</p>
-<h2 id="Resurrection-Remix-1"><a href="#Resurrection-Remix-1" class="headerlink" title="Resurrection Remix"></a>Resurrection Remix</h2><p>安卓6.x+时代，简称RR，在安卓5.x稍逊于BlissPop，但从安卓6.x开始成功超车，一骑红尘到今天（8.x）。</p>
-<p><strong>机型代号</strong>就是研发阶段厂家给产品起的昵称（Codename），由于RR与LineageOS（简称LOS）渊源颇深，这里直接参考<a href="https://wiki.lineageos.org/devices/" target="_blank" rel="noopener">LOS的设备支持列表</a>即可</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/26/电脑使用/linux/linux进程内存占用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/26/电脑使用/linux/linux进程内存占用/" itemprop="url">Linux进程内存占用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-26T10:43:53+08:00">
-                2019-03-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Linux进程占用的内存有 <code>VSS/RSS/PSS/USS</code> 四种形式</p>
-<p>这四种形式首字母分别是Virtual/Resident/Proportional(比例的)/Unique</p>
-<p>Virtual Set Size</p>
-<p>VSS是单个进程<strong>全部可访问</strong>的地址空间，其大小可能包括还尚未在内存中驻留的部分。对于确定单个进程实际内存使用大小，VSS用处不大。</p>
-<p>RSS是单个进程<strong>实际占用</strong>的内存大小，RSS不太准确的地方在于它包括该进程所使用共享库全部内存大小。对于一个共享库，可能被多个进程使用，实际该共享库只会被装入内存一次。</p>
-<p>进而引出了PSS，PSS相对于RSS计算共享库内存大小是按比例的。N个进程共享，该库对PSS大小的贡献只有1/N。</p>
-<p>USS是单个进程私有的内存大小，即该进程<strong>独占</strong>的内存部分。USS揭示了运行一个特定进程在的真实内存增量大小。如果进程终止，USS就是实际被返还给系统的内存大小。</p>
-<p>综上所属，VSS&gt;=RSS&gt;=PSS&gt;=USS</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/25/Android/Android异常捕获/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/25/Android/Android异常捕获/" itemprop="url">Android 异常捕获</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-25T17:15:53+08:00">
-                2019-03-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>参考</p>
-<ul>
-<li><a href="https://www.jianshu.com/p/bb658019f97b" target="_blank" rel="noopener">安卓捕获RuntimeException,ANR,Native信号异常</a></li>
-<li><a href="https://blog.csdn.net/yeyuwuhen1203/article/details/73556813" target="_blank" rel="noopener">Android端线上NativeCrash收集的两种方法(上)</a></li>
-</ul>
-<h1 id="Java-crash"><a href="#Java-crash" class="headerlink" title="Java crash"></a>Java crash</h1><p>Uncaught异常发生时会终止线程，调用 <code>UncaughtExceptionHandler.uncaughtException()</code></p>
-<p>如果该handler没有被显式设置，则会调用对应线程组的默认handler。</p>
-<p><code>Thread.setDefaultUncaughtExceptionHandler(myCrashHandler);</code></p>
-<h1 id="ANR"><a href="#ANR" class="headerlink" title="ANR"></a>ANR</h1><p>收听ANR的广播 <code>String ACTION_ANR = &quot;android.intent.action.ANR&quot;</code></p>
-<h1 id="NativeCrash"><a href="#NativeCrash" class="headerlink" title="NativeCrash"></a>NativeCrash</h1><p>Native崩溃日志存储在手机的 <code>/data/tombstones</code> 目录下，需要root权限</p>
-<h1 id="三方"><a href="#三方" class="headerlink" title="三方"></a>三方</h1><h2 id="buglyg"><a href="#buglyg" class="headerlink" title="buglyg"></a>buglyg</h2><p>Java crash 和 ANR</p>
-<h1 id="google-breakpad"><a href="#google-breakpad" class="headerlink" title="google-breakpad"></a>google-breakpad</h1><p>NativeCrash</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/08/RN/RN优化/RN稳定性优化-升级JavaScriptCore版本/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/08/RN/RN优化/RN稳定性优化-升级JavaScriptCore版本/" itemprop="url">RN稳定性优化-升级JavaScriptCore版本</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-08T11:14:26+08:00">
-                2019-03-08
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h1><p>解决RN的 libjsc.so 相关报错引起的崩溃</p>
-<p>携程技术中心的文章 <a href="https://mp.weixin.qq.com/s/Z1GUJW3qBqDGH1jnGt5qAg" target="_blank" rel="noopener">《干货 | 近万字长文详述携程大规模应用RN的工程化实践》</a> 提到</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">这是由于RN自带的JavaScriptCore版本为2014年的版本，</span><br><span class="line">兼容性和稳定性较差，</span><br><span class="line">建议参考开源的jsc-android-buildscrips项目，</span><br><span class="line">将JavaScriptCore升级到2017年11月的版本(WebkitGTK Revision 225067)，</span><br><span class="line">我们升级到该版本后，发现该错误降低了90%；</span><br></pre></td></tr></table></figure>
-<h1 id="jsc-android-buildscripts"><a href="#jsc-android-buildscripts" class="headerlink" title="jsc-android-buildscripts"></a>jsc-android-buildscripts</h1><p><a href="https://github.com/react-native-community/jsc-android-buildscripts" target="_blank" rel="noopener">github</a></p>
-<p><a href="https://www.npmjs.com/package/jsc-android" target="_blank" rel="noopener">npm</a></p>
-<p>目前，最新的稳定版本为 <strong>236355.1.1</strong></p>
-<h2 id="在RN项目中使用"><a href="#在RN项目中使用" class="headerlink" title="在RN项目中使用"></a>在RN项目中使用</h2><ol>
-<li><code>npm install jsc-android</code></li>
-<li><p>添加本地maven的JSC依赖</p>
-<pre><code>Android工程根目录/build.gradle
-    allprojects {
-        repositories {
-            maven {
-                // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-                url &quot;$rootDir/node_modules/react-native/android&quot;
-            }
-            maven {
-                // Local Maven repo containing AARs with JSC library built for Android
-                url &quot;$rootDir/node_modules/jsc-android/dist&quot;
-            }
-</code></pre></li>
-<li><p>强制指定JSC版本(覆盖<a href="https://github.com/facebook/react-native/blob/e8df8d9fd579ff14224cacdb816f9ff07eef978d/ReactAndroid/build.gradle#L289" target="_blank" rel="noopener">RN默认的版本</a>)</p>
-<pre><code>app/build.gradle
-    android {
-        configurations.all {
-            resolutionStrategy{
-            force &apos;org.webkit:android-jsc:r236355&apos;
-        }
-</code></pre></li>
-</ol>
-<h3 id="如何验证是否成功使用新版本的JSC"><a href="#如何验证是否成功使用新版本的JSC" class="headerlink" title="如何验证是否成功使用新版本的JSC"></a>如何验证是否成功使用新版本的JSC</h3><p>加载过程会在logcat 输出 JSC版本，过滤tag为 <code>JavaScriptCore.Version</code>。</p>
-<p>实例日志如下：</p>
-<pre><code>D/JavaScriptCore.Version: 236355.1.0
-</code></pre><h3 id="可能遇到的问题"><a href="#可能遇到的问题" class="headerlink" title="可能遇到的问题"></a>可能遇到的问题</h3><p>Compile errors of the sort:</p>
-<pre><code>More than one file was found with OS independent path &apos;lib/armeabi-v7a/libgnustl_shared.so&apos;
-</code></pre><p>Add the following to your app/build.gradle, under android:</p>
-<pre><code>packagingOptions {
-    pickFirst &apos;**/libgnustl_shared.so&apos;
-}        
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/07/电脑使用/git 操作/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/07/电脑使用/git 操作/" itemprop="url">git使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-07T15:10:53+08:00">
-                2019-03-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="https://www.git-tower.com/learn/git/ebook/cn/command-line/advanced-topics/git-flow" target="_blank" rel="noopener">git-flow 的工作流程</a></p>
-<h1 id="git认证"><a href="#git认证" class="headerlink" title="git认证"></a>git认证</h1><p>Git客户端可以通过 <code>http</code> 方式和 <code>ssh</code>方式连接git服务器上的仓库</p>
-<p>http 方式 <a href="http://192.168.1.120/mywork.git" target="_blank" rel="noopener">http://192.168.1.120/mywork.git</a></p>
-<p>ssh 方式 <a href="mailto:git@192.168.1.120" target="_blank" rel="noopener">git@192.168.1.120</a>:mywork.git （git为当前机器系统登录用户）</p>
-<h2 id="SSH-Key"><a href="#SSH-Key" class="headerlink" title="SSH Key"></a><a href="http://blog.sina.com.cn/s/blog_6e572cd60101qls0.html" target="_blank" rel="noopener">SSH Key</a></h2><ol>
-<li><p>存储在 ~/.ssh 文件夹，一般是 <code>id_rsa</code> <code>id_rsa.pub</code></p>
-<pre><code>$ cd ~/.ssh
-</code></pre></li>
-<li><p>生成新 SSH</p>
-<pre><code>$ ssh-keygen -t rsa -C &quot;david.l@xuehu365.com&quot;
-Generating public/private rsa key pair.
-Enter file in which to save the key (/c/Users/Administrator/.ssh/id_rsa):
-Enter passphrase (empty for no passphrase):
-Enter same passphrase again:
-Your identification has been saved in /c/Users/Administrator/.ssh/id_rsa.
-Your public key has been saved in /c/Users/Administrator/.ssh/id_rsa.pub.
-The key fingerprint is:
-SHA256:BWinjIvY2cjlR/fsWN/zuJyLpnstOuvI1khAd/yDLcs david.l@xuehu365.com
-The key&apos;s randomart image is:
-+---[RSA 2048]----+
-|       ...       |
-|      + o.o      |
-|     = + ..+     |
-|    o = ..o +    |
-| + B o oS+ o .   |
-|. * + . . E      |
-|     . . * . o   |
-|       .+.+ =o+o |
-|       .o.*O..*=.|
-+----[SHA256]-----+
-</code></pre><p> 会要求输入文件名，密码，确认密码，可以直接三次回车，使用默认文件名，空密码</p>
-</li>
-<li><p>复制id_rsa.pub的内容到github</p>
-</li>
-<li><p>测试</p>
-<pre><code>$ssh -T david@github.com
-</code></pre></li>
-</ol>
-<h1 id="创建本地仓库repository，提交文件"><a href="#创建本地仓库repository，提交文件" class="headerlink" title="创建本地仓库repository，提交文件"></a>创建本地仓库repository，提交文件</h1><p><strong>1. <code>git init</code>初始化git项目</strong></p>
-<pre><code> 在D:/testgit目录下执行以上命令
-成功反馈 Initialized empty Git repository in D:/testgit/.git/，发现testgit目录下多个.git文件夹
-pwd显示当前 目录 
-cd ./AndroidStudioProjects/MyApplication 进入项目目录
-</code></pre><p><strong>2. 在testgit目录下创建 readme.txt ，写入1111111</strong><br>**</p>
-<ol start="3">
-<li><code>git add readme.txt</code> 添加到暂存区**，无任何返回说明add成功</li>
-</ol>
-<p><strong>4. <code>git commit -m &quot;第一次提交&quot;</code> 提交到仓库</strong>。第一次提交是提交注释</p>
-<pre><code>[master (root-commit) 9b057ed] 第一次提交
- 1 file changed, 1 insertion(+)
- create mode 100644 readme.txt
-</code></pre><p><strong>5. <code>git status</code>查看是否还有文件未提交</strong></p>
-<pre><code>On branch master
-nothing to commit, working directory clean //没有修改未提交
-</code></pre><p><strong>6. readme.txt增加一行内容 222222</strong></p>
-<p><strong>7. <code>git status</code></strong></p>
-<pre><code>On branch master
-Changes not staged for commit: //stage暂存
-  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
-  (use &quot;git checkout -- &lt;file&gt;...&quot; to discard changes in working directory) //discard丢弃
-
-    modified:   readme.txt
-
-no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
-</code></pre><p><strong>8. <code>git diff readme.txt</code> 对比差异</strong></p>
-<pre><code>diff --git a/readme.txt b/readme.txt
-index 35241c7..8b0f06c 100644
---- a/readme.txt
-+++ b/readme.txt
-@@ -1 +1,2 @@
--111111111111111111
-\ No newline at end of file
-+111111111111111111
-+22222222222222222
-\ No newline at end of file
-</code></pre><p><code>git add readme.txt</code> 因为上面说还没暂存以提交（要先暂存）</p>
-<p><code>git status</code><br>    On branch master<br>    Changes to be committed:<br>      (use “git reset HEAD <file>…” to unstage)</file></p>
-<pre><code>modified:   readme.txt
-</code></pre><p><code>git commit  -m &quot;增加了一行内容 2222222&quot;</code></p>
-<pre><code>[master b5fd23c] 增加了一行内容 2222222
- 1 file changed, 2 insertions(+), 1 deletion(-)
-</code></pre><h1 id="版本回退"><a href="#版本回退" class="headerlink" title="版本回退"></a>版本回退</h1><p>可以回退到某一历史版本(撤销提交)</p>
-<ul>
-<li>git reset <ul>
-<li>回到某次提交，类似于穿越时空。中间的提交记录会丢失。<strong>版本历史干净</strong></li>
-<li>reset有三个参数soft,mixed,hard分别对应head的指针移动，index（暂存区）、以及工作目录的修改，当缺省时，默认为mixed参数</li>
-</ul>
-</li>
-<li>git revert<ul>
-<li>生成一个新的提交来撤销某次提交，此次提交之前的commit都会被保留，对于项目的版本历史来说是往前走的。<strong>保留完整历史</strong></li>
-</ul>
-</li>
-</ul>
-<p><strong>1. <code>git log</code> 查看历史记录</strong>，由近到远显示。<code>git log –pretty=oneline</code>是一行展示一条记录，方便查看（只展示注释）</p>
-<pre><code>commit b5fd23c15ef2cdec3d70bbcb607f174e0e702055
-Author: David &lt;david.l@xuehu365.com&gt;
-Date:   Tue Apr 19 16:24:37 2016 +0800
-
-    增加了一行内容 2222222
-
-commit 9b057ed353d5de1b5bb88f082b6345ec6080c5f5
-Author: David &lt;david.l@xuehu365.com&gt;
-Date:   Tue Apr 19 15:53:07 2016 +0800
-
-    第一次提交
-</code></pre><p><strong>2. <code>git reset  --hard HEAD^</code> 回退一个版本</strong>。如果要回退到上上个版本只需把HEAD^ 改成 <code>HEAD^^</code> 以此类推</p>
-<pre><code>HEAD is now at 9b057ed 第一次提交
-</code></pre><p>打开readme.txt发现文件内容的确变成了 111111. 或者cat readme.txt命令查看</p>
-<p>git log 发现， 只有第一次提交的历史记录了（没有回退这次记录，也没有第二次增加内容提交的记录）</p>
-<p><strong>3. <code>git reflog</code> 查看所有历史记录（带版本号，精确的），已经reset掉的也会展示</strong></p>
-<pre><code>9b057ed HEAD@{0}: reset: moving to HEAD^
-b5fd23c HEAD@{1}: commit: 增加了一行内容 2222222
-9b057ed HEAD@{2}: commit (initial): 第一次提交
-</code></pre><p><strong>4. <code>git reset --hard b5fd23c</code></strong></p>
-<pre><code>HEAD is now at b5fd23c 增加了一行内容 2222222
-</code></pre><p><code>cat readme.txt</code></p>
-<pre><code>111111111111111111
-22222222222222222
-</code></pre><p><strong>5. git revert</strong></p>
-<p>git revert与reset的区别是git revert会生成一个新的提交来撤销某次提交，此次提交之前的commit都会被保留，也就是说对于项目的版本历史来说是往前走的。而git reset 则是回到某次提交，类似于穿越时空。</p>
-<h1 id="工作区、暂存区、仓库"><a href="#工作区、暂存区、仓库" class="headerlink" title="工作区、暂存区、仓库"></a>工作区、暂存区、仓库</h1><p><code>git add</code> 是把工作区的内容添加到了暂存区(index)</p>
-<p><code>git commit</code> 是把暂存区的内容提交到了仓库</p>
-<p><code>git checkout -- &lt;file&gt;...</code>是丢弃工作区的修改，返回到暂存区的状态。一定不要忘了 – ，否则就成了创建分支</p>
-<p><strong>所以提交流程是，先add 再commit</strong></p>
-<h1 id="远程仓库"><a href="#远程仓库" class="headerlink" title="远程仓库"></a>远程仓库</h1><p>注册github账号，本地Git仓库和github仓库之间的传输是通过SSH加密的</p>
-<ol>
-<li><p>创建SSH Key</p>
-<p> 用户目录/.ssh目录下（我的C:\Users\Administrator\ .ssh）是否有id_rsa和id_rsa.pub这两个文件。没有则在git bash中创建</p>
-</li>
-<li><p>把公钥放到服务器</p>
-<p> 登录github,打开” settings”中的SSH Keys页面，然后点击“Add SSH Key”,填上任意title，在Key文本框里黏贴id_rsa.pub文件的内容</p>
-</li>
-<li><p>到服务器创建仓库</p>
-</li>
-<li><p>添加远程仓库到本地</p>
-<p> <code>git remote add &lt;主机名&gt; &lt;网址&gt;</code> 添加远程主机</p>
-<p> <code>git remote rm &lt;主机名&gt;</code> 删除远程主机</p>
-<p> <code>git remote rename &lt;原主机名&gt; &lt;新主机名&gt;</code>    修改远程主机名</p>
-</li>
-<li><p><code>git push</code>推送本地仓库到远程仓库</p>
-</li>
-</ol>
-<ol start="6">
-<li><p><code>git clone</code>从远程仓库克隆到本地仓库（会在本地仓库根目录下生成新文件夹）（克隆是默认主机名为origin，可用 -o指定主机名;默认克隆master分支，可用 -b 指定分支名）</p>
-<p> git clone -o jQuery <a href="https://github.com/jquery/jquery.git" target="_blank" rel="noopener">https://github.com/jquery/jquery.git</a></p>
-</li>
-<li><p><code>git fetch &lt;远程主机名&gt; &lt;分支名&gt;</code> 取回远程主机特定分支的更新（<strong>并不和本地代码合并，通常用来查看他人进度</strong>）（省略分知名就是取回所有分支更新）</p>
-</li>
-<li><p><code>git pull &lt;远程主机名&gt; &lt;远程分支名&gt;:&lt;本地分支名&gt;</code> 取回远程主机某个分支的更新，再<strong>与本地的指定分支合并。实质上等同于先做git fetch，再做git merge。</strong></p>
-<pre><code>git pull origin next:master //取回origin主机的next分支，与本地的master分支合并
-</code></pre><p> 与当前分支合并，则冒号后面的部分可以省略</p>
-<pre><code>git pull origin next //取回origin/next分支，再与当前分支合并。等同于下面两条命令
-git fetch origin next
-git merge origin/next
-</code></pre><p> 如果当前分支与远程分支存在追踪关系，可以省略远程分支名</p>
-<pre><code>git pull origin
-</code></pre><p> 如果远程主机删除了某个分支，默认情况下，git pull 不会在拉取远程分支的时候，删除对应的本地分支。这是为了防止，由于其他人操作了远程主机，导致git pull不知不觉删除了本地分支。但是，你可以改变这个行为，加上参数 -p 就会在本地删除远程已经删除的分支。</p>
-<p> error: Your local changes to the following files would be overwritten by merge:Please, commit your changes or stash them before you can merge.错误解决</p>
-<pre><code>http://blog.chinaunix.net/uid-10415985-id-4142896.html
-git stash
-git pull
-git stash pop
-然后可以使用git diff -w +文件名 来确认代码自动合并的情况.
-</code></pre></li>
-<li><p><code>git push &lt;远程主机名&gt; &lt;本地分支名&gt;:&lt;远程分支名&gt;</code> 分支推送顺序的写法是&lt;来源地&gt;:&lt;目的地&gt;，所以git pull是&lt;远程分支&gt;:&lt;本地分支&gt;，而git push是&lt;本地分支&gt;:&lt;远程分支&gt;。</p>
-<p> 如果当前分支与多个主机存在追踪关系，则可以使用-u选项指定一个默认主机，这样后面就可以不加任何参数使用git push。</p>
-<pre><code>git push --all origin 不管是否存在对应的远程分支，将本地的所有分支都推送到远程主机
-git push origin --tags 不会推送标签（tag），除非使用--tags选项
-git push --force origin 远程主机版本比本地新，推送会报错，要求先在本地做git pull合并差异，然后再推送到远程主机。--force选项，覆盖远程主机上更新的版本
-</code></pre></li>
-</ol>
-<h1 id="分支"><a href="#分支" class="headerlink" title="分支"></a>分支</h1><ol>
-<li><code>git branch dev</code> 创建分支</li>
-<li><code>git checkout dev</code> 切换分支</li>
-<li><code>git checkout –b dev</code> 创建并切换到分支。相当于上面两条命令 <code>-d</code>删除分支</li>
-<li><code>git checkout -b dev origin/dev</code> 作用是checkout远程的dev分支，在本地起名为dev分支，并切换到本地的dev分支</li>
-<li><code>git branch</code> 查看分支 <code>-r查看远程分支，-a查看所有分支（本地和远程）</code>当前分支前面会添加一个星号</li>
-<li><code>git branch --set-upstream master origin/master</code> 本地master分支追踪远程origin/master分支</li>
-<li><p><code>git branch -m devel develop</code> 重命名本地分支devel为develop</p>
-<pre><code>git checkout -b dev
-    Switched to a new branch &apos;dev&apos;
-编辑readme.txt，增加一行333333
-git add readme.txt
-git commit -m &quot;dev分支增加内容33333&quot; //提交修改
-    [dev 88ac64e] dev分支增加内容33333
-     1 file changed, 2 insertions(+), 1 deletion(-)
-git checkout master //切换到master分支
-    Switched to branch &apos;master&apos;
-cat readme.txt
-    111111111111111111
-    22222222222222222
-git merge dev
-    Updating b5fd23c..88ac64e //88ac64e就是最新的提交3333那次版本
-    Fast-forward
-     readme.txt | 3 ++-
-     1 file changed, 2 insertions(+), 1 deletion(-)
-查看发现master分支readme.txt也有3333了
-git branch -d dev
-    Deleted branch dev (was 88ac64e).
-</code></pre></li>
-<li><p>解决冲突</p>
-<p> 新建分支dev，增加内容4444，提交，切换到master，增加内容5555，合并dev，发现冲突，查看文件内容并修改，重新提交（master就变成了修改后的版本）</p>
-<pre><code>git merge dev
-    Auto-merging readme.txt
-    CONFLICT (content): Merge conflict in readme.txt
-    Automatic merge failed; fix conflicts and then commit the result.
-cat readme.txt
-    111111111111111111
-    22222222222222222
-    33333333333333333
-    &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-    55555555555555555
-    =======
-    44444444444444444
-    &gt;&gt;&gt;&gt;&gt;&gt;&gt; dev
-git status
-    On branch master
-    You have unmerged paths.
-      (fix conflicts and run &quot;git commit&quot;)
-    Unmerged paths:
-      (use &quot;git add &lt;file&gt;...&quot; to mark resolution)            
-            both modified:   readme.txt            
-    no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
-
-修改readme.txt内容（我这里就不改了）
-git add readme.txt
-git commit -m &quot;master解决冲突&quot;
-    [master af8ac43] master解决冲突
-git status
-    On branch master
-    nothing to commit, working directory clean
-</code></pre></li>
-<li><p>分支管理策略。</p>
-<p> 通常合并分支时，git一般使用”Fast forward”模式，在这种模式下，删除分支后，会丢掉分支信息，现在我们来使用带参数 –no-ff来禁用”Fast forward”模式。<code>git merge –no-ff  -m “注释” dev</code></p>
-</li>
-</ol>
-<p><img src="http://jbcdn2.b0.upaiyun.com/2012/07/Git-branch-management-strategy5.png" alt=""><br><img src="http://jbcdn2.b0.upaiyun.com/2012/07/Git-branch-management-strategy6.png" alt=""></p>
-<pre><code>图片来自 http://blog.jobbole.com/23398/ 图片解释了–no-ff合并和普通合并，分支模型的区别
-</code></pre><ol start="8">
-<li><p>bug分支</p>
-<p> 比如我在开发中接到一个404 bug时候，我们可以创建一个404分支来修复它，但是，当前的dev分支上的工作还没有提交。Git提供了一个stash功能，可以把当前工作现场 ”隐藏起来”，等以后恢复现场后继续工作。确定在哪个分支上修复bug，比如我现在是在主分支master上来修复的，现在我要在master分支上创建一个临时分支issue-404。修复完成后，切换到master分支上，并完成合并，最后删除issue-404分支。</p>
-<p> 回到dev分支上干活，git status发现工作区是干净的，那么我们工作现场去哪里呢？我们可以使用命令 <code>git stash list</code>查看，发现工作现场还在，Git把stash内容存在某个地方了，但是需要恢复一下，可以使用如下2个方法：</p>
-<pre><code>1. git stash apply恢复，恢复后，stash内容并不删除，你需要使用命令git stash drop来删除最上面一条记录。
-2. git stash pop,恢复的同时把stash内容也删除了。
-</code></pre></li>
-</ol>
-<h2 id="分支合并"><a href="#分支合并" class="headerlink" title="分支合并"></a>分支合并</h2><pre><code>git merge dev
-</code></pre><h2 id="合并commit"><a href="#合并commit" class="headerlink" title="合并commit"></a>合并commit</h2><p>分支提交记录(向右增长)</p>
-<pre><code>[master] dd2e86 - 946992 -9143a9 - a6fd86 - 5a6057
-[feature] 76cada - 62ecb3 - b886a0
-</code></pre><p>合并单个commit</p>
-<pre><code>git checkout master
-git cherry-pick 62ecb3  合并 62ecb3 到master
-</code></pre><p>合并连续的commit</p>
-<pre><code>合并 76cada ~62ecb3 到 master
-git checkout -b newNameBranch 62ecb3
-git rebase --onto master 76cada^ 指明从哪个commit开始    
-</code></pre><h1 id="gitignore"><a href="#gitignore" class="headerlink" title="gitignore"></a>gitignore</h1><pre><code>http://www.bubuko.com/infodetail-946833.html
-</code></pre><p>有时添加.gitignore文件后并没有忽略我们想要忽略的文件，解决方法就是<strong>清除缓存</strong>，原因gitignore对已经追踪(track)的文件无效，清除缓存后文件将以未追踪的形式出现.然后再<strong>重新添加提交</strong>一下,.gitignore文件里的规则就可以起作用了</p>
-<pre><code>git rm -r --cached .
-git add .
-git commit -m &quot;update .gitignore&quot;
-</code></pre><h2 id="git配置"><a href="#git配置" class="headerlink" title="git配置"></a>git配置</h2><h3 id="文件名区分大小写"><a href="#文件名区分大小写" class="headerlink" title="文件名区分大小写"></a>文件名区分大小写</h3><p>工程/.git/config文件</p>
-<pre><code>[core]
-repositoryformatversion = 0
-filemode = false
-bare = false
-logallrefupdates = true
-symlinks = false
-ignorecase = false #默认为true
-hideDotFiles = dotGitOnly
-</code></pre><p>或者直接命令行 </p>
-<pre><code>Add ignorecase = false to [core] in .git/config;
-</code></pre><h1 id="git-blame-amp-amp-git-show-查看某一行代码的修改历史"><a href="#git-blame-amp-amp-git-show-查看某一行代码的修改历史" class="headerlink" title="git blame &amp;&amp; git show 查看某一行代码的修改历史"></a>git blame &amp;&amp; git show 查看某一行代码的修改历史</h1><pre><code>git blame file_name
-可以使用 -L指定开始和结束行:
-    实例：git blame ./ScreenLivePlayback.java  -L 1101,+9
-</code></pre><p>其显示格式为：<br>commit ID | 代码提交作者 | 提交时间 | 代码位于文件中的行数 | 实际代码 </p>
-<p>类似于下面这样</p>
-<pre><code>f604879e (yingyinl              2014-09-23 23:39:55 -0700   35) typedef enum
-9be6b4bd (yingyinl              2014-01-01 21:22:50 -0800   36) {
-597886b5 (Shengjie Yu           2015-09-29 12:00:24 +0800   37)     Index_R_Hue = 0,    //Index_Range0_Hue
-9be6b4bd (yingyinl              2014-01-01 21:22:50 -0800   38)     Index_R_Sat,
-9be6b4bd (yingyinl              2014-01-01 21:22:50 -0800   39)     Index_R_brt,
-9be6b4bd (yingyinl              2014-01-01 21:22:50 -0800   40)     Index_R_Offset,
-9be6b4bd (yingyinl              2014-01-01 21:22:50 -0800   41)     Index_R_Gain,
-f604879e (yingyinl              2014-09-23 23:39:55 -0700   42) 
-</code></pre><p>这样，我们就可以知道commit ID了，然后使用命令：git show commitID来看</p>
-<p>对应 AS git 插件中的 <code>git -- annotate</code></p>
-<h1 id="git-flow-工作流程"><a href="#git-flow-工作流程" class="headerlink" title="git-flow 工作流程"></a>git-flow 工作流程</h1><p>在团队开发中使用版本控制系统时，商定一个统一的工作流程是至关重要的</p>
-<p>git-flow是非常流行的工作流程</p>
-<p>git-flow 并不是要替代 Git，它仅仅是把标准的 Git 命令用脚本组合了起来。所以并不需要安装什么特别的东西就可以使用 git-flow 工作流程</p>
-<h2 id="在项目中设置-git-flow"><a href="#在项目中设置-git-flow" class="headerlink" title="在项目中设置 git-flow"></a>在项目中设置 git-flow</h2><p>项目根目录 执行 <code>git flow init</code>，一个交互式安装助手将引导您完成初始化操作。强烈建议使用默认的命名机制，并且一步一步地确定下去</p>
-<p>git-flow 它不会以任何一种戏剧性的方式来改变你的仓库，你还是可以使用普通的 Git 命令</p>
-<h3 id="分支的模式"><a href="#分支的模式" class="headerlink" title="分支的模式"></a>分支的模式</h3><p>预设两个主分支在仓库中：</p>
-<ul>
-<li><strong>master</strong> 只能用来包括产品代码。不能直接工作在这个 master 分支上。不直接提交改动到 master 分支上也是很多工作流程的一个共同的规则。</li>
-<li><strong>develop</strong> 是你进行任何新的开发的基础分支。</li>
-</ul>
-<h2 id="功能开发"><a href="#功能开发" class="headerlink" title="功能开发"></a>功能开发</h2><h3 id="开始新功能"><a href="#开始新功能" class="headerlink" title="开始新功能"></a>开始新功能</h3><pre><code>$ git flow feature start rss-feed
-Switched to a new branch &apos;feature/rss-feed&apos;
-
-Summary of actions:
-- A new branch &apos;feature/rss-feed&apos; was created, based on &apos;develop&apos;
-- You are now on branch &apos;feature/rss-feed&apos;
-</code></pre><p>git-flow 会直接签出这个新的分支，这样你就可以直接进行工作了。</p>
-<h3 id="完成新功能"><a href="#完成新功能" class="headerlink" title="完成新功能"></a>完成新功能</h3><p>经过一段时间艰苦地工作和一系列的聪明提交，我们的新功能终于完成了：</p>
-<pre><code>$ git flow feature finish rss-feed
-Switched to branch &apos;develop&apos;
-Updating 6bcf266..41748ad
-Fast-forward
-    feed.xml | 0
-    1 file changed, 0 insertions(+), 0 deletions(-)
-    create mode 100644 feed.xml
-Deleted branch feature/rss-feed (was 41748ad).
-</code></pre><p> “feature finish” 命令会把我们的工作整合到主 “develop” 分支中去。也会删除这个当下已经完成的功能分支，并且换到 “develop” 分支。</p>
-<h2 id="管理-releases"><a href="#管理-releases" class="headerlink" title="管理 releases"></a>管理 releases</h2><h3 id="创建-release"><a href="#创建-release" class="headerlink" title="创建 release"></a>创建 release</h3><pre><code>$ git flow release start 1.1.5
-Switched to a new branch &apos;release/1.1.5&apos;
-</code></pre><p>“develop” 分支的代码已经是一个成熟的 release 版本时，可以开始生成一个新的 release 了</p>
-<p>release 分支是使用版本号命名的</p>
-<p>release 分支都是基于 “develop” 分支的</p>
-<p>开始完成针对 release 版本号的最后准备工作，并且进行最后的编辑。</p>
-<h3 id="完成-release"><a href="#完成-release" class="headerlink" title="完成 release"></a>完成 release</h3><pre><code>git flow release finish 1.1.5
-</code></pre><p>这个命令会完成如下一系列的操作：</p>
-<ul>
-<li>首先，git-flow 会拉取远程仓库，以确保目前是最新的版本。</li>
-<li>然后，release 的内容会被合并到 “master” 和 “develop” 两个分支中去，这样不仅产品代码为最新的版本，而且新的功能分支也将基于最新代码。</li>
-<li>为便于识别和做历史参考，release 提交会被标记上这个 release 的名字（在我们的例子里是 “1.1.5”）。</li>
-<li>清理操作，版本分支会被删除，并且回到 “develop”。</li>
-</ul>
-<h2 id="hotfix"><a href="#hotfix" class="headerlink" title="hotfix"></a>hotfix</h2><p>release 版本发现一些小错误。需要 hotfix</p>
-<h3 id="创建-Hotfixes"><a href="#创建-Hotfixes" class="headerlink" title="创建 Hotfixes"></a>创建 Hotfixes</h3><pre><code>$ git flow hotfix start missing-link
-</code></pre><p>因为这是对产品代码进行修复，所以这个 hotfix 分支是基于 “master” 分支。这也是和 release 分支最明显的区别，release 分支都是基于 “develop” 分支的。你不应该在一个还不完全稳定的开发分支上对产品代码进行地修复。</p>
-<h3 id="完成-Hotfixes"><a href="#完成-Hotfixes" class="headerlink" title="完成 Hotfixes"></a>完成 Hotfixes</h3><pre><code>$ git flow hotfix finish missing-link
-</code></pre><p>类似 release，修复这个错误当然也会直接影响到项目的版本号！</p>
-<ul>
-<li>完成的改动会被合并到 “master” 中，同样也会合并到 “develop” 分支中，这样就可以确保这个错误不会再次出现在下一个 release 中。</li>
-<li>这个 hotfix 程序将被标记起来以便于参考。</li>
-<li>这个 hotfix 分支将被删除，然后切换到 “develop” 分支上去。</li>
-</ul>
-<p><strong>注意：git flow 操作都是本地仓库进行的(仅仅commit)，需要手动 push</strong></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/05/数据库/sql/Android调试数据库/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/05/数据库/sql/Android调试数据库/" itemprop="url">Android调试数据库</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-05T11:54:53+08:00">
-                2019-03-05
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="https://github.com/amitshekhariitbhu/Android-Debug-Database" target="_blank" rel="noopener">Android-Debug-Database</a></p>
-<p>查看，编辑数据库</p>
-<p><code>debugImplementation &#39;com.amitshekhar.android:debug-db:1.0.5&#39;</code></p>
-<p>手机和电脑同一局域网，浏览器打开 手机ip:8080</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/UI性能优化/获取内存和CPU使用情况/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/01/Android/UI性能优化/获取内存和CPU使用情况/" itemprop="url">获取内存和CPU使用情况</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:16:53+08:00">
-                2019-03-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="CPU使用"><a href="#CPU使用" class="headerlink" title="CPU使用"></a>CPU使用</h1><h2 id="设备CPU使用情况"><a href="#设备CPU使用情况" class="headerlink" title="设备CPU使用情况"></a>设备CPU使用情况</h2><p><code>/proc/stat</code> </p>
-<p><code>CPU 152342 1421 28562 1600830 12389 553 273 0 0</code></p>
-<p>totalCpuTime: CPU后面7个属性(2-8)的和</p>
-<p>通过 </p>
-<h2 id="指定pid应用CPU使用情况"><a href="#指定pid应用CPU使用情况" class="headerlink" title="指定pid应用CPU使用情况"></a>指定pid应用CPU使用情况</h2><p><code>/proc/pid/stat</code>  <code>Process.myPid()获取pid</code></p>
-<p><code>2341 (com.xxxx.xxxx) S 1131 1131 0 0 -1 3912246 12450 0 2 0 3321 612 0 0 20 0</code></p>
-<p>processCpuTime：3321 612两个属性(13-14)的和</p>
-<h2 id="解析代码"><a href="#解析代码" class="headerlink" title="解析代码"></a>解析代码</h2><p>读取第一行，空格分割</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">String procStatString = procStatFile.readLine();</span><br><span class="line">String procStats[] = procStatString.split(<span class="string">" "</span>);</span><br><span class="line">totalCpuTime = Long.parseLong(procStats[<span class="number">2</span>]) + Long.parseLong(procStats[<span class="number">3</span>])</span><br><span class="line">        + Long.parseLong(procStats[<span class="number">4</span>]) + Long.parseLong(procStats[<span class="number">5</span>])</span><br><span class="line">        + Long.parseLong(procStats[<span class="number">6</span>]) + Long.parseLong(procStats[<span class="number">7</span>])</span><br><span class="line">        + Long.parseLong(procStats[<span class="number">8</span>]);</span><br><span class="line"></span><br><span class="line">String appStatString = appStatFile.readLine();</span><br><span class="line">String appStats[] = appStatString.split(<span class="string">" "</span>);</span><br><span class="line">processCpuTime = Long.parseLong(appStats[<span class="number">13</span>]) + Long.parseLong(appStats[<span class="number">14</span>]);</span><br></pre></td></tr></table></figure>
-<h1 id="内存使用"><a href="#内存使用" class="headerlink" title="内存使用"></a>内存使用</h1><h2 id="设备内存使用情况"><a href="#设备内存使用情况" class="headerlink" title="设备内存使用情况"></a>设备内存使用情况</h2><p>通过 <code>dumpsys meminfo</code> 获取的free mem大约为1.4G。使用android手机自带的内存管理器查看也是1.4G</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Total RAM: 3,498,412K (status normal)</span><br><span class="line"> Free RAM: 1,420,845K (  554,397K cached pss +   729,900K cached kernel +   136,548K free)</span><br><span class="line"> Used RAM: 2,125,902K (1,741,086K used pss +   384,816K kernel)</span><br><span class="line"> Lost RAM:   268,850K</span><br><span class="line">   Tuning: 256 (large 512), oom   325,000K, restore limit   108,333K (high-end-gfx)</span><br></pre></td></tr></table></figure>
-<p><code>/proc/meminfo</code> </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">MemTotal:        3498412 kB</span><br><span class="line">MemFree:          136596 kB</span><br><span class="line">MemAvailable:    1500252 kB</span><br><span class="line">Buffers:          150052 kB</span><br><span class="line">Cached:          1313300 kB</span><br><span class="line">SwapCached:        89844 kB</span><br><span class="line">Active:          1218484 kB</span><br><span class="line">Inactive:        1171716 kB</span><br><span class="line">Active(anon):     472168 kB</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
-<p>free mem大约为0.13G</p>
-<p>linux思想，内存不用白不用，因此它尽可能的cache和buffer一些数据，以方便下次使用。但实际上这些内存也是可以立刻拿来使用的。所以空闲内存=free+buffers+cached</p>
-<p>dumpsys meminfo获得的free mem = cached pss + cached kernel + ion cached + gpu cached + + free</p>
-<h2 id="指定pid应用内存使用情况"><a href="#指定pid应用内存使用情况" class="headerlink" title="指定pid应用内存使用情况"></a>指定pid应用内存使用情况</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);</span><br><span class="line">Debug.MemoryInfo[] memInfo = activityManager.getProcessMemoryInfo(<span class="keyword">new</span> <span class="keyword">int</span>[]&#123;Process.myPid()&#125;);</span><br><span class="line"><span class="keyword">int</span> totalPss = memInfo[<span class="number">0</span>].getTotalPss();<span class="comment">//in KB</span></span><br></pre></td></tr></table></figure>
-<h3 id="当前应用JavaHeap内存使用情况"><a href="#当前应用JavaHeap内存使用情况" class="headerlink" title="当前应用JavaHeap内存使用情况"></a>当前应用JavaHeap内存使用情况</h3><pre><code class="java">Runtime runtime = Runtime.getRuntime();
-<span class="keyword">int</span> M = <span class="number">1024</span> * <span class="number">1024</span>;
-Log.d(<span class="string">"jvm"</span>, <span class="string">"最大可用内存: "</span> + runtime.maxMemory() / M);
-Log.d(<span class="string">"jvm"</span>, <span class="string">"当前可用内存: "</span> + runtime.totalMemory() / M);
-Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内存:"</span> + runtime.freeMemory() / M);
-</code></pre>
-<h4 id="maxMemory"><a href="#maxMemory" class="headerlink" title="maxMemory"></a>maxMemory</h4><p>Dalvik虚拟机，每个App默认的最大可用内存由系统指定（在<code>/system/build.prop</code>文件中定义）</p>
-<p>在Manifest application 里面添加<code>android:allowBackup=&quot;true&quot;</code> 可以增加最大可用内存至512M</p>
-<p>为什么有些APP（比如大型游戏）可以超过这个值？那是因为Java内存又分为Java Heap和Native Heap，Native Heap是不受该值约束的。</p>
-<h4 id="totalMemory"><a href="#totalMemory" class="headerlink" title="totalMemory"></a>totalMemory</h4><p>一般为16M</p>
-<p>如果设置为“-Xms1024m -Xmx1024m”，那么totalMemory=maxMamory</p>
-<img src="/2019/03/01/Android/UI性能优化/获取内存和CPU使用情况/内存.png">
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/UI性能优化/InputMethodManager leaking the last focused view/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/01/Android/UI性能优化/InputMethodManager leaking the last focused view/" itemprop="url">InputMethodManager 导致的内存泄露及解决方案</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:15:53+08:00">
-                2019-03-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="https://code.google.com/p/android/issues/detail?id=171190" target="_blank" rel="noopener">Issue 171190:    InputMethodManager leaks the last focused view</a> <code>Repro steps</code> are very easy:</p>
-<h1 id="泄露实例"><a href="#泄露实例" class="headerlink" title="泄露实例"></a>泄露实例</h1><p><a href="http://www.jianshu.com/p/aa2555628b17" target="_blank" rel="noopener">Android InputMethodManager 导致的内存泄露及解决方案</a></p>
-<p><img src="https://pic4.zhimg.com/c55242f458e266f3e2cfb7d112411167_b.png" alt=""></p>
-<p>并且还给出了参考链接，这是Android输入法的一个bug，在15&lt;=API&lt;=23中都存在。</p>
-<p><code>InputMethodManager.sInstance</code> –&gt; <code>InputMethodManager.mNextServedView</code></p>
-<p>LeakCanary之所以能够显示参考链接是因为它有一个针对SDK已知内存泄露的列表，放在AndroidExcludedRefs.java中，比如输入法的这个。</p>
-<p><img src="https://pic4.zhimg.com/2b97881206ab6a8556946b9a016e078f_b.png" alt=""></p>
-<h1 id="泄露原因"><a href="#泄露原因" class="headerlink" title="泄露原因"></a>泄露原因</h1><p>分析原因比较透彻的是这篇文章：<a href="http://blog.csdn.net/sodino/article/details/32188809" target="_blank" rel="noopener">InputMethodManager内存泄露现象及解决</a></p>
-<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><h2 id="方案一"><a href="#方案一" class="headerlink" title="方案一"></a>方案一</h2><p>改善方案可以参考Leaknary给出的方案：<a href="https://gist.github.com/pyricau/4df64341cc978a7de414" target="_blank" rel="noopener">InputMethodManager内存泄露修正方案</a></p>
-<p>在退出使用InputMethodManager的Activity时，调用fixFocusedViewLeak方法即可解决。</p>
-<h2 id="方案二、简单方案"><a href="#方案二、简单方案" class="headerlink" title="方案二、简单方案"></a>方案二、简单方案</h2><p><a href="https://medium.com/@amitshekhar/android-memory-leaks-inputmethodmanager-solved-a6f2fe1d1348#.j686ef3a0" target="_blank" rel="noopener">Android Memory Leaks InputMethodManager Solved</a> <code>Simple solution</code> to solve this. </p>
-<p>After some observations we realize that if any other activity is being called after that the finish of main activity the things is going perfect , no more Memory Leaks by InputMethodManager.</p>
-<pre><code>public class DummyActivity extends FragmentActivity {
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                finish();
-            }
-        }, 100);
-    }
-}
-
-可以把Activity设为透明，这样退出时不会出现短暂白屏
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2669,7 +2578,7 @@ Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内�
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">187</span>
+                  <span class="site-state-item-count">195</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2680,7 +2589,7 @@ Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内�
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2691,7 +2600,7 @@ Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内�
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">59</span>
+                  <span class="site-state-item-count">60</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
