@@ -99,7 +99,7 @@ Or, if you don't want/need a background service you can just run:
 
 `/usr/local/etc/nginx/nginx.conf`
 
-参考&扩展
+# 参考&扩展
 
 - [官方文档](http://nginx.org/en/)
 
