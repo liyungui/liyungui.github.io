@@ -498,3 +498,77 @@ release 版本发现一些小错误。需要 hotfix
 - 这个 hotfix 分支将被删除，然后切换到 “develop” 分支上去。
 
 **注意：git flow 操作都是本地仓库进行的(仅仅commit)，需要手动 push**
+
+# rebase保持分支整洁
+
+## 背景
+
+一个feature分支一般都有多次commit。最后提交到主干分支(master或develop)后，会看到乱七八糟的所有增量修改历史。其实对别人来说，我们的改动应该就是增加或者删除，给别人看开发过程的增量反而太乱。于是我们可以将feature分支的提交合并后然后再merge到主干这样看起来就清爽多了。
+
+## rebase
+
+可以对某一段线性提交(commit)历史进行编辑、删除、复制、粘贴；因此，合理使用rebase命令可以使我们的提交历史干净、简洁！
+
+**特别注意：**
+
+不要通过rebase对任何公共仓库中的公共分支(push)进行修改；即**只能rebase修改自己个人分支**
+
+## merge Vs rebase
+
+### merge
+
+	git checkout feature
+	git merge master
+
+{% asset_img merge.jpg %}
+
+为了保持时间顺序，生成一个新的commit记录，插到 feature 最后面
+
+如果主干分支变动频繁，每次变动都需merge，严重污染feature分支，难以理解历史变更记录
+
+### rebase
+
+	git checkout feature
+	git rebase master
+
+{% asset_img rebase.jpg %}
+
+直接将feature提交记录，插到主干分支最后面（本来feature有部分提交是在主干分支前面的，为了保持feature提交连续性，就直接整理插到主干分支最后面）
+	
+产生完美线性的项目历史记录，更加清晰，易于理解
+
+可以从feature分支顶端一直跟随到项目的开始而没有任何的分叉
+
+## Interactive Rebase
+
+比自动rebase更强大，将提交移动到新分支时更改提交记录。
+
+通常用于在合并feature分支到主干分支之前清理杂乱的历史记录（比如合并成一条提交记录）
+
+要开始基于交互式会话rebase，需要 -i 选项：
+
+	git checkout feature
+	git rebase -i master
+
+合并提交记录的命名
+
+	pick：保留该commit（缩写:p）
+	
+	reword：保留该commit，但我需要修改该commit的注释（缩写:r）
+	
+	edit：保留该commit, 但我要停下来修改该提交(不仅仅修改注释)（缩写:e）
+	
+	squash：将该commit和前一个commit合并（缩写:s）
+	
+	fixup：将该commit和前一个commit合并，但我不要保留该提交的注释信息（缩写:f）
+	
+	exec：执行shell命令（缩写:x）
+	
+	drop：我要丢弃该commit（缩写:d）
+	
+一般都是第一个提交记录reword，其余的squash
+
+# 参考&扩展
+
+- [Merge vs Rebase](https://juejin.im/post/5c7690ab518825404713e709)
+- [使用git rebase合并多次commit](https://github.com/zuopf769/how_to_use_git/blob/master/%E4%BD%BF%E7%94%A8git%20rebase%E5%90%88%E5%B9%B6%E5%A4%9A%E6%AC%A1commit.md)

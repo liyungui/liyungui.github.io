@@ -1,23 +1,45 @@
 ---
 title: Clean架构开发Android应用
-date: 2019-01-14 09:06:53
+date: 2019-01-14 10:06:53
 categories:
   - 编程思想
 tags:
   - 编程思想
 ---
-	
-	使用Clean架构开发Android应用详细指南 http://www.open-open.com/lib/view/open1455759692636.html
-**Clean 架构是向内依赖：内层不能依赖外层，即内层不知道有关外层的任何事情（此句道尽Clean架构）。**
-![](http://static.open-open.com/lib/uploadImg/20160218/20160218094131_195.png)
 
-**Clean架构可以使你的代码有如下特性：**
+# 测试方法
 
-1. 独立于架构
-2. 易于测试
-3. 独立于UI
-4. 独立于数据库
-5. 独立于任何外部类库
+## 表现层
+
+Espresso 2 + Instrumentation
+
+测试 Android UI
+
+## 领域层
+
+JUnit + Mockito
+
+是Java的标准模块。
+
+## 数据层
+
+Robolectric 3 + JUnit + Mockito
+
+有部分Android模块
+
+### Robolectric
+
+在 PC上使用 JVM 模拟实现 Android SDK。
+
+支持UI表现测试和网络请求测试
+
+使Android模块的测试 更加高效
+
+# 实例
+
+Fernando 大神 对 Clean架构的解读及实践
+
+[实例源码](https://github.com/android10/Android-CleanArchitecture)
 
 ## Clean在Android中如何表现 ##
 
@@ -74,3 +96,10 @@ Model– 在业务逻辑代码中操作的业务模型。
 Repository– 包含接口让外层类实现，如操作数据(获取/保存)的类等。不能持有外层引用，Interactor持有这些接口来获取和存储数据,外层需要实现这些接口（DB/External Interfaces就是这些接口的实现）。这也叫资源库模式Repository Pattern。
 
 Executor– 通过Worker Thread Executor让Interactor在后台执行。一般不需要修改这个包里的代码。
+
+# 参考&扩展
+
+- [Architecting Android...The clean way?](https://fernandocejas.com/2014/09/03/architecting-android-the-clean-way/) by Fernando Cejas (Fernando 大神) - 原文
+- [一种更清晰的Android架构](https://zhuanlan.zhihu.com/p/20001838) - by 何红辉 - 译文
+- [实例源码](https://github.com/android10/Android-CleanArchitecture)
+- [Clean架构探讨](https://www.jianshu.com/p/66e749e19f0d)

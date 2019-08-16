@@ -1,5 +1,5 @@
 ---
-title: 分层架构与 M-V-X
+title: ioc框架--注解和反射
 date: 2019-01-14 08:58:53
 categories:
   - 编程思想
