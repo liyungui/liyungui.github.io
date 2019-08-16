@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/无法U盘启动-uefi-gpt/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/数据库/sql/sql使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/电脑使用/无法U盘启动-uefi-gpt/" itemprop="url">无法U盘启动-uefi-gpt</a></h1>
+                <a class="post-title-link" href="/2018/12/20/数据库/sql/sql使用/" itemprop="url">SQL使用</a></h1>
         
 
         <div class="post-meta">
@@ -293,7 +293,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T08:57:53+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T15:47:53+08:00">
                 2018-12-20
               </time>
             
@@ -316,8 +316,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
+                  <a href="/categories/数据库/" itemprop="url" rel="index">
+                    <span itemprop="name">数据库</span>
                   </a>
                 </span>
 
@@ -355,16 +355,457 @@
       
         
           
-            <p>现在新型的主板都是 UEFI Secure Boot启动（区别于传统的bios启动更快）</p>
-<p>uefi + GPT磁盘格式 + win8，颠覆开机速度</p>
-<p>这样是无法U盘启动的</p>
-<p>要把uefi关闭（改回传统bios启动），磁盘改为mbr格式</p>
-<pre><code>Security 选项卡 Secure Boot项 设为disable
-startup选项卡 UEFI/Legacy Boot项 设为Legacy Only 默认灰色 UEFI only，而且禁止修改
-main选项卡 UEFI Secure Boot 变为off 默认on
-保存退出，重启
-选择usb hdd 启动（Lenovo e431 按f12）
-pe系统中，使用DiskGenius分区软件重新格式化分区，转换分区表类型为MBR格式
+            <h1 id="SQL"><a href="#SQL" class="headerlink" title="SQL"></a>SQL</h1><p><strong>Structured Query Language</strong>, 结构化查询语言</p>
+<p>操作 关系型数据库（用表存储数据）的 标准 非过程性语言。</p>
+<p>为加强SQL的语言能力，各厂商在实现标准中增加了过程性语言的特征。如Oracle的PL/SQL 过程性处理能力，SQL Server、Sybase的T-SQL</p>
+<h1 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h1><pre><code>不区分大小写。推荐关键字大写，自定义的小写
+每条语句以分号结尾
+注释符号是 #
+</code></pre><h1 id="数据库服务器–数据库–表"><a href="#数据库服务器–数据库–表" class="headerlink" title="数据库服务器–数据库–表"></a>数据库服务器–数据库–表</h1><p>数据库服务器有多个数据库组成，每个数据库有多个表。表中存储着数据。</p>
+<p>一般一个工程项目对应一个数据库，一个JavaBean对应一个表。</p>
+<p>元数据：数据库，表，列的定义信息</p>
+<h2 id="数据库服务器–mysql"><a href="#数据库服务器–mysql" class="headerlink" title="数据库服务器–mysql"></a>数据库服务器–mysql</h2><p>要特别注意连接，备份命令是在cmd窗口执行，要注意和sql语句区分，是没有分号的。特别注意！！</p>
+<h3 id="CentOS安装MySQL"><a href="#CentOS安装MySQL" class="headerlink" title="CentOS安装MySQL"></a>CentOS安装MySQL</h3><p>CentOS 7上把MySQL从默认软件列表中移除了，用MariaDB来代替，所以我们必须要去官网上进行下载</p>
+<pre><code>wget http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm 
+
+rpm -ivh mysql-community-release-el7-5.noarch.rpm
+
+yum -y install mysql mysql-server mysql-devel
+</code></pre><h3 id="启动MySQL"><a href="#启动MySQL" class="headerlink" title="启动MySQL"></a>启动MySQL</h3><pre><code>service mysqld start
+</code></pre><h3 id="设置MySQL数据库服务器密码"><a href="#设置MySQL数据库服务器密码" class="headerlink" title="设置MySQL数据库服务器密码"></a>设置MySQL数据库服务器密码</h3><pre><code>mysqladmin -u root password dbroot@quanlist2018
+</code></pre><h3 id="连接MySQL数据库服务器"><a href="#连接MySQL数据库服务器" class="headerlink" title="连接MySQL数据库服务器"></a>连接MySQL数据库服务器</h3><pre><code>mysql -u root -p
+密码默认为空
+</code></pre><h3 id="允许用户远程连接"><a href="#允许用户远程连接" class="headerlink" title="允许用户远程连接"></a>允许用户远程连接</h3><p>登录MySQL后</p>
+<pre><code>grant all privileges on *.* to &apos;root&apos;@&apos;%&apos; identified by &apos;dbroot@quanlist2018&apos; with grant option;
+FLUSH PRIVILEGES;
+exit
+
+&apos;root&apos;@&apos;%&apos; identified by &apos;dbroot@quanlist2018&apos;
+表示root用户可以在任意地址用密码dbroot@quanlist2018登录
+</code></pre><h3 id="备份与恢复数据库"><a href="#备份与恢复数据库" class="headerlink" title="备份与恢复数据库"></a>备份与恢复数据库</h3><ul>
+<li><p>备份数据库：连接mysql服务器前</p>
+<pre><code>mysqldump -u root -p db_name&gt;c:/1.sql
+</code></pre></li>
+<li><p>恢复数据库：必须要先创建数据库，然后导入备份的sql文件</p>
+<pre><code>备份。在cmd窗口
+    mysql -u root -p db_name&lt;c:/1.sql
+恢复。在mysql窗口中（连接mysql服务器后）
+    use db_name;
+    source c:/1.sql;
+</code></pre></li>
+</ul>
+<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><pre><code>1.创建数据库
+    create database [if not exists] db_name [character set xxx] [collate xxx]
+    *创建一个名称为mydb1的数据库。
+        create database mydb1;
+    *创建一个使用utf8（中间没有杆）字符集的mydb2数据库。
+        create database mydb2 character set utf8;
+    *创建一个使用utf8字符集，并带校对规则（校对规则是下划线连接）的mydb3数据库。
+        create database mydb3 character set utf8 collate utf8_bin ;
+2.查看数据库
+    show databases;查看所有数据库
+    show create database db_name; 查看数据库的创建方式
+3.修改数据库
+    alter database db_name [character set xxx] [collate xxxx]
+4.删除数据库
+    drop database [if exists] db_name;
+5.使用数据库
+    切换使用的数据库 use db_name; （数据库特有关键字，不用加database）
+    查看当前使用的数据库 select database();注意不要忘了括号
+</code></pre><hr>
+<h2 id="表"><a href="#表" class="headerlink" title="表"></a>表</h2><pre><code>1.创建表
+        create table tab_name(
+            field1 type,
+            field2 type,
+            ...
+            fieldn type
+        )[character set xxx][collate xxx];
+
+        ****java和mysql的数据类型比较
+            String  ----------------------  char(n) varchar(n) 注意是var+char。 
+                                                定长是固定长度，自动补齐。变长是根据存储内容决定长度。
+                                                但都不能超过定义长度n.定长胜在效率，变长胜在节省空间。
+            byte short int long float double -------------- tinyint  smallint int bigint float double。
+                                                    长度分别    1        2        4    8        4        8字节
+            boolean ------------------ bit 0/1
+            Date ------------------ Date、Time、DateTime、timestamp
+            FileInputStream FileReader  ------------------------------ 大数据类型 Blob Text
+            字符和日期型数据应包含在单引号中
+
+            *创建一个员工表employee
+            create table employee(
+                id int primary key auto_increment ,
+                name varchar(20),
+                gender bit default 1,
+                birthday date,
+                entry_date date,
+                job varchar(20),
+                salary double,
+                resume text
+            );
+
+            约束:
+                primary key 主键，不空切唯一。一般其后都紧跟着auto_increment 主键字段必须是数字类型(非数字无法自增长)。主键无法更改（更改主键，插入数据库就无法知道修改的列）
+                auto_increment只有主键可以自动增长    
+                unique
+                not null
+                外键约束，一般是和多表设计一起理解。看后面
+    2.查看表信息
+        show tables 查看当前数据库中的所有的表
+        show create table tab_name    查看当前数据库表建表语句 
+        desc tab_name 查看表结构。（表特有关键字，所以不用加table）
+    3.修改表
+        alter table add列/drop列/change列名/modify列类型/character set
+        rename table to  重命名表(不要忘记了to)
+
+            *在上面员工表的基本上增加一个image列。
+                alter table employee add image blob;
+            *修改job列，使其长度为60。
+                alter table employee modify job varchar(60);
+            *删除gender列。
+                alter table employee drop gender;
+            *表名改为user。
+                rename table employee to user;
+            *修改表的字符集为utf8
+                alter table user character set gbk; 
+            *列名name修改为username    
+                alter table user change name username varchar(20);
+
+    4.删除表
+        drop table tab_name;
+</code></pre><hr>
+<h2 id="表记录-数据"><a href="#表记录-数据" class="headerlink" title="表记录(数据)"></a>表记录(数据)</h2><pre><code>1.增加一条记录insert into values  其实可以用逗号分隔一次性插入多条记录。
+    insert into tab_name [(field1,filed2,.......)] values (value1,value2,.......)[,(value1,value2,...)];
+    *values中的数据必须与列的排列位置相对应。
+    *插入空值：不要把该列加入列列表  或  值写为null
+    *如果要插入所有字段可以省写列列表，直接按表中字段顺序写值列表insert into tab_name values(value1,value2,......);
+    *字符和日期型数据应包含在单引号中&apos;zhang&apos; &apos;2013-04-20&apos;
+    *mysql中乱码的原因与解决：
+        客户端发送数据时使用的编码和服务器处理数据时使用的编码不相同
+        show variables like &apos;character%&apos;;可以获得服务器使用的编码。
+        %表示任意个字符，下划线_表示一个字符。 模糊匹配like。
+        解决方法
+                (1)set names xxxx; --- 连接后通知服务器和当前客户端进行交互时使用的编码集（每个客户端连接后都需要设置）
+                (2)修改服务器中的my.ini配置文件，修改服务器默认 认为的客户端的编码
+    *练习：使用insert语句向表中插入四个员工的信息。
+    insert into emp (name,birthday,entry_date,job,salary) values (&apos;张飞&apos;,&apos;1990-09-09&apos;,&apos;2000-01-01&apos;,&apos;打手&apos;,999);
+    insert into emp values (null,&apos;黄忠&apos;,1,&apos;1970-05-05&apos;,&apos;2001-01-01&apos;,&apos;战神&apos;,1000,null);
+    insert into emp (name,birthday,entry_date,job,salary) values (&apos;关羽&apos;,&apos;1989-08-08&apos;,&apos;2000-01-01&apos;,&apos;财神&apos;,9999)
+                                                                    ,(&apos;赵云&apos;,&apos;1991-07-07&apos;,&apos;2000-01-02&apos;,&apos;保安&apos;,888);
+
+2.修改表列记录 update  set
+        update tab_name set field1=expr1 [,field2=expr1] [where 语句]
+        *SET子句指示要修改哪些列和要给予哪些值（可以是表达式，比如field+10，表示增加10）。
+        *WHERE子句指定应更新哪些行。如没有WHERE子句，则更新所有的行。
+    *where字句中可以使用：
+                        *比较运算符：    
+                                    = &gt; &lt; &gt;= &lt;= &lt;&gt;  （不等于是&lt;&gt;,特别注意）
+                                    between 10 and 20 值在10到20之间  
+                                    in(10,20,3)值是10或20或30
+                                    like &apos;张pattern&apos; pattern可以是%或者_，如果是%则表示任意多字符，此例中张三丰 张飞 张abcd ，如果是_则表示一个字符张_，张飞符合。
+                                    is null
+
+                        *逻辑运算符
+                            在多个条件直接可以使用逻辑运算符 and or not
+
+            ~将所有员工薪水修改为5000元。
+                update employee set salary=5000;
+            ~将姓名为’张飞’的员工薪水修改为3000元。
+                update employee set salary=3000 where name = &apos;张飞&apos;;
+            ~将姓名为’关羽’的员工薪水修改为4000元,job改为ccc。
+                update employee set salary=4000,job=&apos;ccc&apos; where name=&apos;关羽&apos;;
+            ~将刘备的薪水在原有基础上增加1000元。    
+                update employee set salary=salary+1000 where name=&apos;刘备&apos;;
+
+
+3.删除表行操作 delete
+        delete from tab_name [where ....]
+        *如果不跟where语句则删除整张表中的数据
+        *delete只能用来删除一行记录，不能值删除一行记录中的某一列值（这是update操作）。
+        *delete是删除表中选中的数据，表还在。删除表要 drop table
+        truncate是删除表中所有数据。直接删除表，然后创建一张结构一样（具有相同列）的新表。这种删除不能在事务中恢复。
+                当删除表中所有数据时，truncate比delete更高效。
+
+        *实验：
+            ~删除表中名称为’张飞’的记录。
+                delete from employee where name=&apos;张飞&apos;;
+            ~删除表中所有记录。
+                delete from employee;
+            ~使用truncate删除表中记录。
+                truncate employee;
+
+
+    4.select操作
+    （1）select [distinct] *|field1 [,field2] from tab_name 其中from指定从哪张表筛选，*表示查找所有列，也可以指定一个列列表明确指定要查找的列，distinct用来剔除重复行。
+                查询表中所有学生的信息。
+                select * from exam;
+                查询表中所有学生的姓名和对应的英语成绩。
+                select name,english from exam;
+                过滤表中重复数据。
+                select distinct english from exam;
+    （2）select 也可以使用表达式，并且可以使用 as 别名 。（as可以省略，直接空格跟别名）
+                在所有学生分数上加10分特长分显示。
+                select name,english+10,chinese+10,math+10 from exam;
+                统计每个学生的总分。
+                select name,english+chinese+math from exam;
+                使用别名表示学生总分。
+                select name,english+chinese+math as 总成绩 from exam;
+                select name,english+chinese+math 总成绩 from exam;
+                select name english from exam;这个很容易出错。其实是省略as的别名。
+    （3）使用where子句，进行过滤查询。
+        实际应用中，where子句都是动态构造的。多条件查询构造sql技巧，where 1=1 and ......
+                 ~查询英语成绩大于90分的同学
+                    select name,english from exam where english &gt; 90;
+                ~查询总分大于230分的所有同学
+                    select name 姓名,english+chinese+math 总成绩 from exam where english+chinese+math&gt;230;
+                ~查询英语分数在 80－100之间的同学。
+                    select * from exam where english between 80 and 100;
+                ~查询数学分数为75,76,77的同学。
+                    select * from exam where math in(75,76,77);
+                ~查询所有姓张的学生成绩。
+                    select * from exam where name like &apos;张%&apos;;
+                    select * from exam where name like &apos;张_&apos;;
+                    select * from exam where name like &apos;张__&apos;;
+                ~查询数学分&gt;70，语文分&gt;80的同学。
+                    select * from exam where math&gt;70 and chinese&gt;80;
+                ~查找缺考数学的学生的姓名
+                    select name from exam where math is null;
+
+    （4）Order by field [asc|desc]按指定列排序，可以是别名。
+                Asc 升序、Desc 降序，其中asc为默认值
+                ORDER BY 子句应位于SELECT语句的结尾。
+            *练习：
+                对数学成绩排序后输出。
+                select * from exam order by math desc;
+                对总分排序按从高到低的顺序输出
+                select name ,(ifnull(math,0)+ifnull(chinese,0)+ifnull(english,0)) 总成绩 from exam order by 总成绩 desc;
+                对姓张的学生成绩排序输出
+                select name ,(ifnull(math,0)+ifnull(chinese,0)+ifnull(english,0)) 总成绩 from exam where name like &apos;张%&apos; order by 总成绩 desc;
+    null和任何数运算结果都为null
+    ifnull(col,0)如果某列的值为null，用0替代
+    （5）聚合函数：技巧,先不要管聚合函数要干嘛，先把要求的内容查出来再包上聚合函数即可。
+            ~1.count(列) -- 统计符合条件的记录共有几条
+                ~统计一个班级共有多少学生？
+                    select count(*) from exam;
+                ~统计数学成绩大于70的学生有多少个？
+                    select count(*) from exam where math&gt;70;
+                ~统计总分大于230的人数有多少？
+                    select count(name) from exam where math+english+chinese&gt;230;
+            ~2.sum(列) --Sum函数返回满足where条件的行的和
+                ~统计一个班级数学总成绩？
+                    select sum(math) from exam;    
+                ~统计一个班级语文、英语、数学各科的总成绩
+                    select sum(chinese),sum(english),sum(math) from exam;
+                ~统计一个班级语文、英语、数学的成绩总和
+                    select sum(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
+                ~统计一个班级语文成绩平均分
+                    select sum(chinese)/count(name) from exam
+            ~3.AVG --函数返回满足where条件的一列的平均值
+                ~求一个班级数学平均分？
+                    select avg(math) from exam;
+                ~求一个班级总分平均分？            
+                select avg(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
+            ~4.MAX/MIN--函数返回满足where条件的一列的最大/最小值    
+                ~求班级最高分和最低分
+                select max(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
+                select min(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
+    (6)分组查询--GROUP BY
+            ~对订单表中商品归类后，显示每一类商品的总价
+                select id,product,sum(price) from orders group by product;
+            ~查询购买了几类商品，并且每类总价大于100的商品
+                select product,sum(price) from orders group by product having sum(price)&gt;100;
+            ~查询单价小于100 但是总价大于100的商品。
+                select product from orders where price&lt;100 group by product having sum(price)&gt;100;
+
+        where 在最前面进行过滤，不能使用别名和聚合函数
+        having 在分组之后进行过滤，可以使用别名和聚合函数,having中用到的列，必须在前面使用过才可以用
+
+    （7）重点：综合运用 Select from where group by having order by 
+                    Mysql在执行sql语句时的执行顺序：from where select group by having order by
+            *分析：        
+                select math+english+chinese as 总成绩 from exam where 总成绩 &gt;250; ---- 不成功
+                select math+english+chinese as 总成绩 from exam having 总成绩 &gt;250; --- 成功
+                select math+english+chinese as 总成绩 from exam group by 总成绩 having 总成绩 &gt;250; ----成功
+                select  math+english+chinese as 总成绩 from exam order by 总成绩;----成功
+                select * from exam as 成绩 where 成绩.math&gt;85; ---- 成功
+</code></pre><hr>
+<h1 id="多表设计-–-外键约束"><a href="#多表设计-–-外键约束" class="headerlink" title="多表设计 – 外键约束"></a>多表设计 – 外键约束</h1><img src="/2018/12/20/数据库/sql/sql使用/外键.png">
+<pre><code>1.创建表时指定约束：foreign key (dept_id) references dept(id)
+        create table dept(
+        id int primary key auto_increment,
+        name varchar(30)
+    );
+    insert into dept values(null,&apos;财务部&apos;);
+    insert into dept values(null,&apos;人事部&apos;);
+    insert into dept values(null,&apos;销售部&apos;);
+    insert into dept values(null,&apos;科技部&apos;);
+
+    create table emp(
+        id int primary key auto_increment,
+        name varchar(30),
+        dept_id int,
+        foreign key (dept_id) references dept(id)
+    );
+    insert into emp values (null,&apos;奥巴马&apos;,1);
+    insert into emp values (null,&apos;乔峰&apos;,2);    
+    insert into emp values (null,&apos;哈利波特&apos;,3);
+    insert into emp values (null,&apos;朴乾&apos;,4);
+    insert into emp values (null,&apos;萨达姆&apos;,4);
+
+
+
+2.外键约束：
+        （1）增加外键：
+            可以明确指定外键的名称，如果不指定外键的名称,mysql会自动为你创建一个外键名称。
+            RESTRICT : 只要本表格里面有指向主表的数据， 在主表里面就无法删除相关记录。
+            CASCADE : 如果在foreign key 所指向的那个表里面删除一条记录，那么在此表里面的跟那个key一样的所有记录都会一同删掉。
+            alter table book add [constraint FK_BOOK] foreign key(pubid) references pub_com(id) [on delete restrict] [on update restrict];
+
+        （2）删除外键
+            alter table 表名 drop foreign key 外键（区分大小写，外键名可以desc 表名查看）;
+
+
+3.主键约束：
+        （1）增加主键（自动增长，只有主键可以自动增长）primary key(id)
+            Alter table tb add primary key(id) [auto_increment];
+        （2）删除主键
+            alter table 表名 drop primary key
+        （3）增加自动增长
+            Alter table employee modify id int auto_increment;
+        （4）删除自动增长
+            Alter table tb modify id int;        
+</code></pre><hr>
+<h1 id="多表设计"><a href="#多表设计" class="headerlink" title="多表设计"></a>多表设计</h1><img src="/2018/12/20/数据库/sql/sql使用/多表设计.png">
+<pre><code>一对一（311教室和20130405班级，两方都是一）:在任意一方保存另一方的主键
+一对多、多对一（班级和学生，其中班级为1，学生为多）：在多的一方保存一的一方的主键
+多对多（教师和学生，两方都是多）：使用中间表，保存对应关系
+
+        create table orderitem(
+            order_id varchar(100),
+            product_id varchar(100),
+            buynum int ,
+            primary key(order_id,product_id), #联合主键,两列的值加在一起作为这张表的主键使用
+            foreign key(order_id) references orders(id),
+            foreign key(product_id) references products(id)
+        );
+</code></pre><hr>
+<h1 id="多表查询"><a href="#多表查询" class="headerlink" title="多表查询"></a>多表查询</h1><pre><code>create table dept(
+        id int primary key auto_increment,
+        name varchar(30)
+    );
+    insert into dept values(null,&apos;caiwu&apos;);
+    insert into dept values(null,&apos;renshi&apos;);
+    insert into dept values(null,&apos;xingzheng&apos;);
+
+    create table emp(
+        id int primary key auto_increment,
+        name varchar(30),
+        dept_id int
+    );
+    insert into emp values (null,&apos;cw&apos;,1);
+    insert into emp values (null,&apos;rs&apos;,2);    
+    insert into emp values (null,&apos;xx&apos;,5);
+
+
+mysql&gt; select * from dept;
+    +----+-----------+
+    | id | name      |
+    +----+-----------+
+    |  1 | caiwu     |
+    |  2 | renshi    |
+    |  3 | xingzheng |
+mysql&gt; select * from emp;
+    +----+------+---------+
+    | id | name | dept_id |
+    +----+------+---------+
+    |  1 | cw   |       1 |
+    |  2 | rs   |       2 |
+    |  3 | xx   |       5 |
+    +----+------+---------+
+
+1.笛卡尔积查询：两张表中一条一条对应的记录，m条记录和n条记录查询，最后得到m*n条记录，其中很多错误数据
+    select * from dept,emp;
+
+    mysql&gt; select * from dept,emp;
+            +----+-----------+----+------+---------+
+            | id | name      | id | name | dept_id |
+            +----+-----------+----+------+---------+
+            |  1 | caiwu     |  1 | cw   |       1 |
+            |  2 | renshi    |  1 | cw   |       1 |
+            |  3 | xingzheng |  1 | cw   |       1 |
+            |  1 | caiwu     |  2 | rs   |       2 |
+            |  2 | renshi    |  2 | rs   |       2 |
+            |  3 | xingzheng |  2 | rs   |       2 |
+            |  1 | caiwu     |  3 | xx   |       5 |
+            |  2 | renshi    |  3 | xx   |       5 |
+            |  3 | xingzheng |  3 | xx   |       5 |
+            +----+-----------+----+------+---------+
+2.内连接：查询两张表中都有的关联数据,相当于利用条件从笛卡尔积结果中筛选出了正确的结果。
+inner join on
+    select * from dept,emp            where dept.id=emp.dept_id;
+    select * from dept inner join emp on dept.id=emp.dept_id;
+
+    mysql&gt; select * from dept,emp where dept.id=emp.dept_id;
+            +----+--------+----+------+---------+
+            | id | name   | id | name | dept_id |
+            +----+--------+----+------+---------+
+            |  1 | caiwu  |  1 | cw   |       1 |
+            |  2 | renshi |  2 | rs   |       2 |
+    mysql&gt; select * from dept inner join emp on dept.id=emp.dept_id;
+            +----+--------+----+------+---------+
+            | id | name   | id | name | dept_id |
+            +----+--------+----+------+---------+
+            |  1 | caiwu  |  1 | cw   |       1 |
+            |  2 | renshi |  2 | rs   |       2 |
+            +----+--------+----+------+---------+
+3.外连接
+    （1）左外连接：在内连接的基础上增加左边有右边没有的结果
+    left join on
+                mysql&gt; select * from dept left join emp on dept.id=emp.dept_id;
+                        +----+-----------+------+------+---------+
+                        | id | name      | id   | name | dept_id |
+                        +----+-----------+------+------+---------+
+                        |  1 | caiwu     |    1 | cw   |       1 |
+                        |  2 | renshi    |    2 | rs   |       2 |
+                        |  3 | xingzheng | NULL | NULL |    NULL |
+                        +----+-----------+------+------+---------+
+    （2）右外连接：在内连接的基础上增加右边有左边没有的结果
+    right join on
+                mysql&gt; select * from dept right join emp on dept.id=emp.dept_id;
+                        +------+--------+----+------+---------+
+                        | id   | name   | id | name | dept_id |
+                        +------+--------+----+------+---------+
+                        |    1 | caiwu  |  1 | cw   |       1 |
+                        |    2 | renshi |  2 | rs   |       2 |
+                        | NULL | NULL   |  3 | xx   |       5 |
+                        +------+--------+----+------+---------+
+
+    （3）全外连接：在内连接的基础上增加左边有右边没有的和右边有左边没有的结果
+    full join on  --mysql不支持全外连接
+        left join on
+        union
+        right join on ;--mysql可以使用此种方式间接实现全外连接
+
+        mysql&gt; select * from dept left join emp on dept.id=emp.dept_id
+            -&gt; union
+            -&gt; select * from dept right join emp on dept.id=emp.dept_id;
+                +------+-----------+------+------+---------+
+                | id   | name      | id   | name | dept_id |
+                +------+-----------+------+------+---------+
+                |    1 | caiwu     |    1 | cw   |       1 |
+                |    2 | renshi    |    2 | rs   |       2 |
+                |    3 | xingzheng | NULL | NULL |    NULL |
+                | NULL | NULL      |    3 | xx   |       5 |
+                +------+-----------+------+------+---------+
+</code></pre><h1 id="分页查询-limit"><a href="#分页查询-limit" class="headerlink" title="分页查询 limit"></a>分页查询 limit</h1><pre><code>逻辑分页：检索出所有数据存到集合中，需要时从集合中拿
+    优点：一次查询，多次使用。减少数据库访问
+    缺点：数据过大占内存，数据更新有延迟
+物理分页：只检索需要的数据
+            不同数据库有不同的物理分页指令，mysql是limit startIndex,count （索引编号从0开始）
+                    select * from customer limit 0,1; 从表中第一条数据开始取一条记录。
+</code></pre><h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><pre><code>    create user estore identified by &apos;estore&apos;;
+授权：
+    grant all on estore.* to estore;
 </code></pre>
           
         
@@ -413,7 +854,7 @@ pe系统中，使用DiskGenius分区软件重新格式化分区，转换分区�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/npm使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/常见开源许可证差异/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -432,7 +873,7 @@ pe系统中，使用DiskGenius分区软件重新格式化分区，转换分区�
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/电脑使用/npm使用/" itemprop="url">npm使用</a></h1>
+                <a class="post-title-link" href="/2018/12/20/电脑使用/常见开源许可证差异/" itemprop="url">常见开源许可证差异</a></h1>
         
 
         <div class="post-meta">
@@ -444,7 +885,7 @@ pe系统中，使用DiskGenius分区软件重新格式化分区，转换分区�
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T08:56:53+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T10:47:53+08:00">
                 2018-12-20
               </time>
             
@@ -506,22 +947,7 @@ pe系统中，使用DiskGenius分区软件重新格式化分区，转换分区�
       
         
           
-            <h1 id="配置镜像"><a href="#配置镜像" class="headerlink" title="配置镜像"></a>配置镜像</h1><p>镜像使用方法（三种办法任意一种都能解决问题，建议使用第三种，将配置写死，下次用的时候配置还在）:</p>
-<p>1.通过config命令</p>
-<pre><code>npm config set registry https://registry.npm.taobao.org 
-npm config list
-配置正确会出现下面内容
-    ; userconfig C:\Users\My\.npmrc
-    registry = &quot;https://registry.npm.taobao.org/&quot;
-</code></pre><p>2.命令行指定</p>
-<pre><code>npm --registry https://registry.npm.taobao.org info underscore 
-</code></pre><p>3.编辑 ~/.npmrc 加入下面内容。操作中发现，没有使用第一种方法配置过，找不到.npmtc文件</p>
-<pre><code>registry = https://registry.npm.taobao.org
-</code></pre><h1 id="缓存问题"><a href="#缓存问题" class="headerlink" title="缓存问题"></a>缓存问题</h1><p>node module 有时候会有缓存问题。</p>
-<p>npm cache clean –force 无效</p>
-<p>重启大法 无效</p>
-<p>更改工程文件夹名，解决缓存问题</p>
-
+            <img src="/2018/12/20/电脑使用/常见开源许可证差异/1.png">
           
         
       
@@ -569,7 +995,7 @@ npm config list
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/vmware虚拟机桥接模式/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/mac/vmware10 安装mac10.9系统/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -588,7 +1014,7 @@ npm config list
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/电脑使用/vmware虚拟机桥接模式/" itemprop="url">vmware虚拟机桥接模式</a></h1>
+                <a class="post-title-link" href="/2018/12/20/电脑使用/mac/vmware10 安装mac10.9系统/" itemprop="url">VMware10安装Mac10.9系统</a></h1>
         
 
         <div class="post-meta">
@@ -600,7 +1026,7 @@ npm config list
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T08:56:53+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T10:46:53+08:00">
                 2018-12-20
               </time>
             
@@ -662,13 +1088,17 @@ npm config list
       
         
           
-            <p>默认是nat模式，虚拟机处于主机内网</p>
-<p>桥接模式，虚拟机和主机几乎一样身份，处于同一网段</p>
-<ul>
-<li>“编辑”–“虚拟网络编辑器”，选中vmnet0–“桥接到”改成你的无线网卡名（原本是“自动”）–“确定”；</li>
-<li>虚拟网卡–网络连接 改成“自定义-指定的虚拟网络”，后面的列表选中vmnet0，</li>
-<li>主机连上网络（包括上无线网）就可以了。发现虚拟机和主机ip在同一网段</li>
-</ul>
+            <h2 id="vmware10-安装mac10-9系统"><a href="#vmware10-安装mac10-9系统" class="headerlink" title="vmware10 安装mac10.9系统"></a>vmware10 安装mac10.9系统</h2><p>开始下载了一个mac10.10 的iso格式镜像，发现vmware10最高支持mac10.9，强装也是失败。</p>
+<pre><code>超详细VMware Workstation 10安装OS X Mavericks http://www.oschina.net/question/1039213_158319?fromerr=KYsGXefA
+</code></pre><p>一路下一步，选择磁盘步骤，点击mac的磁盘工具，选择磁盘，分区，完毕，退出磁盘工具，选择刚才分区的磁盘，下一步。</p>
+<p>键盘布局选择 中文-简体</p>
+<p>传输信息到这台mac 选择 不传输任何信息</p>
+<p>Apple id登录 选择 不登录跳过</p>
+<h2 id="安装darwin6-iso-实现拖拽文件和自动适应分辨率"><a href="#安装darwin6-iso-实现拖拽文件和自动适应分辨率" class="headerlink" title="安装darwin6.iso 实现拖拽文件和自动适应分辨率"></a>安装darwin6.iso 实现拖拽文件和自动适应分辨率</h2><p>关机，虚拟机–cd/dvd–设置 选择 D:\down\darwin6.iso</p>
+<p>开机，桌面双击 VMware tools，安装</p>
+<h2 id="VMsvga2-v1-2-5-OS-10-6-10-8-pkg-的作用："><a href="#VMsvga2-v1-2-5-OS-10-6-10-8-pkg-的作用：" class="headerlink" title="VMsvga2_v1.2.5_OS_10.6-10.8.pkg 的作用："></a>VMsvga2_v1.2.5_OS_10.6-10.8.pkg 的作用：</h2><p>要观看优酷之类在线视频或玩小游戏得安装vm显卡驱动VMsvga2_Docs</p>
+<p>安装此驱动会出现不能自动适应分辨率 ，分辨率 要手动调整</p>
+<p>但显示dock图标滑动比较流畅</p>
 
           
         
@@ -717,7 +1147,7 @@ npm config list
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/wireShark 过滤规则/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/kali无法识别BCM43XX系列无线网卡/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -736,7 +1166,7 @@ npm config list
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/电脑使用/wireShark 过滤规则/" itemprop="url">wireShark 过滤规则</a></h1>
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/kali无法识别BCM43XX系列无线网卡/" itemprop="url">kali无法识别BCM43XX系列无线网卡</a></h1>
         
 
         <div class="post-meta">
@@ -748,7 +1178,7 @@ npm config list
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T08:56:53+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:13:53+08:00">
                 2018-12-20
               </time>
             
@@ -810,11 +1240,11 @@ npm config list
       
         
           
-            <p>ip<br>    ip.dst==192.168.101.8<br>    ip.src==1.1.1.1</p>
-<p>port<br>    tcp.port==80<br>    tcp.dstport==80<br>    tcp.srcport==80</p>
-<p>protocol<br>    直接在Filter框中直接输入协议名即可</p>
-<p>http模式过滤<br>    如过滤get包，http.request.method==”GET”,<br>    过滤post包，http.request.method==”POST”；</p>
-<p>连接符and的使用<br>    过滤两种条件时，使用and连接<br>    如过滤ip为192.168.101.8并且为http协议的，ip.src==192.168.101.8 and http。</p>
+            <p>打开终端，输入<br>cat /etc/apt/sources.list</p>
+<p>看看里面有没有一下三行kali官方源的地址（如果是断网安装，kali的默认源可能不会写入到这个文件里），<br>如果没有，请在/etc/apt/sources.list中入这三行。<br>deb <a href="http://http.kali.org/kali" target="_blank" rel="noopener">http://http.kali.org/kali</a> kali main non-free contrib<br>deb-src <a href="http://http.kali.org/kali" target="_blank" rel="noopener">http://http.kali.org/kali</a> kali main non-free contrib<br>deb <a href="http://security.kali.org/kali-security" target="_blank" rel="noopener">http://security.kali.org/kali-security</a> kali/updates main contrib non-free</p>
+<p>加入之后就可以对整个系统进行更新了，终端中输入：<br>apt-get update &amp;&amp; apt-get dist-upgrade</p>
+<p>解决kali无法识别BCM43XX系列无线网卡问题（我的博通 BCM 4312）<br>安装BCM43XX系列无线网卡驱动：<br>aptitude update &amp;&amp; aptitude install wireless-toolsaptitude install firmware-b43-lpphy-installer<br>完成之后注销或者重启电脑，<br>在终端中输入 iwconfig 即可看到无线网卡已经识别</p>
+<p>关于BCM43XX系列的无线网卡驱动请参考Debian官方文档：<br><a href="http://wiki.debian.org/bcm43xx" target="_blank" rel="noopener">http://wiki.debian.org/bcm43xx</a><br>老的博通系列网卡可能需要 firmware-b43legacy-installer 安装包</p>
 
           
         
@@ -863,7 +1293,7 @@ npm config list
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/16/电脑使用/linux/Linux设置环境变量/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ettercap/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -882,7 +1312,7 @@ npm config list
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/16/电脑使用/linux/Linux设置环境变量/" itemprop="url">Linux设置环境变量</a></h1>
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ettercap/" itemprop="url">Kali ettercap</a></h1>
         
 
         <div class="post-meta">
@@ -894,8 +1324,8 @@ npm config list
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-16T11:35:29+08:00">
-                2018-12-16
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:12:53+08:00">
+                2018-12-20
               </time>
             
 
@@ -956,56 +1386,8 @@ npm config list
       
         
           
-            <h1 id="export-命令"><a href="#export-命令" class="headerlink" title="export 命令"></a>export 命令</h1><p><strong>设置或显示环境变量</strong></p>
-<p>语　　法：<code>export [-fnp][变量名称]=[变量设置值]</code></p>
-<p> 一个变量创建时，不会自动地为在它之后创建的shell进程所知。</p>
-<p> export可以向shell执行的脚本传递变量的值。</p>
-<h1 id="三种实现方法设置环境变量"><a href="#三种实现方法设置环境变量" class="headerlink" title="三种实现方法设置环境变量"></a>三种实现方法设置环境变量</h1><h2 id="终端中直接使用-export-–-临时变量"><a href="#终端中直接使用-export-–-临时变量" class="headerlink" title="终端中直接使用 export – 临时变量"></a>终端中直接使用 export – 临时变量</h2><p>直接使用 export 设置的变量都是临时变量，退出当前的 shell ，该变量定义的值便失效了</p>
-<h2 id="修改-etc-profile"><a href="#修改-etc-profile" class="headerlink" title="修改 /etc/profile"></a>修改 /etc/profile</h2><pre><code>sudo gedit  /etc/profile
-</code></pre><p>在文件末尾添加</p>
-<pre><code>export JAVA_HOME=/usr/lib/jdk1.8.0_45
-
-export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib:$CLASSPATH 多值间用冒号连接
-
-export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH 别忘记最后加上原来的$PATH，否则就把先前的环境变量覆盖了
-</code></pre><p>保存退出</p>
-<p>使其生效</p>
-<pre><code>sudo source /etc/profile 
-
-提示找不到source命令则需要切换到root用户执行 source /etc/profile
-</code></pre><p>此时只有执行过 sudo source /etc/profile 命令的终端所在的线程才可以使用 Java 环境变量，而其他线程则还不可以。</p>
-<p>重启之后则都可以了</p>
-<h2 id="修改-bashrc-文件-–-当前用户-shell-下生效"><a href="#修改-bashrc-文件-–-当前用户-shell-下生效" class="headerlink" title="修改 .bashrc 文件 – 当前用户 shell 下生效"></a>修改 .bashrc 文件 – 当前用户 shell 下生效</h2><h1 id="环境变量切换"><a href="#环境变量切换" class="headerlink" title="环境变量切换"></a>环境变量切换</h1><pre><code>export JAVA_6_HOME=/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home
-export JAVA_7_HOME=/Library/Java/JavaVirtualMachines/jdk1.7.0_79.jdk/Contents/Home
-export JAVA_8_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home
-
-#创建默认的jdk版本
-export JAVA_HOME=$JAVA_6_HOME
-
-#创建alias命令，实现动态切换
-alias jdk8=&apos;export JAVA_HOME=$JAVA_8_HOME&apos;
-alias jdk7=&apos;export JAVA_HOME=$JAVA_7_HOME&apos;
-alias jdk6=&apos;export JAVA_HOME=$JAVA_6_HOME&apos;
-</code></pre><p>保存并退出编辑器</p>
-<p>在terminal中输入命令：<code>source .bash_profile</code> 使配置生效</p>
-<p>验证配置与切换</p>
-<pre><code>在terminal中 
-    输入  jdk6
-    再输入java -version 查看当前版本即可实现动态切换，        jdk7，jdk8同样。
-</code></pre><h1 id="Mac系统环境变量，加载顺序"><a href="#Mac系统环境变量，加载顺序" class="headerlink" title="Mac系统环境变量，加载顺序"></a>Mac系统环境变量，加载顺序</h1><ul>
-<li>系统级别<ul>
-<li>/etc/profile</li>
-<li>/etc/paths </li>
-</ul>
-</li>
-<li>用户级别<ul>
-<li>~/.bash_profile </li>
-<li>~/.bash_login </li>
-<li>~/.profile 以上3个按照从前往后的顺序读取，读取到一个就停止</li>
-<li>~/.bashrc bash shell打开的时候载入的</li>
-</ul>
-</li>
-</ul>
+            <h1 id="ettercap"><a href="#ettercap" class="headerlink" title="ettercap"></a>ettercap</h1><p>开源的嗅探工具，中间人攻击工具：ARP欺骗，DNS欺骗，劫持，Dos攻击工具</p>
+<p>有GUI</p>
 
           
         
@@ -1054,7 +1436,7 @@ alias jdk6=&apos;export JAVA_HOME=$JAVA_6_HOME&apos;
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/16/Flutter/Flutter错误集锦/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ferret和hamster劫持登录会话/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1073,7 +1455,7 @@ alias jdk6=&apos;export JAVA_HOME=$JAVA_6_HOME&apos;
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/16/Flutter/Flutter错误集锦/" itemprop="url">Flutter错误集锦</a></h1>
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ferret和hamster劫持登录会话/" itemprop="url">Kali ferret和hamster劫持登录会话</a></h1>
         
 
         <div class="post-meta">
@@ -1085,8 +1467,8 @@ alias jdk6=&apos;export JAVA_HOME=$JAVA_6_HOME&apos;
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-16T11:18:29+08:00">
-                2018-12-16
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:12:53+08:00">
+                2018-12-20
               </time>
             
 
@@ -1095,6 +1477,28 @@ alias jdk6=&apos;export JAVA_HOME=$JAVA_6_HOME&apos;
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -1125,19 +1529,10 @@ alias jdk6=&apos;export JAVA_HOME=$JAVA_6_HOME&apos;
       
         
           
-            <h1 id="下载依赖失败"><a href="#下载依赖失败" class="headerlink" title="下载依赖失败"></a>下载依赖失败</h1><p><code>flutter doctor</code> <code>flutter packages get</code>等，下载依赖卡住，没进度</p>
-<p>解决方案：使用镜像</p>
-<p><a href="https://github.com/flutter/flutter/wiki/Using-Flutter-in-China" target="_blank" rel="noopener">官方解决方案</a></p>
-<pre><code>export PUB_HOSTED_URL=https://pub.flutter-io.cn
-
-export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
-</code></pre><h1 id="Waiting-for-another-flutter-command-to-release-the-startup-lock"><a href="#Waiting-for-another-flutter-command-to-release-the-startup-lock" class="headerlink" title="Waiting for another flutter command to release the startup lock"></a>Waiting for another flutter command to release the startup lock</h1><p>项目异常关闭，或者android studio用任务管理器强制关闭</p>
-<p><code>rm ./flutter/bin/cache/lockfile</code></p>
-<h1 id="找不到设备-设备视图消失"><a href="#找不到设备-设备视图消失" class="headerlink" title="找不到设备/设备视图消失"></a>找不到设备/设备视图消失</h1><p>Android Studio 3.0.1 的flutter项目找不到设备 - no connected device</p>
-<p>仔细观察，发现as顶部工具栏的右边少了设备框【Flutter Device Selection】</p>
-<img src="/2018/12/16/Flutter/Flutter错误集锦/找不到设备.png">
-<p>仔细回想了一下，刚刚添加了一个images目录，并且修改了pubspec.yaml文件。检查发现assets的缩进弄错了。把缩进改成2个空格后，设备框就出现了。</p>
-<p>由此可见，as对pubspec.yaml文件十分敏感</p>
+            <p>ferret    英[ˈferɪt] n.    雪貂，白鼬; （经常性的） 搜索者，侦探; 细丝（带）;</p>
+<p>hamster    英[ˈhæmstə(r)] n.    &lt;动&gt;仓鼠;</p>
+<p>ferret 分析登录数据(包括tcpdump/wireshark封包数据，以及实时数据)</p>
+<p>hamster 重放登录请求</p>
 
           
         
@@ -1186,7 +1581,7 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/15/Flutter/PageView-BottomNavigationBar实现首页页面切换/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/Dsniff工具集/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1205,7 +1600,7 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/15/Flutter/PageView-BottomNavigationBar实现首页页面切换/" itemprop="url">PageView-BottomNavigationBar实现首页页面切换</a></h1>
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/Dsniff工具集/" itemprop="url">Kali Dsniff工具集</a></h1>
         
 
         <div class="post-meta">
@@ -1217,8 +1612,8 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-15T16:10:29+08:00">
-                2018-12-15
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:11:53+08:00">
+                2018-12-20
               </time>
             
 
@@ -1227,6 +1622,28 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -1257,9 +1674,16 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
       
         
           
-            <img src="/2018/12/15/Flutter/PageView-BottomNavigationBar实现首页页面切换/PageView.png">
-<p><code>lib/main.dart</code></p>
-<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">'package:flutter/material.dart'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() =&gt; runApp(MyApp());</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> MaterialApp(</span><br><span class="line">      title: <span class="string">'Flutter Demo'</span>,</span><br><span class="line">      theme: ThemeData(</span><br><span class="line">        primarySwatch: Colors.blue,</span><br><span class="line">      ),</span><br><span class="line">      home: MyHomePage(),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyHomePage</span> <span class="keyword">extends</span> <span class="title">StatefulWidget</span> </span>&#123;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  _MyHomePageState createState() =&gt; _MyHomePageState();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">_MyHomePageState</span> <span class="keyword">extends</span> <span class="title">State</span>&lt;<span class="title">MyHomePage</span>&gt; </span>&#123;</span><br><span class="line">  <span class="built_in">int</span> _currentPageIndex = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">var</span> _pageController = <span class="keyword">new</span> PageController(initialPage: <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Scaffold(</span><br><span class="line">      appBar:</span><br><span class="line">      <span class="keyword">new</span> AppBar(</span><br><span class="line">        title: <span class="keyword">new</span> Text(<span class="string">"我是AppBar"</span>),</span><br><span class="line">        centerTitle: <span class="keyword">true</span>,</span><br><span class="line">      ),</span><br><span class="line">      body: <span class="keyword">new</span> PageView.builder(</span><br><span class="line">        onPageChanged: _pageChange,</span><br><span class="line">        controller: _pageController,</span><br><span class="line">        itemBuilder: (BuildContext context, <span class="built_in">int</span> index) &#123;</span><br><span class="line">          <span class="keyword">return</span> index == <span class="number">0</span> ? <span class="keyword">new</span> Text(<span class="string">"我是第一页"</span>) : <span class="keyword">new</span> Text(<span class="string">"我是第二页"</span>);</span><br><span class="line">        &#125;,</span><br><span class="line">        itemCount: <span class="number">2</span>,</span><br><span class="line">      ),</span><br><span class="line">      bottomNavigationBar: <span class="keyword">new</span> BottomNavigationBar(items: [</span><br><span class="line">        BottomNavigationBarItem(</span><br><span class="line">            icon: <span class="keyword">new</span> Icon(Icons.category), title: <span class="keyword">new</span> Text(<span class="string">"首页"</span>)),</span><br><span class="line">        BottomNavigationBarItem(</span><br><span class="line">            icon: <span class="keyword">new</span> Icon(Icons.message), title: <span class="keyword">new</span> Text(<span class="string">"我的"</span>)),</span><br><span class="line">      ],</span><br><span class="line">        currentIndex: _currentPageIndex,</span><br><span class="line">        onTap: onTap,</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// bottomnaviagtionbar 和 pageview 的联动</span></span><br><span class="line">  <span class="keyword">void</span> onTap(<span class="built_in">int</span> index) &#123;</span><br><span class="line">    <span class="comment">// 通过pageview的pagecontroller的animateToPage方法可以跳转</span></span><br><span class="line">    _pageController.animateToPage(index,</span><br><span class="line">        duration: <span class="keyword">const</span> <span class="built_in">Duration</span>(milliseconds: <span class="number">300</span>), curve: Curves.ease);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">void</span> _pageChange(<span class="built_in">int</span> index) &#123;</span><br><span class="line">    setState(() &#123;</span><br><span class="line">      <span class="keyword">if</span> (_currentPageIndex != index) &#123;</span><br><span class="line">        _currentPageIndex = index;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+            <p>Dsniff工具集</p>
+<p>嗅探工具，中间人攻击工具：ARP欺骗，DNS欺骗，劫持</p>
+<pre><code>arpspoof
+dnsspoof
+driftnet
+Msgsnarf
+Urlsnarf
+Mailsnarf
+Filesnarf
+</code></pre>
           
         
       
@@ -1307,7 +1731,7 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/15/Flutter/第一个Flutter-App/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ARP欺骗/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1326,7 +1750,7 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/15/Flutter/第一个Flutter-App/" itemprop="url">第一个 Flutter App</a></h1>
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ARP欺骗/" itemprop="url">Kali ARP欺骗</a></h1>
         
 
         <div class="post-meta">
@@ -1338,8 +1762,8 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-15T15:33:29+08:00">
-                2018-12-15
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:10:53+08:00">
+                2018-12-20
               </time>
             
 
@@ -1348,6 +1772,28 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -1378,131 +1824,10 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
       
         
           
-            <p><code>lib/main.dart</code></p>
-<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">'package:flutter/material.dart'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> main() =&gt; runApp(<span class="keyword">new</span> MyApp());</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">StatelessWidget</span> </span>&#123;</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  Widget build(BuildContext context) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> MaterialApp(</span><br><span class="line">      title: <span class="string">'Welcome to Flutter'</span>,</span><br><span class="line">      home: <span class="keyword">new</span> Scaffold(</span><br><span class="line">        appBar: <span class="keyword">new</span> AppBar(</span><br><span class="line">          title: <span class="keyword">new</span> Text(<span class="string">'Welcome to Flutter'</span>),</span><br><span class="line">        ),</span><br><span class="line">        body: <span class="keyword">new</span> Center(</span><br><span class="line">          child: <span class="keyword">new</span> Text(<span class="string">'Hello World'</span>),</span><br><span class="line">        ),</span><br><span class="line">      ),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/14/Android/Android动画/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/14/Android/Android动画/" itemprop="url">Android动画</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-14T16:22:53+08:00">
-                2018-12-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h1><h2 id="setVisibility-INVISIBLE-无效"><a href="#setVisibility-INVISIBLE-无效" class="headerlink" title="setVisibility(INVISIBLE)无效"></a>setVisibility(INVISIBLE)无效</h2><p>setVisibility(INVISIBLE)隐藏view，但是还是在界面上没有消失</p>
-<p>解决方案：<strong>clearAnimation()</strong></p>
-<p>View的clearAnimation()源码</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">clearAnimation</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mCurrentAnimation != <span class="keyword">null</span>) &#123;</span><br><span class="line">        mCurrentAnimation.detach();</span><br><span class="line">    &#125;</span><br><span class="line">    mCurrentAnimation = <span class="keyword">null</span>;</span><br><span class="line">    invalidateParentIfNeeded();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>主要是把mCurrentAnimation这个变量置空</p>
+            <h1 id="ARP欺骗原理"><a href="#ARP欺骗原理" class="headerlink" title="ARP欺骗原理"></a>ARP欺骗原理</h1><p>ARP协议：通过IP地址来查找主机的物理地址（MAC地址）。</p>
+<p>在以太网中，是用MAC地址来进行通讯的。</p>
+<p>主机A通过交换机对整个网络进行广播请求目标主机B的MAC地址，正常情况是B会回复ARP请求，将自己的MAC地址发给主机A。</p>
+<p>ARP欺骗就是攻击者主机回复所有的ARP请求并将所有的流量转发到真实的目标主机</p>
 
           
         
@@ -1551,7 +1876,7 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/11/Android/Android逆向/Android-Hook/Frida使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/arpspoof/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1570,7 +1895,7 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/11/Android/Android逆向/Android-Hook/Frida使用/" itemprop="url">Frida使用</a></h1>
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/arpspoof/" itemprop="url">Kali arpspoof</a></h1>
         
 
         <div class="post-meta">
@@ -1582,8 +1907,8 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-11T18:16:53+08:00">
-                2018-12-11
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:10:53+08:00">
+                2018-12-20
               </time>
             
 
@@ -1592,6 +1917,28 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -1622,25 +1969,157 @@ export FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
       
         
           
-            <h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="安装-frida-tools"><a href="#安装-frida-tools" class="headerlink" title="安装 frida tools"></a>安装 frida tools</h2><p><code>pip install frida-tools</code></p>
-<h2 id="安装-Android-frida-server"><a href="#安装-Android-frida-server" class="headerlink" title="安装 Android frida-server"></a>安装 Android frida-server</h2><p><a href="https://github.com/frida/frida/releases" target="_blank" rel="noopener">下载frida-server</a>。 根据手机CPU下载不同文件<code>frida-server-12.2.26-android-arm.xz</code></p>
-<p>安装运行</p>
-<pre><code>$ adb root # might be required
-$ adb push frida-server /data/local/tmp/ 
-$ adb shell &quot;chmod 755 /data/local/tmp/frida-server&quot;
-$ adb shell &quot;/data/local/tmp/frida-server &amp;&quot;
-</code></pre><p>快速冒烟测试(A quick smoke-test)</p>
-<p>终端执行 <code>frida-ps -U</code> 能够看到手机上的进程列表</p>
-<h3 id="运行错误"><a href="#运行错误" class="headerlink" title="运行错误"></a>运行错误</h3><h4 id="地址被占用"><a href="#地址被占用" class="headerlink" title="地址被占用"></a>地址被占用</h4><p><code>Unable to start server: Error binding to address: Address already in use</code></p>
-<p>之前运行过frida-server。</p>
-<p>杀死进程即可</p>
-<pre><code>adb shell
-ps |grep frida
-    root      4341  4292  41036  36132 ffffffff b5b29960 S /data/local/tmp/frida-server
-    root      4354  4341  5748   1448  ffffffff b6d2f960 S /data/local/tmp/re.frida.server/frida-helper-32
-kill 4341
-</code></pre><h4 id="运行后手机重启"><a href="#运行后手机重启" class="headerlink" title="运行后手机重启"></a>运行后手机重启</h4><p>bug。重新运行</p>
-<h1 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h1><p>frida-discover 发现APP内部方法</p>
+            <p>spoof    英[spu:f] n.    哄骗; 讽刺; 戏弄; （进行） 滑稽的模仿;</p>
+<h1 id="arpspoof使用"><a href="#arpspoof使用" class="headerlink" title="arpspoof使用"></a>arpspoof使用</h1><p>启用IP转发(不转发会导致受害者主机无法访问网络)</p>
+<pre><code>echo 1 &gt;&gt; /proc/sys/net/ipv4/ip_forward
+</code></pre><p>启动arpspoof。Usage: arpspoof [-i interface] [-t target] host(网关ip)</p>
+<pre><code>arpspoof -i eth0 -t 192.168.1.5 192.168.1.1
+</code></pre><p>捕获图片请求(另开一个终端)</p>
+<pre><code>driftnet -i eth0
+</code></pre><p>也可以使用tcpdump或Wireshark工具截获所有流量</p>
+<p>说明：可以通过 <code>arp</code> 命令分别查看攻击者和受害者主机的arp缓存表来理解arp欺骗</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/中间人攻击/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/中间人攻击/" itemprop="url">Kali中间人攻击</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:09:53+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><strong>中间人攻击，Man-in-the-Middle Attack，简称“MITM攻击”</strong></p>
 
           
         
@@ -1680,7 +2159,7 @@ kill 4341
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/10/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="extend next" rel="next" href="/page/12/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/10/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/12/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1730,7 +2209,7 @@ kill 4341
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">195</span>
+                  <span class="site-state-item-count">214</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1741,7 +2220,7 @@ kill 4341
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -1752,7 +2231,7 @@ kill 4341
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

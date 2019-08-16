@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Android," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="概述Dagger2 是一个依赖注入框架 是Dagger的升级版，agger由Square公司开源；Dagger2 由 Google接手维护 是首个使用生成代码实现完整依赖注入的框架，极大减少了使用者的编码负担。 Dagger 得名于树状结构的依赖。能更准确地记住这是个依赖图，实际上是有向无环图，DAG（Directed Acyclic Graph）有向无环图，因此取名为 DAGger 为什么要依赖">
+<meta name="keywords" content="Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dagger2">
+<meta property="og:url" content="http://yoursite.com/2019/08/10/Android/Dagger2/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="概述Dagger2 是一个依赖注入框架 是Dagger的升级版，agger由Square公司开源；Dagger2 由 Google接手维护 是首个使用生成代码实现完整依赖注入的框架，极大减少了使用者的编码负担。 Dagger 得名于树状结构的依赖。能更准确地记住这是个依赖图，实际上是有向无环图，DAG（Directed Acyclic Graph）有向无环图，因此取名为 DAGger 为什么要依赖">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/08/10/Android/Dagger2/Dagger.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/10/Android/Dagger2/Component.png">
+<meta property="og:updated_time" content="2019-08-16T10:22:34.752Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Dagger2">
+<meta name="twitter:description" content="概述Dagger2 是一个依赖注入框架 是Dagger的升级版，agger由Square公司开源；Dagger2 由 Google接手维护 是首个使用生成代码实现完整依赖注入的框架，极大减少了使用者的编码负担。 Dagger 得名于树状结构的依赖。能更准确地记住这是个依赖图，实际上是有向无环图，DAG（Directed Acyclic Graph）有向无环图，因此取名为 DAGger 为什么要依赖">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/10/Android/Dagger2/Dagger.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/10/Android/Dagger2/"/>
+
+
+
+
+
+  <title>Dagger2 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/10/Android/Dagger2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Dagger2</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-10T20:25:53+08:00">
+                2019-08-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>Dagger2 是一个依赖注入框架</p>
+<p>是Dagger的升级版，agger由Square公司开源；Dagger2 由 Google接手维护</p>
+<p>是首个使用生成代码实现完整依赖注入的框架，极大减少了使用者的编码负担。</p>
+<p>Dagger 得名于树状结构的依赖。能更准确地记住这是个依赖图，实际上是<strong>有向无环图</strong>，DAG（Directed Acyclic Graph）有向无环图，因此取名为 <strong>DAGger</strong></p>
+<h1 id="为什么要依赖注入"><a href="#为什么要依赖注入" class="headerlink" title="为什么要依赖注入"></a>为什么要依赖注入</h1><p>因为依赖注入是实现控制反转(IOC)的最常用方式。更多关于IOC的信息，参考IOC文章。</p>
+<h1 id="Dagger2-原理"><a href="#Dagger2-原理" class="headerlink" title="Dagger2 原理"></a>Dagger2 原理</h1><img src="/2019/08/10/Android/Dagger2/Dagger.png">
+<h2 id="Inject"><a href="#Inject" class="headerlink" title="Inject"></a>Inject</h2><p>依赖提供者，注解依赖实例构造方法</p>
+<p>依赖消费者，注解依赖实例对象</p>
+<h2 id="Component"><a href="#Component" class="headerlink" title="Component"></a>Component</h2><p>通过Inject，目标类中所依赖的其他类与其他类的构造函数之间有了一种无形的联系。</p>
+<p>但是要想使它们之间产生直接的关系，还得需要一个桥梁来把它们之间连接起来。那这个桥梁就是Component了</p>
+<p>Component 是一个 <strong>桥梁</strong> ，一个 <strong>容器</strong> ，一个 <strong>注入器</strong> (Injector)</p>
+<p>主要工作：把目标类依赖的实例注入到目标类中，来初始化目标类中的依赖</p>
+<p>调用Component的 <code>injectXXX(Object)</code>方法开始注入。(injectXXX方法名字是官方推荐的命名)</p>
+<p>Component工作流程：</p>
+<ul>
+<li>查找目标类中用Inject注解标注的属性，</li>
+<li>查找该属性对应的用Inject标注的构造函数</li>
+<li>初始化该属性的实例</li>
+<li>把实例赋值给目标类的属性。</li>
+</ul>
+<p>因此我们也可以给Component叫另外一个名字</p>
+<img src="/2019/08/10/Android/Dagger2/Component.png">
+<h2 id="Module-和-Provides"><a href="#Module-和-Provides" class="headerlink" title="Module 和 Provides"></a>Module 和 Provides</h2><p><strong>解决第三方类库依赖</strong></p>
+<p>无法把Inject注解加入第三方类库的类中。</p>
+<p>把封装第三方类库的代码放入 Module 中。所以 <strong>Module其实是一个简单工厂模式，Module里面的方法基本都是创建类实例的方法</strong> 。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ModuleClass</span></span>&#123;</span><br><span class="line">	<span class="comment">//A是第三方类库中的一个类</span></span><br><span class="line">	<span class="function">A <span class="title">provideA</span><span class="params">()</span></span>&#123;</span><br><span class="line">	   <span class="keyword">return</span> A();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="配置依赖"><a href="#配置依赖" class="headerlink" title="配置依赖"></a>配置依赖</h1><pre><code>compile &apos;com.google.dagger:dagger:2.24&apos;
+annotationProcessor &apos;com.google.dagger:dagger-compiler:2.24&apos;
+compile &apos;com.google.dagger:dagger-android:2.24&apos;
+compile &apos;com.google.dagger:dagger-android-support:2.24&apos; // if you use the support libraries
+annotationProcessor &apos;com.google.dagger:dagger-android-processor:2.24&apos;
+</code></pre><h1 id="简单依赖注入"><a href="#简单依赖注入" class="headerlink" title="简单依赖注入"></a>简单依赖注入</h1><p>实例：在MainActivity中创建User对象。</p>
+<h2 id="Module-–-构建依赖（依赖提供者）"><a href="#Module-–-构建依赖（依赖提供者）" class="headerlink" title="Module – 构建依赖（依赖提供者）"></a>Module – 构建依赖（依赖提供者）</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserModule</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="function">User <span class="title">provideUser</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> User();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>@Module这是一个Module，@Provides这是一个提供依赖的方法</p>
+<h2 id="Component-–-injector（连接-依赖提供者和依赖消费者）"><a href="#Component-–-injector（连接-依赖提供者和依赖消费者）" class="headerlink" title="Component – injector（连接 依赖提供者和依赖消费者）"></a>Component – injector（连接 依赖提供者和依赖消费者）</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(modules = UserModule.class)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserComponent</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">void</span> <span class="title">inject</span><span class="params">(MainActivity activity)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code>inject方法需要一个真正消耗依赖的类型对象(而不可以写成其父类)作为参数。
+因为dagger2在编译时生成依赖注入的代码，会到inject方法的参数类型中寻找可以注入的对象
+dagger2会自动生成类实现该接口
+</code></pre><h2 id="使用依赖注入"><a href="#使用依赖注入" class="headerlink" title="使用依赖注入"></a>使用依赖注入</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> </span>&#123;</span><br><span class="line"> 	<span class="meta">@Inject</span></span><br><span class="line"> 	User mUser;</span><br><span class="line">	</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        </span><br><span class="line">        UserComponent userComponent = DaggerUserComponent.builder().userModule(<span class="keyword">new</span> UserModule()).build();</span><br><span class="line">        userComponent.inject(<span class="keyword">this</span>);</span><br><span class="line">        </span><br><span class="line">        TextView viewById = (TextView) findViewById(R.id.textView);</span><br><span class="line">        viewById.setText(mUser.name);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>@Inject标识被注入的对象User（注意User不能为private，否则会报错）</p>
+<pre><code>Error:(12, 18) 错误: Dagger does not support injection into private fields
+注: Generating a MembersInjector or Factory for com.example.test2.MainActivity. Prefer to run the dagger processor over that class instead.
+</code></pre><p>通过类 <code>DaggerActivityComponent</code> 创建component，调用其inject方法完成注入</p>
+<pre><code>DaggerUserComponent 是dagger2自动生成，实现了我们提供的 UserComponent 接口。
+目录在build/generated/sources/apt/下 （可对生成的文件加断点调试，理解整个过程）
+</code></pre><h1 id="Dagger2-调试"><a href="#Dagger2-调试" class="headerlink" title="Dagger2 调试"></a>Dagger2 调试</h1><p>Dagger2实现原理：<strong>注解 + 编译时处理</strong>，为了性能考虑，没有使用反射</p>
+<p>build后生成的代码目录在 <code>build/generated/sources/apt/</code> 下，可对生成的文件加断点调试，理解整个过程</p>
+<p>比如 DaggerUserComponent 是dagger2自动生成，实现了我们提供的 UserComponent 接口。</p>
+<h1 id="构建依赖-依赖提供者-两种方法"><a href="#构建依赖-依赖提供者-两种方法" class="headerlink" title="构建依赖(依赖提供者)两种方法"></a>构建依赖(依赖提供者)两种方法</h1><h2 id="Inject-类构造方法"><a href="#Inject-类构造方法" class="headerlink" title="@Inject 类构造方法"></a>@Inject 类构造方法</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Inject</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">User</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>每个类只能有一个构造方法有@inject注解。否则报错 <code>Types may only contain one @Inject constructor.</code></p>
+<p>不够灵活，只能注解一个构造方法。</p>
+<h2 id="Module-和-Provides-1"><a href="#Module-和-Provides-1" class="headerlink" title="@Module 和 @Provides"></a>@Module 和 @Provides</h2><p><strong>解决第三方类库类实例问题</strong></p>
+<p><strong>工厂模式</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserModule</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="function">User <span class="title">provideUser</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> User();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>两种方法必选其一，编译期才能生成构造User对象的方法。否则会报错（注入依赖失败）</p>
+<pre><code>Error:(7, 10) 错误: com.example.test2.User cannot be provided without an @Inject constructor or from an @Provides- or @Produces-annotated method.
+com.example.test2.MainActivity.user
+[injected field of type: com.example.test2.User user]
+</code></pre><p>@Inject 不够灵活。一个依赖提供者类只能有一个@Inject注解的构造方法，不能提供接口和三方库中类的依赖</p>
+<p>@Module非常灵活，能提供接口和三方库中类的依赖</p>
+<p>@Module优先级也高于@inject（@Module中找到了依赖就不会到@ Inject中找）</p>
+<p>dagger会自动查找并注入依赖类的依赖（如果能找到依赖提供者），比如上面 ShoppingCar依赖的User</p>
+<h1 id="注入依赖三种方法"><a href="#注入依赖三种方法" class="headerlink" title="注入依赖三种方法"></a>注入依赖三种方法</h1><h2 id="inject-配合Component接口实现类的inject方法。"><a href="#inject-配合Component接口实现类的inject方法。" class="headerlink" title="@inject 配合Component接口实现类的inject方法。"></a>@inject 配合Component接口实现类的inject方法。</h2><p>inject方法一调用就 <strong>马上生成依赖对象</strong></p>
+<pre><code>@Inject
+User mUser;//不可私有，否则注入失败
+
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    UserComponent userComponent = DaggerUserComponent.builder().userModule(new UserModule()).build();
+    userComponent.inject(this);
+    viewById.setText(mUser.name);
+}
+</code></pre><h2 id="调用Component接口实现类的-返回依赖对象的方法"><a href="#调用Component接口实现类的-返回依赖对象的方法" class="headerlink" title="调用Component接口实现类的 返回依赖对象的方法"></a>调用Component接口实现类的 返回依赖对象的方法</h2><p><strong>使用时生成依赖对象</strong></p>
+<p><strong>科学，推荐使用</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(modules = UserModule.class)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserComponent</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">inject</span><span class="params">(MainActivity activity)</span></span>;<span class="comment">//如果User对象不需要直接注入到其他类中(即UserComponent是其他Component的依赖Component)可以不需要inject方法</span></span><br><span class="line">    <span class="function">User <span class="title">user</span><span class="params">()</span></span>;<span class="comment">//调用该方法返回User对象</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">UserComponent userComponent = DaggerUserComponent.builder().userModule(<span class="keyword">new</span> UserModule()).build();</span><br><span class="line">viewById.setText(userComponent.user().name);</span><br></pre></td></tr></table></figure>
+<h2 id="inject-Lazy泛型"><a href="#inject-Lazy泛型" class="headerlink" title="@inject Lazy泛型"></a>@inject Lazy泛型</h2><p><strong>使用时生成依赖对象</strong></p>
+<pre><code>@Inject
+Lazy&lt;User&gt; mUser;//不可私有，否则注入失败
+
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    UserComponent userComponent = DaggerUserComponent.builder().userModule(new UserModule()).build();
+    userComponent.inject(this);
+    viewById.setText(mUser.get().name);//通过get方法得到User对象
+}
+</code></pre><h1 id="注入依赖的步骤"><a href="#注入依赖的步骤" class="headerlink" title="注入依赖的步骤"></a>注入依赖的步骤</h1><p>注入依赖的步骤，其实是一个递归的过程</p>
+<ul>
+<li>步骤1：查找Module中是否存在创建该类的方法。</li>
+<li>步骤2：若Module中找到，查看该方法是否存在参数<ul>
+<li>步骤2.1：若存在参数，则按从<strong>步骤1</strong>开始依次初始化每个参数</li>
+<li>步骤2.2：若不存在参数，则直接初始化该类实例，一次依赖注入到此结束</li>
+</ul>
+</li>
+<li>步骤3：若Module中未找到，则查找Inject注解的构造函数</li>
+<li>步骤4：若找到Inject注解的构造函数，看构造函数是否存在参数<ul>
+<li>步骤4.1：若存在参数，则从<strong>步骤1</strong>开始依次初始化每个参数</li>
+<li>步骤4.2：若不存在参数，则直接初始化该类实例，一次依赖注入到此结束</li>
+</ul>
+</li>
+<li>步骤5：若找不到Inject注解的构造函数，报错</li>
+</ul>
+<h1 id="Qualifier-限定符"><a href="#Qualifier-限定符" class="headerlink" title="@Qualifier 限定符"></a>@Qualifier 限定符</h1><p>解决 <strong>依赖迷失</strong> 问题(同一纬度/优先级 的 依赖提供者 依靠类型无法确定依赖唯一性)</p>
+<p>即：当 <code>@Provides</code> 返回一种类型的方法有多个(两个及以上)，需要@Qualifier来区分。否则报错 。比如：String依赖无法确定唯一性，<code>java.lang.String is bound multiple times:</code></p>
+<p>Module类 和 目标类 同时使用 @Qualifier 限定符，解决依赖迷失</p>
+<p>@Qualifier 不能用于构造方法。否则报错 <code>@Qualifier annotations are not allowed on @Inject constructors.</code></p>
+<h2 id="Named"><a href="#Named" class="headerlink" title="@Named"></a>@Named</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Qualifier</span></span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Retention</span>(RUNTIME)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Named &#123;</span><br><span class="line">    <span class="comment">/** The name. */</span></span><br><span class="line">    <span class="function">String <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="自定义-Qualifier"><a href="#自定义-Qualifier" class="headerlink" title="自定义@Qualifier"></a>自定义@Qualifier</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Qualifier</span></span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> UserRole &#123;</span><br><span class="line">    <span class="function">String <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserModule</span> </span>&#123;</span><br><span class="line">    <span class="meta">@UserRole</span>(<span class="string">"admin"</span>)</span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="function">User <span class="title">provideAdminUser</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> User(<span class="string">"admin"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@UserRole</span>(<span class="string">"teacher"</span>)</span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="function">User <span class="title">provideTeacherUser</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> User(<span class="string">"teacher"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">目标类</span><br><span class="line"><span class="meta">@UserRole</span>(<span class="string">"admin"</span>)</span><br><span class="line"><span class="meta">@Inject</span></span><br><span class="line">User mAdminUser;</span><br><span class="line"></span><br><span class="line"><span class="meta">@UserRole</span>(<span class="string">"teacher"</span>)</span><br><span class="line"><span class="meta">@Inject</span></span><br><span class="line">User mTeacherUser;</span><br></pre></td></tr></table></figure>
+<h1 id="Component-划分方式"><a href="#Component-划分方式" class="headerlink" title="Component 划分方式"></a>Component 划分方式</h1><p>假如一个app中只有一个Component，那这个Component职责太多过于庞大，导致是很难维护、并且变化率是很高。所以需要划分为粒度小的Component。</p>
+<p>划分粒度也不能太小了，定义过多的Component，管理、维护非常困难</p>
+<p>合适划分的规则这样的：</p>
+<ul>
+<li>一个<strong>全局</strong>的Component(可以叫ApplicationComponent),负责管理整个app的全局类实例（全局类实例整个app都要用到的类的实例，这些类基本都是单例的）</li>
+<li>每个<strong>页面</strong>对应一个Component。比如一个Activity页面定义一个Component，一个Fragment定义一个Component。有些页面之间的依赖的类是一样的，可以公用一个Component。</li>
+</ul>
+<h2 id="创建单例依赖的方法"><a href="#创建单例依赖的方法" class="headerlink" title="创建单例依赖的方法"></a>创建单例依赖的方法</h2><ol>
+<li>在Module中定义创建全局类实例的方法（因为Module中找到了创建实例方法，就不会到Inject维度找了）</li>
+<li>ApplicationComponent管理Module</li>
+<li>保证ApplicationComponent只有一个实例（在app的Application中实例化ApplicationComponent）</li>
+</ol>
+<h1 id="Component-组织方式"><a href="#Component-组织方式" class="headerlink" title="Component 组织方式"></a>Component 组织方式</h1><p>按照上面的规则划分为不同的Component，全局类实例也创建了单例模式。问题来了其他的Component想要把全局的类实例注入到目标类中该怎么办呢？</p>
+<p>这就涉及到<strong>类实例共享</strong>的问题了。</p>
+<p>因为Component有管理创建类实例的能力，因此只要能很好的组织Component之间的关系，问题就好办了。</p>
+<p>具体的组织方式分为以下3种：</p>
+<h2 id="依赖方式"><a href="#依赖方式" class="headerlink" title="依赖方式"></a>依赖方式</h2><p>一个Component依赖于一个或多个Component</p>
+<p>Component中的 <strong>dependencies</strong> 属性就是依赖方式的具体实现</p>
+<h3 id="关键"><a href="#关键" class="headerlink" title="关键"></a>关键</h3><ul>
+<li>高层Component 的 dependencies  属性 <strong>依赖</strong> 低层Component</li>
+<li>低层Component 提供一个方法 返回依赖实例。(目的：<strong>显式暴露依赖</strong>)</li>
+<li>使用：<ul>
+<li>先初始化 低层Component</li>
+<li>低层Component 作为参数初 始化高层Component</li>
+<li>调用高层Component.inject() 注入 高层对象</li>
+</ul>
+</li>
+</ul>
+<h3 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h3><ul>
+<li>高层Component只能使用低层Component显式暴露出来的依赖<ul>
+<li>低层Component 需要写 抽象方法暴露依赖</li>
+</ul>
+</li>
+</ul>
+<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><p>实例：MainActivity 依赖 User，User 依赖 ShoppingCart</p>
+<p>低层</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShoppingCartModule</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="function">ShoppingCart <span class="title">provideShoppingCart</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ShoppingCart();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(modules = ShoppingCartModule.class)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ShoppingCartComponent</span> </span>&#123;</span><br><span class="line">    <span class="comment">//void inject(MainActivity mainActivity);//不需要直接注入到目标类中(即ShoppingCartComponent是其他Component的依赖Component)就不需要inject方法。有的话会报错找不到依赖</span></span><br><span class="line">    <span class="function">ShoppingCart <span class="title">offerShoppingCart</span><span class="params">()</span></span>;<span class="comment">//新增一个方法提供依赖对象。低层 Component 需要一个方法提供依赖对象</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>高层</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserModule</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="function">User <span class="title">provideUser</span><span class="params">(ShoppingCart shoppingCart)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> User(shoppingCart);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(modules = UserModule.class, dependencies = ShoppingCartComponent.class)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserComponent</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">inject</span><span class="params">(MainActivity activity)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Inject</span></span><br><span class="line">    User mUser;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line"></span><br><span class="line">        ShoppingCartComponent shoppingCartComponent = DaggerShoppingCartComponent.builder().shoppingCartModule(<span class="keyword">new</span> ShoppingCartModule()).build();</span><br><span class="line">        UserComponent userComponent = DaggerUserComponent.builder().userModule(<span class="keyword">new</span> UserModule()).shoppingCartComponent(shoppingCartComponent).build();</span><br><span class="line">        userComponent.inject(<span class="keyword">this</span>);</span><br><span class="line">        ((TextView) findViewById(R.id.text)).setText(mUser.name + <span class="string">" "</span> + mUser.mShoppingCart.total);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Component接口的inject方法</strong> 参数类型必须是真实使用注入依赖的类对象。而且<strong>一个类对象只能对应一个inject方法</strong>。</p>
+<pre><code>比如 UserComponent 的inject(MainActivity activity)，ShoppingCarComponent 的 inject(MainActivity activity) 就会报错，两个inject指向同一个对象
+    Error:(7, 10) 错误: com.example.test2.User cannot be provided without an @Inject constructor or from an @Provides- or @Produces-annotated method.
+    com.example.test2.MainActivity.user
+    [injected field of type: com.example.test2.User user]
+其实是有提供依赖的，真正的原因就是两个inject指向MainActivity activity这同一个对象。
+app\build\generated\source\apt\目录下会生成 MainActivity_MembersInjector.java
+</code></pre><p><strong>UserComponent必须初始化依赖的shoppingCartComponent和userModule，否则会报错</strong></p>
+<pre><code>Caused by: java.lang.IllegalStateException: shoppingCartComponent must be set 
+    at com.example.testdagger2. DaggerUserComponent$Builder.build(DaggerUserComponent.java:55)
+</code></pre><h2 id="包含方式-继承方式"><a href="#包含方式-继承方式" class="headerlink" title="包含方式(继承方式)"></a>包含方式(继承方式)</h2><p>一个Component包含一个或多个Component的，被包含的Component还可以继续包含其他的Component。</p>
+<p>这种方式特别像Activity与Fragment的关系。</p>
+<p><strong>推荐使用，实际使用更加广泛</strong></p>
+<p><strong>SubComponent</strong> 就是包含方式的具体实现。子Component，可以理解为 <strong>继承或者拓展</strong>(比较好理解)</p>
+<h3 id="优缺点-1"><a href="#优缺点-1" class="headerlink" title="优缺点"></a>优缺点</h3><ul>
+<li>@Subcomponent注解不会在编译后生成Dagger前缀的容器类，而是体现在父@Component的<strong>私有内部类</strong>，并且如何在父@Component中构建@Subcomponent都需要我们自己写(既然是继承关系，完全可以自动生成吧？)</li>
+<li>父@Component的依赖是完全暴露<ul>
+<li>不需要像依赖方式一样，在Component中显示声明暴露</li>
+</ul>
+</li>
+</ul>
+<h3 id="建造者模式-写法"><a href="#建造者模式-写法" class="headerlink" title="建造者模式 写法"></a>建造者模式 写法</h3><p>官方推荐写法</p>
+<p>建造者模式套路(不熟悉的可以参照生成的Dagger前缀的容器类)：</p>
+<ul>
+<li>builder()生成Builder对象</li>
+<li>传入@Module对象</li>
+<li>调用Builder对象的build()方法生成@Component实例</li>
+</ul>
+<h4 id="关键-1"><a href="#关键-1" class="headerlink" title="关键"></a>关键</h4><ul>
+<li>包含者Subcomponent，改造成 <strong>标准的建造者</strong><ul>
+<li>定义一个内部接口。(标准的建造者。接口名一般是 Builder；)<ul>
+<li>用@Subcomponent.Builder注解</li>
+<li>接口提供方法构建 Subcomponent</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>被包含者Module 的 subcomponents 属性 把实例共享/暴露给 包含者Subcomponent<ul>
+<li>目的：定义 <strong>继承关系</strong> 。把父Component的<strong>依赖全部暴露</strong>给Subcomponent </li>
+</ul>
+</li>
+<li>被包含者Component 提供一个方法 返回 包含者的建造者Subcomponent.Builder<ul>
+<li>目的：定义 <strong>继承关系</strong> 。</li>
+<li>通过这个方法父Component可以生成自己的私有内部类Subcomponent</li>
+</ul>
+</li>
+<li>使用：<ul>
+<li>先初始化 被包含者Component</li>
+<li>被包含者Component 使用包含者的建造者 构造 包含者Subcomponent</li>
+<li>调用包含者Subcomponent.inject() 注入 包含者对象</li>
+</ul>
+</li>
+</ul>
+<h4 id="编译过程"><a href="#编译过程" class="headerlink" title="编译过程"></a>编译过程</h4><ul>
+<li>父Component 在检测到 子Component.Builder 返回值方法</li>
+<li>检测子Component类与其内部类的注解</li>
+<li>如果是@Subcomponent注解，会在父Component的实现类里维护子Component类与其内部类的实现类</li>
+<li>如果子Component使用了父Component的依赖，则检测父Module有没有注解开放“权限”。</li>
+</ul>
+<h4 id="实例-1"><a href="#实例-1" class="headerlink" title="实例"></a>实例</h4><p>实例：MainActivity 依赖 User，User 包含 ShoppingCart</p>
+<p>被包含者</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span>(subcomponents = UserComponent.class)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShoppingCartModule</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="function">ShoppingCart <span class="title">provideShoppingCart</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ShoppingCart();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(modules = ShoppingCartModule.class)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ShoppingCartComponent</span> </span>&#123;</span><br><span class="line">    UserComponent.<span class="function">Builder <span class="title">buildUserComponent</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>包含者</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserModule</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="function">User <span class="title">provideUser</span><span class="params">(ShoppingCart shoppingCart)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> User(shoppingCart);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Subcomponent</span>(modules = UserModule.class)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserComponent</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">inject</span><span class="params">(MainActivity activity)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Subcomponent</span>.Builder</span><br><span class="line">    <span class="class"><span class="keyword">interface</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">        <span class="function">UserComponent <span class="title">build</span><span class="params">()</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Inject</span></span><br><span class="line">    User mUser;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line"></span><br><span class="line">        ShoppingCartComponent shoppingCartComponent = DaggerShoppingCartComponent.builder().shoppingCartModule(<span class="keyword">new</span> ShoppingCartModule()).build();</span><br><span class="line">        UserComponent userComponent = shoppingCartComponent.buildUserComponent().build();</span><br><span class="line">        userComponent.inject(<span class="keyword">this</span>);</span><br><span class="line">        ((TextView) findViewById(R.id.text)).setText(mUser.name + <span class="string">" "</span> + mUser.mShoppingCart.total);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="抽象工厂方法模式-写法"><a href="#抽象工厂方法模式-写法" class="headerlink" title="抽象工厂方法模式 写法"></a>抽象工厂方法模式 写法</h3><p>抽象工厂方法写法 则 相对简单粗暴</p>
+<ul>
+<li>包含者Subcomponent</li>
+<li>被包含者Component 提供一个方法 返回 包含者Subcomponent<ul>
+<li>抽象工厂方法</li>
+<li>目的：定义 <strong>继承关系</strong></li>
+</ul>
+</li>
+<li>使用：<ul>
+<li>先初始化 被包含者Component</li>
+<li>被包含者Component 利用抽象工厂方法 构造 包含者Subcomponent</li>
+<li>调用包含者Subcomponent.inject() 注入 包含者对象</li>
+</ul>
+</li>
+</ul>
+<p>被包含者</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShoppingCartModule</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="function">ShoppingCart <span class="title">provideShoppingCart</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ShoppingCart();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span>(modules = ShoppingCartModule.class)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ShoppingCartComponent</span> </span>&#123;</span><br><span class="line">    <span class="function">UserComponent <span class="title">buildUserComponent</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>包含者</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Module</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserModule</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Provides</span></span><br><span class="line">    <span class="function">User <span class="title">provideUser</span><span class="params">(ShoppingCart shoppingCart)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> User(shoppingCart);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Subcomponent</span>(modules = UserModule.class)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserComponent</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">inject</span><span class="params">(MainActivity activity)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Inject</span></span><br><span class="line">    User mUser;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line"></span><br><span class="line">        ShoppingCartComponent shoppingCartComponent = DaggerShoppingCartComponent.builder().shoppingCartModule(<span class="keyword">new</span> ShoppingCartModule()).build();</span><br><span class="line">        UserComponent userComponent = shoppingCartComponent.buildUserComponent();</span><br><span class="line">        userComponent.inject(<span class="keyword">this</span>);</span><br><span class="line">        ((TextView) findViewById(R.id.text)).setText(mUser.name + <span class="string">" "</span> + mUser.mShoppingCart.total);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="两种写法-总结"><a href="#两种写法-总结" class="headerlink" title="两种写法 总结"></a>两种写法 总结</h3><p>建造者模式 写法</p>
+<ul>
+<li>官方推荐</li>
+<li>继承关系的声明更加显式。有两处<ul>
+<li>父Module 的 subcomponents 属性</li>
+<li>父Component 提供一个方法 返回 建造者Subcomponent.Builder </li>
+</ul>
+</li>
+</ul>
+<p>抽象工厂方法模式 写法</p>
+<ul>
+<li>简单粗暴</li>
+<li>继承关系的声明不那么显式。<ul>
+<li>父Component 提供一个方法 返回 Subcomponent</li>
+</ul>
+</li>
+</ul>
+<h2 id="继承方式"><a href="#继承方式" class="headerlink" title="继承方式"></a>继承方式</h2><p>官网没有提到该方式，因为该方式不是解决类实例共享的问题，而是为了更好 <strong>管理维护</strong> Component，把一些Component共有的方法抽象到一个父类中，然后子Component继承。</p>
+<p>属于 Java中继承的使用</p>
+<h1 id="Scope"><a href="#Scope" class="headerlink" title="@Scope"></a>@Scope</h1><p>真正用处就在于 <strong>可读性和管理Component</strong>。并<strong>没有实现真正功能</strong>(单例，Activity生命周期绑定这些都靠Component组织方式来实现)</p>
+<ul>
+<li>可读性提高。<ul>
+<li>如用 <code>@Singleton</code> 标注全局类，立马就能明白这类是全局单例类。</li>
+</ul>
+</li>
+<li>更好的管理Component与Module之间的匹配关系<ul>
+<li>编译器会检查 Component管理的Modules，若发现两者标注的Scope注解不一样，就会报错。</li>
+</ul>
+</li>
+<li>更好的管理Component间的组织方式<ul>
+<li>有必要用自定义的不同Scope注解标注Component，通过Scope命名更好的体现出Component之间的组织方式。</li>
+</ul>
+</li>
+</ul>
+<p>自定义Scope注解最好使用上，虽然不使用也是可以让项目运行起来的，但是加上好处多</p>
+<h1 id="使用Dagger2的好处"><a href="#使用Dagger2的好处" class="headerlink" title="使用Dagger2的好处"></a>使用Dagger2的好处</h1><p>最后，可以总结一下 使用Dagger2的好处</p>
+<h2 id="增加开发效率、省去重复的简单体力劳动"><a href="#增加开发效率、省去重复的简单体力劳动" class="headerlink" title="增加开发效率、省去重复的简单体力劳动"></a>增加开发效率、省去重复的简单体力劳动</h2><h2 id="更好的管理类实例"><a href="#更好的管理类实例" class="headerlink" title="更好的管理类实例"></a>更好的管理类实例</h2><p>ApplicationComponent管理整个app的全局类实例，生命周期与app的生命周期一样</p>
+<p>每个页面对应自己的Component，页面Component管理着自己页面所依赖的所有类实例</p>
+<p>因为Component，Module，整个app的类实例结构变的很清晰。</p>
+<h2 id="解耦"><a href="#解耦" class="headerlink" title="解耦"></a>解耦</h2><p>通过工厂模式Module创建类实例，这样即使类的构造函数发生变化，只需要修改Module即可</p>
+<p>解耦还有个好处，就是<strong>方便测试</strong>，若需要替换为网络测试类，只需要修改相应的Module即可</p>
+<h1 id="Spring-IoC-和-Dagger2"><a href="#Spring-IoC-和-Dagger2" class="headerlink" title="Spring IoC 和 Dagger2"></a>Spring IoC 和 Dagger2</h1><h2 id="Spring-IoC"><a href="#Spring-IoC" class="headerlink" title="Spring IoC"></a>Spring IoC</h2><p>实现原理：<strong>注解 + 反射</strong>，涉及动态生成类</p>
+<p>用起来<strong>非常好上手</strong></p>
+<p>提供依赖的，用@Component注解，需要依赖的地方 用@Autowired注解，配置文件加上component-scan就差不多了。 </p>
+<p>因为接口可能有多个实现，也有@qualifier提供过滤 </p>
+<h2 id="Dagger2"><a href="#Dagger2" class="headerlink" title="Dagger2"></a>Dagger2</h2><p>实现原理：<strong>注解 + 编译时处理</strong>，为了性能考虑，没有使用反射</p>
+<p><strong>不好上手</strong></p>
+<p>提供依赖的类用@Module注解 能提供的依赖用@Provide注解,需要依赖的地方 用@Inject注解，<br>最终要靠手动调用@Compoent的inject方法完成依赖的注入。 </p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/google/dagger" target="_blank" rel="noopener">github</a></li>
+<li><a href="http://www.tuicool.com/articles/viQz2uF" target="_blank" rel="noopener">使用dagger2进行依赖注入</a></li>
+<li><a href="https://www.jianshu.com/p/b989e2cb88f6" target="_blank" rel="noopener">Android Dagger2 从零单排(四) Dependencies与SubComponent</a></li>
+<li><a href="https://www.jianshu.com/p/cd2c1c9f68d4" target="_blank" rel="noopener">dagger2系列 - 基础框架篇</a> - 基础框架篇</li>
+<li><a href="https://www.jianshu.com/p/1d42d2e6f4a5" target="_blank" rel="noopener">dagger2系列 - 重点概念讲解、融合篇</a> - 细节完善</li>
+<li><a href="https://www.jianshu.com/p/65737ac39c44" target="_blank" rel="noopener">dagger2系列 - 终结篇</a> - 实践总结</li>
+<li><a href="http://blog.csdn.net/wangkai0681080/article/details/50868355" target="_blank" rel="noopener">Dagger2 学习笔记</a> - spring ioc 和 Dagger2 使用对比</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"><i class="fa fa-tag"></i> Android</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/07/编程思想/DIP IOC DI/" rel="next" title="DIP IOC DI">
+                <i class="fa fa-chevron-left"></i> DIP IOC DI
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/12/Android/Android热修复技术选型/" rel="prev" title="Android热修复技术选型">
+                Android热修复技术选型 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">214</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#为什么要依赖注入"><span class="nav-number">2.</span> <span class="nav-text">为什么要依赖注入</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Dagger2-原理"><span class="nav-number">3.</span> <span class="nav-text">Dagger2 原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Inject"><span class="nav-number">3.1.</span> <span class="nav-text">Inject</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Component"><span class="nav-number">3.2.</span> <span class="nav-text">Component</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Module-和-Provides"><span class="nav-number">3.3.</span> <span class="nav-text">Module 和 Provides</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置依赖"><span class="nav-number">4.</span> <span class="nav-text">配置依赖</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#简单依赖注入"><span class="nav-number">5.</span> <span class="nav-text">简单依赖注入</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Module-–-构建依赖（依赖提供者）"><span class="nav-number">5.1.</span> <span class="nav-text">Module – 构建依赖（依赖提供者）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Component-–-injector（连接-依赖提供者和依赖消费者）"><span class="nav-number">5.2.</span> <span class="nav-text">Component – injector（连接 依赖提供者和依赖消费者）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用依赖注入"><span class="nav-number">5.3.</span> <span class="nav-text">使用依赖注入</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Dagger2-调试"><span class="nav-number">6.</span> <span class="nav-text">Dagger2 调试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#构建依赖-依赖提供者-两种方法"><span class="nav-number">7.</span> <span class="nav-text">构建依赖(依赖提供者)两种方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Inject-类构造方法"><span class="nav-number">7.1.</span> <span class="nav-text">@Inject 类构造方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Module-和-Provides-1"><span class="nav-number">7.2.</span> <span class="nav-text">@Module 和 @Provides</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">7.3.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#注入依赖三种方法"><span class="nav-number">8.</span> <span class="nav-text">注入依赖三种方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#inject-配合Component接口实现类的inject方法。"><span class="nav-number">8.1.</span> <span class="nav-text">@inject 配合Component接口实现类的inject方法。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#调用Component接口实现类的-返回依赖对象的方法"><span class="nav-number">8.2.</span> <span class="nav-text">调用Component接口实现类的 返回依赖对象的方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#inject-Lazy泛型"><span class="nav-number">8.3.</span> <span class="nav-text">@inject Lazy泛型</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#注入依赖的步骤"><span class="nav-number">9.</span> <span class="nav-text">注入依赖的步骤</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Qualifier-限定符"><span class="nav-number">10.</span> <span class="nav-text">@Qualifier 限定符</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Named"><span class="nav-number">10.1.</span> <span class="nav-text">@Named</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义-Qualifier"><span class="nav-number">10.2.</span> <span class="nav-text">自定义@Qualifier</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用"><span class="nav-number">10.3.</span> <span class="nav-text">使用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Component-划分方式"><span class="nav-number">11.</span> <span class="nav-text">Component 划分方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建单例依赖的方法"><span class="nav-number">11.1.</span> <span class="nav-text">创建单例依赖的方法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Component-组织方式"><span class="nav-number">12.</span> <span class="nav-text">Component 组织方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#依赖方式"><span class="nav-number">12.1.</span> <span class="nav-text">依赖方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#关键"><span class="nav-number">12.1.1.</span> <span class="nav-text">关键</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优缺点"><span class="nav-number">12.1.2.</span> <span class="nav-text">优缺点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例"><span class="nav-number">12.1.3.</span> <span class="nav-text">实例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#包含方式-继承方式"><span class="nav-number">12.2.</span> <span class="nav-text">包含方式(继承方式)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优缺点-1"><span class="nav-number">12.2.1.</span> <span class="nav-text">优缺点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#建造者模式-写法"><span class="nav-number">12.2.2.</span> <span class="nav-text">建造者模式 写法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#关键-1"><span class="nav-number">12.2.2.1.</span> <span class="nav-text">关键</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#编译过程"><span class="nav-number">12.2.2.2.</span> <span class="nav-text">编译过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#实例-1"><span class="nav-number">12.2.2.3.</span> <span class="nav-text">实例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象工厂方法模式-写法"><span class="nav-number">12.2.3.</span> <span class="nav-text">抽象工厂方法模式 写法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#两种写法-总结"><span class="nav-number">12.2.4.</span> <span class="nav-text">两种写法 总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#继承方式"><span class="nav-number">12.3.</span> <span class="nav-text">继承方式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Scope"><span class="nav-number">13.</span> <span class="nav-text">@Scope</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用Dagger2的好处"><span class="nav-number">14.</span> <span class="nav-text">使用Dagger2的好处</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#增加开发效率、省去重复的简单体力劳动"><span class="nav-number">14.1.</span> <span class="nav-text">增加开发效率、省去重复的简单体力劳动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更好的管理类实例"><span class="nav-number">14.2.</span> <span class="nav-text">更好的管理类实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解耦"><span class="nav-number">14.3.</span> <span class="nav-text">解耦</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-IoC-和-Dagger2"><span class="nav-number">15.</span> <span class="nav-text">Spring IoC 和 Dagger2</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-IoC"><span class="nav-number">15.1.</span> <span class="nav-text">Spring IoC</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dagger2"><span class="nav-number">15.2.</span> <span class="nav-text">Dagger2</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">16.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

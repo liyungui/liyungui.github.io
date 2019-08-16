@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="直播," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="开放式设计 如上图所示，处理环节中分为音频和视频处理 音频处理中具体包含混音(声音混淆)、降噪和声音特效等处理。在主播和观众连麦场景中，主播需要和某个或者多个观众进行对话，并将对话结果实时分享给其他所有观众，连麦的处理也有部分工作在推流端完成 视频处理中包含美颜、水印、以及各种自定义滤镜等处理。 除了要提供这些「标准」处理功能之外，我们还需要将该模块设计成可自由接入自定义处理功能的方式 常见视频处">
+<meta name="keywords" content="直播">
+<meta property="og:type" content="article">
+<meta property="og:title" content="直播技术三-处理">
+<meta property="og:url" content="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="开放式设计 如上图所示，处理环节中分为音频和视频处理 音频处理中具体包含混音(声音混淆)、降噪和声音特效等处理。在主播和观众连麦场景中，主播需要和某个或者多个观众进行对话，并将对话结果实时分享给其他所有观众，连麦的处理也有部分工作在推流端完成 视频处理中包含美颜、水印、以及各种自定义滤镜等处理。 除了要提供这些「标准」处理功能之外，我们还需要将该模块设计成可自由接入自定义处理功能的方式 常见视频处">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/处理.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/连麦.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/webrtc.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/webrtc-network.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/互动直播连麦.png">
+<meta property="og:updated_time" content="2019-08-16T10:22:34.848Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="直播技术三-处理">
+<meta name="twitter:description" content="开放式设计 如上图所示，处理环节中分为音频和视频处理 音频处理中具体包含混音(声音混淆)、降噪和声音特效等处理。在主播和观众连麦场景中，主播需要和某个或者多个观众进行对话，并将对话结果实时分享给其他所有观众，连麦的处理也有部分工作在推流端完成 视频处理中包含美颜、水印、以及各种自定义滤镜等处理。 除了要提供这些「标准」处理功能之外，我们还需要将该模块设计成可自由接入自定义处理功能的方式 常见视频处">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/处理.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/"/>
+
+
+
+
+
+  <title>直播技术三-处理 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">直播技术三-处理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-01T18:02:14+08:00">
+                2019-08-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="开放式设计"><a href="#开放式设计" class="headerlink" title="开放式设计"></a>开放式设计</h1><img src="/2019/08/01/直播/直播技术/直播技术三-处理/处理.png">
+<p>如上图所示，处理环节中分为<strong>音频和视频处理</strong></p>
+<p>音频处理中具体包含混音(声音混淆)、降噪和声音特效等处理。在主播和观众<strong>连麦</strong>场景中，主播需要和某个或者多个观众进行对话，并将对话结果实时分享给其他所有观众，连麦的处理也有部分工作在推流端完成</p>
+<p>视频处理中包含美颜、水印、以及各种自定义滤镜等处理。</p>
+<p>除了要提供这些「标准」处理功能之外，我们还需要将该模块设计成可自由接入自定义处理功能的方式</p>
+<h1 id="常见视频处理功能"><a href="#常见视频处理功能" class="headerlink" title="常见视频处理功能"></a>常见视频处理功能</h1><h2 id="美颜"><a href="#美颜" class="headerlink" title="美颜"></a>美颜</h2><p>美颜的主要原理是通过「磨皮+美白」来达到整体美颜的效果。</p>
+<p>磨皮的技术术语是「去噪」，也即对图像中的噪点进行去除或者模糊化处理，常见的去噪算法有均值模糊、高斯模糊和中值滤波等。对整张图像进行「去噪」处理的时候不需要将眼睛也去掉，因此这个环节中也涉及到人脸和皮肤检测技术。</p>
+<h2 id="视频水印"><a href="#视频水印" class="headerlink" title="视频水印"></a>视频水印</h2><p>用于简单是版权保护，或者进行广告设置。出于监管需求，相关部门也规定视频直播过程中必须打上水印，同时直播的视频必须录制存储下来保存一定的时间，并在录制的视频上打上水印。</p>
+<p>视频水印包括<strong>播放器水印和视频内嵌水印</strong>两种方式可供选择。综合考虑云端录制对于水印的需求，一般会选择「视频内嵌水印」的方式打水印。</p>
+<h2 id="滤镜"><a href="#滤镜" class="headerlink" title="滤镜"></a>滤镜</h2><p>iOS 端可以考虑使用 <a href="https://github.com/BradLarson/GPUImage" target="_blank" rel="noopener">GPUImage</a>，这是一个开源的基于GPU的图片或视频的处理框架，内置了多达120多种常见的滤镜效果。添加实时的滤镜只需要简单地添加几行代码，还可以基于这个库自己写算法实现更丰富端效果。</p>
+<p>Android 有 GPUImage 这个库的<a href="https://github.com/CyberAgent/android-gpuimage" target="_blank" rel="noopener">移植</a>。Google 官方也开源了一个伟大的库 <a href="https://github.com/google/grafika" target="_blank" rel="noopener">grafika</a>，覆盖了 Android 上面很多多媒体和图形图像相关的处理</p>
+<h2 id="连麦"><a href="#连麦" class="headerlink" title="连麦"></a>连麦</h2><img src="/2019/08/01/直播/直播技术/直播技术三-处理/连麦.png">
+<p>连麦是互动直播中常见的需求，其流程如上图所示。主播和部分观众之间可以进行实时互动，然后将互动结果实时播放给其他观众观看。</p>
+<p>基于以上业务需求，我们很容易想到基于单向直播原理，在主播端和连麦观众端进行<strong>双向推流和双向播流</strong>的方式互动，然后在<strong>服务端</strong>将两路推流<strong>合成</strong>一路推送给其他观众。但 RTMP 带来的延迟决定了这种方式无法做到用户可接受的互动直播。</p>
+<h3 id="互动直播的主要技术难点"><a href="#互动直播的主要技术难点" class="headerlink" title="互动直播的主要技术难点"></a>互动直播的主要技术难点</h3><h4 id="低延迟互动"><a href="#低延迟互动" class="headerlink" title="低延迟互动"></a>低延迟互动</h4><p>保证主播和互动观众之间能够实时互动，两者之间就像电话沟通，因此必须保证两者能在<strong>秒级</strong>以内听到对方的声音，看到对方的视频；</p>
+<h4 id="音画同步"><a href="#音画同步" class="headerlink" title="音画同步"></a>音画同步</h4><p>互动直播中对音画同步的需求比单向直播中更高，必须保证在音视频秒级传输情况下的<strong>秒级</strong>同步。</p>
+<h4 id="音视频实时合成"><a href="#音视频实时合成" class="headerlink" title="音视频实时合成"></a>音视频实时合成</h4><p>其他观众需要实时观看到对话结果，因此需要在客户端或者服务端将画面和声音实时合成，然后以低成本高品质的方式传输观众端。</p>
+<h3 id="互动直播的解决方案"><a href="#互动直播的解决方案" class="headerlink" title="互动直播的解决方案"></a>互动直播的解决方案</h3><h4 id="思科或者-WebEx"><a href="#思科或者-WebEx" class="headerlink" title="思科或者 WebEx"></a>思科或者 WebEx</h4><p>在视频和电话会议领域，目前比较成熟的方案是使用<strong>思科或者 WebEx</strong> 的方案，但这些商用的方案<strong>一不开源，二比较封闭，三成本比较高</strong>。</p>
+<h4 id="WebRTC"><a href="#WebRTC" class="headerlink" title="WebRTC"></a>WebRTC</h4><p>对于互动人数比较少的互动直播，目前市场上比较成熟的方案是使用基于 <strong>WebRTC</strong> 的实时通讯方案。</p>
+<p>基于该方案可以轻松实现多人（<strong>14 人以下</strong>）的多方实时通信</p>
+<img src="/2019/08/01/直播/直播技术/直播技术三-处理/webrtc.png">
+<p>上图是一个基于 WebRTC 协议实现多方实时通讯的示意图，本地用户（主播）和远程用户（连麦观众）之间的连接通过 RTCPeerConnection API 管理，这个 API 包装了底层流管理和信令控制相关的细节。</p>
+<p>基于该方案的多方实时通信，如下图所示：</p>
+<img src="/2019/08/01/直播/直播技术/直播技术三-处理/webrtc-network.png">
+<p>在通信人数少的情况下，其复杂度相对简单。如 2 人情况下，直接连接。人数增多至 4 人之后，其可选的网络结构就增多了，如上图所示，可以每个点之间形成<strong>自组织网络</strong>的方式通信，也可以以 1 人为中心形成<strong>星型</strong>通信网络，还可以让大家都通过一个<strong>集中式的服务端</strong>进行通信。</p>
+<p>为了提供 <strong>高性能、可伸缩</strong>的直播基础服务，七牛直播云经过评估选择了<strong>以主播为中心形成星形通信网络</strong>。同时，为了降低传输延迟，这里采用经过<strong>改造的 UDP 协议传输</strong>传输合成后的音视频实时传输到其他观众端</p>
+<img src="/2019/08/01/直播/直播技术/直播技术三-处理/互动直播连麦.png">
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.qiniu.com/archives/6795" target="_blank" rel="noopener">《视频直播技术详解》系列之三：处理</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/直播/" rel="tag"><i class="fa fa-tag"></i> 直播</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/01/直播/直播技术/直播技术二-采集/" rel="next" title="直播技术二-采集">
+                <i class="fa fa-chevron-left"></i> 直播技术二-采集
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/02/直播/直播技术/直播技术四-编码和封装/" rel="prev" title="直播技术四-编码和封装">
+                直播技术四-编码和封装 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">214</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#开放式设计"><span class="nav-number">1.</span> <span class="nav-text">开放式设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#常见视频处理功能"><span class="nav-number">2.</span> <span class="nav-text">常见视频处理功能</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#美颜"><span class="nav-number">2.1.</span> <span class="nav-text">美颜</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#视频水印"><span class="nav-number">2.2.</span> <span class="nav-text">视频水印</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#滤镜"><span class="nav-number">2.3.</span> <span class="nav-text">滤镜</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#连麦"><span class="nav-number">2.4.</span> <span class="nav-text">连麦</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#互动直播的主要技术难点"><span class="nav-number">2.4.1.</span> <span class="nav-text">互动直播的主要技术难点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#低延迟互动"><span class="nav-number">2.4.1.1.</span> <span class="nav-text">低延迟互动</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#音画同步"><span class="nav-number">2.4.1.2.</span> <span class="nav-text">音画同步</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#音视频实时合成"><span class="nav-number">2.4.1.3.</span> <span class="nav-text">音视频实时合成</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#互动直播的解决方案"><span class="nav-number">2.4.2.</span> <span class="nav-text">互动直播的解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#思科或者-WebEx"><span class="nav-number">2.4.2.1.</span> <span class="nav-text">思科或者 WebEx</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WebRTC"><span class="nav-number">2.4.2.2.</span> <span class="nav-text">WebRTC</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">3.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

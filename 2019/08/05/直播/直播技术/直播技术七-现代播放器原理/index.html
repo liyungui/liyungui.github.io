@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="直播," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="播放器构成通常来说，一个典型的播放器可以分解成三部分：UI、 多媒体引擎和解码器，如图所示：  甚至为了在浏览器和原生播放器之间统一用户体验，可以考虑使用 React Native 来进行 UI 或者皮肤的开发，使用 Haxe 来进行业务逻辑的开发，这些优秀的库都可以在多种不同类型的设备之间共用同一套代码库。 用户界面（UI）通过三部分不同的功能特性定义了终端用户的观看体验：皮肤（播放器的外观设计">
+<meta name="keywords" content="直播">
+<meta property="og:type" content="article">
+<meta property="og:title" content="直播技术七-现代播放器原理">
+<meta property="og:url" content="http://yoursite.com/2019/08/05/直播/直播技术/直播技术七-现代播放器原理/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="播放器构成通常来说，一个典型的播放器可以分解成三部分：UI、 多媒体引擎和解码器，如图所示：  甚至为了在浏览器和原生播放器之间统一用户体验，可以考虑使用 React Native 来进行 UI 或者皮肤的开发，使用 Haxe 来进行业务逻辑的开发，这些优秀的库都可以在多种不同类型的设备之间共用同一套代码库。 用户界面（UI）通过三部分不同的功能特性定义了终端用户的观看体验：皮肤（播放器的外观设计">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/08/05/直播/直播技术/直播技术七-现代播放器原理/播放器构成.png">
+<meta property="og:updated_time" content="2019-08-16T10:22:34.848Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="直播技术七-现代播放器原理">
+<meta name="twitter:description" content="播放器构成通常来说，一个典型的播放器可以分解成三部分：UI、 多媒体引擎和解码器，如图所示：  甚至为了在浏览器和原生播放器之间统一用户体验，可以考虑使用 React Native 来进行 UI 或者皮肤的开发，使用 Haxe 来进行业务逻辑的开发，这些优秀的库都可以在多种不同类型的设备之间共用同一套代码库。 用户界面（UI）通过三部分不同的功能特性定义了终端用户的观看体验：皮肤（播放器的外观设计">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/05/直播/直播技术/直播技术七-现代播放器原理/播放器构成.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/05/直播/直播技术/直播技术七-现代播放器原理/"/>
+
+
+
+
+
+  <title>直播技术七-现代播放器原理 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/05/直播/直播技术/直播技术七-现代播放器原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">直播技术七-现代播放器原理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-05T13:42:14+08:00">
+                2019-08-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="播放器构成"><a href="#播放器构成" class="headerlink" title="播放器构成"></a>播放器构成</h1><p>通常来说，一个典型的播放器可以分解成三部分：UI、 多媒体引擎和解码器，如图所示：</p>
+<img src="/2019/08/05/直播/直播技术/直播技术七-现代播放器原理/播放器构成.png">
+<p>甚至为了在浏览器和原生播放器之间统一用户体验，可以考虑使用 React Native 来进行 UI 或者皮肤的开发，使用 Haxe 来进行业务逻辑的开发，这些优秀的库都可以在多种不同类型的设备之间共用同一套代码库。</p>
+<h1 id="用户界面（UI）"><a href="#用户界面（UI）" class="headerlink" title="用户界面（UI）"></a>用户界面（UI）</h1><p>通过三部分不同的功能特性定义了终端用户的观看体验：皮肤（播放器的外观设计）、UI逻辑（所有可自定义的特性如播放列表和社交分享等）以及业务逻辑部分（特定的业务逻辑特性如广告、设备兼容性逻辑以及认证管理等）。</p>
+<h2 id="皮肤"><a href="#皮肤" class="headerlink" title="皮肤"></a>皮肤</h2><p>进度控制条、按钮和动画图标等等</p>
+<h2 id="UI-逻辑"><a href="#UI-逻辑" class="headerlink" title="UI 逻辑"></a>UI 逻辑</h2><p>播放过程中和用户交互方面所有可见的交互：播放列表、缩略图、播放频道的选择以及社交媒体分享等</p>
+<p>UI 逻辑部分，最好的实现方式是让各种特性都以插件/模块的形式添加到 UI 核心模块中。</p>
+<h2 id="业务逻辑"><a href="#业务逻辑" class="headerlink" title="业务逻辑"></a>业务逻辑</h2><p>虽然终端用户没法直接和这部分功能进行交互，这部分构成了你业务的独特性：认证和支付、频道和播放列表的获取，以及广告等。这里也包含一些技术相关的东西，比如用于 A/B 测试模块，以及和设备相关的配置，这些配置用于在多种不同类型的设备之间选择多个不同的媒体引擎。</p>
+<h3 id="设备检测与配置逻辑"><a href="#设备检测与配置逻辑" class="headerlink" title="设备检测与配置逻辑"></a>设备检测与配置逻辑</h3><p>这是最重要的特性之一，因为它将<strong>播放和渲染剥离</strong>开来了。</p>
+<p>例如，基于你浏览器的不同版本，播放器可能会自动为你选择一个基于 HTML5 MSE 的多媒体引擎 hls.js，或者为你选择一个基于 flash 的播放引擎 FlasHls 来播放 HLS 视频流。这部分的最大特点在于，无论你使用什么样的底层引擎，在上层都可以使用相同的 JavaScript 或者 CSS 来定制你的 UI 或者业务逻辑。</p>
+<p>能够检测用户设备的能力允许你按需配置终端用户的体验：如果是在移动设备而非 4K 屏幕设备上播放，你可能需要从一个较低的码率开始。</p>
+<h3 id="A-B-测试逻辑"><a href="#A-B-测试逻辑" class="headerlink" title="A/B 测试逻辑"></a>A/B 测试逻辑</h3><p>A/B 测试是为了能够在生产环节中灰度部分用户。</p>
+<p>例如，你可能会给部分 Chrome 用户提供一个新的按钮或者新的多媒体引擎，并且还能保证它所有的工作都正常如期进行。</p>
+<h3 id="广告（可选）"><a href="#广告（可选）" class="headerlink" title="广告（可选）"></a>广告（可选）</h3><p>在客户端处理广告是最复杂的业务逻辑之一。</p>
+<p>它们能够帮你从广告服务器中拉取视频广告，放在视频的前期、中期和后期进行播放，且不可跳过。</p>
+<h1 id="多媒体引擎"><a href="#多媒体引擎" class="headerlink" title="多媒体引擎"></a>多媒体引擎</h1><p>随着主播控制和定制播放器需求的递增，一些新的播放器中慢慢也开放了一些更为底层的 API（如 Web 上的 Media Source Extensons，Flash 上的 Netstream 以及 Android 平台的 Media Codec），并迅速吸引来了很多基于这些底层 API 的强大而健壮的多媒体引擎。</p>
+<h2 id="1-声明文件解释和解析器"><a href="#1-声明文件解释和解析器" class="headerlink" title="1. 声明文件解释和解析器"></a>1. 声明文件解释和解析器</h2><p>在基于 HTTP 的视频流中，一切都是以一个描述文件开始。该声明文件包含了媒体服务器所需理解的元信息：有多少种不同类型的视频质量、语言以及字母等，它们分别是什么。解析器从 XML 文件（对于 HLS 来说则是一种特殊的 m3u8 文件）中取得描述信息，然后从这些信息中取得正确的视频信息。当然，媒体服务器的类型很多，并不是所有都正确的实现了规范，因此解析器可能需要处理一些额外的实现错误。</p>
+<p>一旦提取了视频信息，解析器则会从中解析出数据，用于构建流式的视觉图像，同时知道如何获取不同的视频片段。在某些多媒体引擎中，这些视觉图像先以一副抽象多媒体图的形式出现，然后在屏幕上绘制出不同 HTTP 视频流格式的差异特征。</p>
+<p>在直播流场景中，解析器也必须周期性的重新获取声明文件，以便获得最新的视频片段信息。</p>
+<h2 id="2-下载器（下载声明文件、多媒体片段以及密钥）"><a href="#2-下载器（下载声明文件、多媒体片段以及密钥）" class="headerlink" title="2. 下载器（下载声明文件、多媒体片段以及密钥）"></a>2. 下载器（下载声明文件、多媒体片段以及密钥）</h2><p>下载器是一个包装了处理 HTTP 请求原生 API 的模块。它不仅用于下载多媒体文件，在必要的时候也可以用于下载声明文件和 DRM 密钥。下载器在处理网络错误和重试方面扮演着非常重要的角色，同时能够收集当前可用带宽的数据。</p>
+<p>注意：下载多媒体文件可能使用 HTTP 协议，也可能使用别的协议，如点对点实时通信场景中的 WebRTC 协议。</p>
+<h2 id="3-流播放引擎"><a href="#3-流播放引擎" class="headerlink" title="3. 流播放引擎"></a>3. 流播放引擎</h2><p>流播放引擎是和解码器 API 交互的中央模块，它将不同的多媒体片段导入编码器，同时处理多码率切换和播放时的差异性（如声明文件和视频切片的差异，以及卡顿时的自动跳帧）。</p>
+<h2 id="4-资源质量参数预估器（带宽、CPU-和帧率等）"><a href="#4-资源质量参数预估器（带宽、CPU-和帧率等）" class="headerlink" title="4. 资源质量参数预估器（带宽、CPU 和帧率等）"></a>4. 资源质量参数预估器（带宽、CPU 和帧率等）</h2><p>预估器从各种不同的维度获取数据（块大小，每片段下载时间，以及跳帧数），并将其汇聚起来用于估算用户可用的带宽和 CPU 计算能力。这些输出用于 <strong>ABR</strong> （Adaptive Bitrate, 自适应码率）切换控制器做判断。</p>
+<h2 id="5-ABR-切换控制器"><a href="#5-ABR-切换控制器" class="headerlink" title="5. ABR 切换控制器"></a>5. ABR 切换控制器</h2><p>ABR 切换器可能是多媒体引擎中最为关键的部分——通常也是大家最为忽视的部分。该控制器读取预估器输出的数据（带宽和跳帧数），使用自定义算法根据这些数据做出判断，告诉流播放引擎是否需要切换视频或者音频质量。</p>
+<p>该领域有很多研究性的工作，其中最大的难点在于在再缓冲风险和切换频率（太频繁的切换可能导致糟糕的用户体验）之间找到平衡。</p>
+<h2 id="6-DRM-管理器（可选组件）"><a href="#6-DRM-管理器（可选组件）" class="headerlink" title="6. DRM 管理器（可选组件）"></a>6. DRM 管理器（可选组件）</h2><p>Digital Rights Management, 数字版权管理</p>
+<p>今天所有的付费视频服务都基于 DRM 管理，而 DRM 则很大程度上依赖于平台或者设备，我们将在后续讲解播放器的时候看到。</p>
+<p>多媒体引擎中的 DRM 管理器是更底层<strong>解码器中内容解密 API 的包装</strong>。</p>
+<p>只要有可能，它会尽量通过抽象的方式来屏蔽浏览器或者操作系统实现细节的差异性。该组件通常和流处理引擎紧密连接在一起，因为它经常和解码器层交互。</p>
+<h2 id="7-格式转换复用器（可选组件）"><a href="#7-格式转换复用器（可选组件）" class="headerlink" title="7. 格式转换复用器（可选组件）"></a>7. 格式转换复用器（可选组件）</h2><p>后文中我们将看到，每个平台在封包和编码方面都有它的局限性（Flash 读的是 FLV 容器封装的 H.264/AAC 文件，MSE 读的是 ISOBMFF 容器封装的 H.264/AAC 文件）。这就导致了有些视频片段在解码之前需要进行格式转换。例如，有了 MPEG2-TS 到 ISOBMFF 的格式转换复用器之后，hls.js 就能使用 MSE 格式的内容来播放 HLS 视频流。多媒体引擎层面的格式转换复用器曾经遭受质疑；然而，随着现代 JavaScript 或者 Flash 解释权性能的提升，它带来的性能损耗几乎可以忽略不计，对用户体验也不会造成多大的影响。</p>
+<h1 id="解码器和-DRM-管理器"><a href="#解码器和-DRM-管理器" class="headerlink" title="解码器和 DRM 管理器"></a>解码器和 DRM 管理器</h1><p>出于解码性能（解码器）和安全考虑（DRM），解码器和 DRM 管理器与操作<strong>系统</strong>平台密切绑定。 </p>
+
+<h2 id="解码器"><a href="#解码器" class="headerlink" title="解码器"></a>解码器</h2><p>解码器处理最底层播放相关的逻辑。它将不同封装格式的视频进行<strong>解包</strong>，并将其内容<strong>解码</strong>，然后将解码后的视频帧交给操作系统进行渲染，最终让终端用户看到。</p>
+<p>由于视频压缩算法变得越来越复杂，解码过程是一个需要密集计算的过程，并且为了保证解码性能和流畅的播放体验，解码过程需要强依赖于操作系统和硬件。现在的大部分解码都依赖于 <strong>GPU</strong> 加速解码的帮助（这也是为什么免费而更强大的 VP9 解码器没有赢得 H.264 市场地位的原因之一）。如果没有 GPU 的加速，解码一个 1080P 的视频就会占去 70% 左右的 CPU 计算量，并且丢帧率还可能很严重。</p>
+<p>在解码和渲染视频帧的基础之上，管理器也提供了一个原生的<strong> buffer</strong>，多媒体引擎可以直接与该 buffer 进行交互，实时了解它的大小并在必要的时候刷新它。</p>
+<h2 id="DRM-管理器"><a href="#DRM-管理器" class="headerlink" title="DRM 管理器"></a>DRM 管理器</h2><h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>在 Web 平台，得益于多媒体引擎如 dash.js、Shaka Player 和 hls.js 这些趋于成熟库的帮助， MSE 和 EME 正在成为播放的新标准，同时也越来越多有影响力的厂家使用这些播放引擎。近年来，注意力也开始伸向机顶盒和互联网电视，我们也看到越来越多这样的新设备使用 MSE 来作为其底层多媒体处理引擎。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.qiniu.com/archives/7040" target="_blank" rel="noopener">《视频直播技术详解》系列之七：现代播放器原理</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/直播/" rel="tag"><i class="fa fa-tag"></i> 直播</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/03/直播/直播技术/直播技术六-延迟优化/" rel="next" title="直播技术六-延迟优化">
+                <i class="fa fa-chevron-left"></i> 直播技术六-延迟优化
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/05/直播/直播技术/ijkplayer剖析/" rel="prev" title="ijkplayer剖析">
+                ijkplayer剖析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">214</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#播放器构成"><span class="nav-number">1.</span> <span class="nav-text">播放器构成</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#用户界面（UI）"><span class="nav-number">2.</span> <span class="nav-text">用户界面（UI）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#皮肤"><span class="nav-number">2.1.</span> <span class="nav-text">皮肤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#UI-逻辑"><span class="nav-number">2.2.</span> <span class="nav-text">UI 逻辑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#业务逻辑"><span class="nav-number">2.3.</span> <span class="nav-text">业务逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设备检测与配置逻辑"><span class="nav-number">2.3.1.</span> <span class="nav-text">设备检测与配置逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#A-B-测试逻辑"><span class="nav-number">2.3.2.</span> <span class="nav-text">A/B 测试逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#广告（可选）"><span class="nav-number">2.3.3.</span> <span class="nav-text">广告（可选）</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多媒体引擎"><span class="nav-number">3.</span> <span class="nav-text">多媒体引擎</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-声明文件解释和解析器"><span class="nav-number">3.1.</span> <span class="nav-text">1. 声明文件解释和解析器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-下载器（下载声明文件、多媒体片段以及密钥）"><span class="nav-number">3.2.</span> <span class="nav-text">2. 下载器（下载声明文件、多媒体片段以及密钥）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-流播放引擎"><span class="nav-number">3.3.</span> <span class="nav-text">3. 流播放引擎</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-资源质量参数预估器（带宽、CPU-和帧率等）"><span class="nav-number">3.4.</span> <span class="nav-text">4. 资源质量参数预估器（带宽、CPU 和帧率等）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-ABR-切换控制器"><span class="nav-number">3.5.</span> <span class="nav-text">5. ABR 切换控制器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-DRM-管理器（可选组件）"><span class="nav-number">3.6.</span> <span class="nav-text">6. DRM 管理器（可选组件）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-格式转换复用器（可选组件）"><span class="nav-number">3.7.</span> <span class="nav-text">7. 格式转换复用器（可选组件）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#解码器和-DRM-管理器"><span class="nav-number">4.</span> <span class="nav-text">解码器和 DRM 管理器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#解码器"><span class="nav-number">4.1.</span> <span class="nav-text">解码器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DRM-管理器"><span class="nav-number">4.2.</span> <span class="nav-text">DRM 管理器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">6.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

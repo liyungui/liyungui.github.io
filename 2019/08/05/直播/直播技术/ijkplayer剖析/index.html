@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="直播," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="概述ijkplayer 是一款比较出众的开源 Android/IOS 跨平台播放器，基于 ffplay，API 易于集成，可定制编译控制体积。 本文基于 0.8.8 版本的 ijkplayer ，对其源码进行剖析，涉及到不同平台下的封装接口或处理方式时，均以 Android 为例。 ijkplayer android 集成了三种播放器实现：  AndroidMediaPlayer：即安卓系统自带的">
+<meta name="keywords" content="直播">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ijkplayer剖析">
+<meta property="og:url" content="http://yoursite.com/2019/08/05/直播/直播技术/ijkplayer剖析/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="概述ijkplayer 是一款比较出众的开源 Android/IOS 跨平台播放器，基于 ffplay，API 易于集成，可定制编译控制体积。 本文基于 0.8.8 版本的 ijkplayer ，对其源码进行剖析，涉及到不同平台下的封装接口或处理方式时，均以 Android 为例。 ijkplayer android 集成了三种播放器实现：  AndroidMediaPlayer：即安卓系统自带的">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/08/05/直播/直播技术/ijkplayer剖析/IjkMediaPlayer和Native交互.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/05/直播/直播技术/ijkplayer剖析/播放器基本框图.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/05/直播/直播技术/ijkplayer剖析/stream_open方法.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/05/直播/直播技术/ijkplayer剖析/音视频同步示意图.png">
+<meta property="og:updated_time" content="2019-08-16T10:22:34.840Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ijkplayer剖析">
+<meta name="twitter:description" content="概述ijkplayer 是一款比较出众的开源 Android/IOS 跨平台播放器，基于 ffplay，API 易于集成，可定制编译控制体积。 本文基于 0.8.8 版本的 ijkplayer ，对其源码进行剖析，涉及到不同平台下的封装接口或处理方式时，均以 Android 为例。 ijkplayer android 集成了三种播放器实现：  AndroidMediaPlayer：即安卓系统自带的">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/05/直播/直播技术/ijkplayer剖析/IjkMediaPlayer和Native交互.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/05/直播/直播技术/ijkplayer剖析/"/>
+
+
+
+
+
+  <title>ijkplayer剖析 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/05/直播/直播技术/ijkplayer剖析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ijkplayer剖析</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-05T15:22:14+08:00">
+                2019-08-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>ijkplayer 是一款比较出众的开源 Android/IOS 跨平台播放器，基于 ffplay，API 易于集成，可定制编译控制体积。</p>
+<p>本文基于 <strong>0.8.8</strong> 版本的 ijkplayer ，对其源码进行剖析，涉及到不同平台下的封装接口或处理方式时，均以 <strong>Android</strong> 为例。</p>
+<p>ijkplayer android 集成了三种播放器实现：</p>
+<ul>
+<li><strong>AndroidMediaPlayer</strong>：即安卓系统自带的播放器 <strong>MediaPlayer</strong>，基于 MediaCodec、AudioTrack 等安卓系统 API.</li>
+<li><strong>IjkExoMediaPlayer</strong>：即谷歌新推出的 <strong>ExoPlayer</strong>，同样是基于 MediaCodec、AudioTrack 等安卓系统 API，但相比 MediaPlayer 具有支持 DASH、高级 HLS、自定义扩展等优点。</li>
+<li><strong>IjkMediaPlayer</strong>：基于 FFmpeg 的 <strong>ffplay</strong>，集成了 MediaCodec 硬解码器、Opengl 渲染方式等。</li>
+</ul>
+<p>一般而言， ijkplayer 就是指 <strong>IjkMediaPlayer</strong>，本文分析的对象就是 IjkMediaPlayer.</p>
+<h2 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ijkplayer（项目文件夹）</span><br><span class="line">	├──tools  - 初始化项目工程脚本</span><br><span class="line">	├──config - 编译ffmpeg使用的配置文件</span><br><span class="line">	├──extra - 存放编译ijkplayer所需的依赖源文件, 如ffmpeg、openssl等</span><br><span class="line">	├──ijkmedia - 核心代码</span><br><span class="line">		├──ijkplayer - 播放器数据下载及解码相关</span><br><span class="line">		├──ijksdl - 音视频数据渲染相关</span><br><span class="line">	├──android -  android平台上的上层接口封装以及平台相关方法</span><br><span class="line">	├──ios - iOS平台上的上层接口封装以及平台相关方法</span><br></pre></td></tr></table></figure>
+<h2 id="功能实现的平台差异"><a href="#功能实现的平台差异" class="headerlink" title="功能实现的平台差异"></a>功能实现的平台差异</h2><p>iOS和Android平台的差异主要表现在</p>
+<ul>
+<li>视频硬件解码</li>
+<li>音频渲染</li>
+<li>视频渲染</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Hardware Codec</th>
+<th>Video Render</th>
+<th>Audio Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Android</td>
+<td>MediaCodec</td>
+<td>OpenGL ES、MediaCodec</td>
+<td>OpenSL ES、AudioTrack</td>
+</tr>
+<tr>
+<td>iOS</td>
+<td>VideoToolBox</td>
+<td>OpenGL ES</td>
+<td>AudioQueue</td>
+</tr>
+</tbody>
+</table>
+<h1 id="IjkMediaPlayer和Native交互"><a href="#IjkMediaPlayer和Native交互" class="headerlink" title="IjkMediaPlayer和Native交互"></a>IjkMediaPlayer和Native交互</h1><p><strong>播放控制</strong>相关的 <code>start、pause、stop</code> 等，调用 对应的 native 方法</p>
+<p><strong>底层状态信息的上报(比如底层的播放状态回调)</strong>相关的 <code>postEventFromNative</code> 等，这些方法由底层主动调用(有<code>@CalledByNative</code> 注解)</p>
+<img src="/2019/08/05/直播/直播技术/ijkplayer剖析/IjkMediaPlayer和Native交互.png">
+<h1 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">IjkMediaPlayer</span> <span class="keyword">extends</span> <span class="title">AbstractMediaPlayer</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initPlayer</span><span class="params">(IjkLibLoader libLoader)</span> </span>&#123;</span><br><span class="line">        loadLibrariesOnce(libLoader);</span><br><span class="line">        initNativeOnce();</span><br><span class="line"></span><br><span class="line">        Looper looper;</span><br><span class="line">        <span class="keyword">if</span> ((looper = Looper.myLooper()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">            mEventHandler = <span class="keyword">new</span> EventHandler(<span class="keyword">this</span>, looper);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((looper = Looper.getMainLooper()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">            mEventHandler = <span class="keyword">new</span> EventHandler(<span class="keyword">this</span>, looper);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            mEventHandler = <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * Native setup requires a weak reference to our object. It's easier to</span></span><br><span class="line"><span class="comment">         * create it here than in C++.</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        native_setup(<span class="keyword">new</span> WeakReference&lt;IjkMediaPlayer&gt;(<span class="keyword">this</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>initPlayer</code> 方法，共做了四件事：</p>
+<ul>
+<li>加载 so 库</li>
+<li>静态初始化底层，底层其实什么都没做</li>
+<li>初始化 Message Handler，处理底层状态信息的上报</li>
+<li>初始化底层，这部分做的工作最多</li>
+</ul>
+<h2 id="初始化底层"><a href="#初始化底层" class="headerlink" title="初始化底层"></a>初始化底层</h2><p>c代码</p>
+<p> <code>ijkplayer/android/ijkplayer/ijkplayer-armv7a/src/main/jni/ijkmedia/ijkplayer/android/</code></p>
+<p>主要逻辑位于</p>
+<p> <code>ijkpalyer_android.c</code> 的 <code>ijkmp_android_create</code> 方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// 创建底层播放器对象，设置消息处理函数</span><br><span class="line">IjkMediaPlayer *mp = ijkmp_create(msg_loop, saveMode, hard_mux);</span><br><span class="line"></span><br><span class="line">// 创建图像渲染对象</span><br><span class="line">mp-&gt;ffplayer-&gt;vout = SDL_VoutAndroid_CreateForAndroidSurface();</span><br><span class="line"></span><br><span class="line">// 初始化视频解码器（软/硬）、音频输出设备（opensles/audioTrack）</span><br><span class="line">mp-&gt;ffplayer-&gt;pipeline = ffpipeline_create_from_android(mp-&gt;ffplayer);</span><br></pre></td></tr></table></figure>
+<h3 id="软硬解码选择"><a href="#软硬解码选择" class="headerlink" title="软硬解码选择"></a>软硬解码选择</h3><p>跟踪 <code>pipeline/ffpipeline_android.c</code> 的 <code>ffpipeline_create_from_android</code> 方法</p>
+<p>发现是 用函数指针记录 类 IjkMediaPlayer.setOption() 设置的属性</p>
+<h1 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h1><p>初始化后 IjkMediaPlayer 后，可以对其进行一系列配置，例如:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设置硬解码</span></span><br><span class="line">mIjkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, <span class="string">"mediacodec"</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置 opensles 方式输出音频</span></span><br><span class="line">mIjkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, <span class="string">"opensles"</span>, <span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+<p>setOption() 会调用到底层 ff_ffplay.c 的 ffp_set_option() 方法</p>
+<h1 id="播放"><a href="#播放" class="headerlink" title="播放"></a>播放</h1><img src="/2019/08/05/直播/直播技术/ijkplayer剖析/播放器基本框图.png">
+<p>播放器必然是通过<strong>多线程</strong>同时进行解封装、解码、视频渲染等工作的，对于 Ijkplayer 来说，开辟的线程如下：</p>
+
+<p>当对播放器设置视频源路径、解码方式、输出模式等播放选项后，就可以开始播放了， 播放入口方法为 <code>ffp_prepare_async_l</code>，此方法中调用了比较重要的两个方法：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 打开音频输出设备</span></span><br><span class="line">   ffp-&gt;aout = ffpipeline_open_audio_output(ffp-&gt;pipeline, ffp);</span><br><span class="line">   ...</span><br><span class="line">   <span class="comment">// 创建音/视频数据解码前/后队列， 创建解封装和视频渲染线程</span></span><br><span class="line">   VideoState *is = stream_open(ffp, file_name, <span class="literal">NULL</span>);</span><br></pre></td></tr></table></figure>
+<p>stream_open 方法则相当重要了，梳理一下该方法中涉及到的关键方法：</p>
+<img src="/2019/08/05/直播/直播技术/ijkplayer剖析/stream_open方法.png">
+<h1 id="音视频同步"><a href="#音视频同步" class="headerlink" title="音视频同步"></a>音视频同步</h1><p>对于播放器来说，音视频同步是一个关键点，同时也是一个难点，同步效果的好坏，直接决定着播放器的质量。</p>
+<p>通常音视频同步的解决方案就是选择一个<strong>参考时钟</strong>，播放时读取音视频帧上的时间戳，同时参考当前时钟参考时钟上的时间来安排播放。如下图所示：</p>
+<img src="/2019/08/05/直播/直播技术/ijkplayer剖析/音视频同步示意图.png">
+<p>如果音视频帧的播放时间大于当前参考时钟上的时间，则不急于播放该帧，直到参考时钟达到该帧的时间戳；如果音视频帧的时间戳小于当前参考时钟上的时间，则需要“尽快”播放该帧或丢弃，以便播放进度追上参考时钟。</p>
+<h2 id="参考时钟的选择"><a href="#参考时钟的选择" class="headerlink" title="参考时钟的选择"></a>参考时钟的选择</h2><p>有多种方式：</p>
+<ul>
+<li>选取视频时间戳作为参考时钟源</li>
+<li>选取音频时间戳作为参考时钟源</li>
+<li>选取外部时间作为参考时钟源</li>
+</ul>
+<p>考虑人对视频、和音频的敏感度，在存在音频的情况下，<strong>优先选择音频</strong>作为主时钟源。</p>
+<p>ijkplayer在<strong>默认</strong>情况下也是使用<strong>音频</strong>作为参考时钟源</p>
+<h1 id="事件处理"><a href="#事件处理" class="headerlink" title="事件处理"></a>事件处理</h1><p>在播放过程中，某些行为的完成或者变化，如prepare完成，开始渲染等，需要以事件形式通知到外部，以便上层作出具体的业务处理。</p>
+<p>播放器底层上报事件时，实际上就是将待发送的消息放入消息队列，另外有一个线程会不断从队列中取出消息，上报给外部</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.jianshu.com/p/5345ab4cf979" target="_blank" rel="noopener">ijkplayer 源码分析（上）</a></li>
+<li><a href="https://www.jianshu.com/p/" target="_blank" rel="noopener">ijkplayer框架深入剖析</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/直播/" rel="tag"><i class="fa fa-tag"></i> 直播</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/05/直播/直播技术/直播技术七-现代播放器原理/" rel="next" title="直播技术七-现代播放器原理">
+                <i class="fa fa-chevron-left"></i> 直播技术七-现代播放器原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/07/编程思想/DIP IOC DI/" rel="prev" title="DIP IOC DI">
+                DIP IOC DI <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">214</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#目录结构"><span class="nav-number">1.1.</span> <span class="nav-text">目录结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#功能实现的平台差异"><span class="nav-number">1.2.</span> <span class="nav-text">功能实现的平台差异</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IjkMediaPlayer和Native交互"><span class="nav-number">2.</span> <span class="nav-text">IjkMediaPlayer和Native交互</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#初始化"><span class="nav-number">3.</span> <span class="nav-text">初始化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#初始化底层"><span class="nav-number">3.1.</span> <span class="nav-text">初始化底层</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#软硬解码选择"><span class="nav-number">3.1.1.</span> <span class="nav-text">软硬解码选择</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置"><span class="nav-number">4.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#播放"><span class="nav-number">5.</span> <span class="nav-text">播放</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#音视频同步"><span class="nav-number">6.</span> <span class="nav-text">音视频同步</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考时钟的选择"><span class="nav-number">6.1.</span> <span class="nav-text">参考时钟的选择</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#事件处理"><span class="nav-number">7.</span> <span class="nav-text">事件处理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">8.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

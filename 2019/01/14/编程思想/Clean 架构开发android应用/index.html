@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="编程思想," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="测试方法表现层Espresso 2 + Instrumentation 测试 Android UI 领域层JUnit + Mockito 是Java的标准模块。 数据层Robolectric 3 + JUnit + Mockito 有部分Android模块 Robolectric在 PC上使用 JVM 模拟实现 Android SDK。 支持UI表现测试和网络请求测试 使Android模块的测试">
+<meta name="keywords" content="编程思想">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Clean架构开发Android应用">
+<meta property="og:url" content="http://yoursite.com/2019/01/14/编程思想/Clean 架构开发android应用/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="测试方法表现层Espresso 2 + Instrumentation 测试 Android UI 领域层JUnit + Mockito 是Java的标准模块。 数据层Robolectric 3 + JUnit + Mockito 有部分Android模块 Robolectric在 PC上使用 JVM 模拟实现 Android SDK。 支持UI表现测试和网络请求测试 使Android模块的测试">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-08-16T10:22:34.864Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Clean架构开发Android应用">
+<meta name="twitter:description" content="测试方法表现层Espresso 2 + Instrumentation 测试 Android UI 领域层JUnit + Mockito 是Java的标准模块。 数据层Robolectric 3 + JUnit + Mockito 有部分Android模块 Robolectric在 PC上使用 JVM 模拟实现 Android SDK。 支持UI表现测试和网络请求测试 使Android模块的测试">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/01/14/编程思想/Clean 架构开发android应用/"/>
+
+
+
+
+
+  <title>Clean架构开发Android应用 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/Clean 架构开发android应用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Clean架构开发Android应用</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T10:06:53+08:00">
+                2019-01-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程思想/" itemprop="url" rel="index">
+                    <span itemprop="name">编程思想</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="测试方法"><a href="#测试方法" class="headerlink" title="测试方法"></a>测试方法</h1><h2 id="表现层"><a href="#表现层" class="headerlink" title="表现层"></a>表现层</h2><p>Espresso 2 + Instrumentation</p>
+<p>测试 Android UI</p>
+<h2 id="领域层"><a href="#领域层" class="headerlink" title="领域层"></a>领域层</h2><p>JUnit + Mockito</p>
+<p>是Java的标准模块。</p>
+<h2 id="数据层"><a href="#数据层" class="headerlink" title="数据层"></a>数据层</h2><p>Robolectric 3 + JUnit + Mockito</p>
+<p>有部分Android模块</p>
+<h3 id="Robolectric"><a href="#Robolectric" class="headerlink" title="Robolectric"></a>Robolectric</h3><p>在 PC上使用 JVM 模拟实现 Android SDK。</p>
+<p>支持UI表现测试和网络请求测试</p>
+<p>使Android模块的测试 更加高效</p>
+<h1 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h1><p>Fernando 大神 对 Clean架构的解读及实践</p>
+<p><a href="https://github.com/android10/Android-CleanArchitecture" target="_blank" rel="noopener">实例源码</a></p>
+<h2 id="Clean在Android中如何表现"><a href="#Clean在Android中如何表现" class="headerlink" title="Clean在Android中如何表现"></a>Clean在Android中如何表现</h2><p>一个应用可以有任意数目的层，但除非你的应用到处是企业级功能逻辑，一般需要这三层：</p>
+<ul>
+<li>外层：接口实现层</li>
+<li>中层：接口适配层</li>
+<li>内层：逻辑层</li>
+</ul>
+<p><strong>接口实现层是体现架构细节的地方</strong>。实现架构的代码是所有不用来解决问题的代码，这包括所有与安卓相关的东西，比如创建Activity和Fragment，发送Intent以及其他联网与数据库的架构相关的代码。图片中UI、Web、Devices、DB、External Interfaces是和架构相关的（android还是ios或是web）</p>
+<p><strong>接口适配层就是桥接逻辑层和架构层的代码，是胶水代码</strong>。mvc中的c，mvp的p。</p>
+<p><strong>逻辑层最重要，这里包含了真正解决问题的代码</strong>。这一层不包含任何实现架构的代码， 不用模拟器也应能运行这里的代码 。这样一来你的逻辑代码就有了易于测试、开发和维护的优点。这就是Clean架构的一个主要的好处。</p>
+<p>每一个位于核心层外部的层都应能将外部模型转成可以被内层处理的内部模型。内层不能持有属于外层的模型类的引用。</p>
+<p>为什么要进行模型转换呢？举个例子，当逻辑层的模型不能直接很优雅地展现给用户，或是需要同时展示多个逻辑层的模型时，最好创建一个ViewModel类来更好的进行UI展示。这样一来，你就需要一个属于外层的Converter类来将逻辑层模型转换成合适的ViewModel。</p>
+<p>再举一个例子：你从外部数据库层获得了ContentProvider的Cursor对象，外层首先要将这个对象转换成内层模型，再将它传给内层处理。</p>
+<h2 id="如何开始写Clean应用？"><a href="#如何开始写Clean应用？" class="headerlink" title="如何开始写Clean应用？"></a>如何开始写Clean应用？</h2><p><strong>开始写用例</strong></p>
+<p>一般来说一个安卓应用的结构如下：</p>
+<ul>
+<li><p>外层项目包：UI，Storage，Network等等。</p>
+</li>
+<li><p>中层项目包：Presenter，Converter。</p>
+</li>
+<li><p>内层项目包：Interactor，Model，Repository，Executor。</p>
+</li>
+</ul>
+<p><strong>外层体现了框架的细节。</strong></p>
+<p>UI– 包括所有的Activity，Fragment，Adapter和其他UI相关的Android代码。</p>
+<p>Storage– 用于让交互类获取和存储数据的接口实现类，包含了数据库相关的代码。包括了如ContentProvider或DBFlow等组件。</p>
+<p>Network– 网络操作。</p>
+<p><strong>中层是桥接实现代码与逻辑代码的Glue Code。</strong></p>
+<p>Presenter– presenter处理UI事件，如单击事件，通常包含内层Interactor的回调方法。这里需要注意不能持有外层UI的引用，所以通过持有接口而UI实现接口实现间接持有UI（mvp的做法）</p>
+<p>Converter– 负责将内外层的模型互相转换。内层不能持有外层引用，所以转换成ViewModule传给内层</p>
+<p><strong>内层真正解决问题的代码，这一层的类和对象不知道外层的任何信息，且应能在任何JVM下运行。</strong></p>
+<p>Interactor– Interactor中包含了解决问题的逻辑代码。这里的代码在后台执行，并通过回调方法向外层传递事件。在其他项目中这个模块被称为用例Use Case。一个项目中可能有很多小Interactor，这符合单一职责原则，而且这样更容易让人接受。一般mvp是在这里直接调用mvp方法。clean不能持有相对外层的引用，所以需要在本层再增加一个回调接口，让present去实现。</p>
+<p>Model– 在业务逻辑代码中操作的业务模型。</p>
+<p>Repository– 包含接口让外层类实现，如操作数据(获取/保存)的类等。不能持有外层引用，Interactor持有这些接口来获取和存储数据,外层需要实现这些接口（DB/External Interfaces就是这些接口的实现）。这也叫资源库模式Repository Pattern。</p>
+<p>Executor– 通过Worker Thread Executor让Interactor在后台执行。一般不需要修改这个包里的代码。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://fernandocejas.com/2014/09/03/architecting-android-the-clean-way/" target="_blank" rel="noopener">Architecting Android…The clean way?</a> by Fernando Cejas (Fernando 大神) - 原文</li>
+<li><a href="https://zhuanlan.zhihu.com/p/20001838" target="_blank" rel="noopener">一种更清晰的Android架构</a> - by 何红辉 - 译文</li>
+<li><a href="https://github.com/android10/Android-CleanArchitecture" target="_blank" rel="noopener">实例源码</a></li>
+<li><a href="https://www.jianshu.com/p/66e749e19f0d" target="_blank" rel="noopener">Clean架构探讨</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/编程思想/" rel="tag"><i class="fa fa-tag"></i> 编程思想</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/14/编程思想/mvc mvp mvvm clean/mvvm databinding xml 常用表达式/" rel="next" title="MVVM dataBinding 常用表达式">
+                <i class="fa fa-chevron-left"></i> MVVM dataBinding 常用表达式
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/17/Android/自定义Activity背景-奇葩的启动页实现方式/" rel="prev" title="自定义Activity背景-奇葩的启动页实现方式">
+                自定义Activity背景-奇葩的启动页实现方式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">214</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#测试方法"><span class="nav-number">1.</span> <span class="nav-text">测试方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#表现层"><span class="nav-number">1.1.</span> <span class="nav-text">表现层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#领域层"><span class="nav-number">1.2.</span> <span class="nav-text">领域层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据层"><span class="nav-number">1.3.</span> <span class="nav-text">数据层</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Robolectric"><span class="nav-number">1.3.1.</span> <span class="nav-text">Robolectric</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实例"><span class="nav-number">2.</span> <span class="nav-text">实例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Clean在Android中如何表现"><span class="nav-number">2.1.</span> <span class="nav-text">Clean在Android中如何表现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何开始写Clean应用？"><span class="nav-number">2.2.</span> <span class="nav-text">如何开始写Clean应用？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">3.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

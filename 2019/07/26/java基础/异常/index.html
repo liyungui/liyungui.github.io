@@ -87,7 +87,7 @@
 <meta property="og:site_name" content="风">
 <meta property="og:description" content="异常声明属于方法说明的一部分，紧跟在参数列表之后 void method() throws IOException {} 子类在覆盖方法时，不能添加父类方法没有的异常声明（只能保持或者减少）。 Throwable 方法汇总1234567891011121314getMessage()getLocalizedMessage()toString()getCause()initCause(Throwab">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-07-26T11:42:24.443Z">
+<meta property="og:updated_time" content="2019-08-16T10:22:34.828Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="异常">
 <meta name="twitter:description" content="异常声明属于方法说明的一部分，紧跟在参数列表之后 void method() throws IOException {} 子类在覆盖方法时，不能添加父类方法没有的异常声明（只能保持或者减少）。 Throwable 方法汇总1234567891011121314getMessage()getLocalizedMessage()toString()getCause()initCause(Throwab">
@@ -383,7 +383,8 @@
 <li>栈底元素（最后一个元素）是调用序列中的第一个方法调用</li>
 </ul>
 <h1 id="getStackTrace"><a href="#getStackTrace" class="headerlink" title="getStackTrace()"></a>getStackTrace()</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> StackTraceElement[] getStackTrace() &#123;</span><br><span class="line">    <span class="keyword">return</span> getOurStackTrace().clone();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="StackTraceElement"><a href="#StackTraceElement" class="headerlink" title="StackTraceElement"></a>StackTraceElement</h1><h1 id="重新抛出异常和异常链"><a href="#重新抛出异常和异常链" class="headerlink" title="重新抛出异常和异常链"></a>重新抛出异常和异常链</h1><h2 id="抛出原异常对象"><a href="#抛出原异常对象" class="headerlink" title="抛出原异常对象"></a>抛出原异常对象</h2><p>有时我们在捕获到异常后，可能在捕获的地方不适合处理该异常，我们需要将它重新抛出</p>
+<h1 id="StackTraceElement"><a href="#StackTraceElement" class="headerlink" title="StackTraceElement"></a>StackTraceElement</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">StackTraceElement</span> <span class="keyword">implements</span> <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Normally initialized by VM (public constructor added in 1.5)</span></span><br><span class="line">    <span class="keyword">private</span> String declaringClass; <span class="comment">//完整类名</span></span><br><span class="line">    <span class="keyword">private</span> String methodName; <span class="comment">//方法名。不带签名(参数和返回值)</span></span><br><span class="line">    <span class="keyword">private</span> String fileName; <span class="comment">//类文件名</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>    lineNumber; <span class="comment">//行号；-2表示该方法是Native方法</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="重新抛出异常和异常链"><a href="#重新抛出异常和异常链" class="headerlink" title="重新抛出异常和异常链"></a>重新抛出异常和异常链</h1><h2 id="抛出原异常对象"><a href="#抛出原异常对象" class="headerlink" title="抛出原异常对象"></a>抛出原异常对象</h2><p>有时我们在捕获到异常后，可能在捕获的地方不适合处理该异常，我们需要将它重新抛出</p>
 <p>这样就会存在一个问题，抛出的的异常携带的信息，是原来异常抛出点的调用栈信息，而非新抛出点的信息（新抛出点的调用信息就被掩盖了）。</p>
 <p>可以使用 <code>fillInStackTrace()</code> 更新新抛出点信息到这个异常调用栈中</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">java.lang.RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:9)</span><br><span class="line">	</span><br><span class="line">使用 fillInStackTrace() 后：</span><br><span class="line">java.lang.RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:11)</span><br></pre></td></tr></table></figure>
@@ -437,8 +438,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2019/07/26/java基础/java虚拟机/深入理解java虚拟机面试精华总结/" rel="prev" title="">
-                 <i class="fa fa-chevron-right"></i>
+              <a href="/2019/07/30/web/web渲染/" rel="prev" title="web渲染">
+                web渲染 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -520,7 +521,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">195</span>
+                  <span class="site-state-item-count">214</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -531,7 +532,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -542,7 +543,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">60</span>
+                  <span class="site-state-item-count">63</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
