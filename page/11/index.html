@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/数据库/sql/sql使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/日期时间类和格式化输出/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/数据库/sql/sql使用/" itemprop="url">SQL使用</a></h1>
+                <a class="post-title-link" href="/2019/03/27/java基础/日期时间类和格式化输出/" itemprop="url">日期时间类和格式化输出</a></h1>
         
 
         <div class="post-meta">
@@ -293,8 +293,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T15:47:53+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:42:53+08:00">
+                2019-03-27
               </time>
             
 
@@ -316,8 +316,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
                   </a>
                 </span>
 
@@ -355,457 +355,1050 @@
       
         
           
-            <h1 id="SQL"><a href="#SQL" class="headerlink" title="SQL"></a>SQL</h1><p><strong>Structured Query Language</strong>, 结构化查询语言</p>
-<p>操作 关系型数据库（用表存储数据）的 标准 非过程性语言。</p>
-<p>为加强SQL的语言能力，各厂商在实现标准中增加了过程性语言的特征。如Oracle的PL/SQL 过程性处理能力，SQL Server、Sybase的T-SQL</p>
-<h1 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h1><pre><code>不区分大小写。推荐关键字大写，自定义的小写
-每条语句以分号结尾
-注释符号是 #
-</code></pre><h1 id="数据库服务器–数据库–表"><a href="#数据库服务器–数据库–表" class="headerlink" title="数据库服务器–数据库–表"></a>数据库服务器–数据库–表</h1><p>数据库服务器有多个数据库组成，每个数据库有多个表。表中存储着数据。</p>
-<p>一般一个工程项目对应一个数据库，一个JavaBean对应一个表。</p>
-<p>元数据：数据库，表，列的定义信息</p>
-<h2 id="数据库服务器–mysql"><a href="#数据库服务器–mysql" class="headerlink" title="数据库服务器–mysql"></a>数据库服务器–mysql</h2><p>要特别注意连接，备份命令是在cmd窗口执行，要注意和sql语句区分，是没有分号的。特别注意！！</p>
-<h3 id="CentOS安装MySQL"><a href="#CentOS安装MySQL" class="headerlink" title="CentOS安装MySQL"></a>CentOS安装MySQL</h3><p>CentOS 7上把MySQL从默认软件列表中移除了，用MariaDB来代替，所以我们必须要去官网上进行下载</p>
-<pre><code>wget http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm 
+            <pre><code>JAVA下的日期时间类和格式化输出 http://jiankeafei.iteye.com/blog/230928
+</code></pre><p>SimpleDateFormat的格式：</p>
+<p>   在实例化SimpleDateFormat时，采用”yyyy-MM-dd HH:mm:ss”这样的构造参数，可以对输出的格式进行设置。而字符串中的字母代表的含义如下：</p>
+<pre><code>G 年代标志符
+y 年
+M 月
+d 日
+h 时 在上午或下午 (1~12)
+H 时 在一天中 (0~23)
+m 分
+s 秒
+S 毫秒
+E 星期
+D 一年中的第几天
+F 一月中第几个星期几
+w 一年中第几个星期
+W 一月中第几个星期
+a 上午 / 下午 标记符 
+k 时 在一天中 (1~24)
+K 时 在上午或下午 (0~11)
+z 时区
+</code></pre><p>  除了上述具有实际含义的字母之外，还可以配合诸如：空格、：、-等进行格式化设置。</p>
 
-rpm -ivh mysql-community-release-el7-5.noarch.rpm
+          
+        
+      
+    </div>
+    
+    
+    
 
-yum -y install mysql mysql-server mysql-devel
-</code></pre><h3 id="启动MySQL"><a href="#启动MySQL" class="headerlink" title="启动MySQL"></a>启动MySQL</h3><pre><code>service mysqld start
-</code></pre><h3 id="设置MySQL数据库服务器密码"><a href="#设置MySQL数据库服务器密码" class="headerlink" title="设置MySQL数据库服务器密码"></a>设置MySQL数据库服务器密码</h3><pre><code>mysqladmin -u root password dbroot@quanlist2018
-</code></pre><h3 id="连接MySQL数据库服务器"><a href="#连接MySQL数据库服务器" class="headerlink" title="连接MySQL数据库服务器"></a>连接MySQL数据库服务器</h3><pre><code>mysql -u root -p
-密码默认为空
-</code></pre><h3 id="允许用户远程连接"><a href="#允许用户远程连接" class="headerlink" title="允许用户远程连接"></a>允许用户远程连接</h3><p>登录MySQL后</p>
-<pre><code>grant all privileges on *.* to &apos;root&apos;@&apos;%&apos; identified by &apos;dbroot@quanlist2018&apos; with grant option;
-FLUSH PRIVILEGES;
-exit
+    
 
-&apos;root&apos;@&apos;%&apos; identified by &apos;dbroot@quanlist2018&apos;
-表示root用户可以在任意地址用密码dbroot@quanlist2018登录
-</code></pre><h3 id="备份与恢复数据库"><a href="#备份与恢复数据库" class="headerlink" title="备份与恢复数据库"></a>备份与恢复数据库</h3><ul>
-<li><p>备份数据库：连接mysql服务器前</p>
-<pre><code>mysqldump -u root -p db_name&gt;c:/1.sql
-</code></pre></li>
-<li><p>恢复数据库：必须要先创建数据库，然后导入备份的sql文件</p>
-<pre><code>备份。在cmd窗口
-    mysql -u root -p db_name&lt;c:/1.sql
-恢复。在mysql窗口中（连接mysql服务器后）
-    use db_name;
-    source c:/1.sql;
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/匿名内部类只能访问final修饰的外部变量/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/匿名内部类只能访问final修饰的外部变量/" itemprop="url">匿名内部类只能访问final修饰的外部变量</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>匿名内部类用法</p>
+<pre><code>public class TryUsingAnonymousClass {
+    public void useMyInterface() {
+        final Integer number = 123;
+        System.out.println(number);
+
+        MyInterface myInterface = new MyInterface() {
+            @Override
+            public void doSomething() {
+                System.out.println(number);
+            }
+        };
+        myInterface.doSomething();
+
+        System.out.println(number);
+    }
+}
+</code></pre><p>编译后的结果</p>
+<pre><code>class TryUsingAnonymousClass$1
+        implements MyInterface {
+    private final TryUsingAnonymousClass this$0;
+    private final Integer paramInteger;
+
+    TryUsingAnonymousClass$1(TryUsingAnonymousClass this$0, Integer paramInteger) {
+        this.this$0 = this$0;
+        this.paramInteger = paramInteger;
+    }
+
+    public void doSomething() {
+        System.out.println(this.paramInteger);
+    }
+}
+</code></pre><ul>
+<li>匿名内部类最终用会编译成一个单独的类</li>
+<li>被该类使用的变量会以构造函数参数的形式传递给该类</li>
+<li>如果变量 不定义成final的，在匿名内部类被可以被修改，进而造成和外部的不一致的问题，为了避免这种不一致的情况，Java 规定匿名内部类只能访问final修饰的外部变量。</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/反射final成员变量/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/反射final成员变量/" itemprop="url">反射final成员变量</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>利用反射对修饰符为final的成员变量进行修改 http://my.oschina.net/dxqr/blog/215504
+</code></pre><h2 id="非final成员变量"><a href="#非final成员变量" class="headerlink" title="非final成员变量"></a>非final成员变量</h2><pre><code>class Entity {
+    public int i = 1;
+}    
+
+try {
+    Entity e = new Entity();
+    System.out.println(&quot;before: &quot; + e.i);
+
+    Field f = Entity.class.getDeclaredField(&quot;i&quot;);
+    f.setInt(e, 2);
+    // 或者 f.set(e, 2);// java会自动装箱拆箱
+    System.out.println(&quot;after: &quot; + e.i);
+} catch (Exception e) {
+    e.printStackTrace();
+}
+</code></pre><h2 id="final成员变量"><a href="#final成员变量" class="headerlink" title="final成员变量"></a>final成员变量</h2><pre><code>class Entity {
+    public final int i = 1;
+}
+</code></pre><p>反射会报异常:</p>
+<pre><code>java.lang.IllegalAccessException: Can not set final int field com.test.Entity.i to (int)2
+</code></pre><p>修改成员变量的final修饰符,使其变为public int i = 1;具体方法如下:</p>
+<pre><code>try {
+    Entity e = new Entity();
+    System.out.println(&quot;before: &quot; + e.i);
+
+    Field f = Entity.class.getDeclaredField(&quot;i&quot;);
+
+    Field modifiersField = Field.class.getDeclaredField(&quot;modifiers&quot;);
+    modifiersField.setAccessible(true);
+    System.out.println(f.getModifiers()); // 输出17:表示修饰符为:public final
+    modifiersField.setInt(f, f.getModifiers() &amp; ~Modifier.FINAL);
+    System.out.println(f.getModifiers());// 输出1:表示修饰符已经被修改为:public
+
+    f.setAccessible(true);
+    f.setInt(e, 2);
+    System.out.println(&quot;after: &quot; + e.i);//输出还是1.没修过成功
+} catch (Exception e) {
+    e.printStackTrace();
+}
+</code></pre><p>发现还是没有修改成功。会不会跟是基本数据类型有关？修改成员变量的数据类型为 Integer</p>
+<pre><code>class Entity {
+    public final Integer i = 1;
+}
+</code></pre><p>然后再执行,发现结果已经被修改了</p>
+<p><strong>final成员变量，对象数据类型可以修改,基本数据类型不能修改</strong></p>
+<p><strong>final成员变量，final String s = new String(“a”); 可以修改,final String s = “a” 不能修改</strong></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/数组转list陷阱/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/数组转list陷阱/" itemprop="url">数组list陷阱</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>String[] artistTypes = getResources().getStringArray(R.array.artist_type);
+List&lt;String&gt; list = Arrays.asList(artistTypes); 
+</code></pre><p>上面代码是毫无问题的。</p>
+<pre><code>String[] artistTypes = getResources().getStringArray(R.array.artist_type);
+ArrayList&lt;String&gt; list = (ArrayList&lt;String&gt;) Arrays.asList(artistTypes); 
+</code></pre><p>运行报错。java.util.Arrays$ArrayList cannot be cast to java.util.ArrayList</p>
+<p>这就说明，Arrays.asList转出来的是Arrays$ArrayList（内部类），只是和java.util.ArrayList名字相同。</p>
+<p>为什么转为List不报错呢？因为Arrays$ArrayList实现了List接口</p>
+<pre><code>public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements Cloneable, Serializable, RandomAccess {
+
+public class Arrays {
+    private static class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements
+            List&lt;E&gt;, Serializable, RandomAccess {
+</code></pre><p>研究过程发现</p>
+<pre><code>Arrays.asList转出来的是Arrays$ArrayList继承AbstractList。remove，add等method在AbstractList中是默认throw UnsupportedOperationException而且不作任何操作。
+java.util.Arrays$ArrayList继承了静态数组 大小 固定不变的特性。
+</code></pre><p>找了很久，找到下面的解决方法</p>
+<pre><code>List myList = new ArrayList(); 
+String[] myStringArray = new String[] {&quot;Java&quot;, &quot;is&quot;, &quot;Cool&quot;};
+Collections.addAll(myList, myStringArray);
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/泛型/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/泛型/" itemprop="url">泛型</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:40:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://blog.csdn.net/harvic880925/article/details/49872903" target="_blank" rel="noopener">夯实JAVA基本之一 —— 泛型详解(1):基本使用</a></p>
+<p><a href="http://blog.csdn.net/harvic880925/article/details/49883589" target="_blank" rel="noopener">夯实JAVA基本之一——泛型详解(2)：高级进阶</a></p>
+<h1 id="泛型的优点"><a href="#泛型的优点" class="headerlink" title="泛型的优点"></a>泛型的优点</h1><p>java为什么引入泛型：</p>
+<ul>
+<li>类型安全。 在编译的时候检查类型安全</li>
+<li>消除强制类型转换。所有的强制转换都是自动和隐式的</li>
+<li>潜在的性能收益。 泛型为以后较大的优化带来可能。由于泛型的实现方式，支持泛型（几乎）不需要 JVM 或类文件更改，所有工作都在编译器中完成</li>
+</ul>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><ul>
+<li><p>只存在编译期（.class文件也存储着泛型信息），运行期间已经去泛型化了。</p>
+</li>
+<li><p>接口Type下有：final class <code>Class&lt;T&gt;</code>; interface <code>ParameterizedType</code></p>
+</li>
+<li><p>静态块，静态属性，静态方法 不能使用泛型。</p>
+</li>
+<li>定义格 <t> &lt;T,S&gt; &lt;T,S extends T&gt;</t></li>
+<li><p>字母规范</p>
+<pre><code>E — Element，常用在java Collection里，如：List&lt;E&gt;,Iterator&lt;E&gt;,Set&lt;E&gt;
+K,V — Key，Value，代表Map的键值对
+N — Number，数字
+T — Type，类型，如String，Integer等等
 </code></pre></li>
 </ul>
-<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><pre><code>1.创建数据库
-    create database [if not exists] db_name [character set xxx] [collate xxx]
-    *创建一个名称为mydb1的数据库。
-        create database mydb1;
-    *创建一个使用utf8（中间没有杆）字符集的mydb2数据库。
-        create database mydb2 character set utf8;
-    *创建一个使用utf8字符集，并带校对规则（校对规则是下划线连接）的mydb3数据库。
-        create database mydb3 character set utf8 collate utf8_bin ;
-2.查看数据库
-    show databases;查看所有数据库
-    show create database db_name; 查看数据库的创建方式
-3.修改数据库
-    alter database db_name [character set xxx] [collate xxxx]
-4.删除数据库
-    drop database [if exists] db_name;
-5.使用数据库
-    切换使用的数据库 use db_name; （数据库特有关键字，不用加database）
-    查看当前使用的数据库 select database();注意不要忘了括号
-</code></pre><hr>
-<h2 id="表"><a href="#表" class="headerlink" title="表"></a>表</h2><pre><code>1.创建表
-        create table tab_name(
-            field1 type,
-            field2 type,
-            ...
-            fieldn type
-        )[character set xxx][collate xxx];
+<h1 id="一、基本使用"><a href="#一、基本使用" class="headerlink" title="一、基本使用"></a>一、基本使用</h1><h2 id="1-泛型类"><a href="#1-泛型类" class="headerlink" title="1.泛型类"></a>1.泛型类</h2><ul>
+<li>直接在类名后面定义泛型参数</li>
+<li>父类定义的类型参数不能被子类继承。</li>
+<li>T表示派生自Object类的类，比如String（String在类中怎么用，那T在类中就可以怎么用！）</li>
+</ul>
+<p>所以下面的：定义变量，作为返回值，作为参数传入的定义就很容易理解了。</p>
+<pre><code>class Point&lt;T&gt;{// 在类上定义泛型  
+    private T x ; //作为成员变量         
+    private T y ;        
+    public void setX(T x){//作为参数  
+        this.x = x ;  
+    }  
+    public void setY(T y){  
+        this.y = y ;  
+    }  
+    public T getX(){//作为返回值  
+        return this.x ;  
+    }  
+    public T getY(){  
+        return this.y ;  
+    }  
+};
 
-        ****java和mysql的数据类型比较
-            String  ----------------------  char(n) varchar(n) 注意是var+char。 
-                                                定长是固定长度，自动补齐。变长是根据存储内容决定长度。
-                                                但都不能超过定义长度n.定长胜在效率，变长胜在节省空间。
-            byte short int long float double -------------- tinyint  smallint int bigint float double。
-                                                    长度分别    1        2        4    8        4        8字节
-            boolean ------------------ bit 0/1
-            Date ------------------ Date、Time、DateTime、timestamp
-            FileInputStream FileReader  ------------------------------ 大数据类型 Blob Text
-            字符和日期型数据应包含在单引号中
-
-            *创建一个员工表employee
-            create table employee(
-                id int primary key auto_increment ,
-                name varchar(20),
-                gender bit default 1,
-                birthday date,
-                entry_date date,
-                job varchar(20),
-                salary double,
-                resume text
-            );
-
-            约束:
-                primary key 主键，不空切唯一。一般其后都紧跟着auto_increment 主键字段必须是数字类型(非数字无法自增长)。主键无法更改（更改主键，插入数据库就无法知道修改的列）
-                auto_increment只有主键可以自动增长    
-                unique
-                not null
-                外键约束，一般是和多表设计一起理解。看后面
-    2.查看表信息
-        show tables 查看当前数据库中的所有的表
-        show create table tab_name    查看当前数据库表建表语句 
-        desc tab_name 查看表结构。（表特有关键字，所以不用加table）
-    3.修改表
-        alter table add列/drop列/change列名/modify列类型/character set
-        rename table to  重命名表(不要忘记了to)
-
-            *在上面员工表的基本上增加一个image列。
-                alter table employee add image blob;
-            *修改job列，使其长度为60。
-                alter table employee modify job varchar(60);
-            *删除gender列。
-                alter table employee drop gender;
-            *表名改为user。
-                rename table employee to user;
-            *修改表的字符集为utf8
-                alter table user character set gbk; 
-            *列名name修改为username    
-                alter table user change name username varchar(20);
-
-    4.删除表
-        drop table tab_name;
-</code></pre><hr>
-<h2 id="表记录-数据"><a href="#表记录-数据" class="headerlink" title="表记录(数据)"></a>表记录(数据)</h2><pre><code>1.增加一条记录insert into values  其实可以用逗号分隔一次性插入多条记录。
-    insert into tab_name [(field1,filed2,.......)] values (value1,value2,.......)[,(value1,value2,...)];
-    *values中的数据必须与列的排列位置相对应。
-    *插入空值：不要把该列加入列列表  或  值写为null
-    *如果要插入所有字段可以省写列列表，直接按表中字段顺序写值列表insert into tab_name values(value1,value2,......);
-    *字符和日期型数据应包含在单引号中&apos;zhang&apos; &apos;2013-04-20&apos;
-    *mysql中乱码的原因与解决：
-        客户端发送数据时使用的编码和服务器处理数据时使用的编码不相同
-        show variables like &apos;character%&apos;;可以获得服务器使用的编码。
-        %表示任意个字符，下划线_表示一个字符。 模糊匹配like。
-        解决方法
-                (1)set names xxxx; --- 连接后通知服务器和当前客户端进行交互时使用的编码集（每个客户端连接后都需要设置）
-                (2)修改服务器中的my.ini配置文件，修改服务器默认 认为的客户端的编码
-    *练习：使用insert语句向表中插入四个员工的信息。
-    insert into emp (name,birthday,entry_date,job,salary) values (&apos;张飞&apos;,&apos;1990-09-09&apos;,&apos;2000-01-01&apos;,&apos;打手&apos;,999);
-    insert into emp values (null,&apos;黄忠&apos;,1,&apos;1970-05-05&apos;,&apos;2001-01-01&apos;,&apos;战神&apos;,1000,null);
-    insert into emp (name,birthday,entry_date,job,salary) values (&apos;关羽&apos;,&apos;1989-08-08&apos;,&apos;2000-01-01&apos;,&apos;财神&apos;,9999)
-                                                                    ,(&apos;赵云&apos;,&apos;1991-07-07&apos;,&apos;2000-01-02&apos;,&apos;保安&apos;,888);
-
-2.修改表列记录 update  set
-        update tab_name set field1=expr1 [,field2=expr1] [where 语句]
-        *SET子句指示要修改哪些列和要给予哪些值（可以是表达式，比如field+10，表示增加10）。
-        *WHERE子句指定应更新哪些行。如没有WHERE子句，则更新所有的行。
-    *where字句中可以使用：
-                        *比较运算符：    
-                                    = &gt; &lt; &gt;= &lt;= &lt;&gt;  （不等于是&lt;&gt;,特别注意）
-                                    between 10 and 20 值在10到20之间  
-                                    in(10,20,3)值是10或20或30
-                                    like &apos;张pattern&apos; pattern可以是%或者_，如果是%则表示任意多字符，此例中张三丰 张飞 张abcd ，如果是_则表示一个字符张_，张飞符合。
-                                    is null
-
-                        *逻辑运算符
-                            在多个条件直接可以使用逻辑运算符 and or not
-
-            ~将所有员工薪水修改为5000元。
-                update employee set salary=5000;
-            ~将姓名为’张飞’的员工薪水修改为3000元。
-                update employee set salary=3000 where name = &apos;张飞&apos;;
-            ~将姓名为’关羽’的员工薪水修改为4000元,job改为ccc。
-                update employee set salary=4000,job=&apos;ccc&apos; where name=&apos;关羽&apos;;
-            ~将刘备的薪水在原有基础上增加1000元。    
-                update employee set salary=salary+1000 where name=&apos;刘备&apos;;
-
-
-3.删除表行操作 delete
-        delete from tab_name [where ....]
-        *如果不跟where语句则删除整张表中的数据
-        *delete只能用来删除一行记录，不能值删除一行记录中的某一列值（这是update操作）。
-        *delete是删除表中选中的数据，表还在。删除表要 drop table
-        truncate是删除表中所有数据。直接删除表，然后创建一张结构一样（具有相同列）的新表。这种删除不能在事务中恢复。
-                当删除表中所有数据时，truncate比delete更高效。
-
-        *实验：
-            ~删除表中名称为’张飞’的记录。
-                delete from employee where name=&apos;张飞&apos;;
-            ~删除表中所有记录。
-                delete from employee;
-            ~使用truncate删除表中记录。
-                truncate employee;
-
-
-    4.select操作
-    （1）select [distinct] *|field1 [,field2] from tab_name 其中from指定从哪张表筛选，*表示查找所有列，也可以指定一个列列表明确指定要查找的列，distinct用来剔除重复行。
-                查询表中所有学生的信息。
-                select * from exam;
-                查询表中所有学生的姓名和对应的英语成绩。
-                select name,english from exam;
-                过滤表中重复数据。
-                select distinct english from exam;
-    （2）select 也可以使用表达式，并且可以使用 as 别名 。（as可以省略，直接空格跟别名）
-                在所有学生分数上加10分特长分显示。
-                select name,english+10,chinese+10,math+10 from exam;
-                统计每个学生的总分。
-                select name,english+chinese+math from exam;
-                使用别名表示学生总分。
-                select name,english+chinese+math as 总成绩 from exam;
-                select name,english+chinese+math 总成绩 from exam;
-                select name english from exam;这个很容易出错。其实是省略as的别名。
-    （3）使用where子句，进行过滤查询。
-        实际应用中，where子句都是动态构造的。多条件查询构造sql技巧，where 1=1 and ......
-                 ~查询英语成绩大于90分的同学
-                    select name,english from exam where english &gt; 90;
-                ~查询总分大于230分的所有同学
-                    select name 姓名,english+chinese+math 总成绩 from exam where english+chinese+math&gt;230;
-                ~查询英语分数在 80－100之间的同学。
-                    select * from exam where english between 80 and 100;
-                ~查询数学分数为75,76,77的同学。
-                    select * from exam where math in(75,76,77);
-                ~查询所有姓张的学生成绩。
-                    select * from exam where name like &apos;张%&apos;;
-                    select * from exam where name like &apos;张_&apos;;
-                    select * from exam where name like &apos;张__&apos;;
-                ~查询数学分&gt;70，语文分&gt;80的同学。
-                    select * from exam where math&gt;70 and chinese&gt;80;
-                ~查找缺考数学的学生的姓名
-                    select name from exam where math is null;
-
-    （4）Order by field [asc|desc]按指定列排序，可以是别名。
-                Asc 升序、Desc 降序，其中asc为默认值
-                ORDER BY 子句应位于SELECT语句的结尾。
-            *练习：
-                对数学成绩排序后输出。
-                select * from exam order by math desc;
-                对总分排序按从高到低的顺序输出
-                select name ,(ifnull(math,0)+ifnull(chinese,0)+ifnull(english,0)) 总成绩 from exam order by 总成绩 desc;
-                对姓张的学生成绩排序输出
-                select name ,(ifnull(math,0)+ifnull(chinese,0)+ifnull(english,0)) 总成绩 from exam where name like &apos;张%&apos; order by 总成绩 desc;
-    null和任何数运算结果都为null
-    ifnull(col,0)如果某列的值为null，用0替代
-    （5）聚合函数：技巧,先不要管聚合函数要干嘛，先把要求的内容查出来再包上聚合函数即可。
-            ~1.count(列) -- 统计符合条件的记录共有几条
-                ~统计一个班级共有多少学生？
-                    select count(*) from exam;
-                ~统计数学成绩大于70的学生有多少个？
-                    select count(*) from exam where math&gt;70;
-                ~统计总分大于230的人数有多少？
-                    select count(name) from exam where math+english+chinese&gt;230;
-            ~2.sum(列) --Sum函数返回满足where条件的行的和
-                ~统计一个班级数学总成绩？
-                    select sum(math) from exam;    
-                ~统计一个班级语文、英语、数学各科的总成绩
-                    select sum(chinese),sum(english),sum(math) from exam;
-                ~统计一个班级语文、英语、数学的成绩总和
-                    select sum(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-                ~统计一个班级语文成绩平均分
-                    select sum(chinese)/count(name) from exam
-            ~3.AVG --函数返回满足where条件的一列的平均值
-                ~求一个班级数学平均分？
-                    select avg(math) from exam;
-                ~求一个班级总分平均分？            
-                select avg(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-            ~4.MAX/MIN--函数返回满足where条件的一列的最大/最小值    
-                ~求班级最高分和最低分
-                select max(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-                select min(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-    (6)分组查询--GROUP BY
-            ~对订单表中商品归类后，显示每一类商品的总价
-                select id,product,sum(price) from orders group by product;
-            ~查询购买了几类商品，并且每类总价大于100的商品
-                select product,sum(price) from orders group by product having sum(price)&gt;100;
-            ~查询单价小于100 但是总价大于100的商品。
-                select product from orders where price&lt;100 group by product having sum(price)&gt;100;
-
-        where 在最前面进行过滤，不能使用别名和聚合函数
-        having 在分组之后进行过滤，可以使用别名和聚合函数,having中用到的列，必须在前面使用过才可以用
-
-    （7）重点：综合运用 Select from where group by having order by 
-                    Mysql在执行sql语句时的执行顺序：from where select group by having order by
-            *分析：        
-                select math+english+chinese as 总成绩 from exam where 总成绩 &gt;250; ---- 不成功
-                select math+english+chinese as 总成绩 from exam having 总成绩 &gt;250; --- 成功
-                select math+english+chinese as 总成绩 from exam group by 总成绩 having 总成绩 &gt;250; ----成功
-                select  math+english+chinese as 总成绩 from exam order by 总成绩;----成功
-                select * from exam as 成绩 where 成绩.math&gt;85; ---- 成功
-</code></pre><hr>
-<h1 id="多表设计-–-外键约束"><a href="#多表设计-–-外键约束" class="headerlink" title="多表设计 – 外键约束"></a>多表设计 – 外键约束</h1><img src="/2018/12/20/数据库/sql/sql使用/外键.png">
-<pre><code>1.创建表时指定约束：foreign key (dept_id) references dept(id)
-        create table dept(
-        id int primary key auto_increment,
-        name varchar(30)
-    );
-    insert into dept values(null,&apos;财务部&apos;);
-    insert into dept values(null,&apos;人事部&apos;);
-    insert into dept values(null,&apos;销售部&apos;);
-    insert into dept values(null,&apos;科技部&apos;);
-
-    create table emp(
-        id int primary key auto_increment,
-        name varchar(30),
-        dept_id int,
-        foreign key (dept_id) references dept(id)
-    );
-    insert into emp values (null,&apos;奥巴马&apos;,1);
-    insert into emp values (null,&apos;乔峰&apos;,2);    
-    insert into emp values (null,&apos;哈利波特&apos;,3);
-    insert into emp values (null,&apos;朴乾&apos;,4);
-    insert into emp values (null,&apos;萨达姆&apos;,4);
+使用
+Point&lt;Integer&gt; p = new Point&lt;Integer&gt;() ; 
 
 
 
-2.外键约束：
-        （1）增加外键：
-            可以明确指定外键的名称，如果不指定外键的名称,mysql会自动为你创建一个外键名称。
-            RESTRICT : 只要本表格里面有指向主表的数据， 在主表里面就无法删除相关记录。
-            CASCADE : 如果在foreign key 所指向的那个表里面删除一条记录，那么在此表里面的跟那个key一样的所有记录都会一同删掉。
-            alter table book add [constraint FK_BOOK] foreign key(pubid) references pub_com(id) [on delete restrict] [on update restrict];
 
-        （2）删除外键
-            alter table 表名 drop foreign key 外键（区分大小写，外键名可以desc 表名查看）;
+public class TestClassDefine&lt;T, S extends T&gt; {
+     ....  
+}
+</code></pre><h2 id="2-泛型接口"><a href="#2-泛型接口" class="headerlink" title="2.泛型接口"></a>2.泛型接口</h2><pre><code>interface Info&lt;T&gt;{        // 在接口上定义泛型    
+    public T getVar() ; // 定义抽象方法，抽象方法的返回值就是泛型类型    
+    public void setVar(T x);  
+}
+
+使用方法一：非泛型类
+class InfoImpl implements Info&lt;String&gt;{   // 定义泛型接口的子类。 
+                                         //    为父类泛型赋值，泛型放在InfoImpl会造成无法正确识别泛型类型（如覆盖的父类方法参数返回值泛型错误）
+    private String var ;                // 定义属性  
+    public InfoImpl(String var){        // 通过构造方法设置属性内容  
+        this.setVar(var) ;  
+    }  
+    @Override  
+    public void setVar(String var){  
+        this.var = var ;  
+    }  
+    @Override  
+    public String getVar(){  
+        return this.var ;  
+    }  
+}
+
+使用方法二：泛型类。泛型类InfoImpl&lt;T&gt;把泛型变量T传给了Info&lt;T&gt;(泛型赋值泛型)，这说明接口和泛型类使用的都是同一个泛型变量
+class InfoImpl&lt;T&gt; implements Info&lt;T&gt;{   // 定义泛型接口的子类  
+    private T var ;             // 定义属性  
+    public InfoImpl(T var){     // 通过构造方法设置属性内容  
+        this.setVar(var) ;    
+    }  
+    public void setVar(T var){  
+        this.var = var ;  
+    }  
+    public T getVar(){  
+        return this.var ;  
+    }  
+}  
+</code></pre><h2 id="3-泛型方法（返回值泛型，称为泛型方法）"><a href="#3-泛型方法（返回值泛型，称为泛型方法）" class="headerlink" title="3.泛型方法（返回值泛型，称为泛型方法）"></a>3.泛型方法（返回值泛型，称为泛型方法）</h2><pre><code>public class StaticFans {  // 在返回值处定义泛型
+    public static  &lt;T&gt; void StaticMethod(T a){//静态函数    
+        Log.d(&quot;harvic&quot;,&quot;StaticMethod: &quot;+a.toString());  
+    }  
+
+    public  &lt;T&gt; void OtherMethod(T a){   //普通函数  
+        Log.d(&quot;harvic&quot;,&quot;OtherMethod: &quot;+a.toString());  
+    }  
+
+    public static &lt;T&gt; List&lt;T&gt; parseArray(String response,Class&lt;T&gt; object){  //进阶：返回值中存在泛型
+        List&lt;T&gt; modelList = JSON.parseArray(response, object);  
+        return modelList;  
+    }
+}  
+
+使用方法一 :隐式为泛型赋值，代码不利阅读和维护（看不出调用的是一个泛型函数）
+StaticFans.StaticMethod(&quot;adfdsa&quot;); //yin
+
+使用方法二 :显式为泛型赋值，强烈推荐   
+StaticFans.&lt;String&gt;StaticMethod(&quot;adfdsa&quot;);
+
+如果仅仅是想实现多态，请优先使用通配符解决。
+ public &lt;T&gt; void testGenericMethodDefine2(List&lt;T&gt; s){
+     ...
+ }
+ 应改为
+ public void testGenericMethodDefine2(List&lt;？&gt; s){
+     ...
+ }
+</code></pre><h2 id="4-Class-lt-T-gt-传递泛型的Class对象"><a href="#4-Class-lt-T-gt-传递泛型的Class对象" class="headerlink" title="4. Class&lt;T&gt; 传递泛型的Class对象"></a>4. <code>Class&lt;T&gt;</code> 传递泛型的Class对象</h2><p>Class<t>也是一泛型，它是传来用来装载类的class对象的</t></p>
+<pre><code>public final class Class&lt;T&gt; implements Serializable, GenericDeclaration, Type, AnnotatedElement {  
+    …………  
+} 
+</code></pre><p>实例：Gson解析</p>
+<pre><code>public static &lt;T&gt; List&lt;T&gt; parseArray(String response,Class&lt;T&gt; object){  //进阶：返回值中存在泛型
+    List&lt;T&gt; modelList = JSON.parseArray(response, object);  
+    return modelList;  
+} 
+</code></pre><h2 id="5-泛型数组"><a href="#5-泛型数组" class="headerlink" title="5. 泛型数组"></a>5. 泛型数组</h2><pre><code>public static &lt;T&gt; T[] fun1(T...arg){  // 泛型数组   
+       return arg ;            // 返回泛型数组    
+} 
 
 
-3.主键约束：
-        （1）增加主键（自动增长，只有主键可以自动增长）primary key(id)
-            Alter table tb add primary key(id) [auto_increment];
-        （2）删除主键
-            alter table 表名 drop primary key
-        （3）增加自动增长
-            Alter table employee modify id int auto_increment;
-        （4）删除自动增长
-            Alter table tb modify id int;        
-</code></pre><hr>
-<h1 id="多表设计"><a href="#多表设计" class="headerlink" title="多表设计"></a>多表设计</h1><img src="/2018/12/20/数据库/sql/sql使用/多表设计.png">
-<pre><code>一对一（311教室和20130405班级，两方都是一）:在任意一方保存另一方的主键
-一对多、多对一（班级和学生，其中班级为1，学生为多）：在多的一方保存一的一方的主键
-多对多（教师和学生，两方都是多）：使用中间表，保存对应关系
-
-        create table orderitem(
-            order_id varchar(100),
-            product_id varchar(100),
-            buynum int ,
-            primary key(order_id,product_id), #联合主键,两列的值加在一起作为这张表的主键使用
-            foreign key(order_id) references orders(id),
-            foreign key(product_id) references products(id)
-        );
-</code></pre><hr>
-<h1 id="多表查询"><a href="#多表查询" class="headerlink" title="多表查询"></a>多表查询</h1><pre><code>create table dept(
-        id int primary key auto_increment,
-        name varchar(30)
-    );
-    insert into dept values(null,&apos;caiwu&apos;);
-    insert into dept values(null,&apos;renshi&apos;);
-    insert into dept values(null,&apos;xingzheng&apos;);
-
-    create table emp(
-        id int primary key auto_increment,
-        name varchar(30),
-        dept_id int
-    );
-    insert into emp values (null,&apos;cw&apos;,1);
-    insert into emp values (null,&apos;rs&apos;,2);    
-    insert into emp values (null,&apos;xx&apos;,5);
+public static void main(String args[]){  //使用  
+       Integer i[] = fun1(1,2,3,4,5,6) ;  
+       Integer[] result = fun1(i) ;  
+} 
 
 
-mysql&gt; select * from dept;
-    +----+-----------+
-    | id | name      |
-    +----+-----------+
-    |  1 | caiwu     |
-    |  2 | renshi    |
-    |  3 | xingzheng |
-mysql&gt; select * from emp;
-    +----+------+---------+
-    | id | name | dept_id |
-    +----+------+---------+
-    |  1 | cw   |       1 |
-    |  2 | rs   |       2 |
-    |  3 | xx   |       5 |
-    +----+------+---------+
+3.通配符 ？
+    在Java集合框架中，对于参数值是未知类型的容器类，只能读取其中元素，不能向其中添加元素，
+    因为，其类型是未知，所以编译器无法识别添加元素的类型和容器的类型是否兼容，唯一的例外是NULL
+</code></pre><h1 id="二、泛型边界-界限-绑定：extends"><a href="#二、泛型边界-界限-绑定：extends" class="headerlink" title="二、泛型边界/界限/绑定：extends"></a>二、泛型边界/界限/绑定：extends</h1><ul>
+<li><p>class Point<t> 内部，变量T x 只能调用Object所具有的函数，因为编译器根本不知道T具体是什么类型（编译器唯一能确定的是，T肯定是Object的子类）</t></p>
+</li>
+<li><p>如果我希望在泛型类内部能调用一些其他的方法，就需要用到类型绑定（其实就是给泛型参数添加一个界限）</p>
+<pre><code>&lt;T extends BoundingType&gt; 
+</code></pre></li>
+<li><p>这里的extends不是类继承里的那个extends！两个根本没有任何关联。</p>
+</li>
+<li><p>这里extends后的BoundingType可以是类，也可以是接口。</p>
+</li>
+<li><p>两个作用</p>
+<ol>
+<li>限定可以填充的泛型 </li>
+<li>使用泛型变量T时，可以使用BoundingType内部的函数</li>
+</ol>
+</li>
+</ul>
+<h2 id="1-extends-类"><a href="#1-extends-类" class="headerlink" title="1. extends 类"></a>1. extends 类</h2><pre><code>class Fruit {  
+    private String name;  
 
-1.笛卡尔积查询：两张表中一条一条对应的记录，m条记录和n条记录查询，最后得到m*n条记录，其中很多错误数据
-    select * from dept,emp;
+    public String getName() {  
+        return name;  
+    }  
+    public void setName(String name) {  
+        this.name = name;  
+    }  
+}  
 
-    mysql&gt; select * from dept,emp;
-            +----+-----------+----+------+---------+
-            | id | name      | id | name | dept_id |
-            +----+-----------+----+------+---------+
-            |  1 | caiwu     |  1 | cw   |       1 |
-            |  2 | renshi    |  1 | cw   |       1 |
-            |  3 | xingzheng |  1 | cw   |       1 |
-            |  1 | caiwu     |  2 | rs   |       2 |
-            |  2 | renshi    |  2 | rs   |       2 |
-            |  3 | xingzheng |  2 | rs   |       2 |
-            |  1 | caiwu     |  3 | xx   |       5 |
-            |  2 | renshi    |  3 | xx   |       5 |
-            |  3 | xingzheng |  3 | xx   |       5 |
-            +----+-----------+----+------+---------+
-2.内连接：查询两张表中都有的关联数据,相当于利用条件从笛卡尔积结果中筛选出了正确的结果。
-inner join on
-    select * from dept,emp            where dept.id=emp.dept_id;
-    select * from dept inner join emp on dept.id=emp.dept_id;
+public static &lt;T extends Fruit&gt; String getFruitName(T t){  
+    return t.getName();  
+} 
 
-    mysql&gt; select * from dept,emp where dept.id=emp.dept_id;
-            +----+--------+----+------+---------+
-            | id | name   | id | name | dept_id |
-            +----+--------+----+------+---------+
-            |  1 | caiwu  |  1 | cw   |       1 |
-            |  2 | renshi |  2 | rs   |       2 |
-    mysql&gt; select * from dept inner join emp on dept.id=emp.dept_id;
-            +----+--------+----+------+---------+
-            | id | name   | id | name | dept_id |
-            +----+--------+----+------+---------+
-            |  1 | caiwu  |  1 | cw   |       1 |
-            |  2 | renshi |  2 | rs   |       2 |
-            +----+--------+----+------+---------+
-3.外连接
-    （1）左外连接：在内连接的基础上增加左边有右边没有的结果
-    left join on
-                mysql&gt; select * from dept left join emp on dept.id=emp.dept_id;
-                        +----+-----------+------+------+---------+
-                        | id | name      | id   | name | dept_id |
-                        +----+-----------+------+------+---------+
-                        |  1 | caiwu     |    1 | cw   |       1 |
-                        |  2 | renshi    |    2 | rs   |       2 |
-                        |  3 | xingzheng | NULL | NULL |    NULL |
-                        +----+-----------+------+------+---------+
-    （2）右外连接：在内连接的基础上增加右边有左边没有的结果
-    right join on
-                mysql&gt; select * from dept right join emp on dept.id=emp.dept_id;
-                        +------+--------+----+------+---------+
-                        | id   | name   | id | name | dept_id |
-                        +------+--------+----+------+---------+
-                        |    1 | caiwu  |  1 | cw   |       1 |
-                        |    2 | renshi |  2 | rs   |       2 |
-                        | NULL | NULL   |  3 | xx   |       5 |
-                        +------+--------+----+------+---------+
+class Banana extends Fruit{  
+    public Banana(){  
+        setName(&quot;bababa&quot;);  
+    }  
+}  
+class Apple extends Fruit{  
+    public Apple(){  
+        setName(&quot;apple&quot;);  
+    }  
+}
 
-    （3）全外连接：在内连接的基础上增加左边有右边没有的和右边有左边没有的结果
-    full join on  --mysql不支持全外连接
-        left join on
-        union
-        right join on ;--mysql可以使用此种方式间接实现全外连接
+String name_1 = getFruitName(new Banana());  
+String name_2 = getFruitName(new Apple());  
+Log.d(TAG,name_1);  
+Log.d(TAG,name_2); 
+</code></pre><h2 id="2-extends-接口"><a href="#2-extends-接口" class="headerlink" title="2. extends 接口"></a>2. extends 接口</h2><pre><code>public interface Comparable&lt;T&gt; {  
+    public boolean compareTo(T i);  
+}  
 
-        mysql&gt; select * from dept left join emp on dept.id=emp.dept_id
-            -&gt; union
-            -&gt; select * from dept right join emp on dept.id=emp.dept_id;
-                +------+-----------+------+------+---------+
-                | id   | name      | id   | name | dept_id |
-                +------+-----------+------+------+---------+
-                |    1 | caiwu     |    1 | cw   |       1 |
-                |    2 | renshi    |    2 | rs   |       2 |
-                |    3 | xingzheng | NULL | NULL |    NULL |
-                | NULL | NULL      |    3 | xx   |       5 |
-                +------+-----------+------+------+---------+
-</code></pre><h1 id="分页查询-limit"><a href="#分页查询-limit" class="headerlink" title="分页查询 limit"></a>分页查询 limit</h1><pre><code>逻辑分页：检索出所有数据存到集合中，需要时从集合中拿
-    优点：一次查询，多次使用。减少数据库访问
-    缺点：数据过大占内存，数据更新有延迟
-物理分页：只检索需要的数据
-            不同数据库有不同的物理分页指令，mysql是limit startIndex,count （索引编号从0开始）
-                    select * from customer limit 0,1; 从表中第一条数据开始取一条记录。
-</code></pre><h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><pre><code>    create user estore identified by &apos;estore&apos;;
-授权：
-    grant all on estore.* to estore;
+public static &lt;T extends Comparable&gt;  T min(T...a){  //添加上extends Comparable之后，就可以Comparable里的函数了  
+    T smallest = a[0];  
+    for(T item:a){  
+        if (smallest.compareTo(item)){  //compareTo对比的是同一种类型
+            smallest = item;  
+        }  
+    }  
+    return smallest;  
+} 
+
+实现一个派生自Comparable接口的类 StringCompare
+把T也填充为StringCompare类型，因为 compareTo的参数必须是与调用者自身是同一类型
+public class StringCompare implements Comparable&lt;StringCompare&gt; {  
+    private String mStr;  
+
+    public StringCompare(String string){  
+        this.mStr = string;  
+    }  
+
+    @Override  
+    public  boolean compareTo(StringCompare str) {  
+        if (mStr.length() &gt; str.mStr.length()){  
+            return true;  
+        }  
+        return false;  
+    }  
+}  
+
+使用min函数
+StringCompare result = min(new  StringCompare(&quot;123&quot;),new StringCompare(&quot;59897&quot;));  
+Log.d(TAG,&quot;min:&quot;+result.mStr)
+</code></pre><h2 id="3-extends-多边界"><a href="#3-extends-多边界" class="headerlink" title="3. extends 多边界"></a>3. extends 多边界</h2><pre><code>public static &lt;T extends Fruit&amp;Serializable&gt; String getFruitName(T t){  
+    return t.getName();  
+} 
+</code></pre><h1 id="三、无边界通配符：？"><a href="#三、无边界通配符：？" class="headerlink" title="三、无边界通配符：？"></a>三、无边界通配符：<code>？</code></h1><pre><code>Point&lt;?&gt; point; 
+point = new Point&lt;Integer&gt;(3,3);  
+point = new Point&lt;Float&gt;(4.3f,4.3f); 
+</code></pre><ul>
+<li><p><code>？</code> 与 <code>T</code> 的区别</p>
+<ul>
+<li>他们俩没有任何联系！！！！！</li>
+<li><p>泛型变量T只能在类，接口，函数中声明以后，才能使用。</p>
+<pre><code>public class Box&lt;T&gt; {  
+   public T get(){  
+       …………  
+   };  
+   public void put(T element){  
+       …………  
+   };  
+}
+</code></pre></li>
+<li><p>无边界通配符？则只是填充方式的一种！！！只能用于填充泛型变量T，表示通配任何类型！！！！</p>
+<pre><code>Box&lt;?&gt; box;   //无边界通配符填充  
+Box&lt;String&gt; stringBox; //其它类型填充   
+</code></pre></li>
+<li><p>无边界通配符？只能用于填充泛型变量T,不能用于定义变量</p>
+<p>  Box&lt;?&gt; box;<br>  box = new Box<string>();  //正确<br>  box = new Box&lt;？&gt;();  //错误</string></p>
+</li>
+</ul>
+</li>
+<li><p>无边界通配符 是 泛型实例 缺省填充类型</p>
+<p>  构造泛型实例时，如果省略了填充类型，则默认填充为无边界通配符！</p>
+<pre><code>//这两个是对等的：
+Point point3 = new Point(new Integer(23),new Integer(23));  
+Point&lt;?&gt; point3 = new Point(new Integer(23),new Integer(23));  
+</code></pre><p>  平时可能没注意，反射时，我们一直在用缺省泛型填充类型这个小技巧</p>
+<pre><code>Class class1 = Animal.class;  
+Class&lt;?&gt; class2= Animal.class; 
+Class&lt;Animal&gt; class2= Animal.class; //正规写法
+</code></pre></li>
+</ul>
+<h2 id="四、-无边界通配符：？-的-边界-界限-绑定-–-extends-super"><a href="#四、-无边界通配符：？-的-边界-界限-绑定-–-extends-super" class="headerlink" title="四、 无边界通配符：？ 的 边界/界限/绑定 – extends super"></a>四、 无边界通配符：<code>？</code> 的 边界/界限/绑定 – <code>extends</code> <code>super</code></h2><h2 id="1-extends-XXX-填充为XXX或XXX的子类（上边界，包括边界）"><a href="#1-extends-XXX-填充为XXX或XXX的子类（上边界，包括边界）" class="headerlink" title="1. ? extends XXX 填充为XXX或XXX的子类（上边界，包括边界）"></a>1. <code>? extends XXX</code> 填充为XXX或XXX的子类（上边界，包括边界）</h2><pre><code>Point&lt;? extends Number&gt; point;
+point = new Point&lt;Integer&gt;(3,3);  
+point = new Point&lt;Number&gt;(); //正确。说明包括边界自身
+point = new Point&lt;String&gt;(&quot;&quot;,&quot;&quot;);  //报错
+</code></pre><ul>
+<li><p>利用&lt;? extends Number&gt;定义的变量，<code>能取不能存</code></p>
+<pre><code>Point&lt;? extends Number&gt; point;
+point = new Point&lt;Integer&gt;(3,3);
+Number n = point.getX();
+point.setX(new Integer(4)); //报错
+</code></pre><ul>
+<li>Point&lt;? extends Number&gt; point，Point的泛型变量T 填充为 &lt;? extends Number&gt;，这是一个 未知类型！！！</li>
+<li>编译器，只要能确定通配符类型，就会允许，如果无法确定通配符的类型，就会报错</li>
+<li>取，编译器能确定的是T肯定是Number的子类</li>
+<li>存，编译器不能用一个未知类型来设置内部成员变量值</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-super-XXX-填充为XXX或XXX的父类（下边界，包括边界）"><a href="#2-super-XXX-填充为XXX或XXX的父类（下边界，包括边界）" class="headerlink" title="2. ? super XXX 填充为XXX或XXX的父类（下边界，包括边界）"></a>2. <code>? super XXX</code> 填充为XXX或XXX的父类（下边界，包括边界）</h2><ul>
+<li><p>利用&lt;? super Manager&gt;定义的变量，<code>能存不能取</code></p>
+<pre><code>class Employee {  
+}  
+class Manager extends Employee {  
+}
+class CEO extends Manager {  
+}   
+
+List&lt;? super Manager&gt; list;  
+list = new ArrayList&lt;Employee&gt;();  
+//存  
+list.add(new Employee()); //编译错误  
+list.add(new Manager());  
+list.add(new CEO());  
+Object object = list.get(0);//取出来的是Object，毫无意义
+</code></pre><ul>
+<li>List&lt;? super Manager&gt; list，List的泛型变量T 填充为 &lt;? super Manager&gt;，这是一个 未知类型！！！</li>
+<li>编译器，只要能确定通配符类型，就会允许，如果无法确定通配符的类型，就会报错</li>
+<li>存，编译器能确定的是Manager、CEO肯定是&lt;? super Manager&gt;的子类，所以肯定是可以add进去的。但Employee不一定是&lt;? super Manager&gt;的子类</li>
+<li>取，编译器能确定的是&lt;? super Manager&gt;肯定是Manger的父类；但不能确定到底是什么具体类型。但必然是Object的子类！</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-总结"><a href="#3-总结" class="headerlink" title="3. 总结"></a>3. 总结</h3><ul>
+<li>? extends 通配符（上边界，能取不能存，取出来保存为上边界类型）</li>
+<li>? super 通配符（下边界，能存不能取，能存下边界及下边界子类，取出来保存为上边界类型（这里没有，所以是Object，取到Object类型毫无意义））</li>
+<li>如果该数据类型里你既想存，又想取，那就别用通配符。</li>
+</ul>
+<p>三、获取泛型类型</p>
+<pre><code>T.class是获取不到泛型类型的（所以gson提供了TypeToken来确定泛型）
+但是类实例对象（包括子类实现父类方法）是可以争取识别出泛型类型的
+    public class LoginHandler extends NetHandler&lt;LoginResultBean&gt; {
+        public void doOnSuccess(CommonResponseBean&lt;LoginResultBean&gt; bean) {}
+    }
+
+1.构造函数中显示地传入泛型类的Class类型
+    public class Foo&lt;T&gt;{
+         public Class&lt;T&gt; type;
+
+         public Foo(Class&lt;T&gt; clazz){
+            this.type = clazz;
+         }
+    }
+
+2.foo.getClass().getGenericSuperclass().getActualTypeArguments()[0]
+</code></pre><p>TypeToken</p>
+<pre><code>List&lt;Person&gt; people = gson.fromJson(jsonData, new TypeToken&lt;List&lt;Person&gt;&gt;(){}.getType());
+</code></pre><p>源码</p>
+<pre><code>public class TypeToken&lt;T&gt; {
+    final Class&lt;? super T&gt; rawType;
+    final Type type;
+    final int hashCode;
+
+//这里的空参构造方法权限修饰符是protected,那木只有其子类可访问，预示着要使用子类构造。
+    protected TypeToken() {
+        this.type = getSuperclassTypeParameter(this.getClass());//这里传入的子类，后面2行不用看
+        this.rawType = Types.getRawType(this.type);
+        this.hashCode = this.type.hashCode();
+    }
+
+   ...
+
+    static Type getSuperclassTypeParameter(Class&lt;?&gt; subclass) {
+        Type superclass = subclass.getGenericSuperclass();//获取到子类的父类Type
+        if(superclass instanceof Class) {
+            throw new RuntimeException(&quot;Missing type parameter.&quot;);
+        } else {
+            ParameterizedType parameterized = (ParameterizedType)superclass;//将Type类型向下转型为参数化类型ParameterizedType
+            return Types.canonicalize(parameterized.getActualTypeArguments()[0]);//这里getActualTypeArguments()返回的是一个数组，由于只有一个泛型参数,直接[0]。
+        }
+    }    
 </code></pre>
           
         
@@ -854,7 +1447,7 @@ inner join on
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/常见开源许可证差异/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/线程池/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -873,7 +1466,7 @@ inner join on
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/电脑使用/常见开源许可证差异/" itemprop="url">常见开源许可证差异</a></h1>
+                <a class="post-title-link" href="/2019/03/27/java基础/线程池/" itemprop="url">线程池</a></h1>
         
 
         <div class="post-meta">
@@ -885,8 +1478,8 @@ inner join on
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T10:47:53+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T11:31:53+08:00">
+                2019-03-27
               </time>
             
 
@@ -908,8 +1501,8 @@ inner join on
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
                   </a>
                 </span>
 
@@ -947,304 +1540,137 @@ inner join on
       
         
           
-            <img src="/2018/12/20/电脑使用/常见开源许可证差异/1.png">
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/mac/vmware10 安装mac10.9系统/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/mac/vmware10 安装mac10.9系统/" itemprop="url">VMware10安装Mac10.9系统</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T10:46:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="vmware10-安装mac10-9系统"><a href="#vmware10-安装mac10-9系统" class="headerlink" title="vmware10 安装mac10.9系统"></a>vmware10 安装mac10.9系统</h2><p>开始下载了一个mac10.10 的iso格式镜像，发现vmware10最高支持mac10.9，强装也是失败。</p>
-<pre><code>超详细VMware Workstation 10安装OS X Mavericks http://www.oschina.net/question/1039213_158319?fromerr=KYsGXefA
-</code></pre><p>一路下一步，选择磁盘步骤，点击mac的磁盘工具，选择磁盘，分区，完毕，退出磁盘工具，选择刚才分区的磁盘，下一步。</p>
-<p>键盘布局选择 中文-简体</p>
-<p>传输信息到这台mac 选择 不传输任何信息</p>
-<p>Apple id登录 选择 不登录跳过</p>
-<h2 id="安装darwin6-iso-实现拖拽文件和自动适应分辨率"><a href="#安装darwin6-iso-实现拖拽文件和自动适应分辨率" class="headerlink" title="安装darwin6.iso 实现拖拽文件和自动适应分辨率"></a>安装darwin6.iso 实现拖拽文件和自动适应分辨率</h2><p>关机，虚拟机–cd/dvd–设置 选择 D:\down\darwin6.iso</p>
-<p>开机，桌面双击 VMware tools，安装</p>
-<h2 id="VMsvga2-v1-2-5-OS-10-6-10-8-pkg-的作用："><a href="#VMsvga2-v1-2-5-OS-10-6-10-8-pkg-的作用：" class="headerlink" title="VMsvga2_v1.2.5_OS_10.6-10.8.pkg 的作用："></a>VMsvga2_v1.2.5_OS_10.6-10.8.pkg 的作用：</h2><p>要观看优酷之类在线视频或玩小游戏得安装vm显卡驱动VMsvga2_Docs</p>
-<p>安装此驱动会出现不能自动适应分辨率 ，分辨率 要手动调整</p>
-<p>但显示dock图标滑动比较流畅</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/kali无法识别BCM43XX系列无线网卡/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/kali无法识别BCM43XX系列无线网卡/" itemprop="url">kali无法识别BCM43XX系列无线网卡</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:13:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>打开终端，输入<br>cat /etc/apt/sources.list</p>
-<p>看看里面有没有一下三行kali官方源的地址（如果是断网安装，kali的默认源可能不会写入到这个文件里），<br>如果没有，请在/etc/apt/sources.list中入这三行。<br>deb <a href="http://http.kali.org/kali" target="_blank" rel="noopener">http://http.kali.org/kali</a> kali main non-free contrib<br>deb-src <a href="http://http.kali.org/kali" target="_blank" rel="noopener">http://http.kali.org/kali</a> kali main non-free contrib<br>deb <a href="http://security.kali.org/kali-security" target="_blank" rel="noopener">http://security.kali.org/kali-security</a> kali/updates main contrib non-free</p>
-<p>加入之后就可以对整个系统进行更新了，终端中输入：<br>apt-get update &amp;&amp; apt-get dist-upgrade</p>
-<p>解决kali无法识别BCM43XX系列无线网卡问题（我的博通 BCM 4312）<br>安装BCM43XX系列无线网卡驱动：<br>aptitude update &amp;&amp; aptitude install wireless-toolsaptitude install firmware-b43-lpphy-installer<br>完成之后注销或者重启电脑，<br>在终端中输入 iwconfig 即可看到无线网卡已经识别</p>
-<p>关于BCM43XX系列的无线网卡驱动请参考Debian官方文档：<br><a href="http://wiki.debian.org/bcm43xx" target="_blank" rel="noopener">http://wiki.debian.org/bcm43xx</a><br>老的博通系列网卡可能需要 firmware-b43legacy-installer 安装包</p>
+            <h1 id="线程池"><a href="#线程池" class="headerlink" title="线程池"></a>线程池</h1><h2 id="线程池的优点"><a href="#线程池的优点" class="headerlink" title="线程池的优点"></a>线程池的优点</h2><ul>
+<li>重用线程池中的线程，避免频繁地创建和销毁线程带来的性能消耗；</li>
+<li>有效控制线程的最大并发数量，防止线程过大导致抢占资源造成系统阻塞；</li>
+<li>可以对线程进行一定地管理</li>
+<li>解耦作用；线程的创建和执行完全分开，方便维护。</li>
+</ul>
+<p>阿里巴巴Java开发手册关于线程和线程池有这么两段话</p>
+<img src="/2019/03/27/java基础/线程池/线程池.png">
+<ul>
+<li>不能显示创建线程(new Thread)，需要使用线程池对线程进行管理</li>
+<li>不允许使用官方提供的四种线程池，而是需要通过自行创建的方式去创建线程池，更加理解线程池的允许规则</li>
+</ul>
+<h1 id="线程池原理"><a href="#线程池原理" class="headerlink" title="线程池原理"></a>线程池原理</h1><h2 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                              <span class="keyword">int</span> maximumPoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                              <span class="keyword">long</span> keepAliveTime,</span></span></span><br><span class="line"><span class="function"><span class="params">                              TimeUnit unit,</span></span></span><br><span class="line"><span class="function"><span class="params">                              BlockingQueue&lt;Runnable&gt; workQueue,</span></span></span><br><span class="line"><span class="function"><span class="params">                              ThreadFactory threadFactory,</span></span></span><br><span class="line"><span class="function"><span class="params">                              RejectedExecutionHandler handler)</span></span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>corePoolSize</strong>：核心线程的数量<ul>
+<li>默认不会被回收掉</li>
+<li>设置了allowCoreTimeOut为true，核心线程闲置超时，也会被回收。</li>
+<li>核心线程和非核心线程本质上并没有什么区别</li>
+</ul>
+</li>
+<li><strong>maximumPoolSize</strong> ：最大线程数量<ul>
+<li>线程池能容纳的最大容量，上限被CAPACITY限制（2^29-1）（后续代码会看到）</li>
+</ul>
+</li>
+<li><strong>keepAliveTime</strong>：闲置线程被回收的时间限制，也就是闲置线程的存活时间</li>
+<li><strong>unit</strong> ：keepAliveTime的单位</li>
+<li><strong>workQueue</strong> ：用于存放任务的队列</li>
+<li><strong>threadFactory</strong> ：创建线程的工厂类</li>
+<li><strong>handler</strong> 当任务执行失败时，使用handler通知调用者，代表拒绝的策略。默认的实现是 抛出 RejectedExecutionException 异常</li>
+</ul>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>一个公司，核心线程就是代表公司的内部核心员工，最大线程数量就是员工的最大数量，可能包含非正式员工，因为有一些试点或者简单的项目，需要一些外协人员来做，也就是非核心线程，那么当这些项目做完了或者失败了，公司为了节约用人成本，就遣散非核心员工，也就是闲置线程的存活时间。假如核心员工每个人都很忙，但是需求又一波接一波，那就任务排期，也就是任务队列(并不会直接创建非核心线程去执行任务，可以理解为需求任务首先是需要让内部核心员工去完成的，任务队列的优先级是高于非核心员工的，addWorker()，这里的传进去的boolean值，就代表着创建核心线程或者非核心线程)，当任务队列都满了时候，给非正式员工做，非正式员工也满负荷还要来需求？对不起，不接受，直接拒绝，这也就是handler对应的拒绝策略了</p>
+<h2 id="线程池状态"><a href="#线程池状态" class="headerlink" title="线程池状态"></a>线程池状态</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> AtomicInteger ctl = <span class="keyword">new</span> AtomicInteger(ctlOf(RUNNING, <span class="number">0</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> COUNT_BITS = Integer.SIZE - <span class="number">3</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> CAPACITY   = (<span class="number">1</span> &lt;&lt; COUNT_BITS) - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// runState is stored in the high-order bits</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> RUNNING    = -<span class="number">1</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SHUTDOWN   =  <span class="number">0</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> STOP       =  <span class="number">1</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> TIDYING    =  <span class="number">2</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> TERMINATED =  <span class="number">3</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Packing and unpacking ctl</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">runStateOf</span><span class="params">(<span class="keyword">int</span> c)</span>     </span>&#123; <span class="keyword">return</span> c &amp; ~CAPACITY; &#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">workerCountOf</span><span class="params">(<span class="keyword">int</span> c)</span>  </span>&#123; <span class="keyword">return</span> c &amp; CAPACITY; &#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">ctlOf</span><span class="params">(<span class="keyword">int</span> rs, <span class="keyword">int</span> wc)</span> </span>&#123; <span class="keyword">return</span> rs | wc; &#125;</span><br></pre></td></tr></table></figure>
+<p>AtomicInteger是一个原子操作类，保证线程安全</p>
+<p>高3位表示5种线程池状态,低29位表示线程的最大数量</p>
+<p>维护两个参数，workCount和runState。workCount表示有效的线程数量，runState表示线程池的运行状态。</p>
+<ul>
+<li><strong>RUNNING</strong>：运行状态，可以接受新任务并处理</li>
+<li><strong>SHUTDOWN</strong>：关闭状态，不会接受新的任务了，但是会处理<strong>队列</strong>中还存在的任务</li>
+<li><strong>STOP</strong>：停止状态，不会接受新的任务，也不处理队列任务，直接中断</li>
+<li><strong>TIDYING</strong>：表示所有任务已经终止了</li>
+<li><strong>TERMINATED</strong>：表示terminated()方法已经执行完成</li>
+</ul>
+<p>RUNNING：运行状态，可以接受新任务并处理<br>SHUTDOWN：关闭状态，不会接受新的任务了，但是会处理队列中还存在的任务<br>STOP：停止状态，不会接受新的任务，也不处理队列任务，直接中断<br><strong>TIDYING </strong>：表示所有任务已经终止了<br>TERMINATED：表示terminated()方法已经执行完成</p>
+<img src="/2019/03/27/java基础/线程池/线程池状态.png">
+<h2 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h2><h3 id="ThreadPoolExecutor执行任务的策略"><a href="#ThreadPoolExecutor执行任务的策略" class="headerlink" title="ThreadPoolExecutor执行任务的策略"></a>ThreadPoolExecutor执行任务的策略</h3><p>当一个任务被添加进线程池时：</p>
+<ul>
+<li>线程数量未达到corePoolSize，则新建一个线程(核心线程)执行任务</li>
+<li>线程数量达到了corePools，则将任务移入队列等待</li>
+<li>队列已满，新建线程(非核心线程)执行任务</li>
+<li>队列已满，总线程数又达到了maximumPoolSize，交给RejectedExecutionHandler处理（默认是抛出RejectedExecutionHandler 异常）</li>
+</ul>
+<h3 id="execute"><a href="#execute" class="headerlink" title="execute()"></a>execute()</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">(Runnable command)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (command == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Proceed in 3 steps:</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 1. If fewer than corePoolSize threads are running, try to</span></span><br><span class="line"><span class="comment">     * start a new thread with the given command as its first</span></span><br><span class="line"><span class="comment">     * task.  The call to addWorker atomically checks runState and</span></span><br><span class="line"><span class="comment">     * workerCount, and so prevents false alarms that would add</span></span><br><span class="line"><span class="comment">     * threads when it shouldn't, by returning false.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 2. If a task can be successfully queued, then we still need</span></span><br><span class="line"><span class="comment">     * to double-check whether we should have added a thread</span></span><br><span class="line"><span class="comment">     * (because existing ones died since last checking) or that</span></span><br><span class="line"><span class="comment">     * the pool shut down since entry into this method. So we</span></span><br><span class="line"><span class="comment">     * recheck state and if necessary roll back the enqueuing if</span></span><br><span class="line"><span class="comment">     * stopped, or start a new thread if there are none.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 3. If we cannot queue task, then we try to add a new</span></span><br><span class="line"><span class="comment">     * thread.  If it fails, we know we are shut down or saturated</span></span><br><span class="line"><span class="comment">     * and so reject the task.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">int</span> c = ctl.get();</span><br><span class="line">	<span class="comment">//如果当前线程数量小于核心线程数量，执行addWorker创建新线程执行command任务</span></span><br><span class="line">    <span class="keyword">if</span> (workerCountOf(c) &lt; corePoolSize) &#123;</span><br><span class="line">        <span class="keyword">if</span> (addWorker(command, <span class="keyword">true</span>))</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        c = ctl.get();</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">//如果当前是运行状态，将任务放入阻塞队列，double-check线程池状态</span></span><br><span class="line">    <span class="keyword">if</span> (isRunning(c) &amp;&amp; workQueue.offer(command)) &#123;</span><br><span class="line">        <span class="keyword">int</span> recheck = ctl.get();</span><br><span class="line">        <span class="comment">//如果再次check，发现线程池状态不是运行状态了，移除刚才添加进来的任务，并且拒绝改任务</span></span><br><span class="line">        <span class="keyword">if</span> (! isRunning(recheck) &amp;&amp; remove(command))</span><br><span class="line">            reject(command);</span><br><span class="line">        <span class="comment">//处于运行状态，但是没有线程，创建线程</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (workerCountOf(recheck) == <span class="number">0</span>)</span><br><span class="line">            addWorker(<span class="keyword">null</span>, <span class="keyword">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">//往线程池中创建新的线程失败，则reject任务</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!addWorker(command, <span class="keyword">false</span>))</span><br><span class="line">        reject(command);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>当前线程数量小于核心线程数量<ul>
+<li>addWorker创建新核心线程执行任务<ul>
+<li>成功，return</li>
+<li>失败，下一步</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>线程池是运行状态，且将任务放入队列成功<ul>
+<li>再次检查线程池状态<ul>
+<li>不是运行状态，且能够移除刚才添加的任务<ul>
+<li>拒绝该任务</li>
+</ul>
+</li>
+<li>线程数量为0<ul>
+<li>创建非核心线程</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>失败，下一步</li>
+</ul>
+</li>
+<li>addWorker创建新非核心线程执行任务<ul>
+<li>失败<ul>
+<li>拒绝该任务  </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="double-check线程池状态"><a href="#double-check线程池状态" class="headerlink" title="double-check线程池状态"></a>double-check线程池状态</h4><p>在多线程的环境下，ctl.get()这个方法并不是一个原子操作，如果加入队列后，线程池状态改变了，不是RUNNING状态，那么这个任务将永远不会被执行，所以需要再次check，如果不是RUNNING状态，移除任务并拒绝任务</p>
+<h3 id="addWorker"><a href="#addWorker" class="headerlink" title="addWorker()"></a>addWorker()</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">addWorker</span><span class="params">(Runnable firstTask, <span class="keyword">boolean</span> core)</span> </span>&#123;</span><br><span class="line">    retry:</span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="keyword">int</span> c = ctl.get();</span><br><span class="line">        <span class="keyword">int</span> rs = runStateOf(c);</span><br><span class="line">        <span class="comment">// 这里return false的情况有以下几种</span></span><br><span class="line">       	<span class="comment">//1.当前状态是stop及以上 2.当前是SHUTDOWN状态，但是firstTask不为空</span></span><br><span class="line">        <span class="comment">//3.当前是SHUTDOWN状态，但是队列中为空</span></span><br><span class="line">        <span class="comment">//从第一节我们知道，SHUTDOWN状态是不执行进来的任务的，但是会继续执行队列中的任务</span></span><br><span class="line">        <span class="keyword">if</span> (rs &gt;= SHUTDOWN &amp;&amp;</span><br><span class="line">            ! (rs == SHUTDOWN &amp;&amp;</span><br><span class="line">               firstTask == <span class="keyword">null</span> &amp;&amp;</span><br><span class="line">               ! workQueue.isEmpty()))</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="keyword">int</span> wc = workerCountOf(c);</span><br><span class="line">            <span class="keyword">if</span> (wc &gt;= CAPACITY ||</span><br><span class="line">                wc &gt;= (core ? corePoolSize : maximumPoolSize))</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">if</span> (compareAndIncrementWorkerCount(c))</span><br><span class="line">                <span class="keyword">break</span> retry;</span><br><span class="line">            c = ctl.get();  <span class="comment">// Re-read ctl</span></span><br><span class="line">            <span class="keyword">if</span> (runStateOf(c) != rs)</span><br><span class="line">                <span class="keyword">continue</span> retry;</span><br><span class="line">            <span class="comment">// else CAS failed due to workerCount change; retry inner loop</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">boolean</span> workerStarted = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">boolean</span> workerAdded = <span class="keyword">false</span>;</span><br><span class="line">    Worker w = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        w = <span class="keyword">new</span> Worker(firstTask);</span><br><span class="line">        <span class="keyword">final</span> Thread t = w.thread;</span><br><span class="line">        <span class="keyword">if</span> (t != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">final</span> ReentrantLock mainLock = <span class="keyword">this</span>.mainLock;</span><br><span class="line">            mainLock.lock();</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">int</span> rs = runStateOf(ctl.get());</span><br><span class="line">                <span class="keyword">if</span> (rs &lt; SHUTDOWN ||</span><br><span class="line">                    (rs == SHUTDOWN &amp;&amp; firstTask == <span class="keyword">null</span>)) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (t.isAlive()) <span class="comment">// precheck that t is startable</span></span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalThreadStateException();</span><br><span class="line">                    workers.add(w);</span><br><span class="line">                    <span class="keyword">int</span> s = workers.size();</span><br><span class="line">                    <span class="keyword">if</span> (s &gt; largestPoolSize)</span><br><span class="line">                        largestPoolSize = s;</span><br><span class="line">                    workerAdded = <span class="keyword">true</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                mainLock.unlock();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (workerAdded) &#123;</span><br><span class="line">                t.start();</span><br><span class="line">                workerStarted = <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (! workerStarted)</span><br><span class="line">            addWorkerFailed(w);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> workerStarted;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>2层循环</p>
+<ul>
+<li>外部循环查询线程池状态<ul>
+<li>如果当前是stop及之上的状态，直接return false</li>
+<li>如果是SHUTDOWN状态，并且firstTask不为空或者队列中是空的，直接return false</li>
+</ul>
+</li>
+<li>内部循环查询线程数量<ul>
+<li>通过传递进来的boolean值，分别和核心线程以及最大线程数量进行对比，如果成立，worker数量+1，并且跳出循环。</li>
+<li>跳出循环就是实际执行任务了，Worker就将工作线程和任务封装到了自己内部，我们可以将Worker看成就是一个工作线程</li>
+</ul>
+</li>
+</ul>
+<h2 id="常用的workQueue类型："><a href="#常用的workQueue类型：" class="headerlink" title="常用的workQueue类型："></a>常用的workQueue类型：</h2><h3 id="SynchronousQueue："><a href="#SynchronousQueue：" class="headerlink" title="SynchronousQueue："></a>SynchronousQueue：</h3><p>这个队列接收到任务的时候，会直接提交给线程处理，而不保留它，如果所有线程都在工作怎么办？那就新建一个线程来处理这个任务！所以为了保证不出现&lt;线程数达到了maximumPoolSize而不能新建线程&gt;的错误，使用这个类型队列的时候，maximumPoolSize一般指定成Integer.MAX_VALUE，即无限大</p>
+<h3 id="LinkedBlockingQueue-和-ArrayBlockingQueue："><a href="#LinkedBlockingQueue-和-ArrayBlockingQueue：" class="headerlink" title="LinkedBlockingQueue 和 ArrayBlockingQueue："></a>LinkedBlockingQueue 和 ArrayBlockingQueue：</h3><p>可以限定队列的长度，接收到任务的时候，如果没有达到corePoolSize的值，则新建线程(核心线程)执行任务，如果达到了，则入队等候，如果队列已满，则新建线程(非核心线程)执行任务，又如果总线程数到了maximumPoolSize，并且队列也满了，则发生错误</p>
+<h3 id="DelayQueue："><a href="#DelayQueue：" class="headerlink" title="DelayQueue："></a>DelayQueue：</h3><p>队列内元素必须实现Delayed接口，这就意味着你传进去的任务必须先实现Delayed接口。这个队列接收到任务时，首先先入队，只有达到了指定的延时时间，才会执行任务</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>线程池中的细节比较多，大致做一下总结归纳</p>
+<ul>
+<li>线程池的构造参数决定了线程池的运行策略，需要理解每个参数的含义，因为每个参数的不同很大程度上决定了这个线程池的运行规则，这也是为什么阿里巴巴开发手册中提到通过自行创建的方式去创建线程池，而不是使用官方提供的4种线程池</li>
+<li>线程池涉及多线程问题，状态改变比较频繁，在进行任务执行时，需要多次check线程池的状态，保证任务被执行的准确性</li>
+<li>任务队列的优先级高于非核心线程，核心线程满的时候，会先把任务放进任务队列，其次开启非核心线程进行执行</li>
+<li>核心线程和非核心线程本质上并没有什么区别，在核心线程设置allowCoreThreadTimeOut 属性为true时，最终也会因为超时而被销毁</li>
+<li>线程池总览就是通过两个变量来整体控制整个流程，线程池的状态，线程池中线程数量，涉及的方法不是很多，但是循环比较多，需要理解每个循环的跳出条件以及对应的状态。</li>
+</ul>
+<h1 id="线程池使用"><a href="#线程池使用" class="headerlink" title="线程池使用"></a>线程池使用</h1><h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><ul>
+<li>shutDown()，关闭线程池，需要执行完已提交的任务；</li>
+<li>shutDownNow()，关闭线程池，并尝试结束已提交的任务；</li>
+<li>execute()，提交任务无返回值；</li>
+<li>submit()，提交任务有返回值；</li>
+<li>remove(); 移除任务有返回值；</li>
+<li>reject(); 拒绝任务；会回调RejectedExecutionHandler</li>
+<li>getQueue(); 获得任务队列；可以直接操作任务队列</li>
+</ul>
+<h2 id="监控线程池"><a href="#监控线程池" class="headerlink" title="监控线程池"></a>监控线程池</h2><p>ThreadPoolExecutor 提供不少 api 可以获取线程池状态</p>
+<p>也可以继承线程池扩展其中的几个函数来自定义监控逻辑(线程执行前、后、终止状态)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">beforeExecute</span><span class="params">(Thread t, Runnable r)</span> </span>&#123; &#125;</span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">afterExecute</span><span class="params">(Runnable r, Throwable t)</span> </span>&#123; &#125;</span><br><span class="line"><span class="function">rotected <span class="keyword">void</span> <span class="title">terminated</span><span class="params">()</span> </span>&#123; &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="线程池隔离"><a href="#线程池隔离" class="headerlink" title="线程池隔离"></a>线程池隔离</h2><p>业务都依赖于同一个线程池,当其中一个业务因为各种不可控的原因消耗了所有的线程，导致线程池全部占满。其他的业务也就不能正常运转了，这对系统的打击是巨大的</p>
+<p>通常的做法是按照<strong>业务</strong>进行划分</p>
+<h3 id="hystrix-隔离"><a href="#hystrix-隔离" class="headerlink" title="hystrix 隔离"></a>hystrix 隔离</h3><h4 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h4><p>利用一个 Map 来存放不同业务对应的线程池</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://juejin.im/post/5c99c29ee51d4559bb5c6541#heading-5" target="_blank" rel="noopener">线程池原理 ThreadPoolExecutor</a></li>
+<li><a href="https://juejin.im/post/5b5e5fa96fb9a04fb900e1ce#heading-5" target="_blank" rel="noopener">线程池使用</a></li>
+<li><a href="https://www.jianshu.com/p/210eab345423" target="_blank" rel="noopener">线程池，这一篇或许就够了</a> <strong>偏使用</strong></li>
+<li><a href="https://github.com/Netflix/Hystrix" target="_blank" rel="noopener">hystrix 隔离</a></li>
+</ul>
 
           
         
@@ -1293,7 +1719,7 @@ inner join on
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ettercap/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/26/Android/三方ROM/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1312,7 +1738,7 @@ inner join on
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ettercap/" itemprop="url">Kali ettercap</a></h1>
+                <a class="post-title-link" href="/2019/03/26/Android/三方ROM/" itemprop="url">三方ROM</a></h1>
         
 
         <div class="post-meta">
@@ -1324,8 +1750,8 @@ inner join on
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:12:53+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-26T14:29:33+08:00">
+                2019-03-26
               </time>
             
 
@@ -1347,8 +1773,8 @@ inner join on
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
                   </a>
                 </span>
 
@@ -1386,8 +1812,19 @@ inner join on
       
         
           
-            <h1 id="ettercap"><a href="#ettercap" class="headerlink" title="ettercap"></a>ettercap</h1><p>开源的嗅探工具，中间人攻击工具：ARP欺骗，DNS欺骗，劫持，Dos攻击工具</p>
-<p>有GUI</p>
+            <p>第三方ROM，就是非手机原厂官方推出的ROM</p>
+<img src="/2019/03/26/Android/三方ROM/rom.png">
+<h1 id="魔趣Mokee"><a href="#魔趣Mokee" class="headerlink" title="魔趣Mokee"></a>魔趣Mokee</h1><p>国内最大的非营利性开源ROM。早期基于CM，现在基于AOSP</p>
+<p>原生体验，不是很适应</p>
+<h1 id="CyanogenMod-CM-amp-Lineage-OS"><a href="#CyanogenMod-CM-amp-Lineage-OS" class="headerlink" title="CyanogenMod (CM) &amp; Lineage OS"></a>CyanogenMod (CM) &amp; Lineage OS</h1><p>CyanogenMod (CM) 曾经是全球范围内最流行的第三方开源安卓 ROM 固件</p>
+<p>CM停止开发后，开源社区将会重组 CM 项目并改名为 LineageOS</p>
+<h1 id="Resurrection-Remix"><a href="#Resurrection-Remix" class="headerlink" title="Resurrection Remix"></a><a href="https://post.smzdm.com/p/751360/" target="_blank" rel="noopener">Resurrection Remix</a></h1><p>一个自由度非常高的ROM </p>
+<p>如果说安卓刷机都是瞎折腾，那么终结者就是Resurrection Remix，别无他途</p>
+<p><a href="https://www.resurrectionremix.com/" target="_blank" rel="noopener">官网</a></p>
+<h2 id="SlimRoms"><a href="#SlimRoms" class="headerlink" title="SlimRoms"></a>SlimRoms</h2><p>安卓4.x时代，<strong>自定义向的鼻祖</strong>，但在安卓5.x掉队。</p>
+<h2 id="Bliss-ROM"><a href="#Bliss-ROM" class="headerlink" title="Bliss ROM"></a>Bliss ROM</h2><p>安卓5.x时代，也叫BlissPop，Slim的接盘侠，蓝莲花标识深入人心，在安卓6.x被RR超车。</p>
+<h2 id="Resurrection-Remix-1"><a href="#Resurrection-Remix-1" class="headerlink" title="Resurrection Remix"></a>Resurrection Remix</h2><p>安卓6.x+时代，简称RR，在安卓5.x稍逊于BlissPop，但从安卓6.x开始成功超车，一骑红尘到今天（8.x）。</p>
+<p><strong>机型代号</strong>就是研发阶段厂家给产品起的昵称（Codename），由于RR与LineageOS（简称LOS）渊源颇深，这里直接参考<a href="https://wiki.lineageos.org/devices/" target="_blank" rel="noopener">LOS的设备支持列表</a>即可</p>
 
           
         
@@ -1436,7 +1873,7 @@ inner join on
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ferret和hamster劫持登录会话/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/26/电脑使用/linux/linux进程内存占用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1455,7 +1892,7 @@ inner join on
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ferret和hamster劫持登录会话/" itemprop="url">Kali ferret和hamster劫持登录会话</a></h1>
+                <a class="post-title-link" href="/2019/03/26/电脑使用/linux/linux进程内存占用/" itemprop="url">Linux进程内存占用</a></h1>
         
 
         <div class="post-meta">
@@ -1467,8 +1904,8 @@ inner join on
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:12:53+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-26T10:43:53+08:00">
+                2019-03-26
               </time>
             
 
@@ -1529,10 +1966,14 @@ inner join on
       
         
           
-            <p>ferret    英[ˈferɪt] n.    雪貂，白鼬; （经常性的） 搜索者，侦探; 细丝（带）;</p>
-<p>hamster    英[ˈhæmstə(r)] n.    &lt;动&gt;仓鼠;</p>
-<p>ferret 分析登录数据(包括tcpdump/wireshark封包数据，以及实时数据)</p>
-<p>hamster 重放登录请求</p>
+            <p>Linux进程占用的内存有 <code>VSS/RSS/PSS/USS</code> 四种形式</p>
+<p>这四种形式首字母分别是Virtual/Resident/Proportional(比例的)/Unique</p>
+<p>Virtual Set Size</p>
+<p>VSS是单个进程<strong>全部可访问</strong>的地址空间，其大小可能包括还尚未在内存中驻留的部分。对于确定单个进程实际内存使用大小，VSS用处不大。</p>
+<p>RSS是单个进程<strong>实际占用</strong>的内存大小，RSS不太准确的地方在于它包括该进程所使用共享库全部内存大小。对于一个共享库，可能被多个进程使用，实际该共享库只会被装入内存一次。</p>
+<p>进而引出了PSS，PSS相对于RSS计算共享库内存大小是按比例的。N个进程共享，该库对PSS大小的贡献只有1/N。</p>
+<p>USS是单个进程私有的内存大小，即该进程<strong>独占</strong>的内存部分。USS揭示了运行一个特定进程在的真实内存增量大小。如果进程终止，USS就是实际被返还给系统的内存大小。</p>
+<p>综上所属，VSS&gt;=RSS&gt;=PSS&gt;=USS</p>
 
           
         
@@ -1581,7 +2022,7 @@ inner join on
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/Dsniff工具集/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/25/Android/Android异常捕获/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1600,7 +2041,7 @@ inner join on
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/Dsniff工具集/" itemprop="url">Kali Dsniff工具集</a></h1>
+                <a class="post-title-link" href="/2019/03/25/Android/Android异常捕获/" itemprop="url">Android 异常捕获</a></h1>
         
 
         <div class="post-meta">
@@ -1612,8 +2053,8 @@ inner join on
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:11:53+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-25T17:15:53+08:00">
+                2019-03-25
               </time>
             
 
@@ -1635,8 +2076,8 @@ inner join on
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
                   </a>
                 </span>
 
@@ -1674,453 +2115,199 @@ inner join on
       
         
           
-            <p>Dsniff工具集</p>
-<p>嗅探工具，中间人攻击工具：ARP欺骗，DNS欺骗，劫持</p>
-<pre><code>arpspoof
-dnsspoof
-driftnet
-Msgsnarf
-Urlsnarf
-Mailsnarf
-Filesnarf
+            <p>参考</p>
+<ul>
+<li><a href="https://www.jianshu.com/p/bb658019f97b" target="_blank" rel="noopener">安卓捕获RuntimeException,ANR,Native信号异常</a></li>
+<li><a href="https://blog.csdn.net/yeyuwuhen1203/article/details/73556813" target="_blank" rel="noopener">Android端线上NativeCrash收集的两种方法(上)</a></li>
+</ul>
+<h1 id="Java-crash"><a href="#Java-crash" class="headerlink" title="Java crash"></a>Java crash</h1><p>Uncaught异常发生时会终止线程，调用 <code>UncaughtExceptionHandler.uncaughtException()</code></p>
+<p>如果该handler没有被显式设置，则会调用对应线程组的默认handler。</p>
+<p><code>Thread.setDefaultUncaughtExceptionHandler(myCrashHandler);</code></p>
+<h1 id="ANR"><a href="#ANR" class="headerlink" title="ANR"></a>ANR</h1><p>收听ANR的广播 <code>String ACTION_ANR = &quot;android.intent.action.ANR&quot;</code></p>
+<h1 id="NativeCrash"><a href="#NativeCrash" class="headerlink" title="NativeCrash"></a>NativeCrash</h1><p>Native崩溃日志存储在手机的 <code>/data/tombstones</code> 目录下，需要root权限</p>
+<h1 id="三方"><a href="#三方" class="headerlink" title="三方"></a>三方</h1><h2 id="buglyg"><a href="#buglyg" class="headerlink" title="buglyg"></a>buglyg</h2><p>Java crash 和 ANR</p>
+<h1 id="google-breakpad"><a href="#google-breakpad" class="headerlink" title="google-breakpad"></a>google-breakpad</h1><p>NativeCrash</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/08/RN/RN优化/RN稳定性优化-升级JavaScriptCore版本/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/08/RN/RN优化/RN稳定性优化-升级JavaScriptCore版本/" itemprop="url">RN稳定性优化-升级JavaScriptCore版本</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-08T11:14:26+08:00">
+                2019-03-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h1><p>解决RN的 libjsc.so 相关报错引起的崩溃</p>
+<p>携程技术中心的文章 <a href="https://mp.weixin.qq.com/s/Z1GUJW3qBqDGH1jnGt5qAg" target="_blank" rel="noopener">《干货 | 近万字长文详述携程大规模应用RN的工程化实践》</a> 提到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">这是由于RN自带的JavaScriptCore版本为2014年的版本，</span><br><span class="line">兼容性和稳定性较差，</span><br><span class="line">建议参考开源的jsc-android-buildscrips项目，</span><br><span class="line">将JavaScriptCore升级到2017年11月的版本(WebkitGTK Revision 225067)，</span><br><span class="line">我们升级到该版本后，发现该错误降低了90%；</span><br></pre></td></tr></table></figure>
+<h1 id="jsc-android-buildscripts"><a href="#jsc-android-buildscripts" class="headerlink" title="jsc-android-buildscripts"></a>jsc-android-buildscripts</h1><p><a href="https://github.com/react-native-community/jsc-android-buildscripts" target="_blank" rel="noopener">github</a></p>
+<p><a href="https://www.npmjs.com/package/jsc-android" target="_blank" rel="noopener">npm</a></p>
+<p>目前，最新的稳定版本为 <strong>236355.1.1</strong></p>
+<h2 id="在RN项目中使用"><a href="#在RN项目中使用" class="headerlink" title="在RN项目中使用"></a>在RN项目中使用</h2><ol>
+<li><code>npm install jsc-android</code></li>
+<li><p>添加本地maven的JSC依赖</p>
+<pre><code>Android工程根目录/build.gradle
+    allprojects {
+        repositories {
+            maven {
+                // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+                url &quot;$rootDir/node_modules/react-native/android&quot;
+            }
+            maven {
+                // Local Maven repo containing AARs with JSC library built for Android
+                url &quot;$rootDir/node_modules/jsc-android/dist&quot;
+            }
+</code></pre></li>
+<li><p>强制指定JSC版本(覆盖<a href="https://github.com/facebook/react-native/blob/e8df8d9fd579ff14224cacdb816f9ff07eef978d/ReactAndroid/build.gradle#L289" target="_blank" rel="noopener">RN默认的版本</a>)</p>
+<pre><code>app/build.gradle
+    android {
+        configurations.all {
+            resolutionStrategy{
+            force &apos;org.webkit:android-jsc:r236355&apos;
+        }
+</code></pre></li>
+</ol>
+<h3 id="如何验证是否成功使用新版本的JSC"><a href="#如何验证是否成功使用新版本的JSC" class="headerlink" title="如何验证是否成功使用新版本的JSC"></a>如何验证是否成功使用新版本的JSC</h3><p>加载过程会在logcat 输出 JSC版本，过滤tag为 <code>JavaScriptCore.Version</code>。</p>
+<p>实例日志如下：</p>
+<pre><code>D/JavaScriptCore.Version: 236355.1.0
+</code></pre><h3 id="可能遇到的问题"><a href="#可能遇到的问题" class="headerlink" title="可能遇到的问题"></a>可能遇到的问题</h3><p>Compile errors of the sort:</p>
+<pre><code>More than one file was found with OS independent path &apos;lib/armeabi-v7a/libgnustl_shared.so&apos;
+</code></pre><p>Add the following to your app/build.gradle, under android:</p>
+<pre><code>packagingOptions {
+    pickFirst &apos;**/libgnustl_shared.so&apos;
+}        
 </code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ARP欺骗/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ARP欺骗/" itemprop="url">Kali ARP欺骗</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:10:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="ARP欺骗原理"><a href="#ARP欺骗原理" class="headerlink" title="ARP欺骗原理"></a>ARP欺骗原理</h1><p>ARP协议：通过IP地址来查找主机的物理地址（MAC地址）。</p>
-<p>在以太网中，是用MAC地址来进行通讯的。</p>
-<p>主机A通过交换机对整个网络进行广播请求目标主机B的MAC地址，正常情况是B会回复ARP请求，将自己的MAC地址发给主机A。</p>
-<p>ARP欺骗就是攻击者主机回复所有的ARP请求并将所有的流量转发到真实的目标主机</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/arpspoof/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/arpspoof/" itemprop="url">Kali arpspoof</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:10:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>spoof    英[spu:f] n.    哄骗; 讽刺; 戏弄; （进行） 滑稽的模仿;</p>
-<h1 id="arpspoof使用"><a href="#arpspoof使用" class="headerlink" title="arpspoof使用"></a>arpspoof使用</h1><p>启用IP转发(不转发会导致受害者主机无法访问网络)</p>
-<pre><code>echo 1 &gt;&gt; /proc/sys/net/ipv4/ip_forward
-</code></pre><p>启动arpspoof。Usage: arpspoof [-i interface] [-t target] host(网关ip)</p>
-<pre><code>arpspoof -i eth0 -t 192.168.1.5 192.168.1.1
-</code></pre><p>捕获图片请求(另开一个终端)</p>
-<pre><code>driftnet -i eth0
-</code></pre><p>也可以使用tcpdump或Wireshark工具截获所有流量</p>
-<p>说明：可以通过 <code>arp</code> 命令分别查看攻击者和受害者主机的arp缓存表来理解arp欺骗</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/中间人攻击/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/中间人攻击/" itemprop="url">Kali中间人攻击</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:09:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><strong>中间人攻击，Man-in-the-Middle Attack，简称“MITM攻击”</strong></p>
-
           
         
       
@@ -2159,7 +2346,7 @@ Filesnarf
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/10/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/12/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/10/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/12/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2209,7 +2396,7 @@ Filesnarf
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">214</span>
+                  <span class="site-state-item-count">263</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2231,7 +2418,7 @@ Filesnarf
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-count">65</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

@@ -1,0 +1,62 @@
+@startuml
+actor User #red
+== Activity.onCreate ==
+AppActivity -> Cocos2dxActivity : onCreate
+note right: 隐藏手机虚拟按键 \n 注册电量广播 \n 加载cocos2djs.so \n new Cocos2dxHandler \n
+Cocos2dxActivity -> Cocos2dxHelper : init
+note right : nativeSetAudioDeviceInfo \n nativeSetApkPath 
+Cocos2dxActivity -> CanvasRenderingContext2DImpl : init
+note right: 注入 Context
+
+group init
+Cocos2dxActivity -> Cocos2dxActivity : mFrameLayout = new RelativeLayout
+
+group addSurfaceView
+Cocos2dxActivity -> AppActivity : mGLSurfaceView = onCreateView()
+
+group onCreateView
+AppActivity -> Cocos2dxGLSurfaceView : new
+return Cocos2dxGLSurfaceView
+AppActivity -> SDKWrapper : setGLSurfaceView
+
+group setGLSurfaceView
+SDKWrapper -> SDKWrapper : loadSDKClass
+note right: 读取project.json \n serviceClassPath字段值 \n 赋值给sdkClasses
+SDKWrapper -> SDKWrapper : 遍历sdkClasses \n 调用其setGLSurfaceView
+end
+
+AppActivity --> AppActivity : return glSurfaceView
+end
+
+Cocos2dxActivity -> Cocos2dxRenderer : new 
+return Cocos2dxRenderer
+Cocos2dxActivity -> Cocos2dxActivity : mGLSurfaceView.setCocos2dxRenderer
+Cocos2dxActivity -> Cocos2dxActivity : mFrameLayout.addView(this.mGLSurfaceView);
+Cocos2dxActivity --> Cocos2dxActivity : return renderer
+end
+
+Cocos2dxActivity -> Cocos2dxActivity : addDebugInfo
+Cocos2dxActivity -> Cocos2dxActivity : setContentView(mFrameLayout);
+end
+
+Cocos2dxActivity -> Cocos2dxActivity : new Cocos2dxVideoHelper
+Cocos2dxActivity -> Cocos2dxActivity : new Cocos2dxWebViewHelper
+
+AppActivity -> SDKWrapper : init
+note right: 遍历sdkClasses\n调用其init
+
+== GLSurfaceView.Renderer.onSurfaceCreated ==
+GLSurfaceView.Renderer -> Cocos2dxRenderer : onSurfaceCreated
+Cocos2dxRenderer -> JniImp.cpp : nativeInit
+
+group nativeInit
+JniImp.cpp -> main.cpp : cocos_android_app_init
+main.cpp -> AppDelegate.cpp : new AppDelegate(Application子类)
+return g_app
+main.cpp --> JniImp.cpp : g_app
+JniImp.cpp -> CCApplication_android.cpp : g_app->start();
+CCApplication_android.cpp -> AppDelegate.cpp : applicationDidFinishLaunching
+note left: 创建ScriptEngine \n jsb_register_all_modules \n 启动ScriptEngine \n 加载脚本jsb-builtin.js \n 加载脚本main.js
+end
+
+@enduml

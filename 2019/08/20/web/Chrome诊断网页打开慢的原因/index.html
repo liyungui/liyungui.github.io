@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="web," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="流程 打开目标网页 打开开发者模式 右键浏览器的刷新按钮，选择 清空缓存并硬性重新加载 正常重新加载 Ctrl+R：正常重新加载。  硬性重新加载：Ctrl+Shift+R:浅层次的清除历史记录，但不一定缓存完全清除。(Ctrl+F5)同理。  清空缓存并硬性重新加载：可以深层次的清除所有的缓存。(建议用这个)     诊断上面流程加载完成后，开发者工具 network 标签如下   重要指标底部">
+<meta name="keywords" content="web">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Chrome诊断网页打开慢的原因">
+<meta property="og:url" content="http://yoursite.com/2019/08/20/web/Chrome诊断网页打开慢的原因/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="流程 打开目标网页 打开开发者模式 右键浏览器的刷新按钮，选择 清空缓存并硬性重新加载 正常重新加载 Ctrl+R：正常重新加载。  硬性重新加载：Ctrl+Shift+R:浅层次的清除历史记录，但不一定缓存完全清除。(Ctrl+F5)同理。  清空缓存并硬性重新加载：可以深层次的清除所有的缓存。(建议用这个)     诊断上面流程加载完成后，开发者工具 network 标签如下   重要指标底部">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/08/20/web/Chrome诊断网页打开慢的原因/chrome-network.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/20/web/Chrome诊断网页打开慢的原因/time-detail.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/20/web/Chrome诊断网页打开慢的原因/time-detail-2.png">
+<meta property="og:updated_time" content="2019-10-27T08:42:12.600Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chrome诊断网页打开慢的原因">
+<meta name="twitter:description" content="流程 打开目标网页 打开开发者模式 右键浏览器的刷新按钮，选择 清空缓存并硬性重新加载 正常重新加载 Ctrl+R：正常重新加载。  硬性重新加载：Ctrl+Shift+R:浅层次的清除历史记录，但不一定缓存完全清除。(Ctrl+F5)同理。  清空缓存并硬性重新加载：可以深层次的清除所有的缓存。(建议用这个)     诊断上面流程加载完成后，开发者工具 network 标签如下   重要指标底部">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/20/web/Chrome诊断网页打开慢的原因/chrome-network.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/20/web/Chrome诊断网页打开慢的原因/"/>
+
+
+
+
+
+  <title>Chrome诊断网页打开慢的原因 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/20/web/Chrome诊断网页打开慢的原因/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Chrome诊断网页打开慢的原因</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-20T09:05:14+08:00">
+                2019-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web/" itemprop="url" rel="index">
+                    <span itemprop="name">web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h1><ul>
+<li>打开目标网页</li>
+<li>打开开发者模式</li>
+<li>右键浏览器的刷新按钮，选择 <code>清空缓存并硬性重新加载</code><ul>
+<li>正常重新加载 Ctrl+R：正常重新加载。 </li>
+<li>硬性重新加载：Ctrl+Shift+R:浅层次的清除历史记录，但不一定缓存完全清除。(Ctrl+F5)同理。 </li>
+<li>清空缓存并硬性重新加载：可以深层次的清除所有的缓存。(建议用这个) </li>
+</ul>
+</li>
+</ul>
+<h1 id="诊断"><a href="#诊断" class="headerlink" title="诊断"></a>诊断</h1><p>上面流程加载完成后，开发者工具 <code>network</code> 标签如下</p>
+<img src="/2019/08/20/web/Chrome诊断网页打开慢的原因/chrome-network.png"> 
+<h2 id="重要指标"><a href="#重要指标" class="headerlink" title="重要指标"></a>重要指标</h2><p>底部展示了几个重要的指标</p>
+<ul>
+<li>请求成功数量/请求总数量</li>
+<li>网页加载成功体积/网页总体积</li>
+<li>资源加载成功体积/资源总体积</li>
+<li>耗时</li>
+</ul>
+<h2 id="时间线-详细耗时信息"><a href="#时间线-详细耗时信息" class="headerlink" title="时间线-详细耗时信息"></a>时间线-详细耗时信息</h2><p>网记请求列表，默认是按时间顺序排序(waterfall瀑布)</p>
+<p>找到耗时最长的几个请求</p>
+<p>鼠标悬停某个请求的waterfall会弹窗展示耗时的详细信息，如下</p>
+<img src="/2019/08/20/web/Chrome诊断网页打开慢的原因/time-detail.png"> 
+<img src="/2019/08/20/web/Chrome诊断网页打开慢的原因/time-detail-2.png"> 
+<h2 id="时间线各阶段指标"><a href="#时间线各阶段指标" class="headerlink" title="时间线各阶段指标"></a>时间线各阶段指标</h2><h3 id="Queueing-排队时间"><a href="#Queueing-排队时间" class="headerlink" title="Queueing(排队时间)"></a>Queueing(排队时间)</h3><p>如果某个请求正在排队，则指示：</p>
+<ul>
+<li>请求已被渲染引擎推迟<ul>
+<li>因为该请求的优先级被视为低于关键资源（例如脚本/样式）的优先级。 </li>
+<li>图像经常发生这种情况。</li>
+</ul>
+</li>
+<li>请求已被暂停，以等待可复用的TCP连接。<ul>
+<li>因为在 HTTP 1 上，浏览器仅允许每个源拥有六个 TCP 连接。</li>
+</ul>
+</li>
+<li>生成磁盘缓存条目所用的时间（通常非常迅速）</li>
+</ul>
+<h3 id="Stalled-Blocking"><a href="#Stalled-Blocking" class="headerlink" title="Stalled/Blocking"></a>Stalled/Blocking</h3><p>浏览器得到要发出这个请求的指令，到请求可以发出的<strong>等待时间</strong></p>
+<p>可以是等待 Queueing 中介绍的任何一个原因。 </p>
+<p>此外，此时间包含代理协商所用的时间。</p>
+<p>不包括DNS查询、建立TCP连接等时间。</p>
+<h3 id="Proxy-Negotiation"><a href="#Proxy-Negotiation" class="headerlink" title="Proxy Negotiation"></a>Proxy Negotiation</h3><p>与代理服务器连接协商所用的时间。</p>
+<h3 id="DNS-lookup"><a href="#DNS-lookup" class="headerlink" title="DNS lookup"></a>DNS lookup</h3><p>DNS解析所耗费的时间。</p>
+<h3 id="Initial-connection"><a href="#Initial-connection" class="headerlink" title="Initial connection"></a>Initial connection</h3><p>用户建立连接的时间，包括TCP握手以及多次尝试握手，以及处理SSL的时间。</p>
+<h3 id="SSL"><a href="#SSL" class="headerlink" title="SSL"></a>SSL</h3><p>完成SSL握手的时间。</p>
+<h3 id="Request-sent"><a href="#Request-sent" class="headerlink" title="Request_sent"></a>Request_sent</h3><p>请求第一个字节发出到最后一个字节发出的时间，请求发出时间(一般可以忽略，否则即为浏览器本身或者本地网络问题)。</p>
+<p>Waitting(TTFB)：请求发出后，到收到响应的第一个字节所花费的时间(Time To First Byte)，即请求从客户端发送给服务端时间+服务器处理请求的时间。</p>
+<h3 id="Content-Download"><a href="#Content-Download" class="headerlink" title="Content Download"></a>Content Download</h3><p>接收到响应的第一个字节，到接收完最后一个字节的时间，就是下载响应所耗费的时间。</p>
+<h2 id="诊断问题"><a href="#诊断问题" class="headerlink" title="诊断问题"></a>诊断问题</h2><h3 id="队列时间过长"><a href="#队列时间过长" class="headerlink" title="队列时间过长"></a>队列时间过长</h3><h4 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h4><p>从单个网域检索太多的资源，即<strong>单个网域的请求数量过多</strong></p>
+<p>在 HTTP 1.0/1.1 连接上，Chrome 会将每个主机强制设置为最多六个 TCP 连接。如果您一次请求十二个条目，前六个将开始，而后六个将被加入队列。</p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><h5 id="HTTP-1"><a href="#HTTP-1" class="headerlink" title="HTTP 1"></a>HTTP 1</h5><ul>
+<li>合并 图片、css、js等一些可以合并的文件，来减少http的请求数</li>
+<li>设置 <code>keep-alive</code> 可以在一定的时间内保证连接的可复用性，减少连接时间</li>
+<li>实现域分片。也就是在您的应用上设置多个子域，以便提供资源。然后，在子域之间平均分配正在提供的资源。<ul>
+<li>在浏览器最大并行下载数跟dns查找(也有耗时)之间做权衡。根据雅虎的研究，最好将主机名控制在2-4个内</li>
+</ul>
+</li>
+</ul>
+<h5 id="HTTP-2"><a href="#HTTP-2" class="headerlink" title="HTTP 2"></a>HTTP 2</h5><p>请不要对您的资源进行域分片</p>
+<p>在 HTTP 2 中，到服务器的单个 TCP 连接作为多路复用连接。这消除了 HTTP 1 中的六个连接限制，并且可以通过单个连接同时传输多个资源。</p>
+<h3 id="第一字节等待时间过长"><a href="#第一字节等待时间过长" class="headerlink" title="第一字节等待时间过长"></a>第一字节等待时间过长</h3><p>又称：大片绿色</p>
+<p>将此值控制在 200 毫秒以下</p>
+<h4 id="原因-1"><a href="#原因-1" class="headerlink" title="原因"></a>原因</h4><ol>
+<li>客户端与服务器之间的网络条件较差</li>
+<li><strong>服务器应用的响应慢</strong></li>
+</ol>
+<h4 id="解决方案-1"><a href="#解决方案-1" class="headerlink" title="解决方案"></a>解决方案</h4><p>将应用托管在本地，然后查看 TTFB 真实的响应速度。如果仍然很长，则需要优化应用的响应速度。可以是优化数据库查询、为特定部分的内容实现缓存，或者修改您的网络服务器配置。</p>
+<h3 id="内容下载时间过长"><a href="#内容下载时间过长" class="headerlink" title="内容下载时间过长"></a>内容下载时间过长</h3><p>又称：大片蓝色。决定服务器吞吐能力</p>
+<h4 id="原因-2"><a href="#原因-2" class="headerlink" title="原因"></a>原因</h4><p><strong>内容体积过大</strong></p>
+<h4 id="解决方案-2"><a href="#解决方案-2" class="headerlink" title="解决方案"></a>解决方案</h4><ul>
+<li>减少发送的字节数</li>
+<li>压缩文件</li>
+<li>启用本地缓存。把网站里面更新频率比较低的静态资源缓存在浏览器中</li>
+<li>启用CDN加速。本质也是缓存，把内容缓存在离用户近的主机</li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://help.aliyun.com/knowledge_detail/36453.html" target="_blank" rel="noopener">使用chrome浏览器排查网页打开慢的方法</a></li>
+<li><a href="https://blog.csdn.net/shan1991fei/article/details/80690220" target="_blank" rel="noopener">Chrome Dev Tool 中时间线各阶段代表的意义</a></li>
+<li><a href="https://www.liulanqi.com/239.html" target="_blank" rel="noopener">了解资源耗时 | Chrome F12 network</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/web/" rel="tag"><i class="fa fa-tag"></i> web</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/16/编程思想/Android端架构_MVP-Clean架构/" rel="next" title="Android端架构_MVP-Clean架构">
+                <i class="fa fa-chevron-left"></i> Android端架构_MVP-Clean架构
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/29/Android/APP弱网络测试工具/" rel="prev" title="APP弱网络测试工具">
+                APP弱网络测试工具 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">263</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#流程"><span class="nav-number">1.</span> <span class="nav-text">流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#诊断"><span class="nav-number">2.</span> <span class="nav-text">诊断</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#重要指标"><span class="nav-number">2.1.</span> <span class="nav-text">重要指标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#时间线-详细耗时信息"><span class="nav-number">2.2.</span> <span class="nav-text">时间线-详细耗时信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#时间线各阶段指标"><span class="nav-number">2.3.</span> <span class="nav-text">时间线各阶段指标</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Queueing-排队时间"><span class="nav-number">2.3.1.</span> <span class="nav-text">Queueing(排队时间)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stalled-Blocking"><span class="nav-number">2.3.2.</span> <span class="nav-text">Stalled/Blocking</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Proxy-Negotiation"><span class="nav-number">2.3.3.</span> <span class="nav-text">Proxy Negotiation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS-lookup"><span class="nav-number">2.3.4.</span> <span class="nav-text">DNS lookup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Initial-connection"><span class="nav-number">2.3.5.</span> <span class="nav-text">Initial connection</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSL"><span class="nav-number">2.3.6.</span> <span class="nav-text">SSL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Request-sent"><span class="nav-number">2.3.7.</span> <span class="nav-text">Request_sent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Content-Download"><span class="nav-number">2.3.8.</span> <span class="nav-text">Content Download</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#诊断问题"><span class="nav-number">2.4.</span> <span class="nav-text">诊断问题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#队列时间过长"><span class="nav-number">2.4.1.</span> <span class="nav-text">队列时间过长</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原因"><span class="nav-number">2.4.1.1.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解决方案"><span class="nav-number">2.4.1.2.</span> <span class="nav-text">解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#HTTP-1"><span class="nav-number">2.4.1.2.1.</span> <span class="nav-text">HTTP 1</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#HTTP-2"><span class="nav-number">2.4.1.2.2.</span> <span class="nav-text">HTTP 2</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第一字节等待时间过长"><span class="nav-number">2.4.2.</span> <span class="nav-text">第一字节等待时间过长</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原因-1"><span class="nav-number">2.4.2.1.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解决方案-1"><span class="nav-number">2.4.2.2.</span> <span class="nav-text">解决方案</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内容下载时间过长"><span class="nav-number">2.4.3.</span> <span class="nav-text">内容下载时间过长</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原因-2"><span class="nav-number">2.4.3.1.</span> <span class="nav-text">原因</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解决方案-2"><span class="nav-number">2.4.3.2.</span> <span class="nav-text">解决方案</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">3.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

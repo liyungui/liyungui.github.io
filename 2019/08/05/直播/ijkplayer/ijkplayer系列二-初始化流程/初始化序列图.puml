@@ -1,0 +1,63 @@
+@startuml
+actor User #red
+== 初始化 ==
+User -> IjkVideoView: setVideoURI()
+IjkVideoView -> IjkVideoView: openVideo()
+note left
+获得AudioManager
+通过setting获取player的类型
+初始化IMediaPlayer (createPlayer())
+setDataSource()
+屏幕常亮
+设置MediaController
+mMediaPlayer.prepareAsync()
+end note
+IjkVideoView -> IjkMediaPlayer: 构造方法
+IjkMediaPlayer -> IjkMediaPlayer: initPlayer()
+IjkMediaPlayer -> IjkMediaPlayer: loadLibrariesOnce()
+IjkMediaPlayer -> ijkplayer_jni.c: 加载so库
+ijkplayer_jni.c -> ijkplayer_jni.c: JNI_OnLoad()
+ijkplayer_jni.c -> ijkplayer_jni.c: 注册g_methods数组中的方法\n(播放器控制API)
+ijkplayer_jni.c -> ijkplayer.c: ijkmp_global_init()
+ijkplayer_jni.c -> ffmpeg_api_jni.c: FFmpegApi_global_init
+ffmpeg_api_jni.c -> ffmpeg_api_jni.c: 注册g_methods数组中的方法\n(av_base64_encode)
+IjkMediaPlayer -> IjkMediaPlayer: initNativeOnce()
+note left: 其实什么都没做
+IjkMediaPlayer -> IjkMediaPlayer: 创建 EventHandler
+IjkMediaPlayer -> IjkMediaPlayer: native_setup()
+IjkMediaPlayer -> ijkplayer_jni.c: _native_setup()
+ijkplayer_jni.c -> ijkplayer_android.c: ijkmp_android_create()
+ijkplayer_jni.c -> ijkplayer.c: ijkmp_create()
+ijkplayer_android.c -> ijkplayer_android.c: 创建并设置视频输出对象
+ijkplayer_android.c -> ffpipeline_android.c: ffpipeline_create_from_android
+note left: 设置视频解码器、音频输出设备
+ijkplayer_android.c -> ffpipeline_android.c: ffpipeline_set_vout()
+IjkMediaPlayer --> IjkVideoView: 返回IjkMediaPlayer对象
+
+== 准备 ==
+IjkVideoView ->> IjkMediaPlayer: prepareAsync()
+IjkMediaPlayer -> IjkMediaPlayer: _prepareAsync()
+IjkMediaPlayer -> ijkplayer_jni.c: _prepareAsync()
+ijkplayer_jni.c -> ijkplayer_jni.c: jni_get_media_player()
+ijkplayer.c -> ijkplayer.c: ijkmp_prepare_async()
+ijkplayer.c -> ijkplayer.c: ijkmp_prepare_async_l()
+ijkplayer.c -> ijkplayer.c: ijkmp_change_state_l()
+note left
+状态MP_STATE_ASYNC_PREPARING
+end note
+ijkplayer.c -> ijkplayer.c: msg_queue_start()
+ijkplayer.c -> ijkplayer.c: 创建线程 ijkmp_msg_loop
+ijkplayer.c ->> ff_ffplay.c.c: ffp_prepare_async_l()
+ff_ffplay.c ->> ff_ffplay.c: stream_open()
+ff_ffplay.c ->> ff_ffplay.c: frame_queue_init(FrameQueue,PacketQueue)
+ff_ffplay.c ->> ff_ffplay.c: packet_queue_init(PacketQueue)
+note left
+FrameQueue 解码后的帧队列
+PacketQueue 未解码的包队列
+队列分为音频、视频、字幕
+end note
+ff_ffplay.c ->> ff_ffplay.c: 创建线程video_refresh_thread
+note left: 视频渲染、音频视频同步
+ff_ffplay.c ->> ff_ffplay.c: 创建线程read_thread
+note left: 数据读取线程
+@enduml

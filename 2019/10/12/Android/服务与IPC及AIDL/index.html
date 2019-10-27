@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Android," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Service运行在后台的组件，可以理解为是没有前台的activity，适合用来运行不需要前台界面的代码。 activity不可见时(stop)是很容易被系统终止的，不能稳定运行下载等后台任务。 服务可以被手动关闭，不会重启，但是如果是被自动关闭，内存充足就会重启 进程优先级 前台进程：拥有焦点activity（onResume方法被调用） 可见进程：拥有可见activity（onPause方法被">
+<meta name="keywords" content="Android">
+<meta property="og:type" content="article">
+<meta property="og:title" content="服务与IPC及AIDL">
+<meta property="og:url" content="http://yoursite.com/2019/10/12/Android/服务与IPC及AIDL/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="Service运行在后台的组件，可以理解为是没有前台的activity，适合用来运行不需要前台界面的代码。 activity不可见时(stop)是很容易被系统终止的，不能稳定运行下载等后台任务。 服务可以被手动关闭，不会重启，但是如果是被自动关闭，内存充足就会重启 进程优先级 前台进程：拥有焦点activity（onResume方法被调用） 可见进程：拥有可见activity（onPause方法被">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/10/12/Android/服务与IPC及AIDL/aidl_flowchart.jpg">
+<meta property="og:updated_time" content="2019-10-27T08:42:12.556Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="服务与IPC及AIDL">
+<meta name="twitter:description" content="Service运行在后台的组件，可以理解为是没有前台的activity，适合用来运行不需要前台界面的代码。 activity不可见时(stop)是很容易被系统终止的，不能稳定运行下载等后台任务。 服务可以被手动关闭，不会重启，但是如果是被自动关闭，内存充足就会重启 进程优先级 前台进程：拥有焦点activity（onResume方法被调用） 可见进程：拥有可见activity（onPause方法被">
+<meta name="twitter:image" content="http://yoursite.com/2019/10/12/Android/服务与IPC及AIDL/aidl_flowchart.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/10/12/Android/服务与IPC及AIDL/"/>
+
+
+
+
+
+  <title>服务与IPC及AIDL | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/12/Android/服务与IPC及AIDL/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">服务与IPC及AIDL</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-12T14:13:53+08:00">
+                2019-10-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Service"><a href="#Service" class="headerlink" title="Service"></a>Service</h1><p>运行在后台的组件，可以理解为是没有前台的activity，适合用来运行不需要前台界面的代码。</p>
+<p>activity不可见时(stop)是很容易被系统终止的，不能稳定运行下载等后台任务。</p>
+<p>服务可以被手动关闭，不会重启，但是如果是被自动关闭，内存充足就会重启</p>
+<h2 id="进程优先级"><a href="#进程优先级" class="headerlink" title="进程优先级"></a>进程优先级</h2><ol>
+<li>前台进程：拥有焦点activity（onResume方法被调用）</li>
+<li>可见进程：拥有可见activity（onPause方法被调用）</li>
+<li>服务进程：有服务，不到万不得已不会被回收，而且即便被回收，内存充足时也会被重启</li>
+<li>后台进程：有不可见activity（activity的onStop方法被调用了），很容易被回收</li>
+<li>空进程：没有运行任何activity，很容易被回收</li>
+</ol>
+<h2 id="Service开发流程"><a href="#Service开发流程" class="headerlink" title="Service开发流程"></a>Service开发流程</h2><ol>
+<li>自定义类继承抽象类 Service。覆写方法  IBinder onBind(Intent intent)</li>
+<li>配置（注册service，intentfilter，权限）</li>
+</ol>
+<h2 id="Service方法"><a href="#Service方法" class="headerlink" title="Service方法"></a>Service方法</h2><ul>
+<li>startService</li>
+<li>bindService</li>
+<li>unbindService</li>
+<li>stopService</li>
+</ul>
+<p>startService和bindService都可能造成onCreate方法的调用。</p>
+<p>startService可以被重复调用多次</p>
+<p>bindService多次调用会导致程序报错。</p>
+<p>stopService多次调用也会报错。</p>
+<p>stopService与unbindService都有可能会触发onDestroy()，要触发就必须满足：服务停止，没有ServiceConnection绑定：</p>
+<h2 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h2><p>两种启动方式</p>
+<h3 id="startService"><a href="#startService" class="headerlink" title="startService"></a>startService</h3><p>服务被启动之后，常驻内存(在running中可以看到服务进程)。即使启动它的组件销毁，也可以继续存在。</p>
+<h3 id="bindService"><a href="#bindService" class="headerlink" title="bindService"></a>bindService</h3><p>如果启动它的组件销毁，服务也销毁。绑定可获得一IBinder对象，利用这个对象可以调用service的方法（AIDL规范必须使用接口对象接收IBinder对象，调用服务方法。）</p>
+<p>系统服务都是通过bind方式启动的远程服务。</p>
+<p><code>bindService(Intent service, ServiceConnection conn, int flags)</code> flags一般设置为 <code>BIND_AUTO_CREATE</code></p>
+<p><code>ServiceConnection</code>接口中的两个方法 </p>
+<ul>
+<li>onServiceConnected(ComponentName name, IBinder service)。可以通过返回的IBinder接口对象（一般用其实现类Binder）调用service中的方法。</li>
+<li>onServiceDisconnected(ComponentName name)</li>
+</ul>
+<h2 id="Service生命周期"><a href="#Service生命周期" class="headerlink" title="Service生命周期"></a>Service生命周期</h2><ul>
+<li>onCreate 服务创建的时候调用。</li>
+<li>onStartCommand 每次启动服务的时候调用。同一个服务可以重复的启动</li>
+<li>onBind 绑定的时候调用。</li>
+<li>onDestroy 销毁服务的时候调用。</li>
+</ul>
+<h3 id="startService启动服务的生命周期"><a href="#startService启动服务的生命周期" class="headerlink" title="startService启动服务的生命周期"></a>startService启动服务的生命周期</h3><p><code>onCreate-onStartCommand-onDestroy</code> </p>
+<p>onStartCommand其实还是调用onStart方法，android觉得onStart不贴切，换了个名字</p>
+<h3 id="bindService启动服务的生命周期"><a href="#bindService启动服务的生命周期" class="headerlink" title="bindService启动服务的生命周期"></a>bindService启动服务的生命周期</h3><p><code>onCreate-onBind-onDestroy</code> </p>
+<h2 id="停止服务"><a href="#停止服务" class="headerlink" title="停止服务"></a>停止服务</h2><p>两种启动方法混合使用，必须严格按照以下流程，否则可能导致莫名其妙的异常。</p>
+<p>先start，再bind，销毁时先unbind，再stop</p>
+<h1 id="本地服务"><a href="#本地服务" class="headerlink" title="本地服务"></a>本地服务</h1><p>服务和启动它的组件在同一个进程</p>
+<p>可以显式启动，绑定后返回IBinder对象</p>
+<p>一般通过接口定义Service的接口，控制对外方法；服务中自定义Binder类实现该接口，绑定后将自定义Binder类对象强转为接口再返回，从而达到控制服务对外方法的目的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PublicBusiness</span> </span>&#123;<span class="comment">//定义service的接口，控制对外方法</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">QianXian</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BanZhengService</span> <span class="keyword">extends</span> <span class="title">Service</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> IBinder <span class="title">onBind</span><span class="params">(Intent intent)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> ZhongJianRen();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">BanZheng</span><span class="params">()</span></span>&#123;</span><br><span class="line">		System.out.println(<span class="string">"办证哪家强"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="class"><span class="keyword">class</span> <span class="title">ZhongJianRen</span> <span class="keyword">extends</span> <span class="title">Binder</span> <span class="keyword">implements</span> <span class="title">PublicBusiness</span></span>&#123;<span class="comment">////继承Binder(IBinder接口实现类)，实现PublicBusiness接口（定义service的接口，控制对外方法）</span></span><br><span class="line">		<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">QianXian</span><span class="params">()</span></span>&#123;</span><br><span class="line">			BanZheng();</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">daMaJiang</span><span class="params">()</span></span>&#123;</span><br><span class="line">			</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> MyServiceconn conn;</span><br><span class="line">    <span class="keyword">private</span> PublicBusiness zjr;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        conn = <span class="keyword">new</span> MyServiceconn();</span><br><span class="line">        Intent intent = <span class="keyword">new</span> Intent(<span class="keyword">this</span>, BanZhengService.class);</span><br><span class="line">        bindService(intent, conn, BIND_AUTO_CREATE);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">click</span><span class="params">(View v)</span></span>&#123;</span><br><span class="line">        zjr.QianXian();</span><br><span class="line">    &#125;</span><br><span class="line">     </span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">MyServiceconn</span> <span class="keyword">implements</span> <span class="title">ServiceConnection</span></span>&#123;</span><br><span class="line"> </span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onServiceConnected</span><span class="params">(ComponentName name, IBinder service)</span> </span>&#123;</span><br><span class="line">        	<span class="comment">//强转为PublicBusiness，控制对外方法</span></span><br><span class="line">            zjr = (PublicBusiness) service;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onServiceDisconnected</span><span class="params">(ComponentName name)</span> </span>&#123;</span><br><span class="line">                         </span><br><span class="line">        &#125;</span><br><span class="line">         </span><br><span class="line">    &#125;</span><br><span class="line">     </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="远程服务"><a href="#远程服务" class="headerlink" title="远程服务"></a>远程服务</h1><p>服务和启动它的组件不在同一个进程。</p>
+<p>远程服务只能隐式启动</p>
+<h1 id="多进程支持"><a href="#多进程支持" class="headerlink" title="多进程支持"></a>多进程支持</h1><p><code>android:process</code></p>
+<p>Android 四大组件 默认在同一个 进程运行（并且运行于主线程），<code>android:process</code> 这句配置可以 让相应的组件运行在 独立的进程中（主线程上）</p>
+<p><code>android:process</code>的值以<strong>冒号</strong>开头的话，那么该进程就是<strong>私有进程</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">service</span> <span class="attr">android:name</span>=<span class="string">".ProcessTestService"</span> <span class="attr">android:process</span>=<span class="string">":secondProcess"</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<p>进程名为 <code>com.zy.course:secondProcess</code></p>
+<p><code>android:process</code>的值以<strong>小写字母</strong>开头，那么该进程就是公有进程，公有进程名一定要有个<strong>点号</strong>(如com.secondProcess)</p>
+<p>application元素也支持android:process属性，可以修改应用程序的默认进程名（默认值为包名）</p>
+<h1 id="IPC"><a href="#IPC" class="headerlink" title="IPC"></a>IPC</h1><p>Android各进程内存地址相互独立，都有一个MainThread，MainLooper，MessageQueue</p>
+<p>多进程就涉及到 进程间通信 <strong>IPC</strong>(Inter-Process Communication<br>)</p>
+<h2 id="IPC方式"><a href="#IPC方式" class="headerlink" title="IPC方式"></a>IPC方式</h2><ul>
+<li><strong>文件共享</strong>，多进程读写一个相同的文件，获取文件内容进行交互；</li>
+<li><strong>Socket</strong></li>
+<li><strong>AIDL</strong>，Android标准跨进程通讯API，非常灵活且强大。支持并发，传递数据，方法调用</li>
+<li><strong>Messenger</strong>，基于AIDL实现的轻量级跨进程通讯方案，只能传递Message对象</li>
+<li><strong>Bundle</strong>，只能在四大组件间传递Bundle对象;</li>
+<li><strong>ContentProvider</strong>，常用于多进程共享数据，比如系统的相册，音乐等</li>
+<li><strong>广播</strong></li>
+</ul>
+<h1 id="AIDL"><a href="#AIDL" class="headerlink" title="AIDL"></a>AIDL</h1><p>安卓接口定义语言(Android interface definition language)</p>
+<p>作用场景：和服务一起实现跨进程通信</p>
+<p>一般通过AIDL定义Service的接口(将类文件名后缀改为<code>.aidl</code>)，控制对外方法；服务中自定义Binder类继承该 <code>接口.Stub</code>(自动生成)，绑定后将自定义Binder类对象强转(通过 <code>接口.Stub.asInterface()</code>)为接口再返回，从而达到控制服务对外方法的目的</p>
+<h2 id="数据传递"><a href="#数据传递" class="headerlink" title="数据传递"></a>数据传递</h2><p>方法调用会涉及到数据传递(传参和返回值)</p>
+<p>支持的数据类型</p>
+<ul>
+<li>Java 基本数据类型（如 int、long、float、double、byte、char、boolean）</li>
+<li>String和CharSequence</li>
+<li>Parcelable：实现了Parcelable接口的对象</li>
+<li>List：其中的元素需要被AIDL支持，另一端实际接收的具体类始终是 ArrayList，但生成的方法使用的是 List 接口</li>
+<li>Map：其中的元素需要被AIDL支持，包括 key 和 value，另一端实际接收的具体类始终是 HashMap，但生成的方法使用的是 Map 接口</li>
+</ul>
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li>Parcelable对象，需要在类文件相同路径下，创建同名<code>.aidl</code>文件，在文件中使用parcelable关键字声明这个类；</li>
+<li><code>.aidl</code>跟普通接口的区别：只能声明方法，不能声明变量；</li>
+<li>非基本数据类型的参数，需要标记数据流向：in、out、inout。基本数据类型流向只能in，所以不用标</li>
+</ul>
+<h4 id="in、out、inout"><a href="#in、out、inout" class="headerlink" title="in、out、inout"></a>in、out、inout</h4><ul>
+<li>in。输入的参数。跟普通参数传递一样的含义，接收调用方实际传递的值</li>
+<li>out。仅用于输出的参数。无论调用方传递了什么值过来，在方法执行的时候，这个参数的初始值总是空的,这个参数的值在方法被调用后填充。跟c语言里用指针返回结果类似</li>
+<li>inout。输入和输出的参数。</li>
+</ul>
+<p>区分“in”、“out”是非常重要的，因为每个参数的内容必须编组（序列化，传输，接收和反序列化）。in/out标签允许Binder<strong>跳过编组步骤</strong>以获得更好的性能。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// app/src/main/aidl/com/example/aidl/data/MessageModel.aidl</span></span><br><span class="line"><span class="keyword">package</span> com.example.aidl.data;</span><br><span class="line">parcelable MessageModel;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// app/src/main/java/com/example/aidl/data/MessageModel.java</span></span><br><span class="line"><span class="keyword">package</span> com.example.aidl.data;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MessageModel</span> <span class="keyword">implements</span> <span class="title">Parcelable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String from;</span><br><span class="line">    <span class="keyword">private</span> String to;</span><br><span class="line">    <span class="keyword">private</span> String content;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// app/src/main/aidl/com/example/aidl/MessageHandler.aidl</span></span><br><span class="line"><span class="keyword">package</span> com.example.aidl;</span><br><span class="line"><span class="keyword">import</span> com.example.aidl.data.MessageModel;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">MessageHandler</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">sendMessage</span><span class="params">(in MessageModel messageModel)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">onMessageReceived</span><span class="params">(in MessageModel receivedMessage)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>调用远程的支付宝支付服务</p>
+<p>支付宝远程服务</p>
+<ol>
+<li>定义服务接口，后缀名改成 <code>.aidl</code></li>
+<li>自定义Binder类继承 <code>接口.Stub</code> (自动生成)</li>
+<li>自定义Service</li>
+<li>配置（注册service，intentfilter，权限）</li>
+</ol>
+<p>需要支付的应用</p>
+<ol>
+<li>把刚才定义好的aidl文件拷贝过来，注意aidl文件所在的包名必须跟原包名一致。如果是在同一个工程，则不需要拷贝</li>
+<li>绑定服务，在onServiceConnected方法中拿到IBinder对象</li>
+<li>通过 <code>接口.Stub.asInterface()</code>方法强转成 接口对象</li>
+<li>调用接口的pay方法</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// PayInterface.aidl</span></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">PayInterface</span> </span>&#123;</span><br><span class="line"> <span class="function"><span class="keyword">void</span> <span class="title">pay</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PayService</span> <span class="keyword">extends</span> <span class="title">Service</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> IBinder <span class="title">onBind</span><span class="params">(Intent intent)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> MyBinder();</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pay</span><span class="params">()</span></span>&#123;</span><br><span class="line">		System.out.println(<span class="string">"检测运行环境"</span>);</span><br><span class="line">		System.out.println(<span class="string">"支付"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="class"><span class="keyword">class</span> <span class="title">MyBinder</span> <span class="keyword">extends</span> <span class="title">PayInterface</span>.<span class="title">Stub</span></span>&#123;</span><br><span class="line"></span><br><span class="line">		<span class="meta">@Override</span></span><br><span class="line">		<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">pay</span><span class="params">()</span> <span class="keyword">throws</span> RemoteException </span>&#123;</span><br><span class="line">			PayService.<span class="keyword">this</span>.pay();</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">service</span> <span class="attr">android:name</span>=<span class="string">"com.itheima.alipay.PayService"</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">intent-filter</span> &gt;</span><span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"com.itheima.alipay"</span>/&gt;</span><span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">service</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">Activity</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> PayInterface pi;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        Intent intent = <span class="keyword">new</span> Intent();</span><br><span class="line">        intent.setAction(<span class="string">"com.itheima.alipay"</span>);</span><br><span class="line">        bindService(intent, <span class="keyword">new</span> MyServiceConn(), BIND_AUTO_CREATE);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">click</span><span class="params">(View v)</span></span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            pi.pay();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">         </span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">MyServiceConn</span> <span class="keyword">implements</span> <span class="title">ServiceConnection</span></span>&#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onServiceConnected</span><span class="params">(ComponentName name, IBinder service)</span> </span>&#123;</span><br><span class="line">            pi = PayInterface.Stub.asInterface(service);</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onServiceDisconnected</span><span class="params">(ComponentName name)</span> </span>&#123;</span><br><span class="line">             </span><br><span class="line">        &#125;</span><br><span class="line">         </span><br><span class="line">    &#125;</span><br><span class="line">     </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="所以然"><a href="#所以然" class="headerlink" title="所以然"></a>所以然</h2><p>分析 自动生成的接口类，目录在 <code>build/gen</code></p>
+<p><code>asInterface</code> 把IBinder对象转换为 接口对象。判断IBinder是否处于相同进程，相同进程返回Stub实现的接口对象；不同进程，则返回Stub.Proxy实现的接口对象</p>
+<p><code>onTransact</code>同一进程时，不会触发。</p>
+<img src="/2019/10/12/Android/服务与IPC及AIDL/aidl_flowchart.jpg">
+<h2 id="Binder意外挂掉"><a href="#Binder意外挂掉" class="headerlink" title="Binder意外挂掉"></a>Binder意外挂掉</h2><p>IPC中，当Binder意外挂了的时候(比如服务端进程Crash了)<br>，客户端进程就无法调用服务端方法。所以我们需要检测Binder存活状态，如果挂掉了，需要进行相应操作(比如重连服务)。</p>
+<h3 id="isBinderAlive"><a href="#isBinderAlive" class="headerlink" title="isBinderAlive"></a>isBinderAlive</h3><p>Binder中的 <code>isBinderAlive</code> 可以判断Binder是否死亡</p>
+<h3 id="DeathRecipient"><a href="#DeathRecipient" class="headerlink" title="DeathRecipient"></a>DeathRecipient</h3><p>给Binder设置一个 <code>DeathRecipient</code> 对象，Binder挂掉可以在DeathRecipient接口的回调方法中收到通知</p>
+<ul>
+<li>linkToDeath -&gt; 设置死亡代理 DeathRecipient 对象；</li>
+<li>unlinkToDeath -&gt; Binder死亡的情况下，解除该代理。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">IBinder.DeathRecipient deathRecipient = <span class="keyword">new</span> IBinder.DeathRecipient() &#123;</span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">binderDied</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (messageSender != <span class="keyword">null</span>) &#123;</span><br><span class="line">           messageSender.asBinder().unlinkToDeath(<span class="keyword">this</span>, <span class="number">0</span>);</span><br><span class="line">           messageSender = <span class="keyword">null</span>;</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="comment">//重连服务</span></span><br><span class="line">       setupService();</span><br><span class="line">   &#125;</span><br><span class="line">&#125;;</span><br><span class="line">   </span><br><span class="line">ServiceConnection serviceConnection = <span class="keyword">new</span> ServiceConnection() &#123;</span><br><span class="line">   <span class="meta">@Override</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onServiceConnected</span><span class="params">(ComponentName name, IBinder service)</span> </span>&#123;</span><br><span class="line">   	   <span class="comment">//使用asInterface方法取得AIDL对应的操作接口</span></span><br><span class="line">            messageSender = MessageSender.Stub.asInterface(service);</span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">           <span class="comment">//设置Binder死亡监听</span></span><br><span class="line">           messageSender.asBinder().linkToDeath(deathRecipient, <span class="number">0</span>);</span><br><span class="line">       &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</span><br><span class="line">           e.printStackTrace();</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="权限验证"><a href="#权限验证" class="headerlink" title="权限验证"></a>权限验证</h2><p> 两种常用验证方法：</p>
+<h3 id="onTransact方法校验客户端包名"><a href="#onTransact方法校验客户端包名" class="headerlink" title="onTransact方法校验客户端包名"></a>onTransact方法校验客户端包名</h3><p>自定义类继承AIDL接口的Stub，复写onTransact方法，校验客户端包名，不通过校验直接return false，校验通过执行正常的流程。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">IBinder messageSender = <span class="keyword">new</span> MessageSender.Stub() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onTransact</span><span class="params">(<span class="keyword">int</span> code, Parcel data, Parcel reply, <span class="keyword">int</span> flags)</span> <span class="keyword">throws</span> RemoteException </span>&#123;</span><br><span class="line">        String packageName = <span class="keyword">null</span>;</span><br><span class="line">        String[] packages = getPackageManager().getPackagesForUid(getCallingUid());</span><br><span class="line">        <span class="keyword">if</span> (packages != <span class="keyword">null</span> &amp;&amp; packages.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            packageName = packages[<span class="number">0</span>];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (packageName == <span class="keyword">null</span> || !packageName.startsWith(<span class="string">"com.example.aidl"</span>)) &#123;</span><br><span class="line">            Log.d(<span class="string">"onTransact"</span>, <span class="string">"拒绝调用："</span> + packageName);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">super</span>.onTransact(code, data, reply, flags);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="onBind中校验自定义permission"><a href="#onBind中校验自定义permission" class="headerlink" title="onBind中校验自定义permission"></a>onBind中校验自定义permission</h3><p>在服务端的onBind中校验自定义permission，如果通过了我们的校验，正常返回Binder对象，校验不通过返回null，返回null的情况下客户端无法绑定到我们的服务；</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">permission</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">"com.example.aidl.permission.REMOTE_SERVICE_PERMISSION"</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:protectionLevel</span>=<span class="string">"normal"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">"com.example.aidl.permission.REMOTE_SERVICE_PERMISSION"</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> IBinder <span class="title">onBind</span><span class="params">(Intent intent)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//自定义permission方式检查权限</span></span><br><span class="line">    <span class="keyword">if</span> (checkCallingOrSelfPermission(<span class="string">"com.example.aidl.permission.REMOTE_SERVICE_PERMISSION"</span>) == PackageManager.PERMISSION_DENIED) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> messageSender;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="多进程造成Application多次创建"><a href="#多进程造成Application多次创建" class="headerlink" title="多进程造成Application多次创建"></a>多进程造成Application多次创建</h1><p>每个进程创建，都会调用Application的onCreate方法</p>
+<p>可以根据当前进程的pid，拿到当前进程的名字，根据当前进程的pid或者名字，做不同的初始化工作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> <span class="keyword">extends</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate();</span><br><span class="line">        Log.d(<span class="string">"process name"</span>, getProcessName());<span class="comment">//打印当前进程名字</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//取得进程名</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> String <span class="title">getProcessName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);</span><br><span class="line">        List&lt;ActivityManager.RunningAppProcessInfo&gt; runningApps = am.getRunningAppProcesses();</span><br><span class="line">        <span class="keyword">if</span> (runningApps == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (ActivityManager.RunningAppProcessInfo procInfo : runningApps) &#123;</span><br><span class="line">            <span class="keyword">if</span> (procInfo.pid == Process.myPid()) &#123;</span><br><span class="line">                <span class="keyword">return</span> procInfo.processName;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="跨进程更新UI"><a href="#跨进程更新UI" class="headerlink" title="跨进程更新UI"></a>跨进程更新UI</h1><p>实例：通过Temp2Activity在MainActivity中添加两个Button</p>
+<h2 id="只使用AIDL"><a href="#只使用AIDL" class="headerlink" title="只使用AIDL"></a>只使用AIDL</h2><h3 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h3><ul>
+<li><strong>繁琐</strong>。使用到的View中的方法都需要在IPC中增加对应的方法</li>
+<li><strong>性能开销大</strong>。View的每一个方法都会涉及到IPC操作，多次IPC带来的开销问题不容小觑。</li>
+<li>View中方法的某些参数可能<strong>不支持IPC传输</strong>。如OnClickListener接口没有序列化。</li>
+</ul>
+<h2 id="AIDL配合RemoteViews"><a href="#AIDL配合RemoteViews" class="headerlink" title="AIDL配合RemoteViews"></a>AIDL配合RemoteViews</h2><p>RemoteViews就是为跨进程更新UI而生的，内部封装了很多方法用来实现跨进程更新UI。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// IremoteViewsManager.aidl</span></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">IremoteViewsManager</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">addRemoteView</span><span class="params">(in RemoteViews remoteViews)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// MainActivity.java</span></span><br><span class="line"><span class="comment">// RemoteViews转为View使用</span></span><br><span class="line">View view = remoteViews.apply(context, mLinearLayout);</span><br><span class="line">mLinearLayout.addView(view);</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Temp2Activity.java</span></span><br><span class="line"><span class="comment">// 绑定服务拿到IremoteViewsManager对象</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onServiceConnected</span><span class="params">(ComponentName name, IBinder service)</span> </span>&#123;</span><br><span class="line">    remoteViewsManager = IremoteViewsManager.Stub.asInterface(service);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//更新UI。添加两个button</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">UpdateUI</span><span class="params">(View view)</span></span>&#123;</span><br><span class="line">	<span class="comment">//创建RemoteViews</span></span><br><span class="line">    RemoteViews remoteViews = <span class="keyword">new</span> RemoteViews(Temp2Activity.<span class="keyword">this</span>.getPackageName(),R.layout.button_layout);</span><br><span class="line">	<span class="comment">//按钮点击事件绑定PendingIntent</span></span><br><span class="line">    Intent intentClick = <span class="keyword">new</span> Intent(Temp2Activity.<span class="keyword">this</span>,FirstActivity.class);</span><br><span class="line">    PendingIntent openFirstActivity = PendingIntent.getActivity(Temp2Activity.<span class="keyword">this</span>,<span class="number">0</span>,intentClick,<span class="number">0</span>);    remoteViews.setOnClickPendingIntent(R.id.firstButton,openFirstActivity);</span><br><span class="line">	<span class="comment">//设置按钮文本</span></span><br><span class="line">	remoteViews.setCharSequence(R.id.secondButton,<span class="string">"setText"</span>,<span class="string">"想改就改"</span>);</span><br><span class="line">	<span class="comment">//调用AIDL的接口添加RemoteViews到布局中展示</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        remoteViewsManager.addRemoteView(remoteViews);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RemoteException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="RemoteViews缺陷"><a href="#RemoteViews缺陷" class="headerlink" title="RemoteViews缺陷"></a>RemoteViews缺陷</h3><ul>
+<li><strong>目前支持的布局和View有限</strong><ul>
+<li>layout：<ul>
+<li>FrameLayout</li>
+<li>LinearLayout</li>
+<li>RelativeLayout</li>
+<li>GridLayout</li>
+</ul>
+</li>
+<li>View：<ul>
+<li>AnalogClock</li>
+<li>button</li>
+<li>Chronometer</li>
+<li>ImageButton</li>
+<li>ImageView</li>
+<li>ProgressBar</li>
+<li>TextView</li>
+<li>ViewFlipper</li>
+<li>ListView</li>
+<li>GridView</li>
+<li>StackView</li>
+<li>AdapterViewFlipper</li>
+<li>ViewStub</li>
+</ul>
+</li>
+<li>不支持自定义View</li>
+</ul>
+</li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://cjw-blog.net/2017/02/26/AIDL/" target="_blank" rel="noopener">巧用Android多进程，微信，微博等主流App都在用</a></li>
+<li><a href="https://github.com/V1sk/AIDL" target="_blank" rel="noopener">github 源码</a></li>
+<li><a href="http://stackoverflow.com/questions/4700225/in-out-inout-in-a-aidl-interface-parameter-value" target="_blank" rel="noopener">in、out、inout意义</a> stackoverflow</li>
+<li><a href="https://blog.csdn.net/chenzheng8975/article/details/54969791" target="_blank" rel="noopener">Android通过RemoteViews实现跨进程更新UI</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Android/" rel="tag"><i class="fa fa-tag"></i> Android</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/10/09/web/wordpress/avada主题/" rel="next" title="avada主题">
+                <i class="fa fa-chevron-left"></i> avada主题
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/10/14/Android/killProcess后进程自动重启问题/" rel="prev" title="killProcess后进程自动重启问题">
+                killProcess后进程自动重启问题 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">263</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Service"><span class="nav-number">1.</span> <span class="nav-text">Service</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#进程优先级"><span class="nav-number">1.1.</span> <span class="nav-text">进程优先级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service开发流程"><span class="nav-number">1.2.</span> <span class="nav-text">Service开发流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service方法"><span class="nav-number">1.3.</span> <span class="nav-text">Service方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动服务"><span class="nav-number">1.4.</span> <span class="nav-text">启动服务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#startService"><span class="nav-number">1.4.1.</span> <span class="nav-text">startService</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bindService"><span class="nav-number">1.4.2.</span> <span class="nav-text">bindService</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Service生命周期"><span class="nav-number">1.5.</span> <span class="nav-text">Service生命周期</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#startService启动服务的生命周期"><span class="nav-number">1.5.1.</span> <span class="nav-text">startService启动服务的生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bindService启动服务的生命周期"><span class="nav-number">1.5.2.</span> <span class="nav-text">bindService启动服务的生命周期</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#停止服务"><span class="nav-number">1.6.</span> <span class="nav-text">停止服务</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#本地服务"><span class="nav-number">2.</span> <span class="nav-text">本地服务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#远程服务"><span class="nav-number">3.</span> <span class="nav-text">远程服务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多进程支持"><span class="nav-number">4.</span> <span class="nav-text">多进程支持</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IPC"><span class="nav-number">5.</span> <span class="nav-text">IPC</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#IPC方式"><span class="nav-number">5.1.</span> <span class="nav-text">IPC方式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AIDL"><span class="nav-number">6.</span> <span class="nav-text">AIDL</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据传递"><span class="nav-number">6.1.</span> <span class="nav-text">数据传递</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#注意事项"><span class="nav-number">6.1.1.</span> <span class="nav-text">注意事项</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#in、out、inout"><span class="nav-number">6.1.1.1.</span> <span class="nav-text">in、out、inout</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实例"><span class="nav-number">6.2.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#所以然"><span class="nav-number">6.3.</span> <span class="nav-text">所以然</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Binder意外挂掉"><span class="nav-number">6.4.</span> <span class="nav-text">Binder意外挂掉</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#isBinderAlive"><span class="nav-number">6.4.1.</span> <span class="nav-text">isBinderAlive</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DeathRecipient"><span class="nav-number">6.4.2.</span> <span class="nav-text">DeathRecipient</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#权限验证"><span class="nav-number">6.5.</span> <span class="nav-text">权限验证</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#onTransact方法校验客户端包名"><span class="nav-number">6.5.1.</span> <span class="nav-text">onTransact方法校验客户端包名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#onBind中校验自定义permission"><span class="nav-number">6.5.2.</span> <span class="nav-text">onBind中校验自定义permission</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多进程造成Application多次创建"><span class="nav-number">7.</span> <span class="nav-text">多进程造成Application多次创建</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#跨进程更新UI"><span class="nav-number">8.</span> <span class="nav-text">跨进程更新UI</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#只使用AIDL"><span class="nav-number">8.1.</span> <span class="nav-text">只使用AIDL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#缺陷"><span class="nav-number">8.1.1.</span> <span class="nav-text">缺陷</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AIDL配合RemoteViews"><span class="nav-number">8.2.</span> <span class="nav-text">AIDL配合RemoteViews</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RemoteViews缺陷"><span class="nav-number">8.2.1.</span> <span class="nav-text">RemoteViews缺陷</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">9.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

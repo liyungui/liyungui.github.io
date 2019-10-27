@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/重构！将Google官方Android MVP应用于已有项目/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/02/手机/Exchange邮箱服务实现跨平台同步日历和联系人/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/重构！将Google官方Android MVP应用于已有项目/" itemprop="url">重构将Google官方Android MVP应用于已有项目</a></h1>
+                <a class="post-title-link" href="/2019/06/02/手机/Exchange邮箱服务实现跨平台同步日历和联系人/" itemprop="url">Exchange邮箱服务实现跨平台同步日历和通讯录</a></h1>
         
 
         <div class="post-meta">
@@ -293,8 +293,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:05:53+08:00">
-                2019-01-14
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-02T16:58:14+08:00">
+                2019-06-02
               </time>
             
 
@@ -316,8 +316,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
+                  <a href="/categories/手机/" itemprop="url" rel="index">
+                    <span itemprop="name">手机</span>
                   </a>
                 </span>
 
@@ -355,607 +355,21 @@
       
         
           
-            <p><a href="http://www.jianshu.com/p/bb5df9b7e357" target="_blank" rel="noopener">重构！将Google官方Android MVP应用于已有项目</a></p>
-<p>采用MVP架构进行重构，代码量上相对于原项目时有所增加的</p>
-<h1 id="Google示例项目"><a href="#Google示例项目" class="headerlink" title="Google示例项目"></a>Google示例项目</h1><p><a href="https://github.com/googlesamples/android-architecture" target="_blank" rel="noopener">Android Architecture Blueprints [beta]</a></p>
-<h1 id="重构"><a href="#重构" class="headerlink" title="重构"></a>重构</h1><h2 id="建立两个Base接口，BaseView和BasePresenter"><a href="#建立两个Base接口，BaseView和BasePresenter" class="headerlink" title="建立两个Base接口，BaseView和BasePresenter"></a>建立两个Base接口，BaseView和BasePresenter</h2><pre><code>public interface BasePresenter {
-}
-
-public interface BaseView&lt;T&gt; {
-    void setPresenter(T presenter);//将Presenter实例传入view，调用时机为Presenter实现类的构造方法中
-}
-</code></pre><h2 id="创建契约类-统一管理View和Presenter的所有接口"><a href="#创建契约类-统一管理View和Presenter的所有接口" class="headerlink" title="创建契约类,统一管理View和Presenter的所有接口"></a>创建契约类,统一管理View和Presenter的所有接口</h2><pre><code>public interface MainActivityContract {
-
-    interface View extends BaseView&lt;Presenter&gt; {
-
-        void showError();
-
-        void showLoading();
-
-        void stopLoading();
-
-        void showResults(ArrayList&lt;String&gt; list);
-
-        void showNetworkError();
-
-    }
-
-    interface Presenter extends BasePresenter {
-
-        void loadPosts(String url, boolean clearing);
-
-        void refresh(String url);
-
-        void loadMore(String url);
-
-    }
-
-}
-</code></pre><h2 id="创建Presenter实现类"><a href="#创建Presenter实现类" class="headerlink" title="创建Presenter实现类"></a>创建Presenter实现类</h2><pre><code>public class MainActivityPresenter implements MainActivityContract.Presenter, NewsListener {
-
-    private MainActivityContract.View view;//持有View接口
-    private NewsModel model;//持有Model实现类
-
-    private ArrayList&lt;String&gt; list = new ArrayList&lt;String&gt;();
-
-    public MainActivityPresenter(MainActivityContract.View view) {
-        this.view = view;
-        this.view.setPresenter(this);//View设置Present
-        model = new NewsModel();
-    }
-
-    @Override
-    public void loadPosts(String url, boolean clearing) {
-        view.showLoading();
-        if (clearing) {
-            list.clear();
-        }
-        model.load(url, this);
-    }
-
-    @Override
-    public void refresh(String url) {
-        list.clear();
-        loadPosts(url, true);
-    }
-
-    @Override
-    public void loadMore(String url) {
-        model.load(url, this);
-    }
-
-    @Override
-    public void start() {
-
-    }
-
-    @Override
-    public void onSuccess(String result) {
-        list.add(result);
-        view.showResults(list);
-        view.stopLoading();
-
-    }
-
-    @Override
-    public void onError(String error) {
-        view.stopLoading();
-        view.showError();
-    }
-
-}
-</code></pre><h2 id="创建View实现类。-作为View和Presenter的桥梁，创建View和Presenter实现类的实例"><a href="#创建View实现类。-作为View和Presenter的桥梁，创建View和Presenter实现类的实例" class="headerlink" title="创建View实现类。 作为View和Presenter的桥梁，创建View和Presenter实现类的实例"></a>创建View实现类。 作为View和Presenter的桥梁，创建View和Presenter实现类的实例</h2><pre><code>public class MainActivity extends AppCompatActivity implements MainActivityContract.View {
-
-    private SwipeRefreshLayout refresh;
-    private TextView tvRefresh;
-    private TextView tvLoadMore;
-    private TextView tvContent;
-
-    private MainActivityContract.Presenter presenter;
-
-    private String cnnews = &quot;cnnews&quot;;
-    private String usanews = &quot;usanews&quot;;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        new MainActivityPresenter(this);//创建Presenter实例
-
-        refresh = (SwipeRefreshLayout) findViewById(R.id.refresh);
-        tvRefresh = (TextView) findViewById(R.id.tvRefresh);
-        tvLoadMore = (TextView) findViewById(R.id.tvLoadMore);
-        tvContent = (TextView) findViewById(R.id.tvContent);
-        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refresh.setRefreshing(false);
-            }
-        });
-        tvRefresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                presenter.refresh(cnnews);
-            }
-        });
-        tvLoadMore.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                presenter.loadMore(usanews);
-            }
-        });
-
-        presenter.loadPosts(cnnews, false);
-    }
-
-    @Override
-    public void showError() {
-        tvContent.setText(&quot;出现错误&quot;);
-    }
-
-    @Override
-    public void showLoading() {
-        refresh.setRefreshing(true);
-    }
-
-    @Override
-    public void stopLoading() {
-        refresh.setRefreshing(false);
-    }
-
-    @Override
-    public void showResults(ArrayList&lt;String&gt; list) {
-        String content = &quot;&quot;;
-        for (String string : list) {
-            if (!TextUtils.isEmpty(content)) {
-                content += &quot;\n&quot;;
-            }
-            content += string;
-            tvContent.setText(content + &quot;\n&quot;);
-        }
-    }
-
-    @Override
-    public void showNetworkError() {
-        tvContent.setText(&quot;网络错误&quot;);
-    }
-
-    @Override
-    public void setPresenter(MainActivityContract.Presenter presenter) {
-        if (null != presenter) {
-            this.presenter = presenter;
-        }
-    }
-}
-</code></pre><h2 id="Model实现类"><a href="#Model实现类" class="headerlink" title="Model实现类"></a>Model实现类</h2><p>Gson解析接口返回</p>
-<pre><code>public class News {
-    private String content;
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-}
-</code></pre><p>网络请求异步，返回接口需要接口回调</p>
-<pre><code>public interface NewsListener {
-
-    void onSuccess(String result);
-
-    void onError(String error);
-
-}
-</code></pre><p>Retrofit网络请求</p>
-<pre><code>public class NewsModel {
-
-    public void load(String url, final NewsListener listener) {
-        NewsAPI.get(url, new Callback&lt;News&gt;() {
-            @Override
-            public void onResponse(Call&lt;News&gt; call, Response&lt;News&gt; response) {
-                if (response.code() == 200) {
-                    listener.onSuccess(response.body().getContent());
-                }
-            }
-
-            @Override
-            public void onFailure(Call&lt;News&gt; call, Throwable t) {
-                listener.onError(call.request().url() + &quot; faild&quot;);
-                t.printStackTrace();
-            }
-        });
-
-    }
-}
-</code></pre><h2 id="mvp是如何互相持有的"><a href="#mvp是如何互相持有的" class="headerlink" title="mvp是如何互相持有的"></a>mvp是如何互相持有的</h2><p>View与Presenter</p>
-<pre><code>View中
-    new MainActivityPresenter(this);//创建Presenter实例
-
-    implements MainActivityContract.View
-    @Override
-    public void setPresenter(MainActivityContract.Presenter presenter) {
-        if (null != presenter) {
-            this.presenter = presenter;//持有了Presenter
-        }
-    }
-
-Presenter中
-    public MainActivityPresenter(MainActivityContract.View view) {
-        this.view = view;//持有了View
-        this.view.setPresenter(this);//View设置Present
-        model = new NewsModel();
-    }
-</code></pre><p>Presenter与Model</p>
-<pre><code>Model中
-    public void load(String url, final NewsListener listener) 
-
-Presenter中
-    public class MainActivityPresenter implements MainActivityContract.Presenter, NewsListener 
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/我不使用Android Data Binding的四个理由/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/我不使用Android Data Binding的四个理由/" itemprop="url">我不使用Android Data Binding的四个理由</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:04:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>我不使用Android Data Binding的四个理由  http://mafei.me/2016/08/14/%E8%AF%91%E6%96%87-%E6%88%91%E4%B8%8D%E4%BD%BF%E7%94%A8Android-Data-Binding%E7%9A%84%E5%9B%9B%E4%B8%AA%E7%90%86%E7%94%B1/
-</code></pre><h2 id="1、专家不建议这么做"><a href="#1、专家不建议这么做" class="headerlink" title="1、专家不建议这么做"></a>1、专家不建议这么做</h2><p>ButterKnife的作者Jake在下面这个github issue中直指要点。</p>
-<pre><code>data binding在最简单的场景下是比较有用的。
-但它并没有什么创新，所以在复杂度增加的情况下还是会像其他平台上的解决方案一样用起来非常痛苦（例如：XAML）。
-当这个库扩展到高级的情况下，将会迫使你把绑定的逻辑写到代码中，那里才是它真正该在的地方。
-</code></pre><p>事实上，我同意其中的两点：</p>
-<pre><code>1、它的扩展性并不好。
-2、业务逻辑应该在代码中。
-</code></pre><h2 id="2、它让你写出意大利面式的代码"><a href="#2、它让你写出意大利面式的代码" class="headerlink" title="2、它让你写出意大利面式的代码"></a>2、它让你写出意大利面式的代码</h2><p>一旦我们开始实现复杂的布局，将会使我们的Data Binding解决方案越来越复杂。</p>
-<p>首先我们将会面临下面的问题：</p>
-<pre><code>1、Layout 要求你给他们分别传递数据。
-
-2、你也可能想为你的布局创建不同的数据源。
-
-3、同样的问题也会在ViewStubs中发生。
-
-4、当你使用Picasso加载图片的时候，你需要为他实现一个自定义的data binding adapter，那样的话你就不能作为依赖mock和注入了。
-</code></pre><h2 id="3、单元测试也不能用了"><a href="#3、单元测试也不能用了" class="headerlink" title="3、单元测试也不能用了"></a>3、单元测试也不能用了</h2><p>我非常喜欢Robolectric和Mockito，他们节约了我很多时间在创建和运行测试实例的时候，没有了他们我将无法工作。</p>
-<p>Data Binding的一个特性对于我来说是一个bug：如果layout发生了异步更新，那就意味着在我设置了绑定之后单元测试中我无法确定view上的数据是否正确。</p>
-<h2 id="4、它比ButterKnife提供的功能少很多"><a href="#4、它比ButterKnife提供的功能少很多" class="headerlink" title="4、它比ButterKnife提供的功能少很多"></a>4、它比ButterKnife提供的功能少很多</h2>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/为什么要把Dagger2,MVP以及Rxjava引入项目中/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/为什么要把Dagger2,MVP以及Rxjava引入项目中/" itemprop="url">为什么要把Dagger2,MVP以及Rxjava引入项目中</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:03:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.jianshu.com/p/91c2bb8e6369" target="_blank" rel="noopener">为什么要把Dagger2,MVP以及Rxjava引入项目中</a></p>
-<p>毫无疑问在Android开发圈中这三个技术是经常被提及的,如此多的文章和开源项目在介绍他们,使用他们</p>
-<pre><code>其实我们大多数项目中是使用不到他们的,或者说对这些技术的需求不是很大,为什么这么说呢？
-</code></pre><ul>
-<li>大多数的开发者其实都是在开发功能模块比较少的小项目,对于这些项目来说,其实使用这些技术带来的好处相对于在开发时的所付出的时间来说其实性价比并不高。因为学习这些会有个学习曲线,并且这些技术并不会让你的开发速度加快,相反会让你多写很多代码,比如MVP和Dagger都会让你多写很多类和接口</li>
-</ul>
+            <h1 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h1><p>同步小米的日程提醒和通讯录到iPhone</p>
+<p>使用网易163的Exchange服务，可以实现日历，通讯录，邮件的跨平台（Windows、Mac、Android、iPhone）同步</p>
+<h1 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h1><h2 id="添加Exchange邮箱账号"><a href="#添加Exchange邮箱账号" class="headerlink" title="添加Exchange邮箱账号"></a>添加Exchange邮箱账号</h2><p>进入日历 – 右上角 设置 – 日历账号管理 – 添加账号；</p>
+<p>最后跳转到的页面和 电子邮件 添加账户 界面是一样的；</p>
+<p>所以可以直接在桌面 点击 电子邮件</p>
+<p><strong>特别注意：</strong> </p>
 <ul>
-<li><p>所以说我们开发小项目根本是感觉不到这些技术给我们带来的好处,也会困惑我们为什么要引入这些技术?</p>
-<pre><code>那为什么这些技术会这么火呢？
-</code></pre></li>
+<li>需要添加 EXchange 邮箱类型；默认一般都是IMAP，POP3，是不支持同步服务的</li>
+<li>网易163默认开启了第三方授权码登录，如果发现密码错误，使用授权码登录或者关闭授权码</li>
 </ul>
-<p>其实这些困惑大多出现在一直做功能模块比较少的小项目的开发者上。</p>
-<p>只要你做过比较大的项目,随着代码的增多你就会遇到代码的耦合,团队协作时冲突的解决,类依赖的复杂度等问题，其实这些技术就是来解决这些问题的,所以这些技术大项目用的非常多</p>
-<pre><code>这些技术出现是为了解决什么？
-</code></pre><p>想灵活运用一个技术,必然要了解这些技术为什么出现,出现是为了解决什么问题</p>
-<h2 id="MVP"><a href="#MVP" class="headerlink" title="MVP"></a>MVP</h2><p>我个人的理解就是 <code>解耦</code> 和 <code>扩展</code> 以及 <code>团队协作</code>。</p>
-<p>大多数文章都只是介绍了怎么写MVP接口,不懂为什么用他们,就算会写也只是在做复制粘贴</p>
-<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><ul>
-<li><p>我们需要用户点击按钮从网络获取一段新闻消息显示到TextView上,如果都在Activity中做这些事情,OK,非常爽,不用多写MVP相关的接口和类,啪啪啪一下就写完了</p>
-</li>
-<li><p>但是我们现在需求变了,我们要加入缓存,并且不用TextView显示,使用Toast显示,现在去改Activity,虽然麻烦,但是没问题，都是你写的。但是如果不是你写的,要把逻辑重新看一遍,并且如果改错的话,会影响之前已经写好的功能,这完全违背开闭原则</p>
-</li>
-<li><p>但是我们用MVP去开发,就可以缩小这些问题,我们只需要在Model层加入缓存逻辑,因为Presenter层拿到的是Model的接口,他只关心Model层返回的数据,至于你的接口是怎么实现的,你的数据是从网络还是数据库还是本地文件获取的,根本不必关心</p>
-</li>
-<li><p>Presenter拿到的是View的接口,Presenter从Model获取完数据,返回给View,就完成了他的工作,他根本不用管View是怎么实现的,使用TextView显示还是Toast显示,这些都是View的事情,所以他们每层只用把各自的事情做好根本不用管以外的事情</p>
-</li>
-<li><p>这样我们就可以把View,Presenter,Model给三个不同的人写,需求一变不会影响整个代码,将问题最小化,比如UI需求一变我们只用修改View层,出了问题可以马上定位,并且易于测试</p>
-</li>
-</ul>
-<h2 id="Dagger"><a href="#Dagger" class="headerlink" title="Dagger"></a>Dagger</h2><p>Dagger的门槛个人认为在这三个中是最高的</p>
-<p>很多只是讲怎么写这些类,注解该怎么用,都没讲为什么不直接new,为什么要把如此简单的事情弄这么复杂?</p>
-<p>其实这还是和项目的大小有关,因为它解决的问题就是大项目的需求</p>
-<h3 id="实例-1"><a href="#实例-1" class="headerlink" title="实例"></a>实例</h3><ul>
-<li><p>大型项目的实际情况是这样的</p>
-<pre><code>A a = new A();
-B b = new B(a);
-C c = new C(a,b);
-D d = new D(c);
-E e = new E(a,b,d);
-</code></pre></li>
-<li><p>以上例子,构建一个E,还要构建一堆其他的对象,并且其他对象的构建同样复杂,并且必须按顺序构建,而且需要的对象的生命周期都不一样,有些生命周期可能和Activity一样,有些可能是单例,所以在构建的时候还要考虑对象声明周期,考虑对象的来源,在大型项目,这很痛苦,不光用起老火,别人看代码也和看天书一样</p>
-</li>
-<li><p>所以这个时候依赖注入框架就派上用场了,我们只用专注于怎么实现功能,对象的依赖关系和生命周期,都让它来帮我们管理,一个Inject,它会按照依赖关系帮我们注入我们需要的对象,并且它会管理好每个对象的生命周期,在生命周期还没结束的情况下是不会重复new的,所以Dagger非常适合大项目,小项目开发者因为项目复杂度低,没遇到这些问题,所以不会理解为什么要用Dagger,让简单的new,变这么复杂</p>
-</li>
-</ul>
-<h2 id="RxJava"><a href="#RxJava" class="headerlink" title="RxJava"></a>RxJava</h2><p>提到Rxjava最多人都是用来处理 线程调度,回调地狱,加上Retrofit又支持Rxjava,所以大部分开发者都只会在请求网络和需要切换线程的时候用到Rxjava,其实它有一个最重要的特性,它可以让数据的流向更加直观,代码更清晰</p>
-<h3 id="实例-2"><a href="#实例-2" class="headerlink" title="实例"></a>实例</h3><ul>
-<li><p>一个庞大的项目,一个事件传递的过程可能要经历很多方法,方法套方法,每个方法的位置七零八落,一个个方法跳进去看,跳过去跳过来很容易把脑袋弄晕,不够直观,但是Rxjava可以把所有逻辑用链式加闭包的方式呈现,做了哪些操作,谁在前谁在后非常直观,逻辑清晰,维护就会非常轻松,就算不是你写的你也可以很快的了解</p>
-</li>
-<li><p>你可以把它看作一条河流,整个过程就是对里面的水流做进行加工,懂了这个特性我们才知道在复杂的逻辑中运用Rxjava是多么的重要</p>
-</li>
-</ul>
-<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><ul>
-<li><p>学习新技术,我们不应该盲目的跟风,我们如果不知道这个技术为什么出现,出现是为了解决什么,我们也就不知道为什么运用它,我们就算在项目中使用也无法灵活运用,非常浅显的使用,复制粘贴一些模版代码,也根本无法扩展自己的思维</p>
-</li>
-<li><p>这些技术虽然比较适合大项目一点,但是还是建议各位开发者开始使用他们,使用他们能扩展自己的思维,让自己考虑耦合,扩展,团队协作之类大项目才会考虑的问题,你如果一直重复的按最简单的方式写项目,什么都不考虑,你就算是5年经验,也只是以第一年的经验重复5年</p>
-</li>
-<li><p>最后介绍一个将MVP,Dagger,Retrofit,Rxjava等技术相结合并用于快速开发的框架,如果想搭建一个新项目使用这些技术,改了包名就可以直接使用,包含详细的文档,相比于这些技术漫长的学习曲线,我们在实践中学习他们不是更快吗？</p>
-</li>
-</ul>
-<p><a href="https://github.com/JessYanCoding/MVPArms" target="_blank" rel="noopener">MVPArms Mvp快速集成框架</a></p>
-<p><a href="http://www.jianshu.com/p/48e66e879061" target="_blank" rel="noopener">MVPArms Mvp快速集成框架使用</a> </p>
+<h2 id="添加日程提醒事件到-邮箱账号"><a href="#添加日程提醒事件到-邮箱账号" class="headerlink" title="添加日程提醒事件到 邮箱账号"></a>添加日程提醒事件到 邮箱账号</h2><p>日历 默认添加的日程提醒事件 是 小米云账号</p>
+<p>可以设置 邮箱账号为 默认日程账号；以后添加的事件都是到 邮箱账号了</p>
+<p>添加事件的时候 可以选择 日历账号；之前添加的事件也可以编辑，修改日历账号</p>
+<h2 id="同步"><a href="#同步" class="headerlink" title="同步"></a>同步</h2><p>添加/修改 事件 完毕，进入 设置  – 同步；即已经把事件同步到邮箱账号了</p>
+<p>在iPhone上同样添加账号，日历设置中显示 Exchange账户日历，同步，即可看到同步过来的事件了</p>
 
           
         
@@ -1004,7 +418,7 @@ E e = new E(a,b,d);
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/ioc框架--注解和反射/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/21/Android/Raw和Asset/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1023,7 +437,7 @@ E e = new E(a,b,d);
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/01/14/编程思想/ioc框架--注解和反射/" itemprop="url">ioc框架--注解和反射</a></h1>
+                <a class="post-title-link" href="/2019/05/21/Android/Raw和Asset/" itemprop="url">Raw和Asset</a></h1>
         
 
         <div class="post-meta">
@@ -1035,8 +449,8 @@ E e = new E(a,b,d);
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T08:58:53+08:00">
-                2019-01-14
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-21T19:19:53+08:00">
+                2019-05-21
               </time>
             
 
@@ -1058,8 +472,8 @@ E e = new E(a,b,d);
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
                   </a>
                 </span>
 
@@ -1097,7 +511,20 @@ E e = new E(a,b,d);
       
         
           
-            <p>ioc框架–注解和反射<br>来自张鸿洋博客 <a href="http://blog.csdn.net/lmj623565791/article/details/39269193" target="_blank" rel="noopener">http://blog.csdn.net/lmj623565791/article/details/39269193</a><br>IoC，控制反转（Inversion of Control，英文缩写为IoC）<br>1.为什么要ioc<br>    一个类里面需要用到很多个成员变量，传统的写法，你要用这些成员变量，那么你就new 出来用呗~~<br>    IoC的原则是：不要new，这样耦合度太高；你配置个xml文件，里面标明哪个类，里面用了哪些成员变量，等待加载这个类的时候，我帮你注入（new）进去；<br>    所以，在现代软件分层开发中，每一层要一个包放接口，一个包放实现类<br>        而ioc只要声明了成员变量+写个配置文件，有人帮你new；<br>        此时，在类中就可以把需要使用到的成员变量都声明成接口，<br>        然后你会发现，当实现类发生变化的时候，或者切换实现类，你只要在配置文件里面做个简单的修改。<br>        如果你用的就是实实在在的实现类，现在换实现类，你需要找到所有声明这个实现类的地方，逐个手动修改类名<br>    有人说，写个配置文件多麻烦。于是又出现了另一种方案。<br>    注解–在需要注入的成员变量上面加个注解<br>2.如何注入<br>    配置文件/注解 是如何实现注入的？<br>    其实就是把字符串类路径变成类。这就需要用到反射了。<br>3.注入框架实现–xUtils<br>    使用实例<br>        @ContentView(value = R.layout.activity_main)<br>        public class MainActivity extends BaseActivity {<br>            @ViewInject(R.id.id_btn)<br>            private Button mBtn1;<br>            @ViewInject(R.id.id_btn02)<br>            private Button mBtn2;<br>            public void onCreate(Bundle savedInstanceState) {<br>                super.onCreate(savedInstanceState);<br>                ViewUtils.inject(this);<br>            }<br>        }<br>    实现<br>        @Target(ElementType.TYPE)<br>        @Retention(RetentionPolicy.RUNTIME)<br>        public @interface ContentView<br>        {<br>            int value();<br>        }<br>        @Target(ElementType.FIELD)<br>        @Retention(RetentionPolicy.RUNTIME)<br>        public @interface ViewInject<br>        {<br>            int value();<br>        }<br>        public static void inject(Activity activity) {<br>            injectContentView(activity);<br>            injectViews(activity);<br>        }<br>        (1)注入主布局文件的代码<br>            private static void injectContentView(Activity activity) {<br>                Class&lt;? extends Activity&gt; clazz = activity.getClass();<br>                // 查询类上是否存在ContentView注解<br>                ContentView contentView = clazz.getAnnotation(ContentView.class);<br>                if (contentView != null)// 存在<br>                {<br>                    int contentViewLayoutId = contentView.value();<br>                    try<br>                    {<br>                        Method method = clazz.getMethod(“setContentView”, int.class);<br>                        method.setAccessible(true);<br>                        method.invoke(activity, contentViewLayoutId);<br>                    } catch (Exception e)<br>                    {<br>                        e.printStackTrace();<br>                    }<br>                }<br>            }<br>            通过传入的activity对象，获得它的Class类型，判断如果该类写了ContentView这个注解，读取它的value，然后得到setContentView这个方法，使用invoke进行调用；<br>        (2)注入Views<br>            private static void injectViews(Activity activity) {<br>                Class&lt;? extends Activity&gt; clazz = activity.getClass();<br>                Field[] fields = clazz.getDeclaredFields();<br>                // 遍历所有成员变量<br>                for (Field field : fields)<br>                {<br>                    ViewInject viewInjectAnnotation = field.getAnnotation(ViewInject.class);<br>                    if (viewInjectAnnotation != null){<br>                        int viewId = viewInjectAnnotation.value();<br>                        if (viewId != -1){<br>                            Log.e(“TAG”, viewId+””);<br>                            // 初始化View<br>                            try {<br>                                Method method = clazz.getMethod(“findViewById”, int.class);<br>                                Object resView = method.invoke(activity, viewId);<br>                                field.setAccessible(true);<br>                                field.set(activity, resView);<br>                            } catch (Exception e) {<br>                                e.printStackTrace();<br>                            }<br>                        }<br>                    }<br>                }<br>            }<br>            遍历类中声明的所有属性，找到存在ViewInject注解的属性并获取其value，然后去调用findViewById方法，最后把值设置给field</p>
+            <h1 id="联系"><a href="#联系" class="headerlink" title="联系"></a>联系</h1><ul>
+<li><p>相同点：<br>  两个文件夹下的文件都不会被编译成二进制文件，都会被原封不动的放到apk中。</p>
+</li>
+<li><p>不同点：</p>
+<ul>
+<li>asset下的文件不会被映射到R文件中，raw下的文件会被映射到R文件中(可以使用R.raw.xxx引用)。</li>
+<li>asset下可以有目录结构，raw下不能有目录结构。</li>
+</ul>
+</li>
+</ul>
+<h1 id="获取文件路径"><a href="#获取文件路径" class="headerlink" title="获取文件路径"></a>获取文件路径</h1><h2 id="asset"><a href="#asset" class="headerlink" title="asset"></a>asset</h2><p><code>&quot;file:///android_asset/Kotlin与ava共存.mp4&quot;</code></p>
+<p>此种路径仅可用于webview加载</p>
+<h2 id="raw"><a href="#raw" class="headerlink" title="raw"></a>raw</h2><p><code>String uri = &quot;android.resource://&quot; + getPackageName() + &quot;/&quot; + R.raw.video;</code></p>
+<p>通过assets目录构造URI，不能用来播放视频，也不能播放音频。在raw目录下的文件构造URI可以播放音频，也能播放视频</p>
 
           
         
@@ -1146,7 +573,7 @@ E e = new E(a,b,d);
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/分层架构与M-V-X/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/30/Android/新手指引View/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1165,7 +592,7 @@ E e = new E(a,b,d);
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/01/14/编程思想/分层架构与M-V-X/" itemprop="url">分层架构与M-V-X</a></h1>
+                <a class="post-title-link" href="/2019/04/30/Android/新手指引View/" itemprop="url">新手指引View</a></h1>
         
 
         <div class="post-meta">
@@ -1177,8 +604,8 @@ E e = new E(a,b,d);
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T08:58:53+08:00">
-                2019-01-14
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-30T18:27:53+08:00">
+                2019-04-30
               </time>
             
 
@@ -1187,28 +614,6 @@ E e = new E(a,b,d);
             
           </span>
 
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
           
 
           
@@ -1239,22 +644,19 @@ E e = new E(a,b,d);
       
         
           
-            <h1 id="分层架构"><a href="#分层架构" class="headerlink" title="分层架构"></a>分层架构</h1><p>分层架构是一种常见的软件应用架构</p>
-<p>在 Java 程序中可以算是一种应用标准了，通常又叫 N 层架构<br>而最常见的是 3 层架构，它包含如下 3 层：</p>
-<img src="/2019/01/14/编程思想/分层架构与M-V-X/分层架构.png">
-<h2 id="展示层（Presentation-Layer）"><a href="#展示层（Presentation-Layer）" class="headerlink" title="展示层（Presentation Layer）"></a>展示层（Presentation Layer）</h2><p>也称为 UI 层，也就是程序的界面部分。</p>
-<p>也就是 <strong>MVX结构</strong> 所对应的地方（MVC、MVP等），这里不处理UI以外的任何逻辑。</p>
-<h2 id="Domain-Layer"><a href="#Domain-Layer" class="headerlink" title="Domain Layer"></a>Domain Layer</h2><p>又称 Bussiness Logic Layer， 业务层，是最为核心的一层。</p>
-<p>纯java模块，不包含任何的平台(Android,Web)依赖</p>
-<p>包含 业务实体(Entities)和具体业务逻辑(Interactor,又称Use Cases)</p>
-<img src="/2019/01/14/编程思想/分层架构与M-V-X/DomainLayer.png">
-<h2 id="Data-Layer"><a href="#Data-Layer" class="headerlink" title="Data Layer"></a>Data Layer</h2><p>数据持久层。</p>
-<p>应用的数据都是由这层提供</p>
-<p>这层通常是 Repository Pattern 实现 Domain层 接口</p>
-<p>数据流向：</p>
-<img src="/2019/01/14/编程思想/分层架构与M-V-X/DataLayer.png">
-<h1 id="分层架构依赖关系"><a href="#分层架构依赖关系" class="headerlink" title="分层架构依赖关系"></a>分层架构依赖关系</h1><p>3 层架构是存在物理上分层概念的，<br>从上往下即展示层、业务层、持久层，也从上往下由上一层依赖下一层。<br>不同层之间也是 高内聚低耦合 的体现，层内高内聚，层间低耦合，<br>层 是层内具体工作的高度抽象。<br>低耦合则是依赖倒转原则体现出来，高层依赖于下层的抽象而不是具体。</p>
-<h1 id="M-V-X"><a href="#M-V-X" class="headerlink" title="M-V-X"></a>M-V-X</h1><p>在分层架构中 M-V-X 是在展示层（Presentation Layer）的应用</p>
+            <h1 id="NewbieGuide"><a href="#NewbieGuide" class="headerlink" title="NewbieGuide"></a><a href="https://github.com/huburt-Hu/NewbieGuide" target="_blank" rel="noopener">NewbieGuide</a></h1><p>简洁链式调用，一行代码实现引导层的显示</p>
+<h1 id="GuideView"><a href="#GuideView" class="headerlink" title="GuideView"></a><a href="https://github.com/binIoter/GuideView" target="_blank" rel="noopener">GuideView</a></h1><p>轻量级新手指引库，能够快速为任何一个 View 创建一个遮罩层，支持单个页面，多个引导提示，支持为高亮区域设置不同的图形，支持引导动画，方便扩展，良好支持 fragment。</p>
+<h1 id="Spotlight"><a href="#Spotlight" class="headerlink" title="Spotlight"></a><a href="https://github.com/wooplr/Spotlight" target="_blank" rel="noopener">Spotlight</a></h1><p>动态指引，更容易让用户耳目一新，可以在新功能的入口处添加提示。</p>
+<h1 id="MaterialIntroView"><a href="#MaterialIntroView" class="headerlink" title="MaterialIntroView"></a><a href="https://github.com/iammert/MaterialIntroView" target="_blank" rel="noopener">MaterialIntroView</a></h1><p>仿造App Fabulous</p>
+<p><img src="https://diycode.b0.upaiyun.com/photo/2017/481565db050c9b740f1337fb29e4c93d.gif" alt=""></p>
+<h1 id="Highlight"><a href="#Highlight" class="headerlink" title="Highlight"></a><a href="https://github.com/hongyangAndroid/Highlight" target="_blank" rel="noopener">Highlight</a></h1><p>一个用于 App 指向性功能高亮的库，开发者 鸿洋。</p>
+<p><img src="https://diycode.b0.upaiyun.com/photo/2017/7d97601ac5466562103b26ad2b084626.gif" alt=""></p>
+<h1 id="FancyShowCaseView"><a href="#FancyShowCaseView" class="headerlink" title="FancyShowCaseView"></a><a href="https://github.com/faruktoptas/FancyShowCaseView" target="_blank" rel="noopener">FancyShowCaseView</a></h1><p>动效，支持自定义 View 和动画等。</p>
+<p><img src="https://diycode.b0.upaiyun.com/photo/2017/fb3ca0baa452e7682219d2322ce6472d.gif" alt=""></p>
+<h1 id="ShowcaseView"><a href="#ShowcaseView" class="headerlink" title="ShowcaseView"></a><a href="https://github.com/amlcurran/ShowcaseView" target="_blank" rel="noopener">ShowcaseView</a></h1><p>向你的用户快速展示应用的两点，这个控件时基于 Android 系统（Ice-Cream Sandwich 和 Jelly Bean 两个版本的 Launcher）源码中的 Cling 自定义 View 实现的。</p>
+<p> <img src="https://diycode.b0.upaiyun.com/photo/2017/604401d0454277349b6b5e475cf8cdd7.png" alt=""></p>
+<h1 id="MaterialShowcaseView"><a href="#MaterialShowcaseView" class="headerlink" title="MaterialShowcaseView"></a><a href="https://github.com/deano2390/MaterialShowcaseView" target="_blank" rel="noopener">MaterialShowcaseView</a></h1><p>受到上一个推荐的 ShowcaseView 启发而写的控件，Material Design 风格的设计让效果更加好看。</p>
+<p><img src="https://diycode.b0.upaiyun.com/photo/2017/4119ffb7ddb8a0066df50ef8a4bf2fd7.gif" alt=""></p>
 
           
         
@@ -1303,7 +705,7 @@ E e = new E(a,b,d);
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/Clean code/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/30/Android/ImageView使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1322,7 +724,7 @@ E e = new E(a,b,d);
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/01/14/编程思想/Clean code/" itemprop="url">CleanCode</a></h1>
+                <a class="post-title-link" href="/2019/04/30/Android/ImageView使用/" itemprop="url">ImageView使用</a></h1>
         
 
         <div class="post-meta">
@@ -1334,8 +736,8 @@ E e = new E(a,b,d);
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T08:56:53+08:00">
-                2019-01-14
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-30T18:02:53+08:00">
+                2019-04-30
               </time>
             
 
@@ -1344,28 +746,6 @@ E e = new E(a,b,d);
             
           </span>
 
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
           
 
           
@@ -1396,715 +776,907 @@ E e = new E(a,b,d);
       
         
           
-            <h2 id="第一章、-整洁代码"><a href="#第一章、-整洁代码" class="headerlink" title="第一章、 整洁代码"></a>第一章、 整洁代码</h2><p>我们一直需要整洁代码。 可预见的未来，自动化产生代码无法替代人工编写。</p>
-<h2 id="第二章、-有意义的命名"><a href="#第二章、-有意义的命名" class="headerlink" title="第二章、 有意义的命名"></a>第二章、 有意义的命名</h2><h2 id="2-2-名副其实"><a href="#2-2-名副其实" class="headerlink" title="2.2 名副其实"></a>2.2 名副其实</h2><p>名称应该答复了所有大问题。 为何存在，何用，如何用</p>
-<p>如果名称需要注释类补充，就不是名副其实</p>
-<p>实例： 消逝的时间，以日记</p>
-<pre><code>elapsedTimeInDay;
-daysSinceCreation
-fileAgeInDay
-</code></pre><h2 id="2-3-避免误导"><a href="#2-3-避免误导" class="headerlink" title="2.3 避免误导"></a>2.3 避免误导</h2><ul>
-<li><p>避免留下误导的错误仙索。</p>
-<p>  实例： 一组账号</p>
-<pre><code>accountList 最好别用，即使真是List&lt;Account&gt;。List对程序员有特殊含义
-accounts 推荐使用
-</code></pre></li>
-<li><p>避免使用不同之处较小的名称</p>
-<p>  现代IDE都能自动提示自动补全，假如相似的名称放在一起，不同之处较小，分清楚得花多少时间</p>
-</li>
-</ul>
-<h2 id="2-4-做有意义的区分"><a href="#2-4-做有意义的区分" class="headerlink" title="2.4 做有意义的区分"></a>2.4 做有意义的区分</h2><p>错误示例：</p>
-<ul>
-<li>a,b,c</li>
-<li>list1,list2</li>
-<li>Product,ProductInfo,ProductData</li>
-<li>name,nameString</li>
-</ul>
-<h2 id="使用读得出来的名称"><a href="#使用读得出来的名称" class="headerlink" title="使用读得出来的名称"></a>使用读得出来的名称</h2><p>方便交流</p>
-<h2 id="2-6-使用可搜索的名称"><a href="#2-6-使用可搜索的名称" class="headerlink" title="2.6 使用可搜索的名称"></a>2.6 使用可搜索的名称</h2><p>单字母名称和数字常量，都是无法搜索</p>
-<p>MAX_COLUM_PER_PAGE 能搜索出来，常量 7 麻烦了</p>
-<h2 id="2-7-避免使用编码"><a href="#2-7-避免使用编码" class="headerlink" title="2.7 避免使用编码"></a>2.7 避免使用编码</h2><p>现在语言中使用编码，纯属多余的负担</p>
-<h3 id="2-7-1-匈牙利命名法"><a href="#2-7-1-匈牙利命名法" class="headerlink" title="2.7.1 匈牙利命名法"></a>2.7.1 匈牙利命名法</h3><p>windows c 语言 API 时代，程序员需要匈牙利命名法来帮助自己记住类型。</p>
-<ul>
-<li>类型不好区分：整数句柄，长指针，void指针，string的几种实现（不同属性/用途）</li>
-<li>编译器不做类型检查</li>
-</ul>
-<h3 id="2-7-2-成员前缀"><a href="#2-7-2-成员前缀" class="headerlink" title="2.7.2 成员前缀"></a>2.7.2 成员前缀</h3><p>类和函数足够小，自然不需要 m_ 前缀来表明成员变量</p>
-<p>现代IDE 都自动用高亮来 标识成员变量</p>
-<h3 id="2-7-3-接口和实现"><a href="#2-7-3-接口和实现" class="headerlink" title="2.7.3 接口和实现"></a>2.7.3 接口和实现</h3><p>用户根本不需要知道这个是接口。</p>
-<p>我说如果，一定要选一个编码的话，宁愿选择给实现编码。</p>
-<h2 id="2-8-避免思维映射"><a href="#2-8-避免思维映射" class="headerlink" title="2.8 避免思维映射"></a>2.8 避免思维映射</h2><p>不要让读者非得把你的名称映射/翻译为他们熟知的名称。 明确是王道</p>
-<h2 id="2-9-类名"><a href="#2-9-类名" class="headerlink" title="2.9 类名"></a>2.9 类名</h2><ul>
-<li><p>类名应是名词/名词短语。</p>
-<pre><code>Address，AddressParser
-</code></pre></li>
-<li><p>避免使用Manager，Processor，Data，Info。 出现说明类过大/命名不明确</p>
-</li>
-</ul>
-<h2 id="2-10-方法名"><a href="#2-10-方法名" class="headerlink" title="2.10 方法名"></a>2.10 方法名</h2><ul>
-<li><p>方法名应是动词</p>
-<pre><code>deletePage，save
-</code></pre></li>
-<li><p>重载构造器是，使用静态工厂方法名</p>
-<pre><code>Message.fromType(1) 好过 new Message(1);
-</code></pre></li>
-</ul>
-<h2 id="2-11-别扮可爱"><a href="#2-11-别扮可爱" class="headerlink" title="2.11 别扮可爱"></a>2.11 别扮可爱</h2><p>别为了扮可爱，用一些不好理解的词命名</p>
-<h2 id="2-12-每个概念对应一个词"><a href="#2-12-每个概念对应一个词" class="headerlink" title="2.12 每个概念对应一个词"></a>2.12 每个概念对应一个词</h2><p>给每个抽象概念选一个词，并一以贯之。</p>
-<p>错误范例： </p>
-<ul>
-<li>使用 <code>fetch</code> , <code>retrive</code>, <code>find</code>, <code>get</code> 来给查询命名，怎么记得住哪个类中用哪个方法呢</li>
-<li><code>controller</code> , <code>manager</code> , <code>driver</code></li>
-</ul>
-<h2 id="2-13-别用双关语（一个词用于多个概念-目的）"><a href="#2-13-别用双关语（一个词用于多个概念-目的）" class="headerlink" title="2.13 别用双关语（一个词用于多个概念/目的）"></a>2.13 别用双关语（一个词用于多个概念/目的）</h2><p><code>add</code> 用于多个场景/目的：</p>
-<ul>
-<li>连接两个字符串。 <code>append</code> 就挺好</li>
-<li>将一个对象放到集合中。 <code>insert</code> 可以</li>
-</ul>
-<h2 id="2-14-使用解决方案领域名称"><a href="#2-14-使用解决方案领域名称" class="headerlink" title="2.14 使用解决方案领域名称"></a>2.14 使用解决方案领域名称</h2><p>只有程序员才会读你的代码，放心地使用解决方案领域名称吧。</p>
-<p>使用问题领域名称，难道你指望你的客户会跟你讨论代码。</p>
-<h2 id="2-15-使用源自所涉问题领域的名称"><a href="#2-15-使用源自所涉问题领域的名称" class="headerlink" title="2.15 使用源自所涉问题领域的名称"></a>2.15 使用源自所涉问题领域的名称</h2><p>如果实在不能用解决方案领域名称命名，那就用所涉问题领域名称吧。至少，负责维护的程序员就能去请教领域专家了。</p>
-<h2 id="2-16-添加有意义的语境"><a href="#2-16-添加有意义的语境" class="headerlink" title="2.16 添加有意义的语境"></a>2.16 添加有意义的语境</h2><p>多数名称都不能自我说明，需要良好命令的类、函数、名称空间来提供语境。如果没有，给名称添加前缀是最后一招了。</p>
-<p>addressFirstName，addressState</p>
-<h1 id="第三章、函数"><a href="#第三章、函数" class="headerlink" title="第三章、函数"></a>第三章、函数</h1><h2 id="3-1-短小"><a href="#3-1-短小" class="headerlink" title="3.1 短小"></a>3.1 短小</h2><h3 id="代码块和缩进"><a href="#代码块和缩进" class="headerlink" title="代码块和缩进"></a>代码块和缩进</h3><p>代码块(if/else,while等)应该只有一行（调用函数），缩进层级不该多于两层。</p>
-<h2 id="3-2-只做一件事"><a href="#3-2-只做一件事" class="headerlink" title="3.2 只做一件事"></a>3.2 只做一件事</h2><p>判断函数是否只做了一件事：能否再拆出一个函数</p>
-<h2 id="3-3-每个函数一抽象层级"><a href="#3-3-每个函数一抽象层级" class="headerlink" title="3.3 每个函数一抽象层级"></a>3.3 每个函数一抽象层级</h2><p>如何确保函数只做一件事：函数中的语句都在同一抽象层级上。</p>
-<h3 id="自顶向下"><a href="#自顶向下" class="headerlink" title="自顶向下"></a>自顶向下</h3><p>每个函数后面紧跟位于下一抽象层级的函数（被调用的函数）</p>
-<h2 id="3-4-switch语句"><a href="#3-4-switch语句" class="headerlink" title="3.4 switch语句"></a>3.4 <a href="http://feikiss.iteye.com/blog/1454010" target="_blank" rel="noopener">switch语句</a></h2><p>即使只有两种条件的switch语句也比我想要的单个代码块或函数大得多。而switch天生要做N件事。</p>
-<p>不幸我们总无法避开switch语句，我们可以<strong>利用多态来确保每个switch都埋藏在较低的抽象层级，且永不重复</strong>。</p>
-<pre><code>public Money calculatePay(Employee e) thorws InvalidEmployeeType {  
-    switch(e.type)  {  
-       case COMMISSIONED:  
-            return calculateCommissionedPay(e);  
-       case HOURLY:  
-            return calculateHourlyPay(e);  
-       case SALARIED:  
-             return calculateSalariedPay(e);  
-       default:  
-             throw new InvalidEmployeeType(e.type);  
-}  
-</code></pre><p>该函数问题：</p>
-<ul>
-<li>首先，太长，当出现新的雇员时，它还会更长</li>
-<li>其次，明显做了不止一件事。</li>
-<li>第三，违反了单一权责原则，因为有好几个修改它的理由。</li>
-<li>第四，违反了开-关原则，因为每当添加新的雇员类型时，就必须修改它。</li>
-<li><p>最麻烦的，可能是到处皆有类似结构的函数。都需要重复同样的switch结构</p>
-<p>  例如，可能会有： </p>
-<pre><code>isPayday(Employ e, Date date)  
-deliverPay(Employee e, Money pay)
-</code></pre></li>
-</ul>
-<p>解决方案：</p>
-<p>将switch语句埋到抽象工厂底下，不让任何人看到。</p>
-<p>使用switch语句为Employee的派生类创建适当的实体，而不同的函数，如calculatePay、isPayday和deliverPay等，则由Employee接口动态的调用相应子类方法。 </p>
-<pre><code>public interface Employee{  
-    public boolean isPayday();  
-    public Money calculatePay();  
-    public void deliverPay(Money pay);  
-
-} 
-
-public interface EmployeeFactory{  
-    public Employee makeEmployee(EmployeeRecord r) throws InvalidEmployeeType;  
-} 
-
-public class EmployeeFactoryImpl implements EmployeeFactory{  
-    public Employee makeEmployee(EmployeeRecord r) throws InvalidEmployeeType{  
-        switch(r.type){  
-        case COMMISSIONED:  
-            return new CommissionedEmployee(r);  
-        case HOURLY:  
-            return new HourlyEmployee(r);  
-        case SALARIED:  
-            return new SalariedEmployee(r);  
-        default:  
-            throw new InvalidEmployeeType(r.type);  
-        }  
-    }  
-} 
-</code></pre><h2 id="3-5-使用描述性的名称"><a href="#3-5-使用描述性的名称" class="headerlink" title="3.5 使用描述性的名称"></a>3.5 使用描述性的名称</h2><p>名称描述函数做的事</p>
-<h2 id="3-6-函数参数"><a href="#3-6-函数参数" class="headerlink" title="3.6 函数参数"></a>3.6 函数参数</h2><p>尽量避免三个参数，有足够特殊的理由才能使用多参函数（三个参数以上）。</p>
-<h3 id="3-6-1-一元函数的普遍形式"><a href="#3-6-1-一元函数的普遍形式" class="headerlink" title="3.6.1 一元函数的普遍形式"></a>3.6.1 一元函数的普遍形式</h3><h3 id="3-6-2-标识参数"><a href="#3-6-2-标识参数" class="headerlink" title="3.6.2 标识参数"></a>3.6.2 标识参数</h3><p>标识参数大声宣布，本函数不止做一件事。一定要避免。</p>
-<h3 id="3-6-3-二元函数"><a href="#3-6-3-二元函数" class="headerlink" title="3.6.3 二元函数"></a>3.6.3 二元函数</h3><h3 id="3-6-4-三元函数"><a href="#3-6-4-三元函数" class="headerlink" title="3.6.4 三元函数"></a>3.6.4 三元函数</h3><h3 id="3-6-5-参数对象"><a href="#3-6-5-参数对象" class="headerlink" title="3.6.5 参数对象"></a>3.6.5 参数对象</h3><p>如果函数确实需要两个以上的参数，说明应将一些参数封装为类了。</p>
-<h3 id="3-6-6-参数列表"><a href="#3-6-6-参数列表" class="headerlink" title="3.6.6 参数列表"></a>3.6.6 参数列表</h3><p>同类型的可变参数列表，其实可以算作一个参数（List类型的参数）</p>
-<pre><code>public static String format(String format, Object... args)  二元函数
-</code></pre><h3 id="3-6-7-动词与关键词"><a href="#3-6-7-动词与关键词" class="headerlink" title="3.6.7 动词与关键词"></a>3.6.7 动词与关键词</h3><p>好名字的函数，能很好的解释函数意图、参数顺序和意图</p>
-<ul>
-<li><p>动词</p>
-<p>  一元函数。 函数名和参数名形成一种非常好的动词/名词形式</p>
-<ul>
-<li>write(name) write的对象是name</li>
-<li>writeField(name) 更好的名词，同时声明name是一个field</li>
+            <h1 id="adjustViewBounds"><a href="#adjustViewBounds" class="headerlink" title="adjustViewBounds"></a>adjustViewBounds</h1><h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><p>调整ImageView的界限来<strong>保持图片的宽高比例</strong></p>
+<p>设置adjustViewBounds=”ture”的时候，会将这个ImageView的scaleType属性设置为<strong>fitCenter</strong></p>
+<h2 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h2><p>android:scaleType的优先级会更高，两个属性同时设置，adjustViewBounds=”ture”中对scaleType属性设置将会失效。</p>
+<p>这种情况，只有在Java代码中设置setAdjustViewBounds（true）的时候，才会生效</p>
+<h2 id="起效条件"><a href="#起效条件" class="headerlink" title="起效条件"></a>起效条件</h2><ul>
+<li>ImageView宽高都是固定值，adjustViewBounds无效</li>
+<li>ImageView宽高只有一个固定值/match_parent，比较两者的宽高<ul>
+<li>图片宽/高比ImageView小，图片不缩放，ImageView的非固定值变成和图片一致</li>
+<li>图片宽高比大于等于，图片等比放大至填满ImageView</li>
 </ul>
 </li>
-<li><p>关键词</p>
-<p>  把参数名称编码成函数名一部分，大大减轻记忆参数顺序的负担</p>
-<ul>
-<li>assertExpectedEquasActual(expected，actual）</li>
-</ul>
-</li>
-</ul>
-<h3 id="输出参数"><a href="#输出参数" class="headerlink" title="输出参数"></a>输出参数</h3><p>绝对不要使用输出参数。那是面向对象编程之前远古岁月的一个不得而为之的手段</p>
-<h2 id="3-7-无副作用"><a href="#3-7-无副作用" class="headerlink" title="3.7 无副作用"></a>3.7 无副作用</h2><p>副作用是一种谎言。做了函数名说明的事情之外的事，就是副作用。</p>
-<p>函数承诺只做一件事，做其他被藏起来的事，这是破坏性的，会导致时序性耦合和顺序依赖</p>
-<ul>
-<li>对类变量做出未能预期的改动</li>
-<li>把变量搞成向函数传递的参数/系统全局变量</li>
-</ul>
-<p><code>public boolean checkPassword(userName, password)</code> 函数名只是校验密码，但是内部，当密码错误，却调用Session.initalize，这是非常致命的副作用。调用者冒着丢失现有会话数据的风险。时序性耦合令人迷惑，躲在函数副作用之后，就更难排查了。</p>
-<h2 id="3-8-分隔指令与查询"><a href="#3-8-分隔指令与查询" class="headerlink" title="3.8 分隔指令与查询"></a>3.8 分隔指令与查询</h2><p>函数只做一件事：</p>
-<ul>
-<li>指令。修改对象</li>
-<li>查询。查询对象</li>
+<li>ImageView宽高都是wrap_content，adjustViewBounds无意义，因为ImageView将始终与图片拥有相同的宽高比（但是并不是相同的宽高值，通常都会放大一些</li>
 </ul>
 <p>实例：</p>
-<pre><code>public boolean set(key,value) 设置某个属性，成功返回true
-
-从读者角度考虑一下，if(set(&quot;username&quot;,&quot;bob&quot;)) 是什么含义：
-    1. username属性值之前是否已经设置为bob
-    2. username属性值设置为bob是否执行成功
-
-作者本意，set是动词，是指令函数。但在if语句块中，set像个形容词
-</code></pre><p>解决方案：分隔指令与查询</p>
-<pre><code>if(keyExists(&quot;username&quot;)){
-    setKeyValue(&quot;username&quot;,&quot;bob&quot;);
-}
-</code></pre><h2 id="3-9-使用异常代替返回错误码"><a href="#3-9-使用异常代替返回错误码" class="headerlink" title="3.9 使用异常代替返回错误码"></a>3.9 使用异常代替返回错误码</h2><p>指令函数返回错误码，违反分隔指令与查询规则。</p>
-<p>返回错误码弊端：</p>
+<pre><code>&lt;ImageView
+    layout_ width=&quot;100dp&quot;，
+    layout_ height=&quot;wrap_ content&quot;/&gt;
+</code></pre><p>图片的宽度将会与100dp进行对比（抛开单位换算）。</p>
 <ul>
-<li>要求调用者立刻处理错误</li>
-<li>造成异常处理代码与正常逻辑混合在一起</li>
-<li>导致多层嵌套</li>
-<li>依赖磁铁。错误码通常是一个类，许多地方都导入和使用，该类修改会影响所有使用该类的类。使用异常码，新异常可以直接从异常基类派生出来</li>
-</ul>
-<h3 id="3-9-1-抽离-try-catch-代码块"><a href="#3-9-1-抽离-try-catch-代码块" class="headerlink" title="3.9.1 抽离 try/catch 代码块"></a>3.9.1 抽离 try/catch 代码块</h3><p>try/catch 把 错误处理代码与正常逻辑混合在一起</p>
-<pre><code>try {
-    deletePage(page);
-    registry.deleteReference(page.name);
-    configKeys.deleteKey(page.name.makeKey());
-}
-catch (Exception e) {
-    logger.log(e.getMessage());
-}
-</code></pre><p>抽离后</p>
-<pre><code>public void delete(Page page) {
-    try {
-        deletePageAndAllReferences(page);
-    } catch (Exception e) {
-        logErrot(e);
-    }
-}
-
-private void deletePageAndAllReferences(Page page) {
-    deletePage(page);
-    registry.deleteReference(page.name);
-    configKeys.deleteKey(page.name.makeKey());
-}
-
-private void logErrot(Exception e) {
-
-}
-</code></pre><h3 id="3-9-2-错误处理就是一件事"><a href="#3-9-2-错误处理就是一件事" class="headerlink" title="3.9.2 错误处理就是一件事"></a>3.9.2 错误处理就是一件事</h3><h2 id="3-10-别重复自己"><a href="#3-10-别重复自己" class="headerlink" title="3.10 别重复自己"></a>3.10 别重复自己</h2><p>消除系统中的重复代码。</p>
-<p>重复代码导致一个改变影响多处代码，修改过程中非常有可能遗漏</p>
-<h1 id="第四章、-注释"><a href="#第四章、-注释" class="headerlink" title="第四章、 注释"></a>第四章、 注释</h1><p>注释承认自己代码表达能力的失败</p>
-<p>注释不能美化糟糕的代码。</p>
-<p>代码维护过程中，注释和代码分离是很常见的，大家维护的焦点就是代码，这时错误过时的注释，反而误导对代码的理解</p>
-<h2 id="第五章、格式"><a href="#第五章、格式" class="headerlink" title="第五章、格式"></a>第五章、格式</h2><h2 id="第六章、-对象和数据结构-Objects-and-Data-Structures"><a href="#第六章、-对象和数据结构-Objects-and-Data-Structures" class="headerlink" title="第六章、 对象和数据结构 Objects and Data Structures"></a>第六章、 对象和数据结构 Objects and Data Structures</h2><p>私有变量的理由：</p>
-<ul>
-<li>保护数据</li>
-<li>不被外部依赖，修改并不影响其他类</li>
-</ul>
-<p>但是，为什么有那么多程序员给对象添加 setter和getter，就如同公共变量一般？</p>
-<h2 id="6-1-数据抽象"><a href="#6-1-数据抽象" class="headerlink" title="6.1 数据抽象"></a>6.1 数据抽象</h2><p>抽象：隐藏实现。并不是简单的在变量间放上一个函数层（setter/getter），而是暴露抽象接口，以便用户无需了解数据的实现就能操作数据</p>
-<p>实例：机动车燃料层</p>
-<pre><code>public interface Vehicle {
-    double getFuelTankCapacityInGallons(); //油箱容量，单位加仑
-    double getGallonsOfGasoline(); //汽油量，加仑
-}
-
-public interface Vehicle{
-    double getFuelRemainingPercent(); //燃料剩余百分比
-}
-</code></pre><p>采用百分比抽象，无法确定Vehicle类中数据形态。</p>
-<p>抽象并不是简单的setter/getter，而是以最好的方式呈现对象的数据</p>
-<h2 id="6-2-数据、对象的反对称性-Anti-Symmetry"><a href="#6-2-数据、对象的反对称性-Anti-Symmetry" class="headerlink" title="6.2 数据、对象的反对称性 Anti-Symmetry"></a>6.2 数据、对象的反对称性 Anti-Symmetry</h2><p>数据结构和对象时对立的。</p>
-<p><strong>对象和数据结构间的二分原理：</strong></p>
-<ul>
-<li><p>数据结构：</p>
-<ul>
-<li>暴露数据，不提供有意义的函数。</li>
-<li><strong>面向过程/方法</strong>，不改动既有数据结构即可<strong>添加新函数</strong>，添加新数据结构得修改所有函数。（本身无方法，方法都在另一个类中）</li>
+<li>图片的宽度小于100dp<ul>
+<li>ImageView的layout_height将与图片的高相同</li>
+<li>即图片不会缩放，完整显示在ImageView中，ImageView高度与图片实际高度相同。</li>
+<li>图片没有占满ImageView，ImageView中有空白。</li>
 </ul>
 </li>
-<li><p>对象：</p>
-<ul>
-<li>隐藏数据，暴露行为。</li>
-<li><strong>面向对象</strong>，不改动既有函数即可<strong>添加新对象</strong>，添加新函数所有对象都得修改。</li>
+<li>图片的宽度大于或等于100dp<ul>
+<li>图片将保持自身宽高比缩放，完整显示在ImageView中，</li>
+<li>图片完全占满ImageView</li>
 </ul>
 </li>
 </ul>
-<p>优秀的开发者不带成见地了解两者，依据工作性质选择其中一种手段</p>
-<p>代码：</p>
+<h2 id="最大宽高"><a href="#最大宽高" class="headerlink" title="最大宽高"></a>最大宽高</h2><p>m在Android机制中，只用当设置adjustViewBounds=”ture”的时候，maxWidth/maxHeight设置效果才能有效</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/19/RN/RN优化/RN内存优化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/04/19/RN/RN优化/RN内存优化/" itemprop="url">RN内存优化</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-19T14:28:26+08:00">
+                2019-04-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h1><p>减少内存占用</p>
+<h1 id="ListView-内存没有复用"><a href="#ListView-内存没有复用" class="headerlink" title="ListView 内存没有复用"></a>ListView 内存没有复用</h1><p>0.43 引入了一个新的FlatList组件，完全解决了ListView的内存回收问题</p>
+<p>强烈建议升级版本</p>
+<p>不升级的话，自己实现这套机制</p>
+<h1 id="图片"><a href="#图片" class="headerlink" title="图片"></a>图片</h1><p>在Android上问题会相对多一些</p>
+<h2 id="Fresco重复初始化"><a href="#Fresco重复初始化" class="headerlink" title="Fresco重复初始化"></a>Fresco重复初始化</h2><p>RN的底层图片框架库用的是Fresco，而我们主App中用的也是Fresco底层库，这里就会重复初始化。</p>
+<p>当主App中的Fresco进行初始化之后，如果RN中也进行一次初始化，实际上之前那部分内存并没有被释放，会出现内存泄漏。</p>
+<h2 id="图片编码方式"><a href="#图片编码方式" class="headerlink" title="图片编码方式"></a>图片编码方式</h2><p>RN框架采用的图片编解码用的是ARGB_8888，但实际上大部分情况下可以采用RGB_565编码，图片在内存当中的大小可以减少50%。</p>
+<p>不过有些业务可能也真的需要一些透明的背景，需要Alpha通道，所以也提供了一些API来针对特殊图片，让它采用ARGB_8888进行编解码。</p>
+<p>这样既解决内存问题，也满足了业务的需求。</p>
+<h2 id="图片内存回收"><a href="#图片内存回收" class="headerlink" title="图片内存回收"></a>图片内存回收</h2><p>RN页面退出之前，建议强制调用Fresco框架的<strong>clearMemoryCach</strong>e方法，通知Fresco清除内存缓存。可以保证GC及时地把这些图片内存给回收掉，避免整个APP的内存占用过高，经过实践验证这也很有效地解决了内存问题。</p>
+<h1 id="so内存无法回收"><a href="#so内存无法回收" class="headerlink" title="so内存无法回收"></a>so内存无法回收</h1><img src="/2019/04/19/RN/RN优化/RN内存优化/手Q优化.jpg">
+<p>手Q对内存要求比较严格，在界面退出的时候所有连带内存必须清理干净。那rn在这方面其实做的并没有那么好，有部分so层的内存一直占用着。那我们解决方案只能是将JNI拆分为独立进程并且在界面退出时，直接退出dalvik，回收所有内存。当然，这里就有些老技巧了，无非是进程预加载和延迟销毁。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.jqhtml.com/34513.html" target="_blank" rel="noopener">RN框架在京东无线端的实践</a></li>
+<li><a href="https://segmentfault.com/a/1190000005908366" target="_blank" rel="noopener">【腾讯Bugly干货分享】React Native项目实战总结</a>定制编译源码，性能优化，so内存无法回收问题</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/15/电脑使用/mac/Homebrew使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/04/15/电脑使用/mac/Homebrew使用/" itemprop="url">Homebrew使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-15T18:32:53+08:00">
+                2019-04-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Homebrew是什么"><a href="#Homebrew是什么" class="headerlink" title="Homebrew是什么"></a>Homebrew是什么</h1><p>The missing package manager for macOS (or Linux)</p>
+<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><pre><code>/usr/bin/ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;
+</code></pre><h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><h2 id="安装-1"><a href="#安装-1" class="headerlink" title="安装"></a>安装</h2><pre><code>brew install wget
+</code></pre><h3 id="安装路径"><a href="#安装路径" class="headerlink" title="安装路径"></a>安装路径</h3><p> 默认安装路径 <code>/usr/local/Cellar</code></p>
+<p> <code>brew list 软件名</code> 获取安装路径</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://brew.sh/" target="_blank" rel="noopener">官网</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/11/网络/TCP三次握手四次挥手/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/04/11/网络/TCP三次握手四次挥手/" itemprop="url">TCP三次握手四次挥手</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-11T17:51:53+08:00">
+                2019-04-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="三次握手，四次挥手"><a href="#三次握手，四次挥手" class="headerlink" title="三次握手，四次挥手"></a>三次握手，四次挥手</h1><img src="/2019/04/11/网络/TCP三次握手四次挥手/三次握手.png">
+<img src="/2019/04/11/网络/TCP三次握手四次挥手/四次挥手.png">
+<h1 id="TCP标志位"><a href="#TCP标志位" class="headerlink" title="TCP标志位"></a>TCP标志位</h1><p>SYN，ACK，FIN 存放在TCP的标志位(一共6个)</p>
+<p><strong>SYN</strong>：<strong>同步</strong>序列编号(Synchronize Sequence Numbers)</p>
 <ul>
-<li><p>数据结构-面向过程</p>
-<pre><code>public class Square{
-    public point topLeft;
-    public double side;
-}
-
-public class Rectangle{
-    public point topLeft;
-    public double height;
-    public double width;
-}
-
-public class Geometry{//几何
-    public double area(Object shape){
-        if(shape instanceOf Square){
-            Square s = (Square) shape;
-            return s.side * s.side;
-        }else if(shape instanceOf Rectangle){
-            Rectangle r = (Rectangle) shape;
-            return r.height * r.width;
-        }
-        throw new NoSuchShapeException();
-    }
-}
-</code></pre><ul>
-<li>想增加一个函数 perimeter 求周长，原有数据结构完全不受影响</li>
-<li>想添加一个新数据结构，就得修改 所有已有函数来处理新数据结构</li>
+<li>请求创建连接</li>
+<li>同步的是初始序列编号(ISN,Initialize Sequence Numbers)<ul>
+<li>初始序列号是<strong>随机</strong>生成的</li>
 </ul>
 </li>
-<li><p>对象-面向对象</p>
-<pre><code>public interface Shape{
-    double area();
-}
-
-public class Square implements Shape{
-    public point topLeft;
-    public double side;
-
-    public double area(){
-        return side * side;
-    }
-}
-
-public class Rectangle implements Shape{
-    public point topLeft;
-    public double height;
-    public double width;
-
-    public double area(){
-        return height * width;
-    }
-}
-</code></pre><ul>
-<li>想增加一个函数 perimeter 求周长，原有对象都得修改实现该函数</li>
-<li>想添加一个新对象，原有函数都不会受影响</li>
+<li>SYN=1</li>
+</ul>
+<p><strong>FIN</strong>：<strong>结束</strong>连接(Finish)</p>
+<ul>
+<li>请求关闭连接</li>
+<li>FIN=1</li>
+<li>在四次分手时，我们发现FIN发了两遍。这是因为TCP的连接是双向的，一次FIN只能关闭一个方向。</li>
+</ul>
+<p><strong>ACK</strong>：<strong>确认</strong>字符(Acknowledgement）</p>
+<ul>
+<li><strong>确认接受</strong></li>
+<li>ACK为1表示确认号有效，为0表示报文中不包含确认信息，忽略确认号字段</li>
+</ul>
+<p>三次握手和四次分手，在回应的时候都会加上ACK=1，表示消息接收到了，并且在建立连接以后的发送数据时，都需加上ACK=1,来表示数据接收成功。</p>
+<h1 id="TCP包编号"><a href="#TCP包编号" class="headerlink" title="TCP包编号"></a>TCP包编号</h1><p><strong>seq</strong>: <strong>序列号</strong>(Sequence)</p>
+<ul>
+<li><p>数据包序列编号。</p>
+<p>  发送一个数据会被拆成多个数据包来发送，序列号就是对每个数据包进行编号，这样接受方才能对数据包进行再次拼接。</p>
+</li>
+<li><p>初始序列号是<strong>随机</strong>生成的</p>
+</li>
+</ul>
+<p><strong>ack</strong>: <strong>确认</strong>字符(Acknowledgement）</p>
+<ul>
+<li><p>ack=seq+1</p>
+<p>  也是下一个数据包的序列编号seq</p>
+</li>
+</ul>
+<h1 id="TCP状态"><a href="#TCP状态" class="headerlink" title="TCP状态"></a>TCP状态</h1><ul>
+<li><strong>LISTEN</strong> - 某个Socket处于<strong>监听</strong>，侦听来自远方TCP端口的连接请求;</li>
+<li><strong>SYN-SENT</strong> - 已发送SYN报文</li>
+<li><strong>SYN-RECEIVED</strong> - 已接受SYN报文</li>
+<li><strong>ESTABLISHED</strong>- 已建立连接</li>
+<li><strong>FIN-WAIT-1</strong> - 已发送FIN报文，等待对方FIN报文</li>
+<li><strong>FIN-WAIT-2</strong> - 已发送FIN报文，已收到对方ACK报文，等待对方FIN报文；此时已是<strong>半连接</strong>（告诉对方，我暂时还有点数据需要传送给你，稍后再关闭连接）；<code>FIN_WAIT_1</code>状态下，收到了对方同时带FIN标志和ACK标志的报文时，可以直接进入<code>TIME_WAIT</code>状态，而无须经过<code>FIN_WAIT_2</code>状态。</li>
+<li><strong>LAST-ACK</strong> - 等待对方最后的ACK</li>
+<li><strong>TIME-WAIT</strong> -已收到对方FIN报文，已发送ACK报文，等待足够的时间（至少一个报文的来回时间）以确保对方成功接受ACK报文；如果超时没有再次收到 FIN 报文，则代表对方成功接受 ACK 报文，可以进入 CLOSED 状态。这个状态需要<strong>特别注意</strong></li>
+<li><strong>CLOSED</strong> - 连接已关闭；也是初始状态</li>
+<li><strong>CLOSING</strong> - <strong>比较特殊少见</strong>，双方几乎同时close某Socket；发送FIN报文，马上收到对方FIN(正常应收到ACK)</li>
+<li><strong>CLOSE_WAIT</strong> - 等待关闭；已收到FIN报文，已发送ACK报文，此时等待己方去关闭连接（如果己方没有数据要发送，发送FIN报文，收到ACK即可关闭连接）</li>
+</ul>
+<h1 id="为什么需要三次握手"><a href="#为什么需要三次握手" class="headerlink" title="为什么需要三次握手"></a>为什么需要三次握手</h1><p><strong>为了避免资源浪费</strong></p>
+<p>更细的话，这个问题从两个方面来回答</p>
+<ul>
+<li>三次握手才能确认两端的收发能力；没有确认收发能力发送数据浪费资源</li>
+<li>避免建立不必要连接。<ul>
+<li>两次握手就建立连接话（客户端发送连接请求，服务端接收到并发送确认），如果一个连接请求在网络中跑的慢，超时了，客户端重发请求，跑的慢的请求最后到了服务器，服务端就会创建两个连接，浪费资源；</li>
+<li>加第三次握手（客户端确认），客户端在接受到一个服务器的ACK后，后面的ACK就可以抛弃。</li>
 </ul>
 </li>
 </ul>
-<h2 id="6-3-Law-of-Demeter"><a href="#6-3-Law-of-Demeter" class="headerlink" title="6.3 Law of Demeter"></a>6.3 Law of Demeter</h2><p>迪米特法则（Law of Demeter 简写LoD）又叫作最少知道原则（Least Knowledge Principle 简写LKP），就是说一个对象应当对其他对象尽可能少的了解,不和陌生人说话。talk only to your immediate friends</p>
-<h3 id="“朋友”类型："><a href="#“朋友”类型：" class="headerlink" title="“朋友”类型："></a>“朋友”类型：</h3><ol>
-<li>当前对象本身（this）</li>
-<li>方法参量对象</li>
-<li>实例变量对象</li>
-<li>实例变量如果是一个聚集，那么聚集中的元素也都是朋友</li>
-<li>当前对象所创建的对象</li>
+<h1 id="为什么需要四次分手"><a href="#为什么需要四次分手" class="headerlink" title="为什么需要四次分手"></a>为什么需要四次分手</h1><p>由于TCP连接是全双工(双向)的，因此每个方向都必须单独进行关闭。每个方向的关闭又需要请求和确认，所以一共就4次</p>
+<p>原则是当一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接。收到一个 FIN只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍能发送数据。首先进行关闭的一方将执行主动关闭，而另一方执行被动关闭。</p>
+<h1 id="初始序列号-ISN-为什么要随机生成"><a href="#初始序列号-ISN-为什么要随机生成" class="headerlink" title="初始序列号(ISN)为什么要随机生成"></a>初始序列号(ISN)为什么要随机生成</h1><p>如果ISN是固定的，攻击者很容易猜出后续的确认号</p>
+<h1 id="半连接队列"><a href="#半连接队列" class="headerlink" title="半连接队列"></a>半连接队列</h1><p>服务器第一次收到客户端的 SYN 之后，就会处于 SYN_RCVD 状态，此时双方还没有完全建立其连接，服务器会把此种状态下请求连接放在一个队列里，我们把这种队列称之为<strong>半连接队列</strong>。</p>
+<h2 id="SYN-ACK-重传"><a href="#SYN-ACK-重传" class="headerlink" title="SYN-ACK 重传"></a>SYN-ACK 重传</h2><p>服务器发送完SYN-ACK包，如果未收到客户确认包，服务器进行首次重传，等待一段时间仍未收到客户确认包，进行第二次重传，如果重传次数超 过系统规定的<strong>最大重传次数</strong>，系统将该连接信息从半连接队列中删除。</p>
+<p>注意，每次重传等待的<strong>超时时间</strong>不一定相同，一般会是指数增长，例如间隔时间为 1s, 2s, 4s, 8s, ….</p>
+<h2 id="SYN攻击"><a href="#SYN攻击" class="headerlink" title="SYN攻击"></a>SYN攻击</h2><p>DDoS攻击的一种</p>
+<p>最常见又最容易被利用的一种攻击手法</p>
+<p>利用TCP协议缺陷，短时间内不断向服务器发送大量的半连接请求（伪造不存在的IP），服务器回复确认包，并等待客户的确认，由于源地址是不存在的，服务器需要不断的重发直至超时，这些伪造的SYN包将长时间占用未连接队列，正常的SYN请求被丢弃，目标系统运行缓慢，严重者引起网络堵塞甚至系统瘫痪。</p>
+<h3 id="防范"><a href="#防范" class="headerlink" title="防范"></a>防范</h3><h4 id="注册表设置"><a href="#注册表设置" class="headerlink" title="注册表设置"></a>注册表设置</h4><p>启用 SynAttackProtect ，指定 SYN_RCVD 状态中的 TCP 连接阈值，超过 SynAttackProtect 时，触发 SYN flood 保护</p>
+<h4 id="丰富带宽资源"><a href="#丰富带宽资源" class="headerlink" title="丰富带宽资源"></a>丰富带宽资源</h4><h4 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h4><p>最有效的方法</p>
+<p>当然前提是攻击在防护带宽范围之内，也就是为什么第二条推荐带宽资源，这是保证在防火墙前面不会造成堵塞</p>
+<h1 id="全连接队列"><a href="#全连接队列" class="headerlink" title="全连接队列"></a>全连接队列</h1><p>已经完成三次握手，建立起连接的就会放在全连接队列中。</p>
+<p>如果队列满了就有可能会出现丢包现象。</p>
+<h1 id="三次握手过程中可以携带数据吗"><a href="#三次握手过程中可以携带数据吗" class="headerlink" title="三次握手过程中可以携带数据吗"></a>三次握手过程中可以携带数据吗</h1><p><strong>第三次握手可以携带数据</strong></p>
+<p>此时客户端已经处于 established 状态，也就是说，对于客户端来说，他已经建立起连接了，并且也已经知道服务器的接收、发送能力是正常的了，所以能携带数据页没啥毛病。</p>
+<p>假如第一次握手可以携带数据的话，恶意攻击者根本就不理服务器的接收、发送能力是否正常，疯狂着重复发 SYN 报文。这会让服务器花费很多时间、内存空间来接收这些报文。让服务器更加容易受到攻击了。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://juejin.im/post/5caed6925188251ac6386c7b" target="_blank" rel="noopener">关于三次握手与四次挥手面试官想考我们什么？</a></li>
+<li><a href="https://baijiahao.baidu.com/s?id=1593714120815701015&amp;wfr=spider&amp;for=pc" target="_blank" rel="noopener">对TCP三次握手四次分手还不清楚，超简单解析</a></li>
+<li><a href="https://baike.baidu.com/item/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/7794287?fr=aladdin#2" target="_blank" rel="noopener">四次挥手</a></li>
+<li><a href="https://juejin.im/post/5cb93204f265da039955d770" target="_blank" rel="noopener">漫画：一招学会TCP的三次握手和四次挥手</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/11/Android/UI性能优化/内存Code部分的占用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/04/11/Android/UI性能优化/内存Code部分的占用/" itemprop="url">内存Code部分的占用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-11T16:43:53+08:00">
+                2019-04-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>加载 dex，so文件 占用的内存</p>
+<p><strong>工具</strong>：Linux /proc/<pid>/smaps 文件分析脚本</pid></p>
+<p>python代码 (本目录下 smap.py文件)：<a href="https://gist.github.com/LanderlYoung/aedd0e1fe09214545a7f20c40c01776c" target="_blank" rel="noopener">https://gist.github.com/LanderlYoung/aedd0e1fe09214545a7f20c40c01776c</a></p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://wetest.qq.com/lab/view/359.html?from=adsout_qqtips_past2_359" target="_blank" rel="noopener">我这样减少了26.5M Java内存！</a> 腾讯WeTest上企鹅FM的内存优化</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/29/RN/RN之Native处理异常/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/29/RN/RN之Native处理异常/" itemprop="url">RN之Native处理异常</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-29T17:41:12+08:00">
+                2019-03-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>研究RN框架异常的动机在于，我们需要建立起一套针对性的容错机制，毕竟它还是一个不够成熟的框架。期望能够做到的效果就是，对于每一个RN页面的启动，我们能够在<strong>进入页面至退出页面</strong>期间侦测所有发生的<strong>RN相关</strong>的崩溃，然后根据崩溃来考虑该页面是否该有降级策略、判断框架是否真的能够支持稳定迭代。</p>
+<p>并且，集中地处理崩溃，也有利于我们后续对框架稳定性进行针对性的统计与优化。即使最后还是最简单粗暴的try-catch，这个catch的位置也是一门艺术。</p>
+<p><strong>异常种类</strong></p>
+<ul>
+<li>产生位置<ul>
+<li>JS</li>
+<li>Java </li>
+<li>C++</li>
+</ul>
+</li>
+<li>产生时期<ul>
+<li>启动期</li>
+<li>运行期</li>
+</ul>
+</li>
+</ul>
+<h1 id="启动期异常"><a href="#启动期异常" class="headerlink" title="启动期异常"></a>启动期异常</h1><h2 id="框架启动流程"><a href="#框架启动流程" class="headerlink" title="框架启动流程"></a>框架启动流程</h2><p>ReactActivity.onCreate 调用 ReactActivityDelegate.loadApp 开始核心启动流程</p>
+<ul>
+<li><strong>预初始化</strong>：<ul>
+<li>初始化ReactRootView与ReactInstanceManager实例</li>
+</ul>
+</li>
+<li><strong>创建React上下文</strong>：由ReactRootView.startReactApplication一路走下来，会用懒加载方式创建React上下文，通过进入ReactInstanceManager.ReactContextInitAsyncTask这个AsyncTask中执行上下文创建的工作，里面执行的东西可以说是所有的Java部分初始化内容（收集与注册提供的Native/JS/View模块、初始化CatalystInstance（负责核心Bridge相关）、运行JSBundle、将界面展示到ReactRootView上等）。</li>
+</ul>
+<h2 id="预初始化"><a href="#预初始化" class="headerlink" title="预初始化"></a>预初始化</h2><p>涉及了so加载的操作，可以在 <code>ReactRootView.startReactApplication</code><br>外部再加一层try-catch</p>
+<h2 id="创建React上下文阶段"><a href="#创建React上下文阶段" class="headerlink" title="创建React上下文阶段"></a>创建React上下文阶段</h2><img src="/2019/03/29/RN/RN之Native处理异常/启动期异常.png">
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">runCreateReactContextOnNewThread</span><span class="params">(<span class="keyword">final</span> ReactContextInitParams initParams)</span> </span>&#123;</span><br><span class="line">  mCreateReactContextThread = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> ReactApplicationContext reactApplicationContext = createReactContext(</span><br><span class="line">            initParams.getJsExecutorFactory().create(),</span><br><span class="line">            initParams.getJsBundleLoader());</span><br><span class="line"></span><br><span class="line">        Runnable setupReactContextRunnable = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">          <span class="meta">@Override</span></span><br><span class="line">          <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">              setupReactContext(reactApplicationContext);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">              mDevSupportManager.handleException(e);</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        mDevSupportManager.handleException(e);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在框架启动的核心阶段，RN有捕获异常，但是仅仅只用 <code>DevSupportManager</code> 去处理，当不使用 <code>develop support</code> 时，会直接抛出异常。</p>
+<p>这里我们可以做<strong>第一个修改</strong>，不使用dev support时</p>
+<ul>
+<li>传入一个Handler去专门处理启动期的崩溃</li>
+<li>用<code>ReactInstanceManagerBuilder.setNativeModuleCallExceptionHandler()</code> 传入的ExceptionHandler 统一去处理崩溃</li>
+</ul>
+<h2 id="运行期异常"><a href="#运行期异常" class="headerlink" title="运行期异常"></a>运行期异常</h2><ol>
+<li>JS调用Native产生异常<ul>
+<li>Native模块不存在</li>
+<li>Native模块函数原型不一致</li>
+<li>Native模块执行的异常</li>
+</ul>
+</li>
+<li>Native调用JS异常<ul>
+<li>JS模块不存在</li>
+<li>JS模块函数原型不一致</li>
+<li>JS模块执行的异常</li>
+</ul>
+</li>
+<li>JS本身代码执行的异常</li>
+<li>UI操作的异常</li>
 </ol>
-<p><a href="http://www.cnblogs.com/silentjesse/p/3510966.html" target="_blank" rel="noopener">实例：老师让体育委员清点女生人数</a></p>
-<pre><code>public class Teacher{
-    public void command(GroupLeader groupLeader）{
-        List&lt;Girl&gt; girls = new ArrayList();
-        for(int i = 0; i&lt;20; i++){
-            girls.add(new Girl());
-        }
-
-        groupLeader.countGirls(girls);
-    }
-}
-
-public class GroupLeader{
-    public void countGirls(List&lt;Girl&gt; girls){
-        System.out.println(&quot;女生数量是：&quot; + girls.size());
-    }
-}
-
-public class Girl{}
-
-public class Client{
-    public static void main(String[] args){
-        Teacher teacher = new Teacher();
-        teacher.commond(new GroupLeader());
-    }
-}
-</code></pre><p>存在的问题：</p>
+<h3 id="运行线程"><a href="#运行线程" class="headerlink" title="运行线程"></a>运行线程</h3><p>RN维护了三个线程的MessageQueue，所有的操作都会被push到上面运行</p>
 <ul>
-<li>Teacher 只有一个朋友类 GroupLeader。 Teacher 完全不知道自己依赖Girl，这违反LoD，应该把 List<girl> girls 声明为成员变量</girl></li>
-<li>Teacher 最少知道原则，完全不需要知道 Girl，所以即使 List<girl> girls 声明为成员变量，还是违反 最少知道原则</girl></li>
+<li><strong>NativeQueue</strong> 运行Native模块函数的线程（通常由JS发起），后台线程；</li>
+<li><strong>JSQueue</strong> 运行JS的线程，后台线程。</li>
+<li><strong>UIQueue</strong> 专门做UI操作，使用Android里面的<strong>主线程</strong>；</li>
 </ul>
-<p>修改：</p>
-<pre><code>public class Teacher{
-    public void command(GroupLeader groupLeader）{
-        groupLeader.countGirls();
-    }
-}
-
-public class GroupLeader{
-    private List&lt;Girl&gt; girls
-
-    public GroupLeader（List&lt;Girl&gt; girls）{
-        this.girls = girls;
-    }
-
-    public void countGirls(){
-        System.out.println(&quot;女生数量是：&quot; + girls.size());
-    }
-}
-
-public class Girl{}
-
-public class Client{
-    public static void main(String[] args){
-        List&lt;Girl&gt; girls = new ArrayList();
-        for(int i = 0; i&lt;20; i++){
-            girls.add(new Girl());
-        }
-
-        Teacher teacher = new Teacher();
-        teacher.commond(new GroupLeader(girls));
-    }
-}
-</code></pre><h3 id="LoD-在设计中的应用"><a href="#LoD-在设计中的应用" class="headerlink" title="LoD 在设计中的应用"></a><a href="http://blog.csdn.net/lovelion/article/details/7563445" target="_blank" rel="noopener">LoD 在设计中的应用</a></h3><p>最少知道原则：</p>
+<p>在CatalystInstance初始化的时候会初始化三个Queue，启动后台线程，并将他们的句柄传给C++层的Bridge。Queue里面调度使用的Handler，重写了dispatchMessage，并在外面包装了层try-catch，统统都会交到 <code>CatalystInstance.onNativeException</code> 中。而这其中使用的就是我们传入给ReactInstanceManager的ExceptionHandler。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">private</span> <span class="title">CatalystInstanceImpl</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> ReactQueueConfigurationSpec reactQueueConfigurationSpec,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> JavaScriptExecutor jsExecutor,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> NativeModuleRegistry nativeModuleRegistry,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> JSBundleLoader jsBundleLoader,</span></span></span><br><span class="line"><span class="function"><span class="params">     NativeModuleCallExceptionHandler nativeModuleCallExceptionHandler)</span> </span>&#123;</span><br><span class="line">   Log.d(ReactConstants.TAG, <span class="string">"Initializing React Xplat Bridge."</span>);</span><br><span class="line">   mHybridData = initHybrid();</span><br><span class="line"></span><br><span class="line"><span class="comment">//创建三大线程：UI线程、Native线程与JS线程</span></span><br><span class="line">   mReactQueueConfiguration = ReactQueueConfigurationImpl.create(</span><br><span class="line">       reactQueueConfigurationSpec,</span><br><span class="line">       <span class="keyword">new</span> NativeExceptionHandler());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">onNativeException</span><span class="params">(Exception e)</span> </span>&#123;</span><br><span class="line">    mNativeModuleCallExceptionHandler.handleException(e);</span><br><span class="line">    mReactQueueConfiguration.getUIQueueThread().runOnQueue(</span><br><span class="line">      <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">          destroy();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">NativeExceptionHandler</span> <span class="keyword">implements</span> <span class="title">QueueThreadExceptionHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleException</span><span class="params">(Exception e)</span> </span>&#123;</span><br><span class="line">      <span class="comment">// Any Exception caught here is because of something in JS. Even if it's a bug in the</span></span><br><span class="line">      <span class="comment">// framework/native code, it was triggered by JS and theoretically since we were able</span></span><br><span class="line">      <span class="comment">// to set up the bridge, JS could change its logic, reload, and not trigger that crash.</span></span><br><span class="line">      onNativeException(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>初始化 <code>ReactInstanceManager</code> 时传的Handler 可以处理上面的前7种异常，我们需要单独处理UI操作异常</p>
+<h3 id="UI操作的异常"><a href="#UI操作的异常" class="headerlink" title="UI操作的异常"></a>UI操作的异常</h3><p>UI操作，其实是调用的UIManagerModule这个Java模块进行的操作，但是实际上它不是马上被同步执行的，而是仅仅只有一个入队列的操作。所有的UI操作都通过Choreographer来驱动执行，那这个时候虽然是在主线程运行，但是不在上面任何一个MessageQueue里面了，于是上面的方式捕获不到。</p>
+<p>以创建视图(<code>UIManagerModule.createView()</code>)为例，来追踪调用流程</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">GuardedFrameCallback</span> <span class="keyword">extends</span> <span class="title">ChoreographerCompat</span>.<span class="title">FrameCallback</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> ReactContext mReactContext;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> <span class="title">GuardedFrameCallback</span><span class="params">(ReactContext reactContext)</span> </span>&#123;</span><br><span class="line">    mReactContext = reactContext;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">doFrame</span><span class="params">(<span class="keyword">long</span> frameTimeNanos)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      doFrameGuarded(frameTimeNanos);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RuntimeException e) &#123;</span><br><span class="line">      mReactContext.handleException(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>UI操作的异常默认由 <code>ReactContext.handleException</code> 处理，追踪发现是 RN React上下文创建时设给它一个Handler，只在develop support时才起作用</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> ReactApplicationContext <span class="title">createReactContext</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      JavaScriptExecutor jsExecutor,</span></span></span><br><span class="line"><span class="function"><span class="params">      JSBundleLoader jsBundleLoader)</span> </span>&#123;</span><br><span class="line">    Log.d(ReactConstants.TAG, <span class="string">"ReactInstanceManager.createReactContext()"</span>);</span><br><span class="line">    ReactMarker.logMarker(CREATE_REACT_CONTEXT_START);</span><br><span class="line">    <span class="keyword">final</span> ReactApplicationContext reactContext = <span class="keyword">new</span> ReactApplicationContext(mApplicationContext);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mUseDeveloperSupport) &#123;</span><br><span class="line">      reactContext.setNativeModuleCallExceptionHandler(mDevSupportManager);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    NativeModuleRegistry nativeModuleRegistry = processPackages(reactContext, mPackages, <span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">    NativeModuleCallExceptionHandler exceptionHandler = mNativeModuleCallExceptionHandler != <span class="keyword">null</span></span><br><span class="line">      ? mNativeModuleCallExceptionHandler</span><br><span class="line">      : mDevSupportManager;</span><br><span class="line">    CatalystInstanceImpl.Builder catalystInstanceBuilder = <span class="keyword">new</span> CatalystInstanceImpl.Builder()</span><br><span class="line">      .setReactQueueConfigurationSpec(mUseSeparateUIBackgroundThread ?</span><br><span class="line">        ReactQueueConfigurationSpec.createWithSeparateUIBackgroundThread() :</span><br><span class="line">        ReactQueueConfigurationSpec.createDefault())</span><br><span class="line">      .setJSExecutor(jsExecutor)</span><br><span class="line">      .setRegistry(nativeModuleRegistry)</span><br><span class="line">      .setJSBundleLoader(jsBundleLoader)</span><br><span class="line">      .setNativeModuleCallExceptionHandler(exceptionHan&#125;ler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里我们可以做<strong>第二个修改</strong>，初始化ReactContext时，可以像设给CatalystInstance的一样</p>
 <ul>
-<li><p>尽量减少对象间的交互。 </p>
-<ul>
-<li>类耦合度越低，越利于复用</li>
-<li>可以通过引入一个合理的第三者来降低对象间的耦合度</li>
+<li>在使用develop support时设给它DevSupportManagerImpl</li>
+<li>否则使用传入的NativeModuleExceptionHandler</li>
 </ul>
-</li>
-<li><p>尽量减少类的公共变量和公共方法。 处在松耦合中的类修改，不会对关联的类造成太大波及</p>
-</li>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://mp.weixin.qq.com/s/aWuenpGOKug4fovT5uKXTQ?" target="_blank" rel="noopener">React Native for Android 异常处理概览</a></li>
 </ul>
-<p>实例：单击按钮(Button)，列表框(List)、组合框(ComboBox)、文本框(TextBox)、文本标签(Label)发生改变</p>
-<ul>
-<li>存在的问题： 四个朋友类。扩展性差，不便于增加/删除控件</li>
-<li>重构方案： 引入控件交互的中间类(Mediator调解人中介物)来降低界面控件之间的耦合度</li>
-</ul>
-<p><img src="http://my.csdn.net/uploads/201205/14/1336930673_6550.jpg" alt=""></p>
-<h2 id="6-4-数据传送对象-Data-Transfer-Objects"><a href="#6-4-数据传送对象-Data-Transfer-Objects" class="headerlink" title="6.4 数据传送对象 Data Transfer Objects"></a>6.4 数据传送对象 Data Transfer Objects</h2><p>Data Transfer Objects（简写 DTO）：只有公共变量，没有方法的类，是最精练的数据结构。</p>
-<p>非常有用的结构，尤其在通信场景中（数据库，网络等）</p>
-<p>DTO 比 常用的 javaBean 更简洁</p>
-<h1 id="第七章、错误处理"><a href="#第七章、错误处理" class="headerlink" title="第七章、错误处理"></a>第七章、错误处理</h1><h2 id="7-1-使用异常而非返回码"><a href="#7-1-使用异常而非返回码" class="headerlink" title="7.1 使用异常而非返回码"></a>7.1 使用异常而非返回码</h2><p>抛出异常代替返回错误码，这样调用代码很整洁，逻辑不会被错误错误处理搞乱</p>
-<h2 id="7-2-先写-Try—Catch-Finally-语句"><a href="#7-2-先写-Try—Catch-Finally-语句" class="headerlink" title="7.2 先写 Try—Catch-Finally 语句"></a>7.2 先写 Try—Catch-Finally 语句</h2><p>能帮你定义代码应该期待什么</p>
-<h2 id="7-3-使用不可控异常-unchecked-exception"><a href="#7-3-使用不可控异常-unchecked-exception" class="headerlink" title="7.3 使用不可控异常 unchecked exception"></a>7.3 使用不可控异常 unchecked exception</h2><p>可控异常–每个方法的签名声明可能抛出的异常</p>
-<p>可控异常违反 开放/闭合原则，低层方法异常的修改必将影响高层方法的签名。如果catch语句在抛出异常的方法三个层级之上，catch语句和抛出异常处之间的每个方法签名中声明该异常，这成本太高，不值票价。</p>
-<h2 id="7-4-给出异常发生的环境说明"><a href="#7-4-给出异常发生的环境说明" class="headerlink" title="7.4 给出异常发生的环境说明"></a>7.4 给出异常发生的环境说明</h2><p>抛出的每个异常，须提供足够的环境说明，以便判断错误来源和处所</p>
-<p>java的stack trace 无法告知异常的初衷</p>
-<h2 id="7-5-依调用者需要定义异常类"><a href="#7-5-依调用者需要定义异常类" class="headerlink" title="7.5 依调用者需要定义异常类"></a>7.5 <code>依调用者需要</code>定义异常类</h2><p>定义异常类最重要的考虑：<strong>异常该如何被捕获</strong></p>
-<p><code>没太理解</code> 例子是 封装一个抛出多种异常的三方API为一个自定义异常，从而整洁代码</p>
-<h2 id="7-6-定义常规流程"><a href="#7-6-定义常规流程" class="headerlink" title="7.6 定义常规流程"></a>7.6 定义常规流程</h2><p>遵循前文的建议，业务逻辑和错误处理会良好分离。</p>
-<p>却把错误处理推到的程序边缘地带。封装三方API而抛出自定义的异常，只在最顶层处理错误。</p>
-<p>但有时候，你可以不用抛出异常</p>
-<p>下面的笨代码，计算 工资总数: <code>如果有餐食花费，计入总额，如果没有则获得每日标准餐补，计入总额</code>。</p>
-<pre><code>try{
-    MealExpenses expenses = expensesDAO.getMeals(employeeId);
-    total += expenses.getTotal();
-}catch(MealExpensesNotFound e){
-    total += getMealPerDiem(); //PerDiem allowance 按日补贴
-}
-</code></pre><p>异常打断了义务逻辑。如果不用处理特殊情况，代码会整洁很多</p>
-<p>实现方法是使用 <strong>特例模式（Special Case Pattern）</strong>。使用一个特例类封装异常，客户代码就不用处理异常了</p>
-<p>具体到上例：expensesDAO.getMeals 总是返回 MealExpenses。若没有餐食花费，返回一个 餐食补贴的 MealExpenses 对象</p>
-<pre><code>public class PerDiemMealExpenses implements MealExpenses{}
-</code></pre><h2 id="7-7-别返回null"><a href="#7-7-别返回null" class="headerlink" title="7.7 别返回null"></a>7.7 别返回null</h2><p>随处可见的 null 检查，代码糟糕透了。</p>
-<p>返回null，不如抛出异常。</p>
-<p>特例对象是爽口良药。</p>
-<p>如果三方API可能返回null，考虑重新封装，在新方法中抛异常或返回特例对象。</p>
-<h2 id="7-8-别传递null"><a href="#7-8-别传递null" class="headerlink" title="7.8 别传递null"></a>7.8 别传递null</h2><p>返回null很糟糕，传递null更糟糕。</p>
-<p>在定义方法时，使用@NotNull 注解</p>
-<h2 id="7-9-总结"><a href="#7-9-总结" class="headerlink" title="7.9 总结"></a>7.9 总结</h2><p>整洁代码要可读，也要强固。</p>
-<p>可读与强固并不冲突。</p>
-<p>分离业务逻辑和错误处理，就能写出可读而强固的整洁代码</p>
-<h1 id="第八章、边界"><a href="#第八章、边界" class="headerlink" title="第八章、边界"></a>第八章、边界</h1><h2 id="8-1-使用第三方代码"><a href="#8-1-使用第三方代码" class="headerlink" title="8.1 使用第三方代码"></a>8.1 使用第三方代码</h2><p>接口提供者和接口使用者之间，存在与生俱来的张力。提供者追求普适性以吸引广泛用户，使用者追求集中满足特定需求。这种张力会导致系统边界上出现问题。</p>
-<p><strong>以java.util.Map为例</strong></p>
-<p>Map提供了丰富灵活的方法，但也要付出代价。</p>
-<ul>
-<li>Map中可以存放任何类型对象，访问对象时需要判断与转换类型。 <code>Sensor s = (Sensor) sensors.get(sendorId)</code></li>
-<li>当Map被修改时，所有用到Map的地方都要跟着修改。Java 5 加入泛型支持，的确见到很多系统都要做大量改动才能</li>
-<li>超出控制。我们初衷可能不允许删除Map中的任何对象，但Map提供了删除接口</li>
-</ul>
-<p>整洁方式</p>
-<p>public class sensors{<br>    private Map&lt;string,Sendor&gt; sensors = new HashMap();</p>
-<pre><code>public Sensor getById(String id){
-    return sensors.get(id);
-}
-</code></pre><p>}</p>
-<p>边界接口（Map）是隐藏的。该接口封装后能适应业务的需要，易于理解，难以误用</p>
-<h2 id="8-2-浏览和学习边界"><a href="#8-2-浏览和学习边界" class="headerlink" title="8.2 浏览和学习边界"></a>8.2 浏览和学习边界</h2><p>学习第三方代码很难。整合第三方代码也很难。同时做这两件事难上加难。</p>
-<p>更好的做法是，不要在生产代码中实验新东西，而是编写测试来遍览和理解第三方代码。即<strong>学习型测试</strong>。</p>
-<h2 id="8-3-学习log4j"><a href="#8-3-学习log4j" class="headerlink" title="8.3 学习log4j"></a>8.3 学习log4j</h2><p>Log4j是一个功能强大的日志组件,提供方便的日志记录</p>
-<h2 id="8-4-学习性测试的好处不只是免费"><a href="#8-4-学习性测试的好处不只是免费" class="headerlink" title="8.4 学习性测试的好处不只是免费"></a>8.4 学习性测试的好处不只是免费</h2><p>学习性测试不光免费，还在投资上有正面的回报。</p>
-<p>当第三方程序包发布了新版本，我们可以运行学习性测试，看看程序包的行为有没有改变。</p>
-<p>无论你是否通过学习型测试来学习，总要有与生产代码调用方式一直的测试来支持整洁的边界。边界测试是减轻迁移劳力的有效方法。</p>
-<h2 id="8-5-使用尚不存在的代码"><a href="#8-5-使用尚不存在的代码" class="headerlink" title="8.5 使用尚不存在的代码"></a>8.5 使用尚不存在的代码</h2><p>还有另一种边界，那种将已知和未知分隔开的边界。在代码中总有许多地方是我们的知识未及之处。有时，边界那边就是未知的（至少目前未知）。有时，我们并不往边界那边看过去。</p>
-<p>工作中，并发编程总是在边界接口未实现的情况下开始工作。自定义接口（模拟对依赖接口的封装）就很有用了</p>
-<h2 id="8-6-整洁的边界"><a href="#8-6-整洁的边界" class="headerlink" title="8.6 整洁的边界"></a>8.6 整洁的边界</h2><p>依赖你能控制的东西，好过依赖你控制不了的东西，免得日后受它控制。</p>
-<p>可以像上文对象Map那样<strong>包装</strong>他们，也可以使用 <strong>适配器模式（Adapter Pattern）</strong>将我们的接口转换为第三方接口。</p>
-<h1 id="第十章、类"><a href="#第十章、类" class="headerlink" title="第十章、类"></a>第十章、类</h1><h2 id="10-1-类的组织"><a href="#10-1-类的组织" class="headerlink" title="10.1 类的组织"></a>10.1 类的组织</h2><p>遵循自顶向下原则，让程序读起来像一篇报纸。</p>
-<p>顺序：先静态，后实体；先公有，后私有；</p>
-<p>私有函数应紧跟调用它的公有函数。</p>
-<h2 id="10-2-类应该短小"><a href="#10-2-类应该短小" class="headerlink" title="10.2 类应该短小"></a>10.2 类应该短小</h2><p><strong>函数大小标准：代码行数；类大小标准：权责（Responsibility）数量</strong></p>
-<p><strong>类名应当描述其权责</strong>。命名正是帮组判断类长度的一个手段。如果无法为类精确命名，这个类大概就太长了。类中包括含义模糊的词（如Processor、Manager，Super）,说明有不恰当的权责聚集</p>
-<h3 id="10-2-1-单一权责原则-SRP"><a href="#10-2-1-单一权责原则-SRP" class="headerlink" title="10.2.1 单一权责原则 SRP"></a>10.2.1 单一权责原则 SRP</h3><p><strong>类或模块应且只有一条加以修改的理由</strong>。</p>
-<p>鉴别权责（修改理由）常常帮助我们认识并创建更好的抽象</p>
-<p>很多开发者害怕数量巨大的短小类会导致难以一目了然抓住全局。常常为了搞清一个功能而在类间跳来跳去。</p>
-<p>问题是：抽屉中有许多定义和标记良好的小箱子，还是把工具随便扔到抽屉中，更容易组织管理呢？</p>
-<p><strong>系统应由许多短小的类组成，而不是少量巨大的类组成。每个小类封装一个权责，只有一个修改的理由，并与其他类一起协同完成系统行为</strong></p>
-<h3 id="10-2-2-内聚"><a href="#10-2-2-内聚" class="headerlink" title="10.2.2 内聚"></a>10.2.2 内聚</h3><p>类应该只有少量实体变量。通常而言，方法操作的变量越多，就越黏聚到类上。如果一个类中的每个变量都被每个方法所使用，则该类具有最大的内聚性。</p>
-<p>一般来说，创建极大化内聚类是既不可取也不可能的；另一方面，我们希望内聚性保持在较高位置。</p>
-<p>内聚性高，意味着类中的方法和变量互相依赖、互相结合成一个逻辑整体。</p>
-<p>保持函数参数列表短小，有时会导致类实体变量增多。这时往往意味着需要拆分类，提高内聚性。</p>
-<h3 id="10-2-3-保持内聚性就会得到许多短小的类"><a href="#10-2-3-保持内聚性就会得到许多短小的类" class="headerlink" title="10.2.3 保持内聚性就会得到许多短小的类"></a>10.2.3 保持内聚性就会得到许多短小的类</h3><p>仅仅简单将大函数切割为小函数，而且保持函数参数简洁，会导致实体变量增多。比如，大函数用到4个变量，函数拆分后就得变成四个实体变量。</p>
-<p>而这4个变量可能就2个方法使用了，这意味着丧失了内聚性。</p>
-<p>如果就这2个方法需要共享变量，为什么不让它们拥有自己的类呢？当丧失了内聚性，就拆分它们为单独的类。将大函数拆分为小函数，往往也是拆分为小类的时机。程序会更多有组织结构。</p>
-<h4 id="打印质数实例重构"><a href="#打印质数实例重构" class="headerlink" title="打印质数实例重构"></a>打印质数实例重构</h4><p>原程序只有一个大行数，简直一团糟。很深的缩进结构，冗余的变量，紧密耦合的结构</p>
-<p>重构和原程序采用同样算法和机制，重构后程序被拆分为3个权责：</p>
-<ul>
-<li>PrimePrinter 主程序，权责是处理执行环境，因调用方式而改变，例如程序被转换为SOAP服务，该类会被影响</li>
-<li>PrimeGenerator 权责是生成质数列表，因质数算法而改变</li>
-<li>RowColumnPagePrinter 权责是格式化数字列表成固定行列的列表，因输出格式而改变</li>
-</ul>
-<p>代码如下：</p>
-<ul>
-<li><p>PrimePrinter</p>
-<pre><code>public class PrimePrinter {
-  public static void main(String[] args) {
-    final int NUMBER_OF_PRIMES = 1000;
-    int[] primes = PrimeGenerator.generate(NUMBER_OF_PRIMES);
-
-    final int ROWS_PER_PAGE = 50;
-    final int COLUMNS_PER_PAGE = 4;
-    RowColumnPagePrinter tablePrinter =
-      new RowColumnPagePrinter(ROWS_PER_PAGE,
-                               COLUMNS_PER_PAGE,
-                               &quot;The First &quot; + NUMBER_OF_PRIMES +
-                                 &quot; Prime Numbers&quot;);
-
-    tablePrinter.print(primes);
-  }
-}
-</code></pre></li>
-<li><p>PrimeGenerator</p>
-<pre><code>public class PrimeGenerator {
-  private static int[] primes;
-  private static ArrayList&lt;Integer&gt; multiplesOfPrimeFactors;
-
-  protected static int[] generate(int n) {
-    primes = new int[n];
-    multiplesOfPrimeFactors = new ArrayList&lt;Integer&gt;();
-    set2AsFirstPrime();
-    checkOddNumbersForSubsequentPrimes();
-    return primes;
-  }
-
-  private static void set2AsFirstPrime() {
-    primes[0] = 2;
-    multiplesOfPrimeFactors.add(2);
-  }
-
-  private static void checkOddNumbersForSubsequentPrimes() {
-    int primeIndex = 1;
-    for (int candidate = 3;
-         primeIndex &lt; primes.length;
-         candidate += 2) {
-      if (isPrime(candidate))
-        primes[primeIndex++] = candidate;
-    }
-  }
-
-  private static boolean isPrime(int candidate) {
-    if (isLeastRelevantMultipleOfNextLargerPrimeFactor(candidate)) {
-      multiplesOfPrimeFactors.add(candidate);
-      return false;
-    }
-    return isNotMultipleOfAnyPreviousPrimeFactor(candidate);
-  }
-
-  private static boolean
-  isLeastRelevantMultipleOfNextLargerPrimeFactor(int candidate) {
-    int nextLargerPrimeFactor = primes[multiplesOfPrimeFactors.size()];
-    int leastRelevantMultiple = nextLargerPrimeFactor * nextLargerPrimeFactor;
-    return candidate == leastRelevantMultiple;
-  }
-
-  private static boolean
-  isNotMultipleOfAnyPreviousPrimeFactor(int candidate) {
-    for (int n = 1; n &lt; multiplesOfPrimeFactors.size(); n++) {
-      if (isMultipleOfNthPrimeFactor(candidate, n))
-        return false;
-      }
-    return true;
-  }
-
-  private static boolean
-  isMultipleOfNthPrimeFactor(int candidate, int n) {
-    return
-      candidate == smallestOddNthMultipleNotLessThanCandidate(candidate, n);
-  }
-
-  private static int
-  smallestOddNthMultipleNotLessThanCandidate(int candidate, int n) {
-    int multiple = multiplesOfPrimeFactors.get(n);
-    while (multiple &lt; candidate)
-      multiple += 2 * primes[n];
-    multiplesOfPrimeFactors.set(n, multiple);
-    return multiple;
-  }
-}
-</code></pre></li>
-<li><p>RowColumnPagePrinter</p>
-<pre><code>public class RowColumnPagePrinter {
-  private int rowsPerPage;
-  private int columnsPerPage;
-  private int numbersPerPage;
-  private String pageHeader;
-  private PrintStream printStream;
-
-  public RowColumnPagePrinter(int rowsPerPage,
-                              int columnsPerPage,
-                              String pageHeader) {
-    this.rowsPerPage = rowsPerPage;
-    this.columnsPerPage = columnsPerPage;
-    this.pageHeader = pageHeader;
-    numbersPerPage = rowsPerPage * columnsPerPage;
-    printStream = System.out;
-  }
-  public void print(int data[]) {
-    int pageNumber = 1;
-    for (int firstIndexOnPage = 0;
-         firstIndexOnPage &lt; data.length;
-         firstIndexOnPage += numbersPerPage) {
-      int lastIndexOnPage =
-        Math.min(firstIndexOnPage + numbersPerPage - 1,
-                 data.length - 1);
-      printPageHeader(pageHeader, pageNumber);
-      printPage(firstIndexOnPage, lastIndexOnPage, data);
-      printStream.println(&quot;\f&quot;);
-      pageNumber++;
-    }
-  }
-
-  private void printPage(int firstIndexOnPage,
-                         int lastIndexOnPage,
-                         int[] data) {
-    int firstIndexOfLastRowOnPage =
-      firstIndexOnPage + rowsPerPage - 1;
-    for (int firstIndexInRow = firstIndexOnPage;
-         firstIndexInRow &lt;= firstIndexOfLastRowOnPage;
-         firstIndexInRow++) {
-      printRow(firstIndexInRow, lastIndexOnPage, data);
-      printStream.println(&quot;&quot;);
-    }
-  }
-
-  private void printRow(int firstIndexInRow,
-                        int lastIndexOnPage,
-                        int[] data) {
-    for (int column = 0; column &lt; columnsPerPage; column++) {
-      int index = firstIndexInRow + column * rowsPerPage;
-      if (index &lt;= lastIndexOnPage)
-        printStream.format(&quot;%10d&quot;, data[index]);
-    }
-  }
-
-  private void printPageHeader(String pageHeader,
-                               int pageNumber) {
-    printStream.println(pageHeader + &quot; --- Page &quot; + pageNumber);
-    printStream.println(&quot;&quot;);
-  }
-
-  public void setOutput(PrintStream printStream) {
-    this.printStream = printStream;
-  }
-}
-</code></pre></li>
-</ul>
-<h2 id="10-3-为了修改而组织"><a href="#10-3-为了修改而组织" class="headerlink" title="10.3 为了修改而组织"></a>10.3 为了修改而组织</h2><p>修改将一直持续。每次修改（打开类）都让系统冒着其他部分不能如期望工作的风险。整洁系统必须优化类的组织，降低修改带来的风险</p>
-<h3 id="Sql类实例重构"><a href="#Sql类实例重构" class="headerlink" title="Sql类实例重构"></a>Sql类实例重构</h3><pre><code>public class Sql {
-  public Sql(String table, Column[] columns);
-  public String create();
-  public String insert(Object[] fields);
-  public String selectAll();
-  public String findByKey(String keyColumn, String keyValue);
-  public String select(Column column, String pattern);
-  public String select(Criteria criteria);
-  public String preparedInsert();
-  private String columnList(Column[] columns) 
-  private String valuesList(Object[] fields, final Column[] columns)
-  private String selectWithCriteria(String criteria) 
-  private String placeholderList(Column[] columns) 
-}
-</code></pre><p>原程序存在的问题：</p>
-<ul>
-<li><p>存在两个修改的理由，说明违反了SRP原则</p>
-<p>  每当需要新增支持一种语句（如 update），必须“打开”类进行修改，风险随之而来，可能破坏类中其他代码，必须全面重新测试。</p>
-<p>  每当需要更改select查询，也必须“打开”类进行修改。</p>
-</li>
-<li><p>内聚性不足</p>
-<p>  存在类似 <code>selectWithCriteria</code>等 只与 <code>select</code> 有关的是有方法</p>
-</li>
-</ul>
-<p>如果该类无需增加update功能，就该不动Sql类。但是一旦打开了类，就应该马上修正设计方案</p>
-<p>重构方案：</p>
-<ul>
-<li>每个功能拆分为一个权责类。Sql为基类，每个功能都是一个子类。</li>
-<li>私有方法放到被使用的类。valuesList方法只在insert中使用了，放到InsertSql中</li>
-<li>公共私有方法放到工具类。Where 和 ColumnList</li>
-</ul>
-<p>代码如下：</p>
-<ul>
-<li><p>Sql</p>
-<pre><code>abstract public class Sql {
-   public Sql(String table, Column[] columns) {};
-   abstract public String generate();
-}
-</code></pre></li>
-<li><p>CreateSql</p>
-<pre><code>class CreateSql extends Sql {
-   public CreateSql(String table, Column[] columns) { super(table, columns); }
-   @Override public String generate() { return &quot;&quot;; }
-}
-</code></pre></li>
-<li><p>InsertSql</p>
-<pre><code>class InsertSql extends Sql {
-   public InsertSql(String table, Column[] columns, Object[] fields) { super(table, columns); }
-   @Override public String generate() { return &quot;&quot;; }
-   private String valuesList(Object[] fields, final Column[] columns) { return &quot;&quot;; }
-}
-</code></pre></li>
-<li><p>Where</p>
-<pre><code>class Where {
-   public Where(String criteria) {}
-   public String generate() { return &quot;&quot;; }
-}
-</code></pre></li>
-<li><p>ColumnList</p>
-<pre><code>class ColumnList {
-   public ColumnList(Column[] columns) {}
-   public String generate() { return &quot;&quot;; }
-}
-</code></pre></li>
-</ul>
-<p>当需要增加update是，只需新建UpdateSql类。</p>
-<p>重构后的系统，符合单一权责原则SRP，符合 开闭原则OCP</p>
-<h3 id="隔离修改"><a href="#隔离修改" class="headerlink" title="隔离修改"></a>隔离修改</h3><p>借助接口和抽象类隔离细节修改带来的影响。</p>
-<p>依赖倒置原则DIP：类应当依赖于抽象，而不是依赖于具体细节。</p>
-<h1 id="第十一章、-系统"><a href="#第十一章、-系统" class="headerlink" title="第十一章、 系统"></a>第十一章、 系统</h1><h2 id="11-1-如何建造一个城市"><a href="#11-1-如何建造一个城市" class="headerlink" title="11.1 如何建造一个城市"></a>11.1 如何建造一个城市</h2><p>城市能够正常运转是因为城市演化出恰当的抽象等级和模块（供水系统、供电系统、交通、执法、立法等），各组件即便在不了解全局时，都能有效转转</p>
-<p>本章讨论的就是如何在较高的抽象层级-系统层级 上保持整洁</p>
-<h2 id="11-2-将系统的构造和使用分开"><a href="#11-2-将系统的构造和使用分开" class="headerlink" title="11.2 将系统的构造和使用分开"></a>11.2 将系统的构造和使用分开</h2><p>Separate Constructing a System from Using It</p>
-<p>酒店建设时，先搭个框架，起重机升降机附着在外面，工人忙碌其间。建成后，起重机升降机都会消失，酒店变得整洁</p>
 
           
         
@@ -2153,7 +1725,7 @@ public class Client{
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/VO DTO DO PO 概念/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/字符串分割/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -2172,7 +1744,7 @@ public class Client{
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/01/14/编程思想/VO DTO DO PO 概念/" itemprop="url">VO DTO DO PO 概念</a></h1>
+                <a class="post-title-link" href="/2019/03/27/java基础/字符串分割/" itemprop="url">字符串分割</a></h1>
         
 
         <div class="post-meta">
@@ -2184,8 +1756,8 @@ public class Client{
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T08:56:53+08:00">
-                2019-01-14
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:51:53+08:00">
+                2019-03-27
               </time>
             
 
@@ -2207,8 +1779,8 @@ public class Client{
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
                   </a>
                 </span>
 
@@ -2246,638 +1818,17 @@ public class Client{
       
         
           
-            <pre><code>浅析VO、DTO、DO、PO的概念、区别和用处 http://blog.csdn.net/zjrbiancheng/article/details/6253232
-</code></pre><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><pre><code>VO（View Object）：视图对象，用于展示层，它的作用是把某个指定页面（或组件）的所有数据封装起来。 展示User 可能是包含昵称头像
-DTO（Data Transfer Object）：数据传输对象，服务层返回的数据传输对象。 服务器返回的User不包含密码
-DO（Domain Object）：领域对象，就是从现实世界中抽象出来的有形或无形的业务实体。 抽象User可能包含密码和登录方法
-PO（Persistent Object）：持久化（通常是关系型数据库）对象。 存储User可能不包含密码
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/面向切面编程AOP/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/面向切面编程AOP/" itemprop="url">面向切面编程AOP</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T08:56:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.jianshu.com/p/0fa8073fd144" target="_blank" rel="noopener">面向切面编程（AOP，Aspect-oriented programming）</a></p>
+            <h1 id="split"><a href="#split" class="headerlink" title="split"></a>split</h1><pre><code>1、如果用“.”作为分隔的话，必须是如下写法：String.split(&quot;\\.&quot;),这样才能正确的分隔开，不能用String.split(&quot;.&quot;);
+2、如果用“|”作为分隔的话，必须是如下写法：String.split(&quot;\\|&quot;),这样才能正确的分隔开，不能用String.split(&quot;|&quot;);
+“.”和“|”都是转义字符，必须得加&quot;\\&quot;;
+而且分隔出来的字符串可能带有不可见特殊部分，可能出现equal 不成立bug    
+</code></pre><p>StringTokenizer</p>
 <ul>
-<li>需要把程序逻辑分解成<strong>『关注点』</strong>（concerns，功能的内聚区域，多处代码中需要的逻辑，但没有一个单独的类来实现）</li>
-<li><strong>『关注点』</strong>只被实现一次</li>
-<li>不需要显式的修改就可以向代码中添加可执行的代码块（注入到需要该逻辑的地方）</li>
+<li>比spilt<strong>效率高</strong></li>
+<li>支持多个分隔符</li>
+<li>支持是否返回分隔符</li>
 </ul>
-<h1 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h1><ul>
-<li><p>Cross-cutting concerns（横切关注点）: 比如</p>
-<ul>
-<li>日志</li>
-<li>持久化</li>
-<li>性能监控</li>
-<li>数据校验</li>
-<li>缓存</li>
-</ul>
-</li>
-<li><p>Advice（注入代码）: 注入到class文件中的代码。</p>
-</li>
-<li><p>Joint point（注入点 / 连接点）: 程序中可能作为代码注入目标的特定的点，例如一个方法调用或者方法入口。</p>
-<ul>
-<li>方法。 类型有 before、after 和 around，分别表示在目标方法执行之前、执行后和完全替代目标方法执行的代码。 </li>
-<li>class。增加字段或者接口。</li>
-</ul>
-</li>
-<li><p>Pointcut（切入点）: 在何处注入何代码的表达式（给代码注入工具用）。例如，标记了自定义注解@DebguTrace的方法。</p>
-</li>
-<li><p>Aspect（切面）: Pointcut 和 Advice 的组合看做切面。例如，一个pointcut和恰当的advice = 一个日志切面。</p>
-</li>
-<li><p>Weaving（织入）: 注入代码（advices）到目标位置（joint points）的过程。</p>
-</li>
-</ul>
-<p>下面这张图简要总结了一下上述这些概念。<br><img src="http://upload-images.jianshu.io/upload_images/30689-55846998f4f5b4ce.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
-<h1 id="工具和库"><a href="#工具和库" class="headerlink" title="工具和库"></a>工具和库</h1><ul>
-<li><p><a href="https://eclipse.org/aspectj/" target="_blank" rel="noopener">AspectJ</a>: 一个 JavaTM 语言的面向切面编程的无缝扩展（适用Android）。</p>
-</li>
-<li><p><a href="https://github.com/crimsonwoods/javassist-android" target="_blank" rel="noopener">Javassist for Android</a>: 知名 java 类库 Javassist（字节码操作库） 的 Android 平台移植版。</p>
-</li>
-<li><p><a href="https://code.google.com/p/dexmaker/" target="_blank" rel="noopener">DexMaker</a>: Dalvik 虚拟机上，在编译期或者运行时生成代码的 Java API。</p>
-</li>
-<li><p><a href="http://asm.ow2.org/asmdex-index.html" target="_blank" rel="noopener">ASMDEX</a>: 一个类似 ASM 的字节码操作库，运行在Android平台，操作Dex字节码。</p>
-</li>
-</ul>
-<h1 id="为什么用-AspectJ"><a href="#为什么用-AspectJ" class="headerlink" title="为什么用 AspectJ"></a>为什么用 AspectJ</h1><ul>
-<li>功能强大</li>
-<li>支持<strong>编译期和加载时代码注入</strong></li>
-<li>易于使用</li>
-</ul>
-<h1 id="使用-AspectJ"><a href="#使用-AspectJ" class="headerlink" title="使用 AspectJ"></a>使用 AspectJ</h1><p><a href="https://github.com/android10/Android-AOPExample" target="_blank" rel="noopener">示例：</a>测量一个方法的性能（执行这个方法需要多长时间）。logcat 输出 @DebugTrace 注解标记的方法性能。<a href="https://github.com/JakeWharton/hugo" target="_blank" rel="noopener">Jake Wharton’s Hugo Library</a> 支持做同样的事情</p>
-<h2 id="依赖配置"><a href="#依赖配置" class="headerlink" title="依赖配置"></a>依赖配置</h2><p>module 的 <code>build.gradle</code></p>
-<pre><code>import org.aspectj.bridge.IMessage
-import org.aspectj.bridge.MessageHandler
-import org.aspectj.tools.ajc.Main
-
-buildscript {
-  repositories {
-    mavenCentral()
-  }
-  dependencies {
-    classpath &apos;com.android.tools.build:gradle:2.1.0&apos;
-    classpath &apos;org.aspectj:aspectjtools:1.8.1&apos;
-  }
-}
-
-apply plugin: &apos;com.android.library&apos;
-
-repositories {
-  mavenCentral()
-}
-
-dependencies {
-  compile &apos;org.aspectj:aspectjrt:1.8.1&apos;
-}
-
-android {
-  compileSdkVersion 23
-  buildToolsVersion &apos;23.0.2&apos;
-
-  lintOptions {
-    abortOnError false
-  }
-}
-
-android.libraryVariants.all { variant -&gt;
-  LibraryPlugin plugin = project.plugins.getPlugin(LibraryPlugin)
-  JavaCompile javaCompile = variant.javaCompile
-  javaCompile.doLast {
-    String[] args = [&quot;-showWeaveInfo&quot;,
-                     &quot;-1.5&quot;,
-                     &quot;-inpath&quot;, javaCompile.destinationDir.toString(),
-                     &quot;-aspectpath&quot;, javaCompile.classpath.asPath,
-                     &quot;-d&quot;, javaCompile.destinationDir.toString(),
-                     &quot;-classpath&quot;, javaCompile.classpath.asPath,
-                     &quot;-bootclasspath&quot;, plugin.project.android.bootClasspath.join(
-        File.pathSeparator)]
-
-    MessageHandler handler = new MessageHandler(true);
-    new Main().run(args, handler)
-
-    def log = project.logger
-    for (IMessage message : handler.getMessages(null, true)) {
-      switch (message.getKind()) {
-        case IMessage.ABORT:
-        case IMessage.ERROR:
-        case IMessage.FAIL:
-          log.error message.message, message.thrown
-          break;
-        case IMessage.WARNING:
-        case IMessage.INFO:
-          log.info message.message, message.thrown
-          break;
-        case IMessage.DEBUG:
-          log.debug message.message, message.thrown
-          break;
-      }
-    }
-  }
-}
-</code></pre><h2 id="定义-DebugTrace注解"><a href="#定义-DebugTrace注解" class="headerlink" title="定义 DebugTrace注解"></a>定义 DebugTrace注解</h2><p>注解周期声明在 class 文件上，以注解构造函数和方法</p>
-<pre><code>@Retention(RetentionPolicy.CLASS)
-@Target({ ElementType.CONSTRUCTOR, ElementType.METHOD })
-public @interface DebugTrace {}
-</code></pre><h2 id="Aspect-类"><a href="#Aspect-类" class="headerlink" title="Aspect 类"></a>Aspect 类</h2><p>Aspect 类负责管理注解的处理和代码织入。</p>
-<pre><code>@Aspect
-public class TraceAspect {
-
-  private static final String POINTCUT_METHOD =
-      &quot;execution(@org.android10.gintonic.annotation.DebugTrace * *(..))&quot;;
-
-  private static final String POINTCUT_CONSTRUCTOR =
-      &quot;execution(@org.android10.gintonic.annotation.DebugTrace *.new(..))&quot;;
-
-  @Pointcut(POINTCUT_METHOD)
-  public void methodAnnotatedWithDebugTrace() {}
-
-  @Pointcut(POINTCUT_CONSTRUCTOR)
-  public void constructorAnnotatedDebugTrace() {}
-
-  @Around(&quot;methodAnnotatedWithDebugTrace() || constructorAnnotatedDebugTrace()&quot;)
-  public Object weaveJoinPoint(ProceedingJoinPoint joinPoint) throws Throwable {
-    MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
-    String className = methodSignature.getDeclaringType().getSimpleName();
-    String methodName = methodSignature.getName();
-
-    final StopWatch stopWatch = new StopWatch();
-    stopWatch.start();
-    Object result = joinPoint.proceed();
-    stopWatch.stop();
-
-    DebugLog.log(className, buildLogMessage(methodName, stopWatch.getTotalTimeMillis()));
-
-    return result;
-  }
-
-  /**
-   * Create a log message.
-   *
-   * @param methodName A string with the method name.
-   * @param methodDuration Duration of the method in milliseconds.
-   * @return A string representing message.
-   */
-  private static String buildLogMessage(String methodName, long methodDuration) {
-    StringBuilder message = new StringBuilder();
-    message.append(&quot;Gintonic --&gt; &quot;);
-    message.append(methodName);
-    message.append(&quot; --&gt; &quot;);
-    message.append(&quot;[&quot;);
-    message.append(methodDuration);
-    message.append(&quot;ms&quot;);
-    message.append(&quot;]&quot;);
-
-    return message.toString();
-  }
-}
-</code></pre><ul>
-<li><p><code>@Pointcut</code> <strong>属性值声明的方法</strong>（“org.android10.gintonic.annotation.DebugTrace” 注解的方法和构造函数）<strong>注入@Pointcut注解的方法</strong></p>
-</li>
-<li><p><code>@Around</code> <strong>@Around注解的方法</strong>（“weaveJointPoint(ProceedingJoinPoint joinPoint)”）<strong>替换属性值声明的方法</strong>（@DebugTrace”注解的方法）</p>
-</li>
-<li><p><code>Object result = joinPoint.proceed();</code> 执行原来的方法</p>
-</li>
-</ul>
-<h2 id="测试-DebugTrace"><a href="#测试-DebugTrace" class="headerlink" title="测试 DebugTrace"></a>测试 DebugTrace</h2><pre><code>@DebugTrace
-  private void testAnnotatedMethod() {
-    try {
-      Thread.sleep(10);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-  }
-</code></pre><h2 id="输出结果"><a href="#输出结果" class="headerlink" title="输出结果"></a>输出结果</h2><pre><code>Gintonic --&gt; testAnnotatedMethod --&gt; [10ms]
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/09/电脑使用/mac/PHP集成环境MAMP使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/09/电脑使用/mac/PHP集成环境MAMP使用/" itemprop="url">PHP集成环境MAMP使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-09T14:41:53+08:00">
-                2019-01-09
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h1><h2 id="配置mysql密码"><a href="#配置mysql密码" class="headerlink" title="配置mysql密码"></a>配置mysql密码</h2><h3 id="修改mysql密码"><a href="#修改mysql密码" class="headerlink" title="修改mysql密码"></a>修改mysql密码</h3><p><code>/Applications/MAMP/Library/bin/mysqladmin -u root -p password</code></p>
-<p>输入mysql密码，并且确认密码。就OK了</p>
-<h3 id="配置文件修改mysql密码"><a href="#配置文件修改mysql密码" class="headerlink" title="配置文件修改mysql密码"></a>配置文件修改mysql密码</h3><p><code>/Applications/MAMP/bin/phpMyAdmin-X.X.X/config.inc.php</code></p>
-<p>找到 <code>$cfg[‘Servers’][$i][‘password’]</code>，修改密码。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/07/电脑使用/mac/Mac自启动管理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/07/电脑使用/mac/Mac自启动管理/" itemprop="url">Mac自启动管理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-07T16:10:53+08:00">
-                2019-01-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>三种方式配置Mac OS X的启动项</p>
-<h1 id="Login-Items"><a href="#Login-Items" class="headerlink" title="Login Items"></a>Login Items</h1><p><code>System Preferences -&gt; System -&gt; Accounts，选择Login Items选项卡</code></p>
-<h1 id="StartupItems"><a href="#StartupItems" class="headerlink" title="StartupItems"></a>StartupItems</h1><ul>
-<li><p><code>/System/Library/StartupItems</code></p>
-</li>
-<li><p><code>/Library/StartupItems</code></p>
-</li>
-</ul>
-<h1 id="Launchd-Daemon"><a href="#Launchd-Daemon" class="headerlink" title="Launchd Daemon"></a>Launchd Daemon</h1><p><code>~/Library/LaunchAgents</code></p>
-
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">StringTokenizer st = <span class="keyword">new</span> StringTokenizer(testWord, <span class="string">" ,?.!:\"\"\n#"</span>, <span class="keyword">true</span>);</span><br><span class="line">List&lt;String&gt; wordList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"><span class="keyword">while</span> (st.hasMoreElements()) &#123;</span><br><span class="line">    wordList.add(st.nextToken());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
           
         
       
@@ -2916,7 +1867,7 @@ public class TraceAspect {
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/8/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/10/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/8/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/10/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2966,7 +1917,7 @@ public class TraceAspect {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">214</span>
+                  <span class="site-state-item-count">263</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2988,7 +1939,7 @@ public class TraceAspect {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-count">65</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/29/RN/RN之Native处理异常/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/音频格式比较/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/03/29/RN/RN之Native处理异常/" itemprop="url">RN之Native处理异常</a></h1>
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/音频格式比较/" itemprop="url">音频格式比较</a></h1>
         
 
         <div class="post-meta">
@@ -293,8 +293,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-29T17:41:12+08:00">
-                2019-03-29
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
               </time>
             
 
@@ -303,6 +303,28 @@
             
           </span>
 
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
           
 
           
@@ -333,76 +355,170 @@
       
         
           
-            <p>研究RN框架异常的动机在于，我们需要建立起一套针对性的容错机制，毕竟它还是一个不够成熟的框架。期望能够做到的效果就是，对于每一个RN页面的启动，我们能够在<strong>进入页面至退出页面</strong>期间侦测所有发生的<strong>RN相关</strong>的崩溃，然后根据崩溃来考虑该页面是否该有降级策略、判断框架是否真的能够支持稳定迭代。</p>
-<p>并且，集中地处理崩溃，也有利于我们后续对框架稳定性进行针对性的统计与优化。即使最后还是最简单粗暴的try-catch，这个catch的位置也是一门艺术。</p>
-<p><strong>异常种类</strong></p>
-<ul>
-<li>产生位置<ul>
-<li>JS</li>
-<li>Java </li>
-<li>C++</li>
+            <pre><code>Android录音--AudioRecord、MediaRecorder http://www.cnblogs.com/Amandaliu/archive/2013/02/04/2891604.html
+易信与微信语音技术对比 http://www.programgo.com/article/7885312130/
+</code></pre><h2 id="1、音频格式比较"><a href="#1、音频格式比较" class="headerlink" title="1、音频格式比较"></a>1、音频格式比较</h2><ul>
+<li>raw：原始音频格式，无法播放（需添加文件头和编码等信息 编码成其他格式才可播放）</li>
+<li>WAV：录音质量高，但是压缩率小，文件大。每秒170k左右</li>
+<li>AAC-高级音频编码（Advanced Audio Coding）：相对于mp3，AAC格式的音质更佳，文件更小；有损压缩（缩比通常为18：1）；苹果/Android SDK4.1.2（API 16）及以上版本支持播放</li>
+<li>AMR-自适应多速率音频压缩（Adaptive multi-Rate compression）：压缩比比较大，压缩质量比较差，多用于人声，通话录音。由欧洲通信标准化委员会提出，是在移动通信系统中使用最广泛的语音标准。每秒1K左右</li>
+<li>mp3：使用MediaRecorder没有该视频格式输出。一般做法是使用AudioRecord录音，然后编码成wav格式，再转换成mp3格式</li>
 </ul>
-</li>
-<li>产生时期<ul>
-<li>启动期</li>
-<li>运行期</li>
-</ul>
-</li>
-</ul>
-<h1 id="启动期异常"><a href="#启动期异常" class="headerlink" title="启动期异常"></a>启动期异常</h1><h2 id="框架启动流程"><a href="#框架启动流程" class="headerlink" title="框架启动流程"></a>框架启动流程</h2><p>ReactActivity.onCreate 调用 ReactActivityDelegate.loadApp 开始核心启动流程</p>
-<ul>
-<li><strong>预初始化</strong>：<ul>
-<li>初始化ReactRootView与ReactInstanceManager实例</li>
-</ul>
-</li>
-<li><strong>创建React上下文</strong>：由ReactRootView.startReactApplication一路走下来，会用懒加载方式创建React上下文，通过进入ReactInstanceManager.ReactContextInitAsyncTask这个AsyncTask中执行上下文创建的工作，里面执行的东西可以说是所有的Java部分初始化内容（收集与注册提供的Native/JS/View模块、初始化CatalystInstance（负责核心Bridge相关）、运行JSBundle、将界面展示到ReactRootView上等）。</li>
-</ul>
-<h2 id="预初始化"><a href="#预初始化" class="headerlink" title="预初始化"></a>预初始化</h2><p>涉及了so加载的操作，可以在 <code>ReactRootView.startReactApplication</code><br>外部再加一层try-catch</p>
-<h2 id="创建React上下文阶段"><a href="#创建React上下文阶段" class="headerlink" title="创建React上下文阶段"></a>创建React上下文阶段</h2><img src="/2019/03/29/RN/RN之Native处理异常/启动期异常.png">
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">runCreateReactContextOnNewThread</span><span class="params">(<span class="keyword">final</span> ReactContextInitParams initParams)</span> </span>&#123;</span><br><span class="line">  mCreateReactContextThread = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> ReactApplicationContext reactApplicationContext = createReactContext(</span><br><span class="line">            initParams.getJsExecutorFactory().create(),</span><br><span class="line">            initParams.getJsBundleLoader());</span><br><span class="line"></span><br><span class="line">        Runnable setupReactContextRunnable = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">          <span class="meta">@Override</span></span><br><span class="line">          <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">              setupReactContext(reactApplicationContext);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">              mDevSupportManager.handleException(e);</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        mDevSupportManager.handleException(e);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在框架启动的核心阶段，RN有捕获异常，但是仅仅只用 <code>DevSupportManager</code> 去处理，当不使用 <code>develop support</code> 时，会直接抛出异常。</p>
-<p>这里我们可以做<strong>第一个修改</strong>，不使用dev support时</p>
-<ul>
-<li>传入一个Handler去专门处理启动期的崩溃</li>
-<li>用<code>ReactInstanceManagerBuilder.setNativeModuleCallExceptionHandler()</code> 传入的ExceptionHandler 统一去处理崩溃</li>
-</ul>
-<h2 id="运行期异常"><a href="#运行期异常" class="headerlink" title="运行期异常"></a>运行期异常</h2><ol>
-<li>JS调用Native产生异常<ul>
-<li>Native模块不存在</li>
-<li>Native模块函数原型不一致</li>
-<li>Native模块执行的异常</li>
-</ul>
-</li>
-<li>Native调用JS异常<ul>
-<li>JS模块不存在</li>
-<li>JS模块函数原型不一致</li>
-<li>JS模块执行的异常</li>
-</ul>
-</li>
-<li>JS本身代码执行的异常</li>
-<li>UI操作的异常</li>
-</ol>
-<h3 id="运行线程"><a href="#运行线程" class="headerlink" title="运行线程"></a>运行线程</h3><p>RN维护了三个线程的MessageQueue，所有的操作都会被push到上面运行</p>
-<ul>
-<li><strong>NativeQueue</strong> 运行Native模块函数的线程（通常由JS发起），后台线程；</li>
-<li><strong>JSQueue</strong> 运行JS的线程，后台线程。</li>
-<li><strong>UIQueue</strong> 专门做UI操作，使用Android里面的<strong>主线程</strong>；</li>
-</ul>
-<p>在CatalystInstance初始化的时候会初始化三个Queue，启动后台线程，并将他们的句柄传给C++层的Bridge。Queue里面调度使用的Handler，重写了dispatchMessage，并在外面包装了层try-catch，统统都会交到 <code>CatalystInstance.onNativeException</code> 中。而这其中使用的就是我们传入给ReactInstanceManager的ExceptionHandler。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">private</span> <span class="title">CatalystInstanceImpl</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> ReactQueueConfigurationSpec reactQueueConfigurationSpec,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> JavaScriptExecutor jsExecutor,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> NativeModuleRegistry nativeModuleRegistry,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> JSBundleLoader jsBundleLoader,</span></span></span><br><span class="line"><span class="function"><span class="params">     NativeModuleCallExceptionHandler nativeModuleCallExceptionHandler)</span> </span>&#123;</span><br><span class="line">   Log.d(ReactConstants.TAG, <span class="string">"Initializing React Xplat Bridge."</span>);</span><br><span class="line">   mHybridData = initHybrid();</span><br><span class="line"></span><br><span class="line"><span class="comment">//创建三大线程：UI线程、Native线程与JS线程</span></span><br><span class="line">   mReactQueueConfiguration = ReactQueueConfigurationImpl.create(</span><br><span class="line">       reactQueueConfigurationSpec,</span><br><span class="line">       <span class="keyword">new</span> NativeExceptionHandler());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">onNativeException</span><span class="params">(Exception e)</span> </span>&#123;</span><br><span class="line">    mNativeModuleCallExceptionHandler.handleException(e);</span><br><span class="line">    mReactQueueConfiguration.getUIQueueThread().runOnQueue(</span><br><span class="line">      <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">          destroy();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">NativeExceptionHandler</span> <span class="keyword">implements</span> <span class="title">QueueThreadExceptionHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleException</span><span class="params">(Exception e)</span> </span>&#123;</span><br><span class="line">      <span class="comment">// Any Exception caught here is because of something in JS. Even if it's a bug in the</span></span><br><span class="line">      <span class="comment">// framework/native code, it was triggered by JS and theoretically since we were able</span></span><br><span class="line">      <span class="comment">// to set up the bridge, JS could change its logic, reload, and not trigger that crash.</span></span><br><span class="line">      onNativeException(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>初始化 <code>ReactInstanceManager</code> 时传的Handler 可以处理上面的前7种异常，我们需要单独处理UI操作异常</p>
-<h3 id="UI操作的异常"><a href="#UI操作的异常" class="headerlink" title="UI操作的异常"></a>UI操作的异常</h3><p>UI操作，其实是调用的UIManagerModule这个Java模块进行的操作，但是实际上它不是马上被同步执行的，而是仅仅只有一个入队列的操作。所有的UI操作都通过Choreographer来驱动执行，那这个时候虽然是在主线程运行，但是不在上面任何一个MessageQueue里面了，于是上面的方式捕获不到。</p>
-<p>以创建视图(<code>UIManagerModule.createView()</code>)为例，来追踪调用流程</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">GuardedFrameCallback</span> <span class="keyword">extends</span> <span class="title">ChoreographerCompat</span>.<span class="title">FrameCallback</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> ReactContext mReactContext;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> <span class="title">GuardedFrameCallback</span><span class="params">(ReactContext reactContext)</span> </span>&#123;</span><br><span class="line">    mReactContext = reactContext;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">doFrame</span><span class="params">(<span class="keyword">long</span> frameTimeNanos)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      doFrameGuarded(frameTimeNanos);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RuntimeException e) &#123;</span><br><span class="line">      mReactContext.handleException(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>UI操作的异常默认由 <code>ReactContext.handleException</code> 处理，追踪发现是 RN React上下文创建时设给它一个Handler，只在develop support时才起作用</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> ReactApplicationContext <span class="title">createReactContext</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      JavaScriptExecutor jsExecutor,</span></span></span><br><span class="line"><span class="function"><span class="params">      JSBundleLoader jsBundleLoader)</span> </span>&#123;</span><br><span class="line">    Log.d(ReactConstants.TAG, <span class="string">"ReactInstanceManager.createReactContext()"</span>);</span><br><span class="line">    ReactMarker.logMarker(CREATE_REACT_CONTEXT_START);</span><br><span class="line">    <span class="keyword">final</span> ReactApplicationContext reactContext = <span class="keyword">new</span> ReactApplicationContext(mApplicationContext);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mUseDeveloperSupport) &#123;</span><br><span class="line">      reactContext.setNativeModuleCallExceptionHandler(mDevSupportManager);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    NativeModuleRegistry nativeModuleRegistry = processPackages(reactContext, mPackages, <span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">    NativeModuleCallExceptionHandler exceptionHandler = mNativeModuleCallExceptionHandler != <span class="keyword">null</span></span><br><span class="line">      ? mNativeModuleCallExceptionHandler</span><br><span class="line">      : mDevSupportManager;</span><br><span class="line">    CatalystInstanceImpl.Builder catalystInstanceBuilder = <span class="keyword">new</span> CatalystInstanceImpl.Builder()</span><br><span class="line">      .setReactQueueConfigurationSpec(mUseSeparateUIBackgroundThread ?</span><br><span class="line">        ReactQueueConfigurationSpec.createWithSeparateUIBackgroundThread() :</span><br><span class="line">        ReactQueueConfigurationSpec.createDefault())</span><br><span class="line">      .setJSExecutor(jsExecutor)</span><br><span class="line">      .setRegistry(nativeModuleRegistry)</span><br><span class="line">      .setJSBundleLoader(jsBundleLoader)</span><br><span class="line">      .setNativeModuleCallExceptionHandler(exceptionHan&#125;ler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这里我们可以做<strong>第二个修改</strong>，初始化ReactContext时，可以像设给CatalystInstance的一样</p>
-<ul>
-<li>在使用develop support时设给它DevSupportManagerImpl</li>
-<li>否则使用传入的NativeModuleExceptionHandler</li>
+<h2 id="2、微信、易信编码"><a href="#2、微信、易信编码" class="headerlink" title="2、微信、易信编码"></a>2、微信、易信编码</h2><p>微信利用AMR压缩声音，易信用的是AAC 3.5倍的清晰度降噪。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/02/Android/TransactionTooLargeException错误/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/02/Android/TransactionTooLargeException错误/" itemprop="url">TransactionTooLargeException错误</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-02T17:54:53+08:00">
+                2019-09-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="表现"><a href="#表现" class="headerlink" title="表现"></a>表现</h1><pre><code>TransactionTooLargeException: data parcel size 587588  bytes
+</code></pre><h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><p><strong>Binder传递数据量过大</strong>    </p>
+<p>进程内Binder缓冲区最大上限1M（进程内所有线程共享这块空间，实际上操作的线程内，数据超过200K都可能挂掉）</p>
+<p>在6.0的源码 <code>/frameworks/base/core/jni/android_util_Binder.cpp</code>v中的 <code>signalExceptionForError</code> 函数里，对于 <code>FAILED_TRANSACTION</code> 这种错误的分支里，丢出了异常，不过还是有让人困惑的地方：传递的数据超过200K就要报错</p>
+<h2 id="Activity状态Bundle"><a href="#Activity状态Bundle" class="headerlink" title="Activity状态Bundle"></a>Activity状态Bundle</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onSaveInstanceState</span><span class="params">(Bundle outState)</span> </span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Activity跳转Intent"><a href="#Activity跳转Intent" class="headerlink" title="Activity跳转Intent"></a>Activity跳转Intent</h2><p>通过Intent传递数据，具体的大小限制不同版本的系统不同，比较普遍的一个看法是不能超过1MB，因为官方文档里有这样的说明：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">The Binder transaction failed because it was too large.</span><br><span class="line"></span><br><span class="line">During a remote procedure call, the arguments and the return value of the call are transferred as Parcel objects stored in the Binder transaction buffer. If the arguments or the return value are too large to fit in the transaction buffer, then the call will fail and TransactionTooLargeException will be thrown.</span><br><span class="line"></span><br><span class="line">The Binder transaction buffer has a limited fixed size, currently 1Mb, which is shared by all transactions in progress for the process. Consequently this exception can be thrown when there are many transactions in progress even when most of the individual transactions are of moderate size.</span><br></pre></td></tr></table></figure>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><h2 id="压缩数据量"><a href="#压缩数据量" class="headerlink" title="压缩数据量"></a>压缩数据量</h2><h2 id="使用其他方式传递数据"><a href="#使用其他方式传递数据" class="headerlink" title="使用其他方式传递数据"></a>使用其他方式传递数据</h2><ul>
+<li>文件</li>
+<li>EventBus</li>
 </ul>
 <h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://mp.weixin.qq.com/s/aWuenpGOKug4fovT5uKXTQ?" target="_blank" rel="noopener">React Native for Android 异常处理概览</a></li>
+<li><a href="https://www.jianshu.com/p/044e2c318306" target="_blank" rel="noopener">Android TransactionTooLargeException 解析，思考与监控方案</a></li>
 </ul>
 
           
@@ -452,7 +568,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/字符串分割/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/31/web/wordpress/主题/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -471,7 +587,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/03/27/java基础/字符串分割/" itemprop="url">字符串分割</a></h1>
+                <a class="post-title-link" href="/2019/08/31/web/wordpress/主题/" itemprop="url">主题</a></h1>
         
 
         <div class="post-meta">
@@ -483,8 +599,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:51:53+08:00">
-                2019-03-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-31T17:35:14+08:00">
+                2019-08-31
               </time>
             
 
@@ -506,8 +622,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
+                  <a href="/categories/web/" itemprop="url" rel="index">
+                    <span itemprop="name">web</span>
                   </a>
                 </span>
 
@@ -545,851 +661,10 @@
       
         
           
-            <h1 id="split"><a href="#split" class="headerlink" title="split"></a>split</h1><pre><code>1、如果用“.”作为分隔的话，必须是如下写法：String.split(&quot;\\.&quot;),这样才能正确的分隔开，不能用String.split(&quot;.&quot;);
-2、如果用“|”作为分隔的话，必须是如下写法：String.split(&quot;\\|&quot;),这样才能正确的分隔开，不能用String.split(&quot;|&quot;);
-“.”和“|”都是转义字符，必须得加&quot;\\&quot;;
-而且分隔出来的字符串可能带有不可见特殊部分，可能出现equal 不成立bug    
-</code></pre><p>StringTokenizer</p>
-<ul>
-<li>比spilt<strong>效率高</strong></li>
-<li>支持多个分隔符</li>
-<li>支持是否返回分隔符</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">StringTokenizer st = <span class="keyword">new</span> StringTokenizer(testWord, <span class="string">" ,?.!:\"\"\n#"</span>, <span class="keyword">true</span>);</span><br><span class="line">List&lt;String&gt; wordList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"><span class="keyword">while</span> (st.hasMoreElements()) &#123;</span><br><span class="line">    wordList.add(st.nextToken());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/URL和URI/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/URL和URI/" itemprop="url">URL和URI</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:50:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>Android 从网页中跳转到APP http://blog.csdn.net/buptlzx/article/details/9837137
-</code></pre><p>就Android平台而言，URI主要分三个部分：<code>scheme, authority, path</code>。其中<code>authority</code>又分为<code>host和port</code>。格式如下： </p>
-<pre><code>scheme://host:port/path 
-</code></pre><p>举个实际的例子： </p>
-<pre><code>content://com.example.project:200/folder/subfolder/etc 
-\---------/  \--------------/ \-/ \-------------------/ 
-scheme              host      port         path 
-                     \-----------/ 
-                        authority    
-</code></pre><p>data flag </p>
-<pre><code>&lt;data android:host=&quot;string&quot; 
-      android:mimeType=&quot;string&quot; 
-      android:path=&quot;string&quot; 
-      android:pathPattern=&quot;string&quot; 
-      android:pathPrefix=&quot;string&quot; 
-      android:port=&quot;string&quot; 
-      android:scheme=&quot;string&quot; /&gt; 
-</code></pre><p>api</p>
-<pre><code>Uri uri = intent.getData();  
-       System.out.println(&quot;scheme:&quot;+scheme);  
-       if (uri != null) {  
-           String host = uri.getHost();  
-           String dataString = intent.getDataString();  
-           String id = uri.getQueryParameter(&quot;d&quot;);  
-           String path = uri.getPath();  
-           String path1 = uri.getEncodedPath();  
-           String queryString = uri.getQuery();  
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/ThreadLocal/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/ThreadLocal/" itemprop="url">ThreadLocal</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:49:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>ThreadLocal，线程本地变量，也叫做线程本地存储</p>
-<p>ThreadLocal为变量在每个线程中创建一个副本，每个线程可以访问自己内部的副本变量。</p>
-<p>ThreadLocal类提供的几个方法：</p>
-<pre><code>public T get() { } //获取ThreadLocal在当前线程中保存的变量副本
-public void set(T value) { } //设置当前线程中变量的副本
-public void remove() { } //移除当前线程中变量的副本
-protected T initialValue() { } //一个延迟加载方法
-</code></pre><h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><pre><code>ThreadLocal&lt;Object&gt; threadLocal = new ThreadLocal&lt;Object&gt;();
-threadLocal.set(&quot;123&quot;);
-threadLocal.get();
-</code></pre><h1 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h1><pre><code>public T get() {
-    Thread t = Thread.currentThread();
-    ThreadLocalMap map = getMap(t);
-    if (map != null) {
-        ThreadLocalMap.Entry e = map.getEntry(this);
-        if (e != null)
-            return (T)e.value;
-    }
-    return setInitialValue();
-}
-ThreadLocalMap getMap(Thread t) {
-    return t.threadLocals;
-}
-public class Thread implements Runnable {
-    ThreadLocal.ThreadLocalMap threadLocals = null;//存储线程变量副本
-}
-static class ThreadLocalMap {
-    static class Entry extends WeakReference&lt;ThreadLocal&gt; {
-        Object value; //The value associated with this ThreadLocal.
-        Entry(ThreadLocal k, Object v) {//使用ThreadLocal作为键值
-            super(k);
-            value = v;
-        }
-    }
-}
-每个线程Thread内部有一个ThreadLocal.ThreadLocalMap类型的成员变量threadLocals，用来存储变量副本的，键值为当前ThreadLocal变量，value为变量副本（即T类型的变量）。
-</code></pre><p><strong>线程本地变量存储：</strong></p>
-<p><code>Thread.ThreadLocalMap&lt;ThreadLocal, Object&gt;;</code></p>
-<pre><code>1、Thread: 当前线程，可以通过Thread.currentThread()获取。
-
-2、ThreadLocal：我们的static ThreadLocal变量。
-
-3、Object: 当前线程共享变量。
-</code></pre><p>调用ThreadLocal.get()，实际上是从当前线程中获取ThreadLocalMap&lt;ThreadLocal, Object&gt;，然后根据当前ThreadLocal获取当前线程本地变量Object。ThreadLocal.set，ThreadLocal.remove实际上是同样的道理。</p>
-<p><strong>这种存储结构的好处：</strong></p>
-<p>1、线程死去的时候，线程共享变量ThreadLocalMap则销毁。</p>
-<p>2、ThreadLocalMap&lt;ThreadLocal,Object&gt;键值对数量为ThreadLocal的数量，一般来说ThreadLocal数量很少，相比在ThreadLocal中用Map&lt;Thread, Object&gt;键值对存储线程共享变量（Thread数量一般来说比ThreadLocal数量多），性能提高很多。</p>
-<p><strong>关于ThreadLocalMap&lt;ThreadLocal, Object&gt;弱引用问题：</strong></p>
-<p>当线程没有结束，但是ThreadLocal已经被回收，则可能导致线程中存在ThreadLocalMap&lt;null, Object&gt;的键值对，造成内存泄露。（ThreadLocal被回收，ThreadLocal关联的线程共享变量还存在）。</p>
-<p>虽然ThreadLocal的get，set方法可以清除ThreadLocalMap中key为null的value，但是get，set方法在内存泄露后并不会必然调用，所以为了防止此类情况的出现，我们有两种手段。</p>
-<p>1、使用完线程共享变量后，显式调用ThreadLocalMap.remove方法清除线程共享变量；</p>
-<p>2、JDK建议ThreadLocal定义为private static，这样ThreadLocal的弱引用问题则不存在了。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/trycatch/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/trycatch/" itemprop="url">trycatch</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:49:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>public static void main(String[] args) {
-    try {
-        System.out.println(&quot;before try  catch exception&quot;);
-        int a = 0 / 0;
-        System.out.println(&quot;after tyr catch exception&quot;);//无法执行到
-    } catch (Exception e) {
-        System.out.println(e.getMessage());
-        System.out.println(&quot;catch&quot;);
-    } finally {
-        System.out.println(&quot;finally&quot;);
-    }
-    System.out.println(&quot;before un try catch exception&quot;);
-    int a = 0 / 0;
-    System.out.println(&quot;after un try catch exception&quot;);//无法执行到
-}
-</code></pre><p>结果</p>
-<pre><code>before try  catch exception
-/ by zero
-catch
-finally
-before un try catch exception
-Exception in thread &quot;main&quot; java.lang.ArithmeticException: / by zero
-    at MainTest.main(MainTest.java:20)
-</code></pre><p>结论</p>
-<pre><code>1. try语句块中，异常后面的代码无法执行
-2. try catch语句块外的代码，正常执行。try catch最大意义所在（最常用场景）--保证try catch语句块后面的代码正常执行
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/字符串/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/字符串/" itemprop="url">字符串</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:49:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="String"><a href="#String" class="headerlink" title="String"></a>String</h1><p><strong>String不变性</strong></p>
-<ul>
-<li>String是final类，不能被继承。</li>
-<li>其实是通过char数组来保存字符串的</li>
-<li><p>所有操作都不是在原有的字符串上进行的，而是重新生成了一个新的字符串对象。也就是说进行这些操作后，最原始的字符串并没有被改变。</p>
-<pre><code>public final class String implements java.io.Serializable, Comparable&lt;String&gt;, CharSequence {}
-</code></pre></li>
-</ul>
-<h2 id="String对象绑定引用"><a href="#String对象绑定引用" class="headerlink" title="String对象绑定引用"></a>String对象绑定引用</h2><p><strong>String str=”hello world”</strong></p>
-<ul>
-<li>将String对象跟引用绑定</li>
-<li>JVM执行引擎先在运行时常量池查找是否存在相同的字面常量<ul>
-<li>如果存在，则直接将引用指向已经存在的字面常量；</li>
-<li>否则在运行时常量池开辟一个空间来存储该字面常量，并将引用指向该字面常量。</li>
-</ul>
-</li>
-</ul>
-<p><strong>String str=new String(“hello world”)</strong></p>
-<ul>
-<li>new关键字生成对象是在堆区进行的,创建出的一定是不同的对象</li>
-</ul>
-<p>1</p>
-<pre><code>public class Main {
-    public static void main(String[] args) {
-        String str1 = &quot;hello world&quot;;
-        String str2 = new String(&quot;hello world&quot;);
-        String str3 = &quot;hello world&quot;;
-        String str4 = new String(&quot;hello world&quot;);
-
-        System.out.println(str1==str2);//false
-        System.out.println(str1==str3);//true
-        System.out.println(str2==str4);//false
-    }
-}
-</code></pre><p>2 String str = new String(“abc”)创建了多少个对象？</p>
-<p>很显然，new只调用了一次，也就是说只创建了一个对象。</p>
-<p>在运行期间确实只在堆上创建了一个对象。</p>
-<p>为什么大家都在说是2个对象呢？在类加载的过程中，确实在运行时常量池中创建了一个”abc”对象。</p>
-<p>因此，这个问题如果换成 String str = new String(“abc”)涉及到几个String对象？合理的解释是2个。</p>
-<h2 id="常量池、编译期常量优化"><a href="#常量池、编译期常量优化" class="headerlink" title="常量池、编译期常量优化"></a>常量池、编译期常量优化</h2><p><strong>class文件常量池</strong> </p>
-<ul>
-<li>存储编译期间生成的 字面常量以及符号引用，在运行期间对应着方法区的运行时常量池。</li>
-<li>编译期间常量优化。<ul>
-<li>字符串直接相加，优化。<ul>
-<li>把相加结果为一个常量字符串存入class文件常量池</li>
-</ul>
-</li>
-<li>字符串间接相加(即包含字符串引用)<ul>
-<li>引用非final，不优化。 <ul>
-<li>因为b+2这种方式生成的对象事实上是保存在堆上的</li>
-</ul>
-</li>
-<li>引用final<ul>
-<li>引用值是字面常量值，优化。 <ul>
-<li>因为final变量编译期间都会直接被替代为真实的字面常量值，并将该字面常量值存入class文件常量池</li>
-</ul>
-</li>
-<li>引用值非字面常量值(如方法返回值)，不优化。 <ul>
-<li>因为值只能在运行期间确定</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>1</p>
-<pre><code>String a = &quot;hello2&quot;;
-String b = &quot;hello&quot; + 2;//直接相加，优化
-System.out.println((a == b));//true
-</code></pre><p>2</p>
-<pre><code>String a = &quot;hello2&quot;;
-String b = &quot;hello&quot;;
-String c = b + 2;//间接相加,引用非final，不优化
-System.out.println((a == c));//false
-</code></pre><p>3</p>
-<pre><code>String a = &quot;hello2&quot;;   　 
-final String b = &quot;hello&quot;;       
-String c = b + 2;    //间接相加,引用final且引用值是常量值，优化   
-System.out.println((a == c));//true
-</code></pre><p>4</p>
-<pre><code>public class Main {
-    public static void main(String[] args) {
-        String a = &quot;hello2&quot;;
-        final String b = getHello();
-        String c = b + 2;//间接相加,引用final且引用值非常量值，不优化   
-        System.out.println((a == c));//false
-    }
-
-    public static String getHello() {
-        return &quot;hello&quot;;
-    }
-}
-</code></pre><h2 id="intern-方法"><a href="#intern-方法" class="headerlink" title="intern()方法"></a>intern()方法</h2><p>String类的intern方法是一个<strong>本地方法</strong>。<strong>只会直接访问运行时常量池</strong></p>
-<p>JDK1.6，intern方法会在运行时常量池中查找是否存在内容相同的字符串，如果存在则返回指向该字符串的引用，如果不存在，则会将该字符串入池，并返回一个指向该字符串的引用。</p>
-<pre><code>public class Main {
-    public static void main(String[] args) {
-        String a = &quot;hello&quot;;
-        String b =  new String(&quot;hello&quot;);
-        String c =  new String(&quot;hello&quot;);
-        String d = b.intern();
-
-        System.out.println(a==b);//false
-        System.out.println(b==c);//false
-        System.out.println(b==d);//false
-        System.out.println(a==d);//true
-    }
-}
-</code></pre><h1 id="StringBuilder"><a href="#StringBuilder" class="headerlink" title="StringBuilder"></a>StringBuilder</h1><pre><code>public class Main {
-    public static void main(String[] args) {
-        String string = &quot;&quot;;
-        for(int i=0;i&lt;10000;i++){
-            string += &quot;hello&quot;;
-        }
-    }
-}
-</code></pre><p>反编译字节码：</p>
-<pre><code>  public static void main(java.lang.String[]);
-    Code:
-       0: ldc           #2                  // String
-       2: astore_1
-       3: iconst_0
-       4: istore_2
-       5: iload_2
-       6: sipush        10000
-       9: if_icmpge     38
-      12: new           #3                  // class java/lang/StringBuilder
-      15: dup
-      16: invokespecial #4                  // Method java/lang/StringBuilder.&quot;&lt;init&gt;&quot;:()V
-      19: aload_1
-      20: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/Stri
-ngBuilder;
-      23: ldc           #6                  // String hello
-      25: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/Stri
-ngBuilder;
-      28: invokevirtual #7                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
-      31: astore_1
-      32: iinc          2, 1
-      35: goto          5
-      38: return
-</code></pre><p>string += “hello”;的过程相当于将原有的string变量指向的对象内容取出与”hello”作字符串相加操作再存进另一个新的String对象当中，再让string变量指向新生成的对象</p>
-<p>从第5行到第35行是整个循环的执行过程，每次循环会new出一个StringBuilder对象，然后进行append操作，最后通过toString方法返回String对象。循环new出了10000个对象。从上面还可以看出：string+=”hello”的操作事实上会自动被JVM优化成：</p>
-<pre><code>StringBuilder str = new StringBuilder(string);
-str.append(&quot;hello&quot;);
-str.toString();
-</code></pre><h1 id="StringBuffer"><a href="#StringBuffer" class="headerlink" title="StringBuffer"></a>StringBuffer</h1><p><strong>线程安全</strong></p>
-<p>StringBuffer类的成员方法前面多了一个关键字：synchronized</p>
-<h1 id="效率"><a href="#效率" class="headerlink" title="效率"></a>效率</h1><p>从高到低，依次为：</p>
-<p><strong>直接相加</strong></p>
-<ul>
-<li><p>效率最高，因为在编译期间优化了，便确定了它的值</p>
-<pre><code>String s = &quot;I&quot;+&quot;love&quot;+&quot;java&quot;;//在编译期间便被优化成了&quot;Ilovejava&quot;
-</code></pre></li>
-</ul>
-<p><strong>StringBuilder</strong></p>
-<p><strong>StringBuffer</strong></p>
-<p><strong>间接相加(即包含字符串引用)</strong></p>
-<ul>
-<li><p>效率特别低，因为在编译器不会对引用变量进行优化。形如s1+s2+s3; </p>
-<pre><code>String s1 =&quot;I&quot;;
-String s2 = &quot;love&quot;;
-String s3 = &quot;java&quot;;
-String s = s1+s2+s3;
-</code></pre></li>
+            <h1 id="Flatsome"><a href="#Flatsome" class="headerlink" title="Flatsome"></a>Flatsome</h1><p>WooCommerce商城主题</p>
+<h1 id="Avada"><a href="#Avada" class="headerlink" title="Avada"></a>Avada</h1><p><a href="http://libs.websoft9.com/apps/wordpress/wordpress5.0.2-avada5.7.2-en.tar.gz" target="_blank" rel="noopener">Websoft9 Avada5.7.2 官方原版下载</a></p>
+<h1 id="Enfold"><a href="#Enfold" class="headerlink" title="Enfold"></a>Enfold</h1><h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.liaosam.com/wordpress-theme-avada-enfold-betheme.html/comment-page-1" target="_blank" rel="noopener">Avada &amp; Enfold &amp; Betheme：最棒的三个外贸建站英文主题</a></li>
 </ul>
 
           
@@ -1439,7 +714,7 @@ String s = s1+s2+s3;
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/内存模型JMM和volatile/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/29/Android/APP弱网络测试工具/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1458,7 +733,7 @@ String s = s1+s2+s3;
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/03/27/java基础/内存模型JMM和volatile/" itemprop="url">内存模型JVM和volatile</a></h1>
+                <a class="post-title-link" href="/2019/08/29/Android/APP弱网络测试工具/" itemprop="url">APP弱网络测试工具</a></h1>
         
 
         <div class="post-meta">
@@ -1470,8 +745,8 @@ String s = s1+s2+s3;
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:48:53+08:00">
-                2019-03-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-29T15:40:53+08:00">
+                2019-08-29
               </time>
             
 
@@ -1493,8 +768,8 @@ String s = s1+s2+s3;
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
                   </a>
                 </span>
 
@@ -1532,88 +807,1048 @@ String s = s1+s2+s3;
       
         
           
-            <pre><code>volatile 英[ˈvɒlətaɪl] 易变的，不稳定的;
-</code></pre><h1 id="Java内存模型JMM-Java-Memory-Mode"><a href="#Java内存模型JMM-Java-Memory-Mode" class="headerlink" title="Java内存模型JMM(Java Memory Mode)"></a>Java内存模型JMM(Java Memory Mode)</h1><ol>
-<li><p><strong>原子性</strong></p>
-<p> 操作<strong>不可被中断</strong>。即使多线程并发，操作不会被其他线程干扰</p>
-<p> 例如为int i 赋值，32位系统能保证该操作具有原子性，不会出现对一个线程赋值了i的高16位，另一个线程赋值i的低16位</p>
-<p> 但是，long l 赋值，32位操作系统该操作需要两步，就不具备原子性。</p>
-<p> 最新的JDK中，JVM已经保证对64位数据的读取和赋值也是原子性操作了</p>
-<p> <strong>对基本数据类型的读取和赋值操作是原子性操作</strong></p>
+            <p>弱网络专项测试的方案主要有</p>
+<h1 id="PC上使用抓包工具设置延时模拟弱网"><a href="#PC上使用抓包工具设置延时模拟弱网" class="headerlink" title="PC上使用抓包工具设置延时模拟弱网"></a>PC上使用抓包工具设置延时模拟弱网</h1><ul>
+<li>在PC上的Fiddler在设置延时</li>
+<li>将Android设备的网络代理到PC上</li>
+</ul>
+<h1 id="专有服务器上构建弱网络Wi-Fi"><a href="#专有服务器上构建弱网络Wi-Fi" class="headerlink" title="专有服务器上构建弱网络Wi-Fi"></a>专有服务器上构建弱网络Wi-Fi</h1><ul>
+<li>在专有服务器上构建弱网络Wi-Fi</li>
+<li>移动设备连接该Wi-Fi进行弱网络测试</li>
+</ul>
+<p>相关的技术方案有Facebook的ATC和腾讯的Wetest-WiFi;</p>
+<h1 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h1><ul>
+<li>需要额外的PC或者服务器，弱网环境构建成本高；</li>
+<li>需要安装、部署额外的工具，并且弱网络环境需要在PC上或者Web上进行配置，使用成本高；</li>
+<li>弱网络环境功能并不完善，比如Fiddler不支持丢包、抖动等弱网环境；</li>
+</ul>
+<h1 id="QNET"><a href="#QNET" class="headerlink" title="QNET"></a>QNET</h1><ul>
+<li>无需ROOT手机，只需安装一个独立app</li>
+<li>弱网模拟功能强大。2G，3G，4G，丢包，抖动</li>
+<li>支持 TCP/UDP网络协议抓包，导出为Pcap文件</li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.520mwx.com/view/53152" target="_blank" rel="noopener">QNET，一款给力的APP弱网络测试工具</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/20/web/Chrome诊断网页打开慢的原因/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/20/web/Chrome诊断网页打开慢的原因/" itemprop="url">Chrome诊断网页打开慢的原因</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-20T09:05:14+08:00">
+                2019-08-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web/" itemprop="url" rel="index">
+                    <span itemprop="name">web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h1><ul>
+<li>打开目标网页</li>
+<li>打开开发者模式</li>
+<li>右键浏览器的刷新按钮，选择 <code>清空缓存并硬性重新加载</code><ul>
+<li>正常重新加载 Ctrl+R：正常重新加载。 </li>
+<li>硬性重新加载：Ctrl+Shift+R:浅层次的清除历史记录，但不一定缓存完全清除。(Ctrl+F5)同理。 </li>
+<li>清空缓存并硬性重新加载：可以深层次的清除所有的缓存。(建议用这个) </li>
+</ul>
 </li>
+</ul>
+<h1 id="诊断"><a href="#诊断" class="headerlink" title="诊断"></a>诊断</h1><p>上面流程加载完成后，开发者工具 <code>network</code> 标签如下</p>
+<img src="/2019/08/20/web/Chrome诊断网页打开慢的原因/chrome-network.png"> 
+<h2 id="重要指标"><a href="#重要指标" class="headerlink" title="重要指标"></a>重要指标</h2><p>底部展示了几个重要的指标</p>
+<ul>
+<li>请求成功数量/请求总数量</li>
+<li>网页加载成功体积/网页总体积</li>
+<li>资源加载成功体积/资源总体积</li>
+<li>耗时</li>
+</ul>
+<h2 id="时间线-详细耗时信息"><a href="#时间线-详细耗时信息" class="headerlink" title="时间线-详细耗时信息"></a>时间线-详细耗时信息</h2><p>网记请求列表，默认是按时间顺序排序(waterfall瀑布)</p>
+<p>找到耗时最长的几个请求</p>
+<p>鼠标悬停某个请求的waterfall会弹窗展示耗时的详细信息，如下</p>
+<img src="/2019/08/20/web/Chrome诊断网页打开慢的原因/time-detail.png"> 
+<img src="/2019/08/20/web/Chrome诊断网页打开慢的原因/time-detail-2.png"> 
+<h2 id="时间线各阶段指标"><a href="#时间线各阶段指标" class="headerlink" title="时间线各阶段指标"></a>时间线各阶段指标</h2><h3 id="Queueing-排队时间"><a href="#Queueing-排队时间" class="headerlink" title="Queueing(排队时间)"></a>Queueing(排队时间)</h3><p>如果某个请求正在排队，则指示：</p>
+<ul>
+<li>请求已被渲染引擎推迟<ul>
+<li>因为该请求的优先级被视为低于关键资源（例如脚本/样式）的优先级。 </li>
+<li>图像经常发生这种情况。</li>
+</ul>
+</li>
+<li>请求已被暂停，以等待可复用的TCP连接。<ul>
+<li>因为在 HTTP 1 上，浏览器仅允许每个源拥有六个 TCP 连接。</li>
+</ul>
+</li>
+<li>生成磁盘缓存条目所用的时间（通常非常迅速）</li>
+</ul>
+<h3 id="Stalled-Blocking"><a href="#Stalled-Blocking" class="headerlink" title="Stalled/Blocking"></a>Stalled/Blocking</h3><p>浏览器得到要发出这个请求的指令，到请求可以发出的<strong>等待时间</strong></p>
+<p>可以是等待 Queueing 中介绍的任何一个原因。 </p>
+<p>此外，此时间包含代理协商所用的时间。</p>
+<p>不包括DNS查询、建立TCP连接等时间。</p>
+<h3 id="Proxy-Negotiation"><a href="#Proxy-Negotiation" class="headerlink" title="Proxy Negotiation"></a>Proxy Negotiation</h3><p>与代理服务器连接协商所用的时间。</p>
+<h3 id="DNS-lookup"><a href="#DNS-lookup" class="headerlink" title="DNS lookup"></a>DNS lookup</h3><p>DNS解析所耗费的时间。</p>
+<h3 id="Initial-connection"><a href="#Initial-connection" class="headerlink" title="Initial connection"></a>Initial connection</h3><p>用户建立连接的时间，包括TCP握手以及多次尝试握手，以及处理SSL的时间。</p>
+<h3 id="SSL"><a href="#SSL" class="headerlink" title="SSL"></a>SSL</h3><p>完成SSL握手的时间。</p>
+<h3 id="Request-sent"><a href="#Request-sent" class="headerlink" title="Request_sent"></a>Request_sent</h3><p>请求第一个字节发出到最后一个字节发出的时间，请求发出时间(一般可以忽略，否则即为浏览器本身或者本地网络问题)。</p>
+<p>Waitting(TTFB)：请求发出后，到收到响应的第一个字节所花费的时间(Time To First Byte)，即请求从客户端发送给服务端时间+服务器处理请求的时间。</p>
+<h3 id="Content-Download"><a href="#Content-Download" class="headerlink" title="Content Download"></a>Content Download</h3><p>接收到响应的第一个字节，到接收完最后一个字节的时间，就是下载响应所耗费的时间。</p>
+<h2 id="诊断问题"><a href="#诊断问题" class="headerlink" title="诊断问题"></a>诊断问题</h2><h3 id="队列时间过长"><a href="#队列时间过长" class="headerlink" title="队列时间过长"></a>队列时间过长</h3><h4 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h4><p>从单个网域检索太多的资源，即<strong>单个网域的请求数量过多</strong></p>
+<p>在 HTTP 1.0/1.1 连接上，Chrome 会将每个主机强制设置为最多六个 TCP 连接。如果您一次请求十二个条目，前六个将开始，而后六个将被加入队列。</p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><h5 id="HTTP-1"><a href="#HTTP-1" class="headerlink" title="HTTP 1"></a>HTTP 1</h5><ul>
+<li>合并 图片、css、js等一些可以合并的文件，来减少http的请求数</li>
+<li>设置 <code>keep-alive</code> 可以在一定的时间内保证连接的可复用性，减少连接时间</li>
+<li>实现域分片。也就是在您的应用上设置多个子域，以便提供资源。然后，在子域之间平均分配正在提供的资源。<ul>
+<li>在浏览器最大并行下载数跟dns查找(也有耗时)之间做权衡。根据雅虎的研究，最好将主机名控制在2-4个内</li>
+</ul>
+</li>
+</ul>
+<h5 id="HTTP-2"><a href="#HTTP-2" class="headerlink" title="HTTP 2"></a>HTTP 2</h5><p>请不要对您的资源进行域分片</p>
+<p>在 HTTP 2 中，到服务器的单个 TCP 连接作为多路复用连接。这消除了 HTTP 1 中的六个连接限制，并且可以通过单个连接同时传输多个资源。</p>
+<h3 id="第一字节等待时间过长"><a href="#第一字节等待时间过长" class="headerlink" title="第一字节等待时间过长"></a>第一字节等待时间过长</h3><p>又称：大片绿色</p>
+<p>将此值控制在 200 毫秒以下</p>
+<h4 id="原因-1"><a href="#原因-1" class="headerlink" title="原因"></a>原因</h4><ol>
+<li>客户端与服务器之间的网络条件较差</li>
+<li><strong>服务器应用的响应慢</strong></li>
 </ol>
-<pre><code>    x = 10;         //原子性
-    y = x;         //两个操作，读x，将x赋值给y
-    x++;           //x = x + 1;三个操作，读x，+1，赋值给x
+<h4 id="解决方案-1"><a href="#解决方案-1" class="headerlink" title="解决方案"></a>解决方案</h4><p>将应用托管在本地，然后查看 TTFB 真实的响应速度。如果仍然很长，则需要优化应用的响应速度。可以是优化数据库查询、为特定部分的内容实现缓存，或者修改您的网络服务器配置。</p>
+<h3 id="内容下载时间过长"><a href="#内容下载时间过长" class="headerlink" title="内容下载时间过长"></a>内容下载时间过长</h3><p>又称：大片蓝色。决定服务器吞吐能力</p>
+<h4 id="原因-2"><a href="#原因-2" class="headerlink" title="原因"></a>原因</h4><p><strong>内容体积过大</strong></p>
+<h4 id="解决方案-2"><a href="#解决方案-2" class="headerlink" title="解决方案"></a>解决方案</h4><ul>
+<li>减少发送的字节数</li>
+<li>压缩文件</li>
+<li>启用本地缓存。把网站里面更新频率比较低的静态资源缓存在浏览器中</li>
+<li>启用CDN加速。本质也是缓存，把内容缓存在离用户近的主机</li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://help.aliyun.com/knowledge_detail/36453.html" target="_blank" rel="noopener">使用chrome浏览器排查网页打开慢的方法</a></li>
+<li><a href="https://blog.csdn.net/shan1991fei/article/details/80690220" target="_blank" rel="noopener">Chrome Dev Tool 中时间线各阶段代表的意义</a></li>
+<li><a href="https://www.liulanqi.com/239.html" target="_blank" rel="noopener">了解资源耗时 | Chrome F12 network</a></li>
+</ul>
 
-**原子操作类**
+          
+        
+      
+    </div>
+    
+    
+    
 
-java 1.5的java.util.concurrent.atomic包下提供了一些原子操作类，保证这些操作是原子性操作。如 AtomicInteger
+    
 
-即对基本数据类型的 自增（加1操作），自减（减1操作）、以及加法操作（加一个数），减法操作（减一个数）进行了封装
+    
 
-atomic是利用CAS(Compare And Swap)来实现原子性操作的，CAS实际上是利用处理器提供的CMPXCHG指令实现的，而处理器执行CMPXCHG指令是一个原子性操作。
-</code></pre><ol start="2">
-<li><p><strong>可见性</strong></p>
-<p> 一个线程修改了变量的值，其他线程能够<strong>立即看到</strong>修改的值</p>
-<p> 产生问题原因：</p>
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/16/编程思想/Android端架构_MVP-Clean架构/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/16/编程思想/Android端架构_MVP-Clean架构/" itemprop="url">Android端架构_MVP-Clean架构</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-16T11:46:01+08:00">
+                2019-08-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程思想/" itemprop="url" rel="index">
+                    <span itemprop="name">编程思想</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Activity跳转"><a href="#Activity跳转" class="headerlink" title="Activity跳转"></a>Activity跳转</h1><p>Activity跳转是如何实现的</p>
+<p><code>BaseActivity</code> 持有 <code>Navigator</code>，Activity A 调用 Navigator 相应的跳转方法。</p>
+<p>每个Activity 都需要提供启动自己的Intent，而不是由Navigator构造</p>
+<pre><code class="java"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Navigator</span> </span>{
+  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">navigateToUserList</span><span class="params">(Context context)</span> </span>{
+    <span class="keyword">if</span> (context != <span class="keyword">null</span>) {
+      Intent intentToLaunch = UserListActivity.getCallingIntent(context);
+      context.startActivity(intentToLaunch);
+    }
+  }
+}
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserListActivity</span> <span class="keyword">extends</span> <span class="title">BaseActivity</span> </span>{
+  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Intent <span class="title">getCallingIntent</span><span class="params">(Context context)</span> </span>{
+    <span class="keyword">return</span> <span class="keyword">new</span> Intent(context, UserListActivity.class);
+  }
+}    
+</code></pre>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/android10/Android-CleanArchitecture" target="_blank" rel="noopener">实例源码</a>by Fernando Cejas (Fernando 大神)</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/15/电脑使用/SimpleUML使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/15/电脑使用/SimpleUML使用/" itemprop="url">SimpleUML使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-15T14:19:13+08:00">
+                2019-08-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/UML/" itemprop="url" rel="index">
+                    <span itemprop="name">UML</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="SimpleUML-是什么"><a href="#SimpleUML-是什么" class="headerlink" title="SimpleUML 是什么"></a>SimpleUML 是什么</h1><p>可以按照包名等条件设置过滤条件，显示自己关心的部分。</p>
+<p>根据源码自动生成UML 类图 包图 序列图</p>
+<p>复杂结构生成后几乎不可用，全靠手动调整依赖</p>
+<h1 id="AndroidStudio-中使用-SimpleUML"><a href="#AndroidStudio-中使用-SimpleUML" class="headerlink" title="AndroidStudio 中使用 SimpleUML"></a>AndroidStudio 中使用 SimpleUML</h1><ul>
+<li>AndroidStudio 安装 SimpleUML 插件</li>
+<li>重启</li>
+<li>某个 <code>包/类</code> 上右击，选择 <code>Add to simpleUML Diagram</code></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/15/编程思想/UML/SimpleUML使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/15/编程思想/UML/SimpleUML使用/" itemprop="url">SimpleUML使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-15T14:19:13+08:00">
+                2019-08-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/UML/" itemprop="url" rel="index">
+                    <span itemprop="name">UML</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="SimpleUML-是什么"><a href="#SimpleUML-是什么" class="headerlink" title="SimpleUML 是什么"></a>SimpleUML 是什么</h1><p>根据源码自动生成UML类图</p>
+<h1 id="AndroidStudio-中使用-SimpleUML"><a href="#AndroidStudio-中使用-SimpleUML" class="headerlink" title="AndroidStudio 中使用 SimpleUML"></a>AndroidStudio 中使用 SimpleUML</h1><ul>
+<li>AndroidStudio 安装 SimpleUML 插件</li>
+<li>重启</li>
+<li>某个 <code>包/类</code> 上右击，选择 <code>Add to simpleUML Diagram</code></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/15/编程思想/UML/UML概述/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/15/编程思想/UML/UML概述/" itemprop="url">UML概述</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-15T14:19:13+08:00">
+                2019-08-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/UML/" itemprop="url" rel="index">
+                    <span itemprop="name">UML</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h1><p>UML（Unified Modeling Language）统一建模语言</p>
+<h1 id="为什么用UML"><a href="#为什么用UML" class="headerlink" title="为什么用UML"></a>为什么用UML</h1><p>文不如表，表不如图，图不如实（原型图）</p>
+<p>文字的缺陷：大耳朵，长鼻子，獠牙–野猪还是小象</p>
+<p>图表的缺陷：长方形–一块地还是一间房</p>
+<h1 id="如何学好UML"><a href="#如何学好UML" class="headerlink" title="如何学好UML"></a>如何学好UML</h1><p>和学看图说话道理一样，记住两个要素：<strong>节点和联系</strong></p>
+<h1 id="UML工具"><a href="#UML工具" class="headerlink" title="UML工具"></a>UML工具</h1><h2 id="图形化操作"><a href="#图形化操作" class="headerlink" title="图形化操作"></a>图形化操作</h2><h3 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h3><h4 id="starUML"><a href="#starUML" class="headerlink" title="starUML"></a>starUML</h4><p>免费开源、小巧</p>
+<h4 id="rose"><a href="#rose" class="headerlink" title="rose"></a>rose</h4><p>收费破解 庞大 功能强大 漂亮 好用</p>
+<h4 id="visio"><a href="#visio" class="headerlink" title="visio"></a>visio</h4><h3 id="web在线"><a href="#web在线" class="headerlink" title="web在线"></a>web在线</h3><h4 id="ProcessOn"><a href="#ProcessOn" class="headerlink" title="ProcessOn"></a>ProcessOn</h4><h2 id="专门语法"><a href="#专门语法" class="headerlink" title="专门语法"></a>专门语法</h2><h3 id="webChart"><a href="#webChart" class="headerlink" title="webChart"></a>webChart</h3><p>web在线</p>
+<h3 id="PlantUML"><a href="#PlantUML" class="headerlink" title="PlantUML"></a>PlantUML</h3><p>不仅可以嵌套到各种文本编辑器，IDE，也提供在线版。</p>
+<h1 id="UML的构造包含3种："><a href="#UML的构造包含3种：" class="headerlink" title="UML的构造包含3种："></a>UML的构造包含3种：</h1><ul>
+<li><strong>事物</strong>（4种）：事物是对模型中最具代表性的成分的抽象<ul>
+<li>结构事物</li>
+<li>行为事物</li>
+<li>分组事物</li>
+<li>注释事物</li>
+</ul>
+</li>
+<li><strong>关系</strong>（4种）：关系把事物结合在一起<ul>
+<li>泛化关系</li>
+<li>实现关系</li>
+<li>依赖关系</li>
+<li>关联关系</li>
+</ul>
+</li>
+<li><strong>图</strong>（10种）：图聚集了相关的事物<ul>
+<li>用例图(UseCase)。用户(管理员、版主)行为(用户管理、帖子置顶)</li>
+<li>类图(Class)。类(用例图抽象成类)的结构及类间的关系</li>
+<li>对象图(Object)。某一时刻的类实例对象</li>
+<li>状态图(Statechart)。类实例对象的状态及状态改变的条件</li>
+<li>序列图(Sequence)。时序图，循序图。类实例对象按时间顺序的交互</li>
+<li>协作图(Collaboration)。类实例对象的组织关系和相互作用</li>
+<li>活动图(Activity)。流程图。控制流；一个用例所要进行的活动及活动间关系(用户刷卡：用户刷卡-系统输入刷卡额度-数据库更新表-系统显示刷卡成功)</li>
+<li>包图(Package)。java 中的package；可以理解为文件夹</li>
+<li>组件图(Component)。系统的物理结构及相互关系</li>
+<li>部署图(Deployment)。系统的物理部署(刷卡机，客户端，数据库服务器）</li>
+</ul>
+</li>
+</ul>
+<h1 id="图（10种）"><a href="#图（10种）" class="headerlink" title="图（10种）"></a>图（10种）</h1><h2 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h2><table>
+<thead>
+<tr>
+<th>图</th>
+<th>结构/行为</th>
+<th>角度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用例图</td>
+<td>行为(动态)</td>
+<td>用例视图</td>
+</tr>
+<tr>
+<td>类图</td>
+<td>结构(静态)</td>
+<td>设计视图</td>
+</tr>
+<tr>
+<td>对象图</td>
+<td>结构(静态)</td>
+<td>设计视图</td>
+</tr>
+<tr>
+<td>状态图</td>
+<td>行为(动态)</td>
+<td>进程视图</td>
+</tr>
+<tr>
+<td>序列图</td>
+<td>行为(动态)</td>
+<td>进程视图</td>
+</tr>
+<tr>
+<td>协作图</td>
+<td>行为(动态)</td>
+<td>进程视图</td>
+</tr>
+<tr>
+<td>活动图</td>
+<td>行为(动态)</td>
+<td>进程视图</td>
+</tr>
+<tr>
+<td>包图</td>
+<td>结构(静态)</td>
+<td>实现视图</td>
+</tr>
+<tr>
+<td>组件图</td>
+<td>结构(静态)</td>
+<td>实现视图</td>
+</tr>
+<tr>
+<td>部署图</td>
+<td>结构(静态)</td>
+<td>拓扑视图</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>结构图：描述系统结构，是静态图</li>
+<li>行为图：描述系统行为，是动态图</li>
+</ul>
+<h2 id="序列图"><a href="#序列图" class="headerlink" title="序列图"></a>序列图</h2><p>7种元素：角色(Actor)、对象(Object)、生命线(LifeLine)、控制焦点(Activation)、消息(Message)、自关联消息、组合片段</p>
+<img src="/2019/08/15/编程思想/UML/UML概述/时序图.png">
+<h3 id="角色-Actor"><a href="#角色-Actor" class="headerlink" title="角色(Actor)"></a>角色(Actor)</h3><p>系统角色，可以是人或者其他系统，子系统。以一个小人图标表示。</p>
+<h3 id="对象-Object"><a href="#对象-Object" class="headerlink" title="对象(Object)"></a>对象(Object)</h3><p>对象位于时序图的顶部,以一个矩形表示。对象的命名方式一般有三种：</p>
 <ol>
-<li>编译器优化</li>
-<li>缓存优化(将变量缓存在CPU cache或寄存器里)</li>
-<li>硬件优化(部分内存读写不立即触发，而先进入硬件队列等待)</li>
-<li><p>指令重排</p>
-<p>可见性问题，线程1对变量i修改了之后，线程2没有立即看到线程1修改的值</p>
-</li>
+<li>对象名和类名。例如：华为手机:手机、loginServiceObject:LoginService。</li>
+<li>只显示类名，不显示对象，即为一个匿名类。例如：:手机、:LoginSservice。</li>
+<li>只显示对象名，不显示类名。例如：华为手机:、loginServiceObject:。</li>
 </ol>
-</li>
-<li><p><strong>有序性</strong></p>
-<p> 程序执行的<strong>顺序</strong>按照代码的先后顺序执行</p>
-<p> 有序性问题是三个问题中<strong>最难理解</strong>的</p>
-<p> 产生问题原因：</p>
+<h3 id="生命线-LifeLine"><a href="#生命线-LifeLine" class="headerlink" title="生命线(LifeLine)"></a>生命线(LifeLine)</h3><p>时序图中每个对象和底部中心都有一条垂直的虚线，这就是对象的生命线(对象的时间线)。以一条垂直的虚线表。</p>
+<h3 id="控制焦点-Activation"><a href="#控制焦点-Activation" class="headerlink" title="控制焦点(Activation)"></a>控制焦点(Activation)</h3><p>控制焦点代表时序图中在对象时间线上某段时期执行的操作。以一个很窄的矩形表示。</p>
+<h3 id="消息-Message"><a href="#消息-Message" class="headerlink" title="消息(Message)"></a>消息(Message)</h3><p>表现代表对象之间发送的信息。消息分为三种类型。</p>
 <ul>
-<li><p>指令重排</p>
-<p>Java内存模型中，允许编译器和处理器对指令进行重排序，但是重排序过程不会影响到单线程程序的执行，却会影响到多线程并发执行的正确性</p>
-<p>Java内存模型具备一些先天的“有序性”，即 <strong>happens-before原则（先行发生原则）</strong>：</p>
-<p>  程序次序规则：一个线程内，按照代码顺序，书写在前面的操作先行发生于书写在后面的操作<br>  锁定规则：unLock操作先行发生于后面对同一个锁lock操作<br>  volatile变量规则：对一个变量的写操作先行发生于后面对这个变量的读操作<br>  传递规则：如果操作A先行发生于操作B，而操作B又先行发生于操作C，则可以得出操作A先行发生于操作C<br>  线程启动规则：Thread对象的start()方法先行发生于此线程的每个一个动作<br>  线程中断规则：对线程interrupt()方法的调用先行发生于被中断线程的代码检测到中断事件的发生<br>  线程终结规则：线程中所有的操作都先行发生于线程的终止检测，我们可以通过Thread.join()方法结束、Thread.isAlive()的返回值手段检测到线程已经终止执行<br>  对象终结规则：一个对象的初始化完成先行发生于他的finalize()方法</p>
+<li><strong>同步消息</strong>(Synchronous Message)<br>消息的发送者把控制传递给消息的接收者，然后停止活动，等待消息的接收者放弃或者返回控制。用来表示同步的意义。以一条<strong>实线+实心箭头</strong>表示。</li>
+<li><strong>异步消息</strong>(Asynchronous Message)<br>消息发送者通过消息把信号传递给消息的接收者，然后继续自己的活动，不等待接受者返回消息或者控制。异步消息的接收者和发送者是并发工作的。以一条<strong>实线+大于号</strong>表示。</li>
+<li><strong>返回消息</strong>(Return Message)<br>返回消息表示从过程调用返回。以<strong>小于号+虚线</strong>表示。</li>
+</ul>
+<h3 id="自关联消息"><a href="#自关联消息" class="headerlink" title="自关联消息"></a>自关联消息</h3><p>表示方法的自身调用或者一个对象内的一个方法调用另外一个方法。以一个<strong>半闭合的长方形+下方实心剪头</strong>表示。</p>
+<h2 id="活动图"><a href="#活动图" class="headerlink" title="活动图"></a>活动图</h2><ul>
+<li>一般活动图</li>
+<li>带泳道的活动图</li>
+<li>带对象流的活动图<h1 id="关系（4种）"><a href="#关系（4种）" class="headerlink" title="关系（4种）"></a>关系（4种）</h1></li>
+</ul>
+<p>UML 中类与类, 类与接口, 接口与接口这间的关系有: </p>
+<ul>
+<li>泛化(generalization) 关系</li>
+<li>实现(realization)关系 </li>
+<li>依赖(dependency)关系</li>
+<li>关联(association)关系<ul>
+<li>关联</li>
+<li>聚合(aggregation)</li>
+<li>合成/组合(composition)</li>
+</ul>
+</li>
+</ul>
+<h2 id="泛化-generalization"><a href="#泛化-generalization" class="headerlink" title="泛化(generalization)"></a>泛化(generalization)</h2><p>在Java中此类关系通过关键字 <code>extends</code> 明确标识</p>
+<img src="/2019/08/15/编程思想/UML/UML概述/101.jpg">
+<h2 id="实现-realization"><a href="#实现-realization" class="headerlink" title="实现(realization)"></a>实现(realization)</h2><p>在Java中此类关系通过关键字 <code>implements</code> 明确标识</p>
+<img src="/2019/08/15/编程思想/UML/UML概述/102.jpg">
+<h1 id="依赖-dependency"><a href="#依赖-dependency" class="headerlink" title="依赖(dependency)"></a>依赖(dependency)</h1><p>类A使用到了类B</p>
+<p>在java中依赖关系体现为: <code>局部变量, 方法中的参数, 和对静态方法的调用</code></p>
+<ul>
+<li>依赖关系总是单向的 </li>
+<li>这种使用关系是具有偶然性的、、临时性的、非常弱的</li>
+</ul>
+<img src="/2019/08/15/编程思想/UML/UML概述/103.jpg">
+<h2 id="关联-association"><a href="#关联-association" class="headerlink" title="关联(association)"></a>关联(association)</h2><p>类A 有 成员变量类B</p>
+<p>在java中关联关系是使用 <code>实例变量</code> 实现的</p>
+<ul>
+<li>单箭头表示单向关联</li>
+<li>双箭头或不使用箭头表示双向关联<ul>
+<li>不建议使用双向关联</li>
+</ul>
+</li>
+<li>关联两个端点可以有一个基数, 表示这个关联的类可以有几个实例<ul>
+<li>常见的基数及含义: <ul>
+<li>0..1:0 或1 个实例. </li>
+<li>0..*: 对实例的数目没有限制. </li>
+<li>1: 只能有一个实例. </li>
+<li>1..*: 至少有一个实例.</li>
+</ul>
 </li>
 </ul>
 </li>
-</ol>
-<p><strong>synchronized</strong>和<strong>Lock</strong></p>
+<li>一种长期性的强依赖关系        </li>
+</ul>
+<img src="/2019/08/15/编程思想/UML/UML概述/104.jpg">
+<h2 id="聚合-aggregation"><a href="#聚合-aggregation" class="headerlink" title="聚合(aggregation)"></a>聚合(aggregation)</h2><p>整体和个体之间has-a的关系，整体与部分之间是可分离的</p>
 <ul>
-<li><p>保证原子性</p>
-</li>
-<li><p>保证可见性</p>
-<p>  synchronized和Lock能保证同一时刻只有一个线程获取锁然后执行同步代码，并且在释放锁之前会将对变量的修改刷新到主存当中。因此可以保证可见性。</p>
-</li>
-<li><p>保证有序性</p>
+<li>他们可以具有各自的生命周期</li>
+<li>部分可以属于多个整体对象，也可以为多个整体对象共享</li>
+<li>比如计算机与CPU、公司与员工的关系等</li>
+</ul>
+<p>在java中关联关系是使用 <code>实例变量</code> 实现的</p>
+<ul>
+<li>语法上是分不出关联和聚合的，只能从语义级别来区分<ul>
+<li>关联关系中两个类是处于相同的层次</li>
+<li>聚合关系中两不类是处于不平等的层次, 一个表示整体, 一个表示部分.</li>
+</ul>
 </li>
 </ul>
-<p><strong>volatile</strong></p>
+<img src="/2019/08/15/编程思想/UML/UML概述/105.jpg">
+<h2 id="组合-合成-composition"><a href="#组合-合成-composition" class="headerlink" title="组合(合成)(composition)"></a>组合(合成)(composition)</h2><p>整体和个体之间contains-a的关系，整体与部分是不可分的</p>
 <ul>
-<li><p>保证可见性</p>
-<p>  保证变量修改的值会立即被更新到主存，当有其他线程需要读取时，它会去内存中读取新值</p>
-</li>
-<li><p>保证一定的“有序性”</p>
-</li>
+<li>整体的生命周期结束也就意味着部分的生命周期结束</li>
+<li>比如你和你的大脑；合成关系不能共享. </li>
 </ul>
-<p>volatile无法保证对变量的任何操作都是原子性的</p>
-<p>volatile关键字的两层语义：</p>
-<p>1）保证了不同线程对这个变量进行操作时的可见性。</p>
-<p>2）禁止进行指令重排序。</p>
-<p><strong>使用volatile必须具备2个条件</strong></p>
-<ul>
-<li><p>对变量的写操作不依赖于当前值</p>
-</li>
-<li><p>该变量没有包含在具有其他变量的不变式中</p>
-</li>
-</ul>
-<p><strong>使用volatile关键字的场景</strong></p>
-<ul>
-<li><p>状态标记量</p>
-</li>
-<li><p>double check</p>
-</li>
+<p>这种关系比聚合更强，也称为<strong>强聚合</strong></p>
+<img src="/2019/08/15/编程思想/UML/UML概述/106.jpg">
+<p>一张图快速学会UML（聚合、组合、依赖、继承、接口、类）</p>
+<img src="/2019/08/15/编程思想/UML/UML概述/uml.png">
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.jianshu.com/p/28200121a33d" target="_blank" rel="noopener">UML图总结</a></li>
+<li><a href="https://blog.csdn.net/qq_42758288/article/details/86620768" target="_blank" rel="noopener">UML9种图的分类及运用</a></li>
+<li><a href="http://justsee.iteye.com/blog/808799" target="_blank" rel="noopener">UML关系</a></li>
+<li><a href="https://blog.csdn.net/fly_zxy/article/details/80911942" target="_blank" rel="noopener">UML时序图(Sequence Diagram)学习笔记</a></li>
 </ul>
 
           
@@ -1663,7 +1898,7 @@ atomic是利用CAS(Compare And Swap)来实现原子性操作的，CAS实际上�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/反射/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/15/编程思想/UML/UML/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1682,7 +1917,7 @@ atomic是利用CAS(Compare And Swap)来实现原子性操作的，CAS实际上�
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/03/27/java基础/反射/" itemprop="url">反射</a></h1>
+                <a class="post-title-link" href="/2019/08/15/编程思想/UML/UML/" itemprop="url">UML关系</a></h1>
         
 
         <div class="post-meta">
@@ -1694,8 +1929,8 @@ atomic是利用CAS(Compare And Swap)来实现原子性操作的，CAS实际上�
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:47:53+08:00">
-                2019-03-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-15T10:19:13+08:00">
+                2019-08-15
               </time>
             
 
@@ -1717,8 +1952,8 @@ atomic是利用CAS(Compare And Swap)来实现原子性操作的，CAS实际上�
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
+                  <a href="/categories/UML/" itemprop="url" rel="index">
+                    <span itemprop="name">UML</span>
                   </a>
                 </span>
 
@@ -1756,430 +1991,38 @@ atomic是利用CAS(Compare And Swap)来实现原子性操作的，CAS实际上�
       
         
           
-            <p><a href="http://blog.csdn.net/harvic880925/article/details/50072739" target="_blank" rel="noopener">夯实JAVA基本之二 —— 反射（1）：基本类周边信息获取</a></p>
-<p>//获取类类型对象的几种方式：<br>Person person = new Person();<br>Class a = person.getClass() //方法一：<br>Class b = Persion.class;//方法二：<br>Class c = Class.forName(String ClassName); //方法三：<br>Class d = context.getClassLoader().loadClass(String ClassName);//方法四：（不建议使用）  </p>
-<p>//获取包名类名<br>public String getName();//获取完整的类名（包含包名）<br>public String getSimpleName();//仅获取类名<br>public Package getPackage()//获取类类型所对应的package对象  </p>
-<p>//获取超类Class对象<br>public Class&lt;?&gt; getSuperclass();//获取普通函数的父类Class对象<br>public Type getGenericSuperclass();//针对泛型父类而设计（下篇讲解）  </p>
-<p>//获取接口Class对象<br>public Class&lt;?&gt;[] getInterfaces();//获取普通接口的方法<br>public Type[] getGenericInterfaces();//获取泛型接口的方法  </p>
-<p>//类访问修饰符<br>int modifiers = clazz.getModifiers();//获取类访问修饰符对应的int变量<br>String Modifier.toString(int modifiers) //根据整型变量来生成对应的修饰符字符串<br>boolean Modifier.isAbstract(int modifiers)//isXXX()系列函数用以检查特定的修饰符是否存在  </p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/enum 使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/enum 使用/" itemprop="url">enum使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:46:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="emun也是class"><a href="#emun也是class" class="headerlink" title="emun也是class"></a>emun也是class</h2><p>经过反编译知道，enum也是被编译成了一个class文件。</p>
-<pre><code>public final class RoomType extends java.lang.Enum{ }
-</code></pre><p>如果命名意义明确，enum可以单独作为一个类。</p>
-<h2 id="枚举项的值默认为从0开始递增的int值"><a href="#枚举项的值默认为从0开始递增的int值" class="headerlink" title="枚举项的值默认为从0开始递增的int值"></a>枚举项的值默认为从0开始递增的int值</h2><pre><code>enum MyEnum{
-    FIRST_ELEMENT,
-    SECOND_ELEMENT,
-}
-ordinal()返回值的序列号，从0开始
-</code></pre><h2 id="自定义枚举项的值"><a href="#自定义枚举项的值" class="headerlink" title="自定义枚举项的值"></a>自定义枚举项的值</h2><pre><code>enum FruitEnum {
-    APPLE(1), ORANGE(2); //调用构造函数来构造枚举项
-
-    private int value = 0;
-
-    private FruitEnum(int value) { //必须是private的构造方法，否则编译错误
-        this.value = value;
-    }
-
-    public static FruitEnum valueOf(int value) { //值(这里是int，可以使string等)到enum的转换函数
-        switch (value) {
-        case 1:
-            return APPLE;
-        case 2:
-            return ORANGE;
-        default:
-            return null;
-        }
-    }
-
-    public int value() { //enum到值的转换函数
-        return this.value;
-    }
-}
-
-如果是int到enum自然排序转换，还可以调用values()(系统api，返回enum数组)
-public enum RoomType {
-    Single(&quot;single&quot;), Group(&quot;group&quot;);
-
-    String value;
-
-    RoomType(String value) {
-        this.value = value;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public static RoomType fromInt(int i) {//参数只能是索引
-        return values()[i];
-    }
-}
-RoomType.fromInt(0) 返回的是第一个enum项Single
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/注解/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/注解/" itemprop="url">注解</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:45:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <ul>
-<li>注释是给人看的提示信息</li>
-<li>注解是给程序看的提示信息</li>
+            <h1 id="UML的构造包含3种："><a href="#UML的构造包含3种：" class="headerlink" title="UML的构造包含3种："></a>UML的构造包含3种：</h1><ul>
+<li>(1) 事物（4种）：事物是对模型中最具代表性的成分的抽象<ul>
+<li>结构事物</li>
+<li>行为事物</li>
+<li>分组事物</li>
+<li>注释事物</li>
 </ul>
-<p>注解就像程序中的一个小标记,我们可以根据有没有这个标记,有这个标记属性的值是什么,来控制我们程序进行不同的处理</p>
-<h2 id="注解3种基本类型"><a href="#注解3种基本类型" class="headerlink" title="注解3种基本类型"></a>注解3种基本类型</h2><pre><code>a.标记注释    --没有变量，只有名称标识。例如 @annotation
-b.单一值注释  --在标记注释的基础上提供一段数据。如 @annotation(&quot;data&quot;)
-                只需设置一个属性值（只有一个属性，或者其他属性都有默认值），使用时可省略属性名
-c.完整注释    --可以包括多个数据成员，每个数据成员由名称和值构成。 @annotation(val1=&quot;data1&quot;,val2=&quot;data2&quot;)
-</code></pre><p>java定义的一些注解:</p>
-<pre><code>@Override: 限定重写父类方法, 该注解只能用于方法
-@Deprecated: 用于表示某个程序元素(类, 方法等)已过时
-@SuppressWarnings: 抑制编译器警告. 
-</code></pre><h2 id="自定义注解-interface"><a href="#自定义注解-interface" class="headerlink" title="自定义注解 @interface"></a>自定义注解 @interface</h2><p><strong>定义属性</strong></p>
-<ul>
-<li>在自定义注解中声明属性,像接口中定义方法</li>
-<li>可以通过default关键字来声明默认值</li>
-<li>属性的类型必须是:<ul>
-<li>String</li>
-<li>八种基本类型</li>
-<li>枚举类型</li>
-<li>其他注解类型</li>
-<li>Class类型</li>
-<li>这些类型的一维数组</li>
+</li>
+<li>(2) 关系（4种）：关系把事物结合在一起<ul>
+<li>泛化关系</li>
+<li>实现关系</li>
+<li>依赖关系</li>
+<li>关联关系</li>
+</ul>
+</li>
+<li>(3) 图（10种）：图聚集了相关的事物<ul>
+<li>用例图</li>
+<li>类图</li>
+<li>对象图</li>
+<li>包图</li>
+<li>组件图</li>
+<li>部署图</li>
+<li>状态图</li>
+<li>活动图</li>
+<li>序列图</li>
+<li>协作图</li>
 </ul>
 </li>
 </ul>
-<p><strong>赋值属性</strong></p>
-<p>如果注解中只有一个属性且属性名value需要被赋值,赋值时 value= 可以被省略,直接给值即可</p>
-<p><strong>元注解修饰</strong></p>
-<pre><code>@Retention: 用于指定该 Annotation 可以保留的域, 
-    RetentionPolicy.SOURCE: 编译器直接丢弃这种策略的注释
-        @Override、@SuppressWarnings等，这类注解就是用于标识，可以用作一些检验
-    RetentionPolicy.CLASS: 编译器将把注解记录在 class 文件中. 当运行 Java 程序时, JVM 不会保留注解. 这是默认值
-        在编译时根据注解标识，动态生成一些类或者生成一些xml。因为没有反射，效率和直接调用方法没什么区别
-        使用这类注解的项目有：ParcelableGenerator、butterknife 、androidAnnotaion等。
-    RetentionPolicy.RUNTIME:编译器将把注释记录在 class 文件中. 当运行 Java 程序时, JVM 会保留注解. 程序可以通过反射获取该注释
-        见得最多，在运行时拿到类的Class对象，然后遍历其方法、变量，判断有无注解声明，然后做一些事情
-@Target：指定注解用于什么地方. ElementType[]
-    public enum ElementType { 
-        TYPE, //Class, interface or enum declaration. 
-        FIELD, //Field declaration. 
-        METHOD, //Method declaration. 
-        PARAMETER, //Parameter declaration. 
-        CONSTRUCTOR, //Constructor declaration. 
-        LOCAL_VARIABLE, //Local variable declaration. 
-        ANNOTATION_TYPE, //Annotation type declaration. PACKAGE //Package declaration.
-    }
-@Documented: 被该元修饰的 Annotation 类将被 javadoc 工具提取成文档.
-@Inherited: 被它修饰的 Annotation 将具有继承性.如果某个类使用了被 @Inherited 修饰的 Annotation, 则其子类将自动具有该注解
-</code></pre><p><strong>实例</strong> 遍历类中声明的所有属性，找到存在ViewInject注解的属性并获取其value，然后去调用findViewById方法，最后把值设置给field</p>
-<pre><code>@Target(ElementType.FIELD)  
-@Retention(RetentionPolicy.RUNTIME)  
-public @interface ViewInject  
-{  
-    int value();  
-    int parentId() default 0;  
-}
-
-private static void injectViews(Activity activity) {  
-    Class&lt;? extends Activity&gt; clazz = activity.getClass();  
-    Field[] fields = clazz.getDeclaredFields();  
-    // 遍历所有成员变量  
-    for (Field field : fields)  
-    {   
-        ViewInject viewInjectAnnotation = field.getAnnotation(ViewInject.class);  
-        if (viewInjectAnnotation != null){  
-            int viewId = viewInjectAnnotation.value();  
-            if (viewId != -1){  
-                Log.e(&quot;TAG&quot;, viewId+&quot;&quot;);  
-                // 初始化View  
-                try {  
-                    Method method = clazz.getMethod(&quot;findViewById&quot;, int.class);  
-                    Object resView = method.invoke(activity, viewId);  
-                    field.setAccessible(true);  
-                    field.set(activity, resView);  
-                } catch (Exception e) {  
-                    e.printStackTrace();  
-                }  
-            }  
-        }  
-    }            
-} 
-</code></pre><p>(3)反射注解<br>    sun定义了 AnnotatedElement 接口,在这个几口中定义了反射注解的api,而Class Field Method Constructor Package … 都实现了这个接口,具有这些api<br>        getAnnotation(Class<t> annotationClass)<br>        isAnnotationPresent(Class&lt;? extends Annotation&gt; annotationClass) </t></p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="http://justsee.iteye.com/blog/808799" target="_blank" rel="noopener">UML关系</a></li>
+</ul>
 
           
         
@@ -2219,7 +2062,7 @@ private static void injectViews(Activity activity) {
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/6/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2269,7 +2112,7 @@ private static void injectViews(Activity activity) {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">214</span>
+                  <span class="site-state-item-count">263</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2291,7 +2134,7 @@ private static void injectViews(Activity activity) {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-count">65</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

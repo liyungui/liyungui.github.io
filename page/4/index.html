@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/13/web/nginx使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/Media Playback/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/06/13/web/nginx使用/" itemprop="url">nginx使用</a></h1>
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/Media Playback/" itemprop="url">Media Playback</a></h1>
         
 
         <div class="post-meta">
@@ -293,8 +293,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-13T12:54:14+08:00">
-                2019-06-13
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
               </time>
             
 
@@ -316,8 +316,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web/" itemprop="url" rel="index">
-                    <span itemprop="name">web</span>
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
                   </a>
                 </span>
 
@@ -355,1495 +355,2112 @@
       
         
           
-            <h1 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h1><p>Nginx (engine x) 是一个<strong>高性能</strong>(占有内存少，并发能力强)<strong>高可扩展</strong>的 HTTP和反向代理web服务器，同时也提供了IMAP/POP3/SMTP服务。</p>
-<p>高并发的情况下，Nginx是Apache服务不错的替代品</p>
-<p>兼容性：Linux系统,Windows NT系统</p>
-<h1 id="版本选择"><a href="#版本选择" class="headerlink" title="版本选择"></a>版本选择</h1><p>Nginx高性能，高可扩展。但并非指随便下载一款事先编译好的，就能满足要求，尤其是<strong>不建议使用官方编译好的Windows版本</strong></p>
-<h2 id="官方编译的Windows版本基本事实："><a href="#官方编译的Windows版本基本事实：" class="headerlink" title="官方编译的Windows版本基本事实："></a>官方编译的Windows版本基本事实：</h2><ol>
-<li><p>使用的是内生Win32 API，不是通过Cygwin的模拟层。</p>
+            <h1 id="Handling-audio-focus"><a href="#Handling-audio-focus" class="headerlink" title="Handling audio focus"></a>Handling audio focus</h1><p>android 2.2(API 8) 开始引入 <code>audio focus</code>协作机制 来管理音频播放</p>
+<h2 id="audio-focus协作机制"><a href="#audio-focus协作机制" class="headerlink" title="audio focus协作机制"></a><code>audio focus</code>协作机制</h2><ul>
+<li>获得焦点，播放</li>
+<li>失去焦点，停止/暂停播放</li>
+<li>仅是建议协作，以获得更好用户体验；但非强制，有的APP可能不遵守</li>
+</ul>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><pre><code>public int AudioManager.requestAudioFocus(OnAudioFocusChangeListener listener, int streamType, int durationHint)
+
+public interface OnAudioFocusChangeListener {
+    public void onAudioFocusChange(int focusChange);
+}
+</code></pre><p><strong>the type of focus change</strong>, one of </p>
+<ul>
+<li>AUDIOFOCUS_GAIN  </li>
+<li>AUDIOFOCUS_LOSS</li>
+<li>AUDIOFOCUS_LOSS_TRANSIENT   短暂丢失</li>
+<li>AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK  短暂丢失，你可以不停止播放，而是降低音量就可以</li>
+</ul>
+<h1 id="Handle-Changes-in-the-Audio-Output-Hardware"><a href="#Handle-Changes-in-the-Audio-Output-Hardware" class="headerlink" title="Handle Changes in the Audio Output Hardware"></a>Handle Changes in the Audio Output Hardware</h1><h1 id="Handling-the-AUDIO-BECOMING-NOISY-Intent"><a href="#Handling-the-AUDIO-BECOMING-NOISY-Intent" class="headerlink" title="Handling the AUDIO_BECOMING_NOISY Intent"></a>Handling the AUDIO_BECOMING_NOISY Intent</h1><p>当蓝牙断开或耳机拔出，系统会自动使用扬声器播放，这在某些场景会造成噪音惊喜。万幸系统会发出 <code>ACTION_AUDIO_BECOMING_NOISY</code> 广播</p>
+<pre><code>private class NoisyAudioStreamReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+            // Pause the playback
+        }
+    }
+}
+
+private IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+
+private void startPlayback() {
+    registerReceiver(myNoisyAudioStreamReceiver(), intentFilter);
+}
+
+private void stopPlayback() {
+    unregisterReceiver(myNoisyAudioStreamReceiver);
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/PCM音频降噪/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/PCM音频降噪/" itemprop="url">PCM音频降噪</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.jianshu.com/p/77a363960711" target="_blank" rel="noopener">PCM音频处理</a></p>
+<p>对于降噪前后的对比，从三个方面进行评价：<strong>时域，频域，个人听觉感受</strong>。</p>
+<p>音频处理软件：<strong>Audacity</strong>（简单分析降噪效果）</p>
+<h1 id="Speex音频降噪模块"><a href="#Speex音频降噪模块" class="headerlink" title="Speex音频降噪模块"></a>Speex音频降噪模块</h1><p>Speex是很强大的开源编解码库，也包含一些降噪，自动增益，回音消除等模块功能</p>
+<p>Opus是Speex的更优替代方案，但是Opus没有降噪去噪模块</p>
+<p>支持的采样率有3种：<strong>8K，16K，44K</strong></p>
+<p>采样送进去降噪的数据需要控制在<strong>20ms</strong>，也就是（20*采样率/1000）个采样点。</p>
+<p>Speex的降噪原理：设置音频数据的阀值，过滤掉低于阀值分贝的声音</p>
+<ul>
+<li>优点：简单，使用Speex编解码库时可以直接使用</li>
+<li>缺点：会把声音细节抹掉</li>
+<li>效果：<ul>
+<li>时域，效果不明显</li>
+<li>频域，效果不明显</li>
+<li>实际听的效果，降噪后，背景的沙沙声有所减弱，但是总体效果还是不佳</li>
+</ul>
 </li>
-<li><p>仅用了select()连接方法，无缘高性能、高可扩展。</p>
+</ul>
+<h1 id="WebRTC音频降噪模块"><a href="#WebRTC音频降噪模块" class="headerlink" title="WebRTC音频降噪模块"></a>WebRTC音频降噪模块</h1><p>谷歌出品，必属精品</p>
+<p>webrtc的音频处理模块分为降噪ns和nsx，回音消除aec，回声控制acem，音频增益agc，静音检测部分</p>
+<p>支持三种采样率，<strong>8K，16K和32K</strong>，如果超过32K，则需要重采样成符合要求的采样率</p>
+<p>采样送进去降噪的数据需要控制在<strong>10ms</strong>，也就是（10*采样率/1000）个采样点。</p>
+<pre><code>根据前辈的说法
+    32K数据需要使用滤波函数将音频数据分为高频和低频两个部分进行降噪，降噪后再合并为降噪后数据
+    8K和16K数据，不需要分为高频低频这个步骤，作为低频数据输入，输出也是通过低频数据返回
+</code></pre><ul>
+<li>效果：<ul>
+<li>时域，音量较低的数据基本被抹平，但是不影响波形清晰</li>
+<li>频域，频率峰值明显加强，1500Hz到3500Hz区域，能量普遍下降</li>
+<li>实际听的效果的，降噪后，背景的沙沙声基本没有，但是音量也有所下降，直观感觉上比Speex好一些</li>
+</ul>
 </li>
-<li><p>Nginx运行时有两种进程，一个是主进程，一个是工作进程。Windows版的，只有一个有效的工作进程，虽然你可以运行多个工作进程。</p>
+</ul>
+<h1 id="根据PCM文件的音量进行阀值限制"><a href="#根据PCM文件的音量进行阀值限制" class="headerlink" title="根据PCM文件的音量进行阀值限制"></a>根据PCM文件的音量进行阀值限制</h1><p>以二进制方式打开，PCM数据其实就是音量数据</p>
+<p>如果把音量小的声音默认为噪声，则可以通过把音量小的数值替换为0，来实现降噪。但是这个方法的缺点也是明显的，会把很多的比较小的细节声音直接去掉了。</p>
+<p><strong>音量计算公式dB = 20×log(data)</strong></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/android录音和播放/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/android录音和播放/" itemprop="url">android录音和播放</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="录音"><a href="#录音" class="headerlink" title="录音"></a>录音</h1><p> 必须在AndroidManifest中设置相应的权限：android:name=”android.permission.RECORD_AUDIO” </p>
+<p> Android提供了两个API用于实现录音功能</p>
+<h2 id="AudioRecord"><a href="#AudioRecord" class="headerlink" title="AudioRecord"></a>AudioRecord</h2><pre><code>主要是实现边录边播（AudioRecord+AudioTrack）以及对音频的实时处理（如会说话的汤姆猫、语音）
+优点：语音的实时处理，可以用代码实现各种音频的封装
+缺点：输出是PCM语音数据，如果保存成音频文件，是不能够被播放器播放的，所以必须先写代码实现数据编码以及压缩
+示例：使用AudioRecord类录音，并实现WAV格式封装。录音20s，输出的音频文件大概为3.5M左右（已写测试代码）
+    主要api：audioRecord.startRecording()，audioRecord.read，audioRecord.stop()，audioRecord.release()
+    开始录制
+    int sampleRateInHz= 44100;  //44.1KHz,普遍使用的频率   
+    int channelConfig = AudioFormat.CHANNEL_IN_STEREO;
+    int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+     // 获得缓冲区字节大小  
+    int bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
+    int audioSource = MediaRecorder.AudioSource.MIC;
+    // 创建AudioRecord对象  
+    audioRecord = new AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes);
+    audioRecord.startRecording();
+    // 开启线程将音频流写入文件  
+    new Thread(new AudioRecordThread()).start();  
+
+    class AudioRecordThread implements Runnable {  
+        @Override 
+        public void run() {  
+            writeDateTOFile();//往文件中写入裸数据  
+            copyWaveFile(AudioName, NewAudioName);//给裸数据加上头文件  
+        }  
+    } 
+    private void writeDateTOFile() {  
+        // new一个byte数组用来存一些字节数据，大小为前面获得的缓冲区大小  
+        byte[] audiodata = new byte[bufferSizeInBytes];  
+        FileOutputStream fos = null;  
+        int readsize = 0;  
+        try {  
+            File file = new File(AudioName);  //AudioName为sd卡根目录下test.raw
+            if (file.exists()) {  
+                file.delete();  
+            }  
+            fos = new FileOutputStream(file);// 建立一个可存取字节的文件  
+        } catch (Exception e) {  
+            e.printStackTrace();  
+        }  
+        while (isRecord == true) {  
+            readsize = audioRecord.read(audiodata, 0, bufferSizeInBytes);  
+            if (AudioRecord.ERROR_INVALID_OPERATION != readsize &amp;&amp; fos != null) {  
+                try {  
+                    fos.write(audiodata);  
+                } catch (IOException e) {  
+                    e.printStackTrace();  
+                }  
+            }  
+        }  
+        try {
+            if(fos != null)
+                fos.close();// 关闭写入流  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
+    } 
+    private void copyWaveFile(String inFilename, String outFilename) {  
+        FileInputStream in = null;  
+        FileOutputStream out = null;  
+        long totalAudioLen = 0;  
+        long totalDataLen = totalAudioLen + 36;  //wave头44字节，36实在不懂
+        long longSampleRate = sampleRateInHz;  //上面的44100
+        int channels = 2;  
+        long byteRate = 16 * sampleRateInHz * channels / 8;  
+        byte[] data = new byte[bufferSizeInBytes];  
+        try {  
+            in = new FileInputStream(inFilename);  
+            out = new FileOutputStream(outFilename);  
+            totalAudioLen = in.getChannel().size();  
+            totalDataLen = totalAudioLen + 36;  
+            WriteWaveFileHeader(out, totalAudioLen, totalDataLen,  
+                    longSampleRate, channels, byteRate);  
+            while (in.read(data) != -1) {  
+                out.write(data);  
+            }  
+            in.close();  
+            out.close();  
+        } catch (FileNotFoundException e) {  
+            e.printStackTrace();  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
+    }  
+    private void WriteWaveFileHeader(FileOutputStream out, long totalAudioLen,  
+        long totalDataLen, long longSampleRate, int channels, long byteRate)  
+        throws IOException {  
+        byte[] header = new byte[44];  //wave文件头44字节
+        header[0] = &apos;R&apos;; // RIFF/WAVE header  
+        header[1] = &apos;I&apos;;  
+        header[2] = &apos;F&apos;;  
+        header[3] = &apos;F&apos;;  
+        header[4] = (byte) (totalDataLen &amp; 0xff);  
+        header[5] = (byte) ((totalDataLen &gt;&gt; 8) &amp; 0xff);  
+        header[6] = (byte) ((totalDataLen &gt;&gt; 16) &amp; 0xff);  
+        header[7] = (byte) ((totalDataLen &gt;&gt; 24) &amp; 0xff);  
+        header[8] = &apos;W&apos;;  
+        header[9] = &apos;A&apos;;  
+        header[10] = &apos;V&apos;;  
+        header[11] = &apos;E&apos;;  
+        header[12] = &apos;f&apos;; // &apos;fmt &apos; chunk  
+        header[13] = &apos;m&apos;;  
+        header[14] = &apos;t&apos;;  
+        header[15] = &apos; &apos;;  
+        header[16] = 16; // 4 bytes: size of &apos;fmt &apos; chunk  
+        header[17] = 0;  
+        header[18] = 0;  
+        header[19] = 0;  
+        header[20] = 1; // format = 1  
+        header[21] = 0;  
+        header[22] = (byte) channels;  
+        header[23] = 0;  
+        header[24] = (byte) (longSampleRate &amp; 0xff);  
+        header[25] = (byte) ((longSampleRate &gt;&gt; 8) &amp; 0xff);  
+        header[26] = (byte) ((longSampleRate &gt;&gt; 16) &amp; 0xff);  
+        header[27] = (byte) ((longSampleRate &gt;&gt; 24) &amp; 0xff);  
+        header[28] = (byte) (byteRate &amp; 0xff);  
+        header[29] = (byte) ((byteRate &gt;&gt; 8) &amp; 0xff);  
+        header[30] = (byte) ((byteRate &gt;&gt; 16) &amp; 0xff);  
+        header[31] = (byte) ((byteRate &gt;&gt; 24) &amp; 0xff);  
+        header[32] = (byte) (2 * 16 / 8); // block align  
+        header[33] = 0;  
+        header[34] = 16; // bits per sample  
+        header[35] = 0;  
+        header[36] = &apos;d&apos;;  
+        header[37] = &apos;a&apos;;  
+        header[38] = &apos;t&apos;;  
+        header[39] = &apos;a&apos;;  
+        header[40] = (byte) (totalAudioLen &amp; 0xff);  
+        header[41] = (byte) ((totalAudioLen &gt;&gt; 8) &amp; 0xff);  
+        header[42] = (byte) ((totalAudioLen &gt;&gt; 16) &amp; 0xff);  
+        header[43] = (byte) ((totalAudioLen &gt;&gt; 24) &amp; 0xff);  
+        out.write(header, 0, 44);  
+    } 
+    停止录制
+    audioRecord.stop();  
+    audioRecord.release();//释放资源  
+    audioRecord = null;  
+</code></pre><h2 id="MediaRecorder"><a href="#MediaRecorder" class="headerlink" title="MediaRecorder"></a>MediaRecorder</h2><pre><code>已经集成了录音、录像、编码、压缩等，支持少量的录音音频格式，大概有.aac（API = 16以上） .amr .3gp
+优点：大部分已经集成，直接调用相关接口即可，代码量小
+缺点：无法实时处理音频；输出的音频格式不是很多，例如没有输出mp3格式文件
+示例：使用MediaRecorder类录音，输出amr格式文件。录音20s，输出的音频文件大概为33K（已写测试代码）
+    开始录制
+    mRecorder = new MediaRecorder();
+    mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+    mRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);//Android默认就是amr
+    mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+    mRecorder.setOutputFile(outputFilePath);
+    try {
+        mRecorder.prepare();
+    } catch (Exception e) {
+        e.printStackTrace();
+    } 
+    mRecorder.start();
+    停止录制
+    mRecorder.stop();
+    mRecorder.release();
+    mRecorder = null;
+
+    开始播放
+    mPlayer = new MediaPlayer();
+    try {
+        mPlayer.setDataSource(fileName);
+        mPlayer.prepare();
+        mPlayer.start();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    停止播放
+    mPlayer.stop();
+    mPlayer.release();
+    mPlayer = null;
+</code></pre><h1 id="播放"><a href="#播放" class="headerlink" title="播放"></a>播放</h1><h2 id="MediaPlayer音频视频播放"><a href="#MediaPlayer音频视频播放" class="headerlink" title="MediaPlayer音频视频播放"></a>MediaPlayer音频视频播放</h2><p>MediaPlayer支持：AAC、AMR、FLAC、MP3、MIDI、OGG、PCM、WAV等格式 </p>
+<p>资源占用量较高、延迟时间较长、不支持多个音频同时播放等</p>
+<h3 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h3><pre><code>public void startPlay(String fileName) {
+    mPlayer = new MediaPlayer();
+    try {
+        mPlayer.setDataSource(fileName);
+        mPlayer.prepare();
+        mPlayer.start();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+public void stopPlay() {
+    mPlayer.stop();
+    mPlayer.release();
+    mPlayer = null;
+}
+</code></pre><h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><pre><code>MediaPlayer 的使用介绍（翻译官方文档，详细） http://blog.csdn.net/songshizhuyuan/article/details/32900965
+</code></pre><h4 id="MediaPlayer"><a href="#MediaPlayer" class="headerlink" title="MediaPlayer"></a>MediaPlayer</h4><pre><code>这个类包含用于播放声音和视频的主要API
+</code></pre><p>Raw下的元数据</p>
+<pre><code>//直接创建，不需要设置setDataSource
+mMediaPlayer=MediaPlayer.create(this, R.raw.audio);
+mMediaPlayer.start();
+</code></pre><h4 id="AudioManager"><a href="#AudioManager" class="headerlink" title="AudioManager"></a>AudioManager</h4><pre><code>这个类用于管理音源，并在设备上的音频输出。
+</code></pre><h4 id="处理音频焦点"><a href="#处理音频焦点" class="headerlink" title="处理音频焦点"></a>处理音频焦点</h4><p>音频焦点是合作性。也就是说，应用程序应该尽量配合，以符合音频焦点的指引，但规则不是由系统执行。如果应用程序失去音讯焦点后，大声播放音乐，系统也不会阻止。</p>
+<pre><code>http://blog.csdn.net/dadoneo/article/details/8252933
+</code></pre><p>AudioFocus的申请与释放</p>
+<p>安卓2.2(api8)开始 新增 <code>AudioManager.requestAudioFocus（）</code></p>
+<p>AudioFocus被抢占与重新获得</p>
+<pre><code>http://www.android100.org/html/201510/08/188724.html
+</code></pre><h4 id="外放、听筒、耳机-模式切换"><a href="#外放、听筒、耳机-模式切换" class="headerlink" title="外放、听筒、耳机 模式切换"></a>外放、听筒、耳机 模式切换</h4><pre><code>AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+audioManager.setMicrophoneMute(false);
+audioManager.setSpeakerphoneOn(true);//使用扬声器外放，即使已经插入耳机
+audioManager.setMode(AudioManager.STREAM_MUSIC);
+</code></pre><h2 id="SoundPool"><a href="#SoundPool" class="headerlink" title="SoundPool"></a>SoundPool</h2><p>支持多个音频文件同时播放(组合音频也是有上限的)，延时短，比较适合短促、密集的场景，是游戏开发中音效播放的福音。</p>
+<p><code>SoundPool(int maxStreams, int streamType, int srcQuality)</code></p>
+<p>区分2个概念</p>
+<ol>
+<li>soundID：加载音乐资源时的返回值，int load(String path, int priority),这个int返回值就是soundID </li>
+<li>streamID：播放时返回的值，即play()方法的返回值</li>
+</ol>
+<p>这两个值都很重要，需要缓存下来</p>
+<p>某些采样频率会导致播放错误(不能播放，只能播放部分)</p>
+<h2 id="AsyncPlayer"><a href="#AsyncPlayer" class="headerlink" title="AsyncPlayer"></a>AsyncPlayer</h2><p>AsyncPlayer就是对MediaPlayer的一次简单的封装，对MediaPlaer所有的操作都在新开线程中执行。不影响调用线程任何操作。</p>
+<p>AsyncPlayer只适合简单的异步播放，不能控制进度，只能开始或停止播放。如果再次调用play()方法，AsyncPlayer会停止当前播放，开始新的播放。</p>
+<h2 id="AudioTrack播放音频"><a href="#AudioTrack播放音频" class="headerlink" title="AudioTrack播放音频"></a>AudioTrack播放音频</h2><p>AudioTrack属于更偏底层的音频播放，MediaPlayerService的内部就是使用了AudioTrack。</p>
+<p>AudioTrack用于单个音频播放和管理，相比于MediaPlayer具有：精炼、高效的优点。</p>
+<p>更适合实时产生播放数据的情况，如加密的音频，<br>MediaPlayer是束手无策的，AudioTrack却可以。</p>
+<p>AudioTrack用于播放PCM(PCM无压缩的音频格式)音乐流的回放，<br>如果需要播放其它格式音频，需要响应的解码器，<br>这也是AudioTrack用的比较少的原因，需要自己解码音频。</p>
+<h3 id="AudioTreack的2种播放模式"><a href="#AudioTreack的2种播放模式" class="headerlink" title="AudioTreack的2种播放模式"></a>AudioTreack的2种播放模式</h3><h4 id="静态模式—static"><a href="#静态模式—static" class="headerlink" title="静态模式—static"></a>静态模式—static</h4><p>数据一次性交付给接收方。好处是简单高效，只需要进行一次操作就完成了数据的传递;缺点当然也很明显，对于数据量较大的音频回放，显然它是无法胜任的，因而通常只用于播放铃声、系统提醒等对内存小的操作</p>
+<h4 id="流模式streaming"><a href="#流模式streaming" class="headerlink" title="流模式streaming"></a>流模式streaming</h4><p>流模式和网络上播放视频是类似的，即数据是按照一定规律不断地传递给接收方的。理论上它可用于任何音频播放的场景，不过我们一般在以下情况下采用：</p>
+<ul>
+<li><p>音频文件过大</p>
 </li>
-<li><p>没有windows服务进程版，计划在下个版本加入。</p>
+<li><p>音频属性要求高，比如采样率高、深度大的数据</p>
+</li>
+<li><p>音频数据是实时产生的，这种情况就只能用流模式了</p>
+</li>
+</ul>
+<p>通过write(byte[], int, int), write(short[], int, int)<br>write(float[], int, int, int)等方法推送解码数据到AudioTrack</p>
+<h2 id="Ringtone和RingtoneManager"><a href="#Ringtone和RingtoneManager" class="headerlink" title="Ringtone和RingtoneManager"></a>Ringtone和RingtoneManager</h2><p>Ringtone为铃声、通知和其他类似声音提供快速播放的方法</p>
+<p>RingtoneManager提供系统铃声列表检索方法，Ringtone实例需要从RingtoneManager获取</p>
+<h3 id="RingtoneManager"><a href="#RingtoneManager" class="headerlink" title="RingtoneManager"></a>RingtoneManager</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>. <span class="comment">// 两个构造方法</span></span><br><span class="line">RingtoneManager(Activity activity)</span><br><span class="line">RingtoneManager(Context context)</span><br><span class="line"></span><br><span class="line"><span class="number">2</span>. <span class="comment">// 获取指定声音类型(铃声、通知、闹铃等)的默认声音的Uri</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> Uri <span class="title">getDefaultUri</span><span class="params">(<span class="keyword">int</span> type)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">3. <span class="comment">// 获取系统所有Ringtone的cursor</span></span></span><br><span class="line"><span class="function">Cursor <span class="title">getCursor</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">4. <span class="comment">// 获取cursor指定位置的Ringtone uri</span></span></span><br><span class="line"><span class="function">Uri <span class="title">getRingtoneUri</span><span class="params">(<span class="keyword">int</span> position)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">5. <span class="comment">// 判断指定Uri是否为默认铃声</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isDefault</span><span class="params">(Uri ringtoneUri)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">6. <span class="comment">//获取指定uri的所属类型</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">getDefaultType</span><span class="params">(Uri defaultRingtoneUri)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">7. <span class="comment">//将指定Uri设置为指定声音类型的默认声音</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">setActualDefaultRingtoneUri</span><span class="params">(Context context, <span class="keyword">int</span> type, Uri ringtoneUri)</span></span></span><br></pre></td></tr></table></figure>
+<h2 id="JetPlayer播放音频"><a href="#JetPlayer播放音频" class="headerlink" title="JetPlayer播放音频"></a>JetPlayer播放音频</h2><p>用于播放 ”.jet”文件</p>
+<p>JET常用于控制游戏的声音特效，采用MIDI（Musical Instrument Digital Interface）格式。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><pre><code>对于延迟度要求不高，并且希望能够更全面的控制音乐的播放，MediaPlayer比较适合
+
+声音短小，延迟度小，并且需要几种声音同时播放的场景，适合使用SoundPool
+
+对于简单的播放，不需要复杂控制的播放，可以给使用AsyncPlayer，所有操作均在子线程不阻塞UI
+
+播放大文件音乐，如WAV无损音频和PCM无压缩音频，可使用更底层的播放方式AudioTrack。它支持流式播放，可以读取(可来自本地和网络)音频流，却播放延迟较小。 
+ps：据我测试AudioTrack直接支持WAV和PCM，其他音频需要解码成PCM格式才能播放。(其他无损格式没有尝试，有兴趣可以使本文提供的例子测试一下)
+
+.jet的音频比较少见(有的游戏中在使用)，可使用专门的播放器JetPlayer播放
+
+对于系统类声音的播放和操作，Ringtone更适合(RingtoneManager)
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/pcm 转 amr/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/pcm 转 amr/" itemprop="url">pcm 转 amr</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://blog.csdn.net/honeybaby201314/article/details/50379040" target="_blank" rel="noopener">pcm 转 amr</a></p>
+<p><a href="https://www.zybuluo.com/DevWiki/note/115307" target="_blank" rel="noopener">Android中Pcm文件转Amr文件</a></p>
+<p>Android系统自带的AmrInputStream类可以转换pcm到amr</p>
+<h1 id="思路一、反射调用"><a href="#思路一、反射调用" class="headerlink" title="思路一、反射调用"></a>思路一、反射调用</h1><ul>
+<li>通过Android系统自带的AmrInputStream类转换，因为它被隐藏了，只有通过反射来操作。</li>
+<li>手动加上 <code>amr文件头</code>，<code>byte[] header = new byte[]{0x23, 0x21, 0x41, 0x4D, 0x52, 0x0A};</code></li>
+</ul>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><pre><code> /**
+ * 通过反射调用android系统自身AmrInputStream类进行转换
+ * @param inPath 源文件
+ * @param outPath 目标文件
+ */
+public void systemPcm2Amr(String inPath,String outPath){
+    try {
+        FileInputStream fileInputStream = new FileInputStream(inPath);
+        FileOutputStream fileoutputStream = new FileOutputStream(outPath);
+        // 获得Class
+        Class&lt;?&gt; cls = Class.forName(&quot;android.media.AmrInputStream&quot;);
+        // 通过Class获得所对应对象的方法
+        Method[] methods = cls.getMethods();
+        // 输出每个方法名
+        byte[] header = new byte[]{0x23, 0x21, 0x41, 0x4D, 0x52, 0x0A};
+        fileoutputStream.write(header);
+        Constructor&lt;?&gt; con = cls.getConstructor(InputStream.class);
+        Object obj = con.newInstance(fileInputStream);
+        for (Method method : methods) {
+            Class&lt;?&gt;[] parameterTypes = method.getParameterTypes();
+            if (&quot;read&quot;.equals(method.getName())
+                    &amp;&amp; parameterTypes.length == 3) {
+                byte[] buf = new byte[1024];
+                int len = 0;
+                while ((len = (int) method.invoke(obj, buf, 0, 1024)) &gt; 0) {
+                    fileoutputStream.write(buf, 0, len);
+                }
+                break;
+            }
+        }
+        for (Method method : methods) {
+            if (&quot;close&quot;.equals(method.getName())) {
+                method.invoke(obj);
+                break;
+            }
+        }
+        fileoutputStream.close();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+</code></pre><h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>查看源码可知，AmrInputStream 转码默认 PCM 的采样率是 8000 Hz，所以要<strong>保证录制时采样率是8000Hz</strong>，否则amr音频会有快放和慢放的效果</p>
+<pre><code>public class AmrInputStream extends InputStream {      
+    ... 
+    // frame is 20 msec at 8.000 khz  
+    private final static int SAMPLES_PER_FRAME = 8000 * 20 / 1000;  
+</code></pre><p>在华为机型上，反射调用特别的慢，容易AR</p>
+<h1 id="思路二、复制类文件到工程"><a href="#思路二、复制类文件到工程" class="headerlink" title="思路二、复制类文件到工程"></a>思路二、复制类文件到工程</h1><p>不用反射，更加高效</p>
+<p>工程下新建包 <code>android.media</code>。因为调用Android自带的Pcm转amr的库:media_jni.so需要这个包名</p>
+<p>复制AmrInputStream类到该包下</p>
+<pre><code>public final class AmrInputStream extends InputStream {
+    static {
+        System.loadLibrary(&quot;media_jni&quot;);
+    }
+    private final static String TAG = &quot;AmrInputStream&quot;;
+    // frame is 20 msec at 8.000 khz
+    private final static int SAMPLES_PER_FRAME = 8000 * 20 / 1000;
+    // pcm input stream
+    private InputStream mInputStream;
+    // native handle
+    private int mGae;
+    // result amr stream
+    private byte[] mBuf = new byte[SAMPLES_PER_FRAME * 2];
+    private int mBufIn = 0;
+    private int mBufOut = 0;
+    // helper for bytewise read()
+    private byte[] mOneByte = new byte[1];
+    /**
+     * Create a new AmrInputStream, which converts 16 bit PCM to AMR
+     * @param inputStream InputStream containing 16 bit PCM.
+     */
+    public AmrInputStream(InputStream inputStream) {
+        mInputStream = inputStream;
+        mGae = GsmAmrEncoderNew();
+        GsmAmrEncoderInitialize(mGae);
+    }
+    @Override
+    public int read() throws IOException {
+        int rtn = read(mOneByte, 0, 1);
+        return rtn == 1 ? (0xff &amp; mOneByte[0]) : -1;
+    }
+    @Override
+    public int read(byte[] b) throws IOException {
+        return read(b, 0, b.length);
+    }
+    @Override
+    public int read(byte[] b, int offset, int length) throws IOException {
+        if (mGae == 0) throw new IllegalStateException(&quot;not open&quot;);
+        // local buffer of amr encoded audio empty
+        if (mBufOut &gt;= mBufIn) {
+            // reset the buffer
+            mBufOut = 0;
+            mBufIn = 0;
+            // fetch a 20 msec frame of pcm
+            for (int i = 0; i &lt; SAMPLES_PER_FRAME * 2; ) {
+                int n = mInputStream.read(mBuf, i, SAMPLES_PER_FRAME * 2 - i);
+                if (n == -1) return -1;
+                i += n;
+            }
+            // encode it
+            mBufIn = GsmAmrEncoderEncode(mGae, mBuf, 0, mBuf, 0);
+        }
+        // return encoded audio to user
+        if (length &gt; mBufIn - mBufOut) length = mBufIn - mBufOut;
+        System.arraycopy(mBuf, mBufOut, b, offset, length);
+        mBufOut += length;
+        return length;
+    }
+    @Override
+    public void close() throws IOException {
+        try {
+            if (mInputStream != null) mInputStream.close();
+        } finally {
+            mInputStream = null;
+            try {
+                if (mGae != 0) GsmAmrEncoderCleanup(mGae);
+            } finally {
+                try {
+                    if (mGae != 0) GsmAmrEncoderDelete(mGae);
+                } finally {
+                    mGae = 0;
+                }
+            }
+        }
+   }
+    @Override
+    protected void finalize() throws Throwable {
+        if (mGae != 0) {
+            close();
+            throw new IllegalStateException(&quot;someone forgot to close AmrInputStream&quot;);
+        }
+    }
+    //
+    // AudioRecord JNI interface
+    //
+    private static native int GsmAmrEncoderNew();
+    private static native void GsmAmrEncoderInitialize(int gae);
+    private static native int GsmAmrEncoderEncode(int gae,
+           byte[] pcm, int pcmOffset, byte[] amr, int amrOffset) throws IOException;
+    private static native void GsmAmrEncoderCleanup(int gae);
+    private static native void GsmAmrEncoderDelete(int gae);
+}
+</code></pre><p>复制AmrEncoder类</p>
+<pre><code>public class AmrEncoder {
+    public static void pcm2Amr(String pcmPath , String amrPath) {
+        FileInputStream fis;
+        try {
+            fis = new FileInputStream(pcmPath);
+            pcm2Amr(fis, amrPath);
+            fis.close();
+        } catch (FileNotFoundException e1) {
+            e1.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void pcm2Amr(InputStream pcmStream, String amrPath) {
+        try {
+            AmrInputStream ais = new AmrInputStream(pcmStream);
+            OutputStream out = new FileOutputStream(amrPath);
+            byte[] buf = new byte[4096];
+            int len = -1;
+            /*
+             * 下面的AMR的文件头,缺少这几个字节是不行的
+             */
+            out.write(0x23);
+            out.write(0x21);
+            out.write(0x41);
+            out.write(0x4D);
+            out.write(0x52);
+            out.write(0x0A);   
+            while((len = ais.read(buf)) &gt;0){
+                out.write(buf,0,len);
+            }
+            out.close();
+            ais.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }       
+    }
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/学乎录音实现方式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/学乎录音实现方式/" itemprop="url">学乎录音实现方式</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>学乎录音实现</p>
+<h1 id="学乎录音实现方式探索历程"><a href="#学乎录音实现方式探索历程" class="headerlink" title="学乎录音实现方式探索历程"></a>学乎录音实现方式探索历程</h1><p>尝试过 MedicaRecord,AudioRecord录音，lame库编码为MP3(<a href="https://github.com/liyungui/MP3LameRecord" target="_blank" rel="noopener">MP3LameRecord</a>)，webrtc降噪(<a href="https://github.com/liyungui/PCMNoiseSupression" target="_blank" rel="noopener">PCMNoiseSupression</a>)</p>
+<p>经过实践测试，发现音效最好(音量大，噪音小)的实现方式是：AudioRecord录制，使用Android系统自带的pcm转arm</p>
+<h2 id="关键细节"><a href="#关键细节" class="headerlink" title="关键细节"></a>关键细节</h2><pre><code>AudioManager audioManager = (AudioManager) App.getApplication().getSystemService(Context.AUDIO_SERVICE);
+audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+audioManager.setSpeakerphoneOn(true);
+
+// 获得缓冲区字节大小
+bufferSizeInBytes = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE,
+        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+
+// 创建AudioRecord对象
+recorder = new AudioRecord(AUDIO_INPUT, AUDIO_SAMPLE_RATE,
+        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSizeInBytes);
+voiceFilePath = PathUtil.getInstance().getVoicePath() + File.separator + getPCMFileName(&quot;&quot;);
+file = new File(voiceFilePath);
+recorder.startRecording();
+isRecording = true;// 让录制状态为true
+// 开启音频文件写入线程
+new Thread(new AudioRecordThread()).start();
+
+private void writeDateTOFile(String AudioName) {
+    // new一个byte数组用来存一些字节数据，大小为缓冲区大小
+    byte[] audiodata = new byte[bufferSizeInBytes];
+    FileOutputStream fos = null;
+    int readsize = 0;
+    try {
+        File file = new File(AudioName);
+        if (file.exists()) {
+            file.delete();
+        }
+        fos = new FileOutputStream(file);// 建立一个可存取字节的文件
+
+        while (isRecording) {
+            readsize = recorder.read(audiodata, 0, bufferSizeInBytes);
+            if (AudioRecord.ERROR_INVALID_OPERATION != readsize &amp;&amp; fos != null) {
+                try {
+                    fos.write(audiodata);
+
+                    getVolumeDB(readsize, audiodata);
+                } catch (Exception e) {
+                    if (e != null) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        if (fos != null)
+            fos.close();// 关闭写入流
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+</code></pre><p>pcm 转 amr实现细节参考另一篇笔记。反射调用在华为机型上容易ANR，要把系统类文件复制到工程中使用，性能好</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/微信语音编码-silk/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/微信语音编码-silk/" itemprop="url">微信语音编码-silk</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Android微信语音聊天记录及文本聊天记录-数据库破解-silk-整理"><a href="#Android微信语音聊天记录及文本聊天记录-数据库破解-silk-整理" class="headerlink" title="Android微信语音聊天记录及文本聊天记录 数据库破解 silk 整理"></a><a href="http://blog.csdn.net/voler_HJL/article/details/53788126" target="_blank" rel="noopener">Android微信语音聊天记录及文本聊天记录 数据库破解 silk 整理</a></h1><p><strong>微信语音文件存储位置</strong></p>
+<pre><code>根目录 -》tencent -》MicroMsg -》名字很长又很乱的那个文件夹 -》voice2 
+</code></pre><p><strong>播放</strong></p>
+<p>.amr后缀，但它并不是真正的.amr文件，amr播放器是播放不了的 </p>
+<p>其实是silk v3格式，QQ的语音文件也是这种格式 </p>
+<h1 id="微信语音文件的格式转换"><a href="#微信语音文件的格式转换" class="headerlink" title="微信语音文件的格式转换"></a><a href="http://www.jianshu.com/p/71137d5acf78" target="_blank" rel="noopener">微信语音文件的格式转换</a></h1><p>起初，iOS 只是去掉了文件头的 amr，添上就能还原为 amr 了；Android 则是原生的 amr。</p>
+<p>微信6.0 之后开始采用 silk 编码来传输语音，必须用 slik v3 解码器</p>
+<p>这方面许多人做过工作，罗列一下：</p>
+<h2 id="个人"><a href="#个人" class="headerlink" title="个人"></a>个人</h2><p><strong>kn007</strong>: </p>
+<p><a href="https://kn007.net/topics/decoding-qq-wechat-silk-v3-encoded-audio-to-mp3-or-other-formats/" target="_blank" rel="noopener">解码转换QQ微信的SILK v3编码音频为MP3或其他格式</a></p>
+<p><a href="https://kn007.net/topics/batch-convert-silk-v3-audio-files-to-mp3-in-windows/" target="_blank" rel="noopener">Windows下批量转换Silk v3音频文件为MP3格式</a></p>
+<p><a href="https://kn007.net/topics/update-silk2mp3-to-official-version/" target="_blank" rel="noopener">更新了Silk2MP3</a></p>
+<p><strong>snakeninny</strong>：</p>
+<p><a href="http://bbs.iosre.com/t/topic/3199" target="_blank" rel="noopener">从微信中提取语音文件，并转换成文字的全自动化解决方案</a></p>
+<p><strong>hangcom</strong>：《iOS应用逆向工程》的作者，之前还开发了朋友圈导出。</p>
+<p><a href="https://zhuanlan.zhihu.com/p/21783890" target="_blank" rel="noopener">微信语音文件的解析</a></p>
+<p><strong>杨树下的狐狸</strong>：Android 方案</p>
+<p><a href="https://www.zhihu.com/question/19909162/answer/80640430" target="_blank" rel="noopener">微信的语音聊天记录可以从手机提取出来保存到PC上么？ - 知乎</a></p>
+<p><strong>cxun</strong>：整体解决方案</p>
+<p>（暂时失效）<a href="http://www.cnblogs.com/cxun/p/4338643.html" target="_blank" rel="noopener">微信聊天记录查看器（程序+源码）</a></p>
+<h2 id="商用"><a href="#商用" class="headerlink" title="商用"></a>商用</h2><p>iTools：可以转换 aud 到 wav</p>
+<p>楼月微信聊天记录导出恢复助手：同上</p>
+<p>其他还有：Silk 手机音频播放器、Silk 转换工具、WeBack 等等。</p>
+<h1 id="Skype-Silk-与Opus的关系"><a href="#Skype-Silk-与Opus的关系" class="headerlink" title="Skype Silk 与Opus的关系"></a><a href="http://tiger-beach.blogspot.com/2014/04/skype-silk-opus.html" target="_blank" rel="noopener">Skype Silk 与Opus的关系</a></h1><p>Skype自2009年1月以来一直采用自己的SILK音频编码解码器，但是从2012年起过渡到新的Opus标准。</p>
+<p>Opus标准已经获互联网工程任务组（IETF）批准，标准格式为RFC 6716。</p>
+<p>Opus支持6kbps到510kbps的可变比特率。</p>
+<p>它是一个有损声音编码的格式，适用于网络上的实时声音传输。</p>
+<p>由于是一个开放格式，Opus在使用上没有任何专利限制。</p>
+<p>Opus合并了Xiph.org的CELT低延时音频编解码器和Skype的SILK语音编解码器，专为互联网音频设计，可用于替代现有的私有音频编解码器</p>
+<p>由 Xiph.Org、Mozilla、微软、Broadcom、Octasic和Google联合开发。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/视频播放/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/视频播放/" itemprop="url">视频播放</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Android视频播放器的选择"><a href="#Android视频播放器的选择" class="headerlink" title="Android视频播放器的选择"></a><a href="https://appkfz.com/2017/08/27/ijkplayer-sutdy-1/" target="_blank" rel="noopener">Android视频播放器的选择</a></h1><ul>
+<li><p><strong>MediaPlayer</strong></p>
+<ul>
+<li>原生实现</li>
+<li>只使用硬解播放，基只支持本地和HTTP协议的视频播放，扩展性很差，只适合最简单的视频播放需求</li>
+</ul>
+</li>
+<li><p><strong>VideoView</strong></p>
+<p>  将MediaPlayer，SurfaceView封装</p>
+</li>
+<li><p><strong><a href="https://github.com/google/ExoPlayer" target="_blank" rel="noopener">ExoPlayer</a></strong></p>
+<ul>
+<li>提供了更好的扩展性和定制能力</li>
+<li>加入了对DASH和HLS等直播协议的支持</li>
+<li>但也只支持硬码<ul>
+<li>如果项目中只需要支持对H264格式的视频播放，以及流媒体协议比较常规（比如HTTP，HLS），基于ExoPlayer定制也是不错的选择。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>ijkplayer</p>
+<ul>
+<li>Bilibili公司开源的播放器实现</li>
+<li>整合了FFMpeg, ExoPlayer, MediaPlayer，EXOPlayer等多种实现</li>
+<li>提供了类似于MediaPlayer的API</li>
+<li>实现软硬解码自由切换</li>
+<li>自定义TextureView实现</li>
+<li>得益于FFMpeg的能力，也能支持多种流媒体协议（RTSP，RTMP，HLS等），多种视频编码格式（h264, mpeg4, mjpeg)，具有很高的灵活性，可以定制实现自己特色的播放器（比如支持视频缩放，视频翻转等）。</li>
+</ul>
+</li>
+</ul>
+<h1 id="视频旋转角度问题"><a href="#视频旋转角度问题" class="headerlink" title="视频旋转角度问题"></a>视频旋转角度问题</h1><p>视频是带有旋转角度信息的。</p>
+<p>播放时，需要获取角度并相应设置播放角度，才能正常播放视频</p>
+<p>获取视频元信息的开源库 - <a href="https://github.com/wseemann/FFmpegMediaMetadataRetriever" target="_blank" rel="noopener">FFmpegMediaMetadataRetriever</a></p>
+<p><strong>MediaPlaer已经处理好旋转角度问题</strong></p>
+<p><a href="http://blog.csdn.net/jdsjlzx/article/details/51884784" target="_blank" rel="noopener">ijkplayer没有处理，需要开发者自行处理</a> 或 <a href="https://github.com/pili-engineering/PLDroidPlayer/issues/444" target="_blank" rel="noopener">参考PLDroidPlayer issues</a></p>
+<p>实际测试中（MP4格式）发现没有回调MEDIA_INFO_VIDEO_ROTATION_CHANGED</p>
+<pre><code>private PLMediaPlayer.OnInfoListener mOnInfoListener = new PLMediaPlayer.OnInfoListener() {
+        @Override
+        public boolean onInfo(PLMediaPlayer plMediaPlayer, int what, int extra) {
+            Log.d(TAG, &quot;onInfo: &quot; + what + &quot;, &quot; + extra);
+            switch (what) {
+                case PLMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED:
+                    Log.d(TAG, &quot;MEDIA_INFO_VIDEO_ROTATION_CHANGED: &quot; + extra);
+                    if(extra==90) {
+                       //设置播放视频角度
+                    mVideoView.setDisplayOrientation(270);
+                    }
+                    break;
+            }
+            return false;
+        }
+    };
+</code></pre><h1 id="VideoView视频播放等比缩放"><a href="#VideoView视频播放等比缩放" class="headerlink" title="VideoView视频播放等比缩放"></a><a href="http://jingyan.baidu.com/article/9f7e7ec080ecb36f2815541d.html" target="_blank" rel="noopener">VideoView视频播放等比缩放</a></h1><p>不同分辨率下不同size的视频资源会被拉伸变形</p>
+<p>解决方案：</p>
+<ul>
+<li><p>setOnPreparedListener获取视频宽高，根据屏幕宽高进行等比缩放</p>
+<pre><code>videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+    @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+        videoWidth = mediaPlayer.getVideoWidth();
+        videoHeight = mediaPlayer.getVideoHeight();
+        //根据屏幕宽高进行等比缩放
+        viv.setLayoutParams(calculateVideoViewParam());
+        viv.start();
+    }
+});
+</code></pre></li>
+<li><p>onConfigurationChanged监听横竖屏切换，视频进行等比缩放</p>
+<pre><code>public void onConfigurationChanged(Configuration newConfig) {
+    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        Log.e(&quot;info&quot;, &quot;横屏&quot;);
+        isLandScape = true;
+    } else {
+        Log.e(&quot;info&quot;, &quot;竖屏&quot;);
+        isLandScape = false;
+    }
+    RelativeLayout.LayoutParams params = calculateVideoViewParam();
+    videoView.setMeasure(params.width, params.height);
+    videoView.getHolder().setFixedSize(params.width, params.height);
+    videoView.requestLayout();
+    videoView.refreshDrawableState();
+    videoView.setLayoutParams(params);
+    super.onConfigurationChanged(newConfig);
+}
+</code></pre></li>
+<li><p>自定义videoView，实现根据视频宽高等比缩放</p>
+<pre><code>public void setMeasure(int width, int height) {
+    this.width = width;  
+    this.height = height;    
+} 
+
+protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){        
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec); 
+    // 默认高度，为了自动获取到focus
+    int width = MeasureSpec.getSize(widthMeasureSpec);   
+    int height = width;
+    // 这个之前是默认的拉伸图像      
+      if (this.width &gt; 0 &amp;&amp; this.height &gt; 0){          
+          width = this.width;          
+          height = this.height;      
+      }     
+       setMeasuredDimension(width, height);   
+}  
+</code></pre></li>
+<li><p>改变videoView大小的方法不是太清楚。</p>
+<pre><code>//方法一
+videoView.setMeasure(params.width, params.height);
+videoView.getHolder().setFixedSize(params.width, params.height);
+videoView.requestLayout();
+
+//方法二
+videoView.setLayoutParams(params);
+</code></pre></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/跨平台视频编码参数推荐/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/跨平台视频编码参数推荐/" itemprop="url">跨平台视频编码参数推荐</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.joyinpower.com/blog/?p=142" target="_blank" rel="noopener">清晰、小容量、跨平台视频 编码参数 推荐</a></p>
+<p>假定优酷的“高清”视频的清晰度是做了详尽的用户调研的结果</p>
+<p>根据开发指南提供的数据，Android和iOS同时支持并推荐使用的视频格式为 H.264 Baseline Profile。</p>
+<p>Android的开发指南，提供了SD Low、SD High、HD 720p三种推荐参数</p>
+<p>用QQ播放器中的转码功能，将源视频进行了转码，并在smartisan T1手机上进行了测试，结果如下：</p>
+<p>源视频格式为wmv，10分55秒，495M</p>
+<p>HD：265M<br>SD High Quality：63.2M<br>SD Low Quality：15.9M  太模糊</p>
+<p>优酷上面，同样是10分50秒的视频，“高清”的版本只有42M</p>
+<p>分析了一下优酷的视频</p>
+<p>我们最终选择的是：H.264 Baseline Profile格式，码率384k，帧率15fps，分辨率480×272(16:9)，音频码率32k。这样10分钟的视频大概在35M左右。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/音频增益/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/音频增益/" itemprop="url">音频增益</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.cnblogs.com/mod109/p/5767867.html" target="_blank" rel="noopener">音频增益</a> c++</p>
+<p><a href="https://my.oschina.net/jinzei/blog/1305843" target="_blank" rel="noopener">PortAudio+webrtc+lame实现采集降噪增益mp3</a> c++</p>
+<pre><code>不同采样率的兼容计算和细节讲的比较详细
+
+先降噪后增益,噪音降低后增益把原声和降低的噪音又都放大了,效果是降噪不太明显,主声增大比较显著. 
+
+可以尝试 降噪–增益–再降噪
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音视频/音频播放中切换听筒和扬声器模式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音视频/音频播放中切换听筒和扬声器模式/" itemprop="url">音频播放中切换听筒和扬声器模式</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://blog.csdn.net/wl332197858/article/details/51298868" target="_blank" rel="noopener">音频播放中切换听筒和扬声器模式</a></p>
+<h1 id="切换听筒和扬声器模式"><a href="#切换听筒和扬声器模式" class="headerlink" title="切换听筒和扬声器模式"></a>切换听筒和扬声器模式</h1><p>网上的版本都是对于5.0以下可以使用的，实测5.0及以上不能使用，系统没有提供权限给我们修改</p>
+<pre><code>audioManager.setSpeakerphoneOn(false);//关闭扬声器  
+audioManager.setRouting(AudioManager.MODE_NORMAL, AudioManager.ROUTE_EARPIECE, AudioManager.ROUTE_ALL);  
+mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL); 
+audioManager.setMode(AudioManager.MODE_IN_CALL);  //把声音设定成Earpiece（听筒）出来，设定为正在通话中  
+
+需要权限： android.permission.MODIFY_AUDIO_SETTINGS
+</code></pre><p>兼容5.0及以上的版本分三个步骤</p>
+<pre><code>1.播放音频流类型要设置为AudioManager.STREAM_VOICE_CALL
+2.在播放前调用AudioSystem.setForceUse(AudioSystem.FOR_COMMUNICATION,AudioSystem.FORCE_NONE);
+3.配置权限： android.permission.MODIFY_AUDIO_SETTINGS
+</code></pre><p>代码如下：</p>
+<pre><code>private void setSpeakerphoneOn(boolean on) {
+    try {
+
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_VOICE_CALL);
+
+        Class audioSystemClass = Class.forName(&quot;android.media.AudioSystem&quot;);
+        Method setForceUse = audioSystemClass.getMethod(&quot;setForceUse&quot;, int.class, int.class);
+
+        if (on) {
+            audioManager.setMicrophoneMute(false);
+            audioManager.setSpeakerphoneOn(true);
+            audioManager.setMode(AudioManager.MODE_NORMAL);
+        } else {
+            audioManager.setSpeakerphoneOn(false);
+            audioManager.setMode(AudioManager.MODE_NORMAL);
+            setForceUse.invoke(null, 0, 0);
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+</code></pre><h1 id="播放中切换"><a href="#播放中切换" class="headerlink" title="播放中切换"></a>播放中切换</h1><p>在播放声音过程中切换，是无法立即生效的，只有当调用 <code>mediaPlayer.prepare()</code> 后才起效</p>
+<p>解决方案： 每次切换模式后，强制重新开始播放（微信就是从头开始播放）</p>
+<pre><code>mediaPlayer.reset();
+mediaPlayer.setDataSource(filePath);
+mediaPlayer.prepare();
+mediaPlayer.start();
+</code></pre><h1 id="自动切换"><a href="#自动切换" class="headerlink" title="自动切换"></a><a href="http://blog.csdn.net/jjmm2009/article/details/37930449" target="_blank" rel="noopener">自动切换</a></h1><p>耳朵靠近时听筒播放，离开后扬声器播放</p>
+<p>插入耳机耳机播放，拔出耳机扬声器播放</p>
+<p>解决方案： </p>
+<ol>
+<li><p>利用<strong>距离感应器</strong>感应距离，当距离超过感应器最大距离（说明没有阻挡），就是扬声器播放</p>
+<pre><code>SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+final Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+sensorManager.registerListener(new SensorEventListener() {
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (isPlaying) {
+            float range = event.values[0];
+            if (range == sensor.getMaximumRange()) {
+                Toast.makeText(context, &quot;正常模式&quot;, Toast.LENGTH_LONG).show();
+                setSpeakerphoneOn(true);
+            } else {
+                Toast.makeText(context, &quot;听筒模式&quot;, Toast.LENGTH_LONG).show();
+                setSpeakerphoneOn(false);
+            }
+            startPlayVoice(message.getLocalurl());
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+}, sensor, SensorManager.SENSOR_DELAY_NORMAL);    
+</code></pre></li>
+<li><p><strong>耳机插拔广播接受者</strong></p>
+<p> 监听广播 AudioManager.ACTION_AUDIO_BECOMING_NOISY和 android.intent.action.HEADSET_PLUG</p>
+<pre><code>public class HeadsetPlugReceiver extends BroadcastReceiver {   
+    @Override   
+    public void onReceive(Context context, Intent intent) {   
+        Log.i(&quot;NoisyAudioStreamReceiver=====================&gt;&quot;, &quot;change mode&quot;);  
+        if (intent.hasExtra(&quot;state&quot;)){   
+            if (intent.getIntExtra(&quot;state&quot;, 0) == 0){   
+                Log.i(&quot;NoisyAudioStreamReceiver=====================&gt;headset not connected&quot;, &quot;change mode1&quot;);  
+                audioManager.setMode(AudioManager.MODE_NORMAL);  
+            }   
+            else if (intent.getIntExtra(&quot;state&quot;, 0) == 1){   
+                Log.i(&quot;NoisyAudioStreamReceiver=====================&gt;headset connected&quot;, &quot;change mode3&quot;);  
+                audioManager.setMode(AudioManager.MODE_IN_CALL);  
+            }   
+        }   
+    }   
+} 
+
+广播注册：
+    myNoisyAudioStreamReceiver = new HeadsetPlugReceiver();  
+    IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);  
+    intentFilter.addAction(&quot;android.intent.action.HEADSET_PLUG&quot;);  
+    registerReceiver(myNoisyAudioStreamReceiver, intentFilter);    
+</code></pre></li>
+<li><p><strong>总结</strong></p>
+<ul>
+<li>耳机插拔可以不用监听，因为系统会自动处理（插入耳机用耳机，拔出耳机用扬声器）</li>
+<li>添加了距离感应器切换扬声器和听筒后，系统自带的耳机插拔处理会失效<ul>
+<li>原因：因为 距离感应器切换扬声器和听筒只有扬声器和听筒两种状态</li>
+<li>解决：距离感应器增加判断，当有耳机插入时，什么也不做 <code>audioManager.isWiredHeadsetOn()</code></li>
+</ul>
+</li>
+</ul>
 </li>
 </ol>
-<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="Mac版安装"><a href="#Mac版安装" class="headerlink" title="Mac版安装"></a>Mac版安装</h2><ol>
-<li>安装Command Line tools</li>
-</ol>
-<p><code>xcode-select --install</code></p>
-<ol start="2">
-<li>安装brew</li>
-</ol>
-<p><code>ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;</code></p>
-<ol start="3">
-<li>安装nginx</li>
-</ol>
-<p><code>brew install nginx</code></p>
-<p>安装完毕的提示</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">==&gt; Caveats</span><br><span class="line">==&gt; openssl</span><br><span class="line">A CA file has been bootstrapped using certificates from the SystemRoots</span><br><span class="line">keychain. To add additional certificates (e.g. the certificates added in</span><br><span class="line">the System keychain), place .pem files in</span><br><span class="line">  /usr/local/etc/openssl/certs</span><br><span class="line"></span><br><span class="line">and run</span><br><span class="line">  /usr/local/opt/openssl/bin/c_rehash</span><br><span class="line"></span><br><span class="line">openssl is keg-only, which means it was not symlinked into /usr/local,</span><br><span class="line">because Apple has deprecated use of OpenSSL in favor of its own TLS and crypto libraries.</span><br><span class="line"></span><br><span class="line">If you need to have openssl first in your PATH run:</span><br><span class="line">  echo &apos;export PATH=&quot;/usr/local/opt/openssl/bin:$PATH&quot;&apos; &gt;&gt; ~/.bash_profile</span><br><span class="line"></span><br><span class="line">For compilers to find openssl you may need to set:</span><br><span class="line">  export LDFLAGS=&quot;-L/usr/local/opt/openssl/lib&quot;</span><br><span class="line">  export CPPFLAGS=&quot;-I/usr/local/opt/openssl/include&quot;</span><br><span class="line"></span><br><span class="line">==&gt; nginx</span><br><span class="line">Docroot is: /usr/local/var/www</span><br><span class="line"></span><br><span class="line">The default port has been set in /usr/local/etc/nginx/nginx.conf to 8080 so that</span><br><span class="line">nginx can run without sudo.</span><br><span class="line"></span><br><span class="line">nginx will load all files in /usr/local/etc/nginx/servers/.</span><br><span class="line"></span><br><span class="line">To have launchd start nginx now and restart at login:</span><br><span class="line">  brew services start nginx</span><br><span class="line">Or, if you don&apos;t want/need a background service you can just run:</span><br><span class="line">  nginx</span><br></pre></td></tr></table></figure>
-<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h1><p><code>brew services start nginx</code></p>
-<p>访问 <a href="http://localhost:8080/" target="_blank" rel="noopener">http://localhost:8080/</a></p>
-<p>重启</p>
-<p><code>brew services restart nginx</code></p>
-<h1 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h1><h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p><code>/usr/local/etc/nginx/nginx.conf</code></p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="http://nginx.org/en/" target="_blank" rel="noopener">官方文档</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/04/网络/反向代理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/06/04/网络/反向代理/" itemprop="url">反向代理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-04T12:51:53+08:00">
-                2019-06-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/网络/" itemprop="url" rel="index">
-                    <span itemprop="name">网络</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="直接访问"><a href="#直接访问" class="headerlink" title="直接访问"></a>直接访问</h1><p>直接访问目标网站</p>
-<p>用户直接找到房东租房的这种情况</p>
-<h1 id="正向代理-forward-proxy"><a href="#正向代理-forward-proxy" class="headerlink" title="正向代理 forward proxy"></a>正向代理 forward proxy</h1><p>客户端向代理服务器发送一个请求并指定目标，然后代理服务器向目标服务器转交请求并将获得的内容返回给客户端。</p>
-<p>这种代理其实在生活中是比较常见的，比如科学上网技术，其用到的就是代理技术。</p>
-<p><strong>正向代理，其实是”代理服务器”代理了”客户端”，去和”目标服务器”进行交互</strong></p>
-<p>租房子的时候，一般情况下，我们很难联系到房东，因为有些房东为了图方便，只把自己的房屋信息和钥匙交给中介了。而房客想要租房子，只能通过中介才能联系到房东。而对于房东来说，他可能根本不知道真正要租他的房子的人是谁，他只知道是中介在联系他。</p>
-<h2 id="正向代理的用途"><a href="#正向代理的用途" class="headerlink" title="正向代理的用途"></a>正向代理的用途</h2><h3 id="突破访问限制"><a href="#突破访问限制" class="headerlink" title="突破访问限制"></a>突破访问限制</h3><p> 通过代理服务器，可以突破自身IP访问限制，访问国外网站，教育网等。即，租客可以通过中介，来解决无法联系上房东的问题。</p>
-<h2 id="提高访问速度"><a href="#提高访问速度" class="headerlink" title="提高访问速度"></a>提高访问速度</h2><p>通常代理服务器都设置一个较大的硬盘缓冲区，会将部分请求的响应保存到<strong>缓冲区</strong>中，当其他用户再访问相同的信息时， 则直接由缓冲区中取出信息，传给用户，以提高访问速度。即，中介手里留存了很多房源信息和钥匙，可以直接带租客去看房。</p>
-<h2 id="隐藏客户端真实IP"><a href="#隐藏客户端真实IP" class="headerlink" title="隐藏客户端真实IP"></a>隐藏客户端真实IP</h2><h1 id="反向代理-reverse-proxy"><a href="#反向代理-reverse-proxy" class="headerlink" title="反向代理 reverse proxy"></a>反向代理 reverse proxy</h1><p>以代理服务器来接受internet上的连接请求，然后将请求转发给内部网络上的服务器，并将从服务器上得到的结果返回给internet上请求连接的客户端</p>
-<p><strong>反向代理，其实是”代理服务器”代理了”目标服务器”，去和”客户端”进行交互。</strong></p>
-<p>租房子的时候，我们以为我们接触的是房东，其实有时候也有可能并非房主本人，有可能是他的亲戚、朋友，甚至是二房东。但是我们并不知道和我们沟通的并不是真正的房东。这种帮助真正的房主租房的二房东其实就是反向代理服务器。这个过程就是反向代理。</p>
-<h2 id="反向代理的用途"><a href="#反向代理的用途" class="headerlink" title="反向代理的用途"></a>反向代理的用途</h2><h3 id="隐藏服务器真实IP"><a href="#隐藏服务器真实IP" class="headerlink" title="隐藏服务器真实IP"></a>隐藏服务器真实IP</h3><p>使用反向代理，可以对客户端隐藏服务器的IP地址。即，租客并不房东知道的真实身份。</p>
-<h3 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h3><p>反向代理服务器可以做负载均衡，根据所有真实服务器的负载情况，将客户端请求分发到不同的真实服务器上。即，二房东发现房主本人很忙，于是找到房主的妻子帮忙处理租房事宜。</p>
-<h3 id="提高访问速度-1"><a href="#提高访问速度-1" class="headerlink" title="提高访问速度"></a>提高访问速度</h3><p>反向代理服务器可以对于静态内容及短时间内有大量访问请求的动态内容提供<strong>缓存</strong>服务，提高访问速度。即，二房东同样有房屋信息和钥匙。</p>
-<h3 id="提供安全保障"><a href="#提供安全保障" class="headerlink" title="提供安全保障"></a>提供安全保障</h3><p>反向代理服务器可以作为应用层防火墙，为网站提供对基于Web的攻击行为（例如DoS/DDoS）的防护，更容易排查恶意软件等。还可以为后端服务器统一提供加密和SSL加速（如SSL终端代理），提供HTTP访问认证等。</p>
-<h1 id="联系与区别"><a href="#联系与区别" class="headerlink" title="联系与区别"></a>联系与区别</h1><h2 id="共同点"><a href="#共同点" class="headerlink" title="共同点"></a>共同点</h2><ul>
-<li>位置：都是位于客户端和真实服务器之间</li>
-<li>功能：都是把客户端的请求转发给服务器，再把服务器的响应转发给客户端</li>
-<li>都能提高访问速度。</li>
-</ul>
-<h2 id="不同点"><a href="#不同点" class="headerlink" title="不同点"></a>不同点</h2><h3 id="代理的目标不同"><a href="#代理的目标不同" class="headerlink" title="代理的目标不同"></a>代理的目标不同</h3><ul>
-<li>正向代理其实是客户端的代理，帮助客户端访问其无法访问的服务器资源。</li>
-<li>反向代理则是服务器的代理，帮助服务器做负载均衡，安全防护等。</li>
-</ul>
-<h3 id="架设者不同"><a href="#架设者不同" class="headerlink" title="架设者不同"></a>架设者不同</h3><ul>
-<li>正向代理一般是客户端架设的，在自己的机器上和代理服务器上安装一个代理软件。</li>
-<li>反向代理一般是服务器架设的，比如在自己的机器集群中部署一个反向代理服务器。</li>
-</ul>
-<h3 id="客户端和服务端可见性"><a href="#客户端和服务端可见性" class="headerlink" title="客户端和服务端可见性"></a>客户端和服务端可见性</h3><ul>
-<li>正向代理中，隐藏客户端IP。服务器不知道真正的客户端到底是谁，以为访问自己的就是真实的客户端。</li>
-<li>反向代理中，隐藏服务器IP。客户端不知道真正的服务器是谁，以为自己访问的就是真实的客户端。</li>
-</ul>
-<h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><ul>
-<li>正向代理主要是用来解决访问限制问题。</li>
-<li>反向代理则是提供负载均衡、安全防护等作用。</li>
-</ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://juejin.im/post/5c737a976fb9a049a81ff5a7" target="_blank" rel="noopener">漫话：如何给女朋友解释什么是反向代理？</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/02/手机/Exchange邮箱服务实现跨平台同步日历和联系人/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/06/02/手机/Exchange邮箱服务实现跨平台同步日历和联系人/" itemprop="url">Exchange邮箱服务实现跨平台同步日历和通讯录</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-02T16:58:14+08:00">
-                2019-06-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/手机/" itemprop="url" rel="index">
-                    <span itemprop="name">手机</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h1><p>同步小米的日程提醒和通讯录到iPhone</p>
-<p>使用网易163的Exchange服务，可以实现日历，通讯录，邮件的跨平台（Windows、Mac、Android、iPhone）同步</p>
-<h1 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h1><h2 id="添加Exchange邮箱账号"><a href="#添加Exchange邮箱账号" class="headerlink" title="添加Exchange邮箱账号"></a>添加Exchange邮箱账号</h2><p>进入日历 – 右上角 设置 – 日历账号管理 – 添加账号；</p>
-<p>最后跳转到的页面和 电子邮件 添加账户 界面是一样的；</p>
-<p>所以可以直接在桌面 点击 电子邮件</p>
-<p><strong>特别注意：</strong> </p>
-<ul>
-<li>需要添加 EXchange 邮箱类型；默认一般都是IMAP，POP3，是不支持同步服务的</li>
-<li>网易163默认开启了第三方授权码登录，如果发现密码错误，使用授权码登录或者关闭授权码</li>
-</ul>
-<h2 id="添加日程提醒事件到-邮箱账号"><a href="#添加日程提醒事件到-邮箱账号" class="headerlink" title="添加日程提醒事件到 邮箱账号"></a>添加日程提醒事件到 邮箱账号</h2><p>日历 默认添加的日程提醒事件 是 小米云账号</p>
-<p>可以设置 邮箱账号为 默认日程账号；以后添加的事件都是到 邮箱账号了</p>
-<p>添加事件的时候 可以选择 日历账号；之前添加的事件也可以编辑，修改日历账号</p>
-<h2 id="同步"><a href="#同步" class="headerlink" title="同步"></a>同步</h2><p>添加/修改 事件 完毕，进入 设置  – 同步；即已经把事件同步到邮箱账号了</p>
-<p>在iPhone上同样添加账号，日历设置中显示 Exchange账户日历，同步，即可看到同步过来的事件了</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/21/Android/Raw和Asset/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/05/21/Android/Raw和Asset/" itemprop="url">Raw和Asset</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-05-21T19:19:53+08:00">
-                2019-05-21
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="联系"><a href="#联系" class="headerlink" title="联系"></a>联系</h1><ul>
-<li><p>相同点：<br>  两个文件夹下的文件都不会被编译成二进制文件，都会被原封不动的放到apk中。</p>
-</li>
-<li><p>不同点：</p>
-<ul>
-<li>asset下的文件不会被映射到R文件中，raw下的文件会被映射到R文件中(可以使用R.raw.xxx引用)。</li>
-<li>asset下可以有目录结构，raw下不能有目录结构。</li>
-</ul>
-</li>
-</ul>
-<h1 id="获取文件路径"><a href="#获取文件路径" class="headerlink" title="获取文件路径"></a>获取文件路径</h1><h2 id="asset"><a href="#asset" class="headerlink" title="asset"></a>asset</h2><p><code>&quot;file:///android_asset/Kotlin与ava共存.mp4&quot;</code></p>
-<p>此种路径仅可用于webview加载</p>
-<h2 id="raw"><a href="#raw" class="headerlink" title="raw"></a>raw</h2><p><code>String uri = &quot;android.resource://&quot; + getPackageName() + &quot;/&quot; + R.raw.video;</code></p>
-<p>通过assets目录构造URI，不能用来播放视频，也不能播放音频。在raw目录下的文件构造URI可以播放音频，也能播放视频</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/30/Android/新手指引View/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/30/Android/新手指引View/" itemprop="url">新手指引View</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-30T18:27:53+08:00">
-                2019-04-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="NewbieGuide"><a href="#NewbieGuide" class="headerlink" title="NewbieGuide"></a><a href="https://github.com/huburt-Hu/NewbieGuide" target="_blank" rel="noopener">NewbieGuide</a></h1><p>简洁链式调用，一行代码实现引导层的显示</p>
-<h1 id="GuideView"><a href="#GuideView" class="headerlink" title="GuideView"></a><a href="https://github.com/binIoter/GuideView" target="_blank" rel="noopener">GuideView</a></h1><p>轻量级新手指引库，能够快速为任何一个 View 创建一个遮罩层，支持单个页面，多个引导提示，支持为高亮区域设置不同的图形，支持引导动画，方便扩展，良好支持 fragment。</p>
-<h1 id="Spotlight"><a href="#Spotlight" class="headerlink" title="Spotlight"></a><a href="https://github.com/wooplr/Spotlight" target="_blank" rel="noopener">Spotlight</a></h1><p>动态指引，更容易让用户耳目一新，可以在新功能的入口处添加提示。</p>
-<h1 id="MaterialIntroView"><a href="#MaterialIntroView" class="headerlink" title="MaterialIntroView"></a><a href="https://github.com/iammert/MaterialIntroView" target="_blank" rel="noopener">MaterialIntroView</a></h1><p>仿造App Fabulous</p>
-<p><img src="https://diycode.b0.upaiyun.com/photo/2017/481565db050c9b740f1337fb29e4c93d.gif" alt=""></p>
-<h1 id="Highlight"><a href="#Highlight" class="headerlink" title="Highlight"></a><a href="https://github.com/hongyangAndroid/Highlight" target="_blank" rel="noopener">Highlight</a></h1><p>一个用于 App 指向性功能高亮的库，开发者 鸿洋。</p>
-<p><img src="https://diycode.b0.upaiyun.com/photo/2017/7d97601ac5466562103b26ad2b084626.gif" alt=""></p>
-<h1 id="FancyShowCaseView"><a href="#FancyShowCaseView" class="headerlink" title="FancyShowCaseView"></a><a href="https://github.com/faruktoptas/FancyShowCaseView" target="_blank" rel="noopener">FancyShowCaseView</a></h1><p>动效，支持自定义 View 和动画等。</p>
-<p><img src="https://diycode.b0.upaiyun.com/photo/2017/fb3ca0baa452e7682219d2322ce6472d.gif" alt=""></p>
-<h1 id="ShowcaseView"><a href="#ShowcaseView" class="headerlink" title="ShowcaseView"></a><a href="https://github.com/amlcurran/ShowcaseView" target="_blank" rel="noopener">ShowcaseView</a></h1><p>向你的用户快速展示应用的两点，这个控件时基于 Android 系统（Ice-Cream Sandwich 和 Jelly Bean 两个版本的 Launcher）源码中的 Cling 自定义 View 实现的。</p>
-<p> <img src="https://diycode.b0.upaiyun.com/photo/2017/604401d0454277349b6b5e475cf8cdd7.png" alt=""></p>
-<h1 id="MaterialShowcaseView"><a href="#MaterialShowcaseView" class="headerlink" title="MaterialShowcaseView"></a><a href="https://github.com/deano2390/MaterialShowcaseView" target="_blank" rel="noopener">MaterialShowcaseView</a></h1><p>受到上一个推荐的 ShowcaseView 启发而写的控件，Material Design 风格的设计让效果更加好看。</p>
-<p><img src="https://diycode.b0.upaiyun.com/photo/2017/4119ffb7ddb8a0066df50ef8a4bf2fd7.gif" alt=""></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/30/Android/ImageView使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/30/Android/ImageView使用/" itemprop="url">ImageView使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-30T18:02:53+08:00">
-                2019-04-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="adjustViewBounds"><a href="#adjustViewBounds" class="headerlink" title="adjustViewBounds"></a>adjustViewBounds</h1><h2 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h2><p>调整ImageView的界限来<strong>保持图片的宽高比例</strong></p>
-<p>设置adjustViewBounds=”ture”的时候，会将这个ImageView的scaleType属性设置为<strong>fitCenter</strong></p>
-<h2 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h2><p>android:scaleType的优先级会更高，两个属性同时设置，adjustViewBounds=”ture”中对scaleType属性设置将会失效。</p>
-<p>这种情况，只有在Java代码中设置setAdjustViewBounds（true）的时候，才会生效</p>
-<h2 id="起效条件"><a href="#起效条件" class="headerlink" title="起效条件"></a>起效条件</h2><ul>
-<li>ImageView宽高都是固定值，adjustViewBounds无效</li>
-<li>ImageView宽高只有一个固定值/match_parent，比较两者的宽高<ul>
-<li>图片宽/高比ImageView小，图片不缩放，ImageView的非固定值变成和图片一致</li>
-<li>图片宽高比大于等于，图片等比放大至填满ImageView</li>
-</ul>
-</li>
-<li>ImageView宽高都是wrap_content，adjustViewBounds无意义，因为ImageView将始终与图片拥有相同的宽高比（但是并不是相同的宽高值，通常都会放大一些</li>
-</ul>
-<p>实例：</p>
-<pre><code>&lt;ImageView
-    layout_ width=&quot;100dp&quot;，
-    layout_ height=&quot;wrap_ content&quot;/&gt;
-</code></pre><p>图片的宽度将会与100dp进行对比（抛开单位换算）。</p>
-<ul>
-<li>图片的宽度小于100dp<ul>
-<li>ImageView的layout_height将与图片的高相同</li>
-<li>即图片不会缩放，完整显示在ImageView中，ImageView高度与图片实际高度相同。</li>
-<li>图片没有占满ImageView，ImageView中有空白。</li>
-</ul>
-</li>
-<li>图片的宽度大于或等于100dp<ul>
-<li>图片将保持自身宽高比缩放，完整显示在ImageView中，</li>
-<li>图片完全占满ImageView</li>
-</ul>
-</li>
-</ul>
-<h2 id="最大宽高"><a href="#最大宽高" class="headerlink" title="最大宽高"></a>最大宽高</h2><p>m在Android机制中，只用当设置adjustViewBounds=”ture”的时候，maxWidth/maxHeight设置效果才能有效</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/19/RN/RN优化/RN内存优化/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/19/RN/RN优化/RN内存优化/" itemprop="url">RN内存优化</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-19T14:28:26+08:00">
-                2019-04-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h1><p>减少内存占用</p>
-<h1 id="ListView-内存没有复用"><a href="#ListView-内存没有复用" class="headerlink" title="ListView 内存没有复用"></a>ListView 内存没有复用</h1><p>0.43 引入了一个新的FlatList组件，完全解决了ListView的内存回收问题</p>
-<p>强烈建议升级版本</p>
-<p>不升级的话，自己实现这套机制</p>
-<h1 id="图片"><a href="#图片" class="headerlink" title="图片"></a>图片</h1><p>在Android上问题会相对多一些</p>
-<h2 id="Fresco重复初始化"><a href="#Fresco重复初始化" class="headerlink" title="Fresco重复初始化"></a>Fresco重复初始化</h2><p>RN的底层图片框架库用的是Fresco，而我们主App中用的也是Fresco底层库，这里就会重复初始化。</p>
-<p>当主App中的Fresco进行初始化之后，如果RN中也进行一次初始化，实际上之前那部分内存并没有被释放，会出现内存泄漏。</p>
-<h2 id="图片编码方式"><a href="#图片编码方式" class="headerlink" title="图片编码方式"></a>图片编码方式</h2><p>RN框架采用的图片编解码用的是ARGB_8888，但实际上大部分情况下可以采用RGB_565编码，图片在内存当中的大小可以减少50%。</p>
-<p>不过有些业务可能也真的需要一些透明的背景，需要Alpha通道，所以也提供了一些API来针对特殊图片，让它采用ARGB_8888进行编解码。</p>
-<p>这样既解决内存问题，也满足了业务的需求。</p>
-<h2 id="图片内存回收"><a href="#图片内存回收" class="headerlink" title="图片内存回收"></a>图片内存回收</h2><p>RN页面退出之前，建议强制调用Fresco框架的<strong>clearMemoryCach</strong>e方法，通知Fresco清除内存缓存。可以保证GC及时地把这些图片内存给回收掉，避免整个APP的内存占用过高，经过实践验证这也很有效地解决了内存问题。</p>
-<h1 id="so内存无法回收"><a href="#so内存无法回收" class="headerlink" title="so内存无法回收"></a>so内存无法回收</h1><img src="/2019/04/19/RN/RN优化/RN内存优化/手Q优化.jpg">
-<p>手Q对内存要求比较严格，在界面退出的时候所有连带内存必须清理干净。那rn在这方面其实做的并没有那么好，有部分so层的内存一直占用着。那我们解决方案只能是将JNI拆分为独立进程并且在界面退出时，直接退出dalvik，回收所有内存。当然，这里就有些老技巧了，无非是进程预加载和延迟销毁。</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.jqhtml.com/34513.html" target="_blank" rel="noopener">RN框架在京东无线端的实践</a></li>
-<li><a href="https://segmentfault.com/a/1190000005908366" target="_blank" rel="noopener">【腾讯Bugly干货分享】React Native项目实战总结</a>定制编译源码，性能优化，so内存无法回收问题</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/15/电脑使用/mac/Homebrew使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/15/电脑使用/mac/Homebrew使用/" itemprop="url">Homebrew使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-15T18:32:53+08:00">
-                2019-04-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Homebrew是什么"><a href="#Homebrew是什么" class="headerlink" title="Homebrew是什么"></a>Homebrew是什么</h1><p>The missing package manager for macOS (or Linux)</p>
-<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><pre><code>/usr/bin/ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;
-</code></pre><h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><h2 id="安装-1"><a href="#安装-1" class="headerlink" title="安装"></a>安装</h2><pre><code>brew install wget
-</code></pre><h3 id="安装路径"><a href="#安装路径" class="headerlink" title="安装路径"></a>安装路径</h3><p> 默认安装路径 <code>/usr/local/Cellar</code></p>
-<p> <code>brew list 软件名</code> 获取安装路径</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://brew.sh/" target="_blank" rel="noopener">官网</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/11/网络/TCP三次握手四次挥手/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/11/网络/TCP三次握手四次挥手/" itemprop="url">TCP三次握手四次挥手</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-11T17:51:53+08:00">
-                2019-04-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/网络/" itemprop="url" rel="index">
-                    <span itemprop="name">网络</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="三次握手，四次挥手"><a href="#三次握手，四次挥手" class="headerlink" title="三次握手，四次挥手"></a>三次握手，四次挥手</h1><img src="/2019/04/11/网络/TCP三次握手四次挥手/三次握手.png">
-<img src="/2019/04/11/网络/TCP三次握手四次挥手/四次挥手.png">
-<h1 id="TCP标志位"><a href="#TCP标志位" class="headerlink" title="TCP标志位"></a>TCP标志位</h1><p>SYN，ACK，FIN 存放在TCP的标志位(一共6个)</p>
-<p><strong>SYN</strong>：<strong>同步</strong>序列编号(Synchronize Sequence Numbers)</p>
-<ul>
-<li>请求创建连接</li>
-<li>同步的是初始序列编号(ISN,Initialize Sequence Numbers)<ul>
-<li>初始序列号是<strong>随机</strong>生成的</li>
-</ul>
-</li>
-<li>SYN=1</li>
-</ul>
-<p><strong>FIN</strong>：<strong>结束</strong>连接(Finish)</p>
-<ul>
-<li>请求关闭连接</li>
-<li>FIN=1</li>
-<li>在四次分手时，我们发现FIN发了两遍。这是因为TCP的连接是双向的，一次FIN只能关闭一个方向。</li>
-</ul>
-<p><strong>ACK</strong>：<strong>确认</strong>字符(Acknowledgement）</p>
-<ul>
-<li><strong>确认接受</strong></li>
-<li>ACK为1表示确认号有效，为0表示报文中不包含确认信息，忽略确认号字段</li>
-</ul>
-<p>三次握手和四次分手，在回应的时候都会加上ACK=1，表示消息接收到了，并且在建立连接以后的发送数据时，都需加上ACK=1,来表示数据接收成功。</p>
-<h1 id="TCP包编号"><a href="#TCP包编号" class="headerlink" title="TCP包编号"></a>TCP包编号</h1><p><strong>seq</strong>: <strong>序列号</strong>(Sequence)</p>
-<ul>
-<li><p>数据包序列编号。</p>
-<p>  发送一个数据会被拆成多个数据包来发送，序列号就是对每个数据包进行编号，这样接受方才能对数据包进行再次拼接。</p>
-</li>
-<li><p>初始序列号是<strong>随机</strong>生成的</p>
-</li>
-</ul>
-<p><strong>ack</strong>: <strong>确认</strong>字符(Acknowledgement）</p>
-<ul>
-<li><p>ack=seq+1</p>
-<p>  也是下一个数据包的序列编号seq</p>
-</li>
-</ul>
-<h1 id="TCP状态"><a href="#TCP状态" class="headerlink" title="TCP状态"></a>TCP状态</h1><ul>
-<li><strong>LISTEN</strong> - 某个Socket处于<strong>监听</strong>，侦听来自远方TCP端口的连接请求;</li>
-<li><strong>SYN-SENT</strong> - 已发送SYN报文</li>
-<li><strong>SYN-RECEIVED</strong> - 已接受SYN报文</li>
-<li><strong>ESTABLISHED</strong>- 已建立连接</li>
-<li><strong>FIN-WAIT-1</strong> - 已发送FIN报文，等待对方FIN报文</li>
-<li><strong>FIN-WAIT-2</strong> - 已发送FIN报文，已收到对方ACK报文，等待对方FIN报文；此时已是<strong>半连接</strong>（告诉对方，我暂时还有点数据需要传送给你，稍后再关闭连接）；<code>FIN_WAIT_1</code>状态下，收到了对方同时带FIN标志和ACK标志的报文时，可以直接进入<code>TIME_WAIT</code>状态，而无须经过<code>FIN_WAIT_2</code>状态。</li>
-<li><strong>LAST-ACK</strong> - 等待对方最后的ACK</li>
-<li><strong>TIME-WAIT</strong> -已收到对方FIN报文，已发送ACK报文，等待足够的时间（至少一个报文的来回时间）以确保对方成功接受ACK报文；如果超时没有再次收到 FIN 报文，则代表对方成功接受 ACK 报文，可以进入 CLOSED 状态。这个状态需要<strong>特别注意</strong></li>
-<li><strong>CLOSED</strong> - 连接已关闭；也是初始状态</li>
-<li><strong>CLOSING</strong> - <strong>比较特殊少见</strong>，双方几乎同时close某Socket；发送FIN报文，马上收到对方FIN(正常应收到ACK)</li>
-<li><strong>CLOSE_WAIT</strong> - 等待关闭；已收到FIN报文，已发送ACK报文，此时等待己方去关闭连接（如果己方没有数据要发送，发送FIN报文，收到ACK即可关闭连接）</li>
-</ul>
-<h1 id="为什么需要三次握手"><a href="#为什么需要三次握手" class="headerlink" title="为什么需要三次握手"></a>为什么需要三次握手</h1><p><strong>为了避免资源浪费</strong></p>
-<p>更细的话，这个问题从两个方面来回答</p>
-<ul>
-<li>三次握手才能确认两端的收发能力；没有确认收发能力发送数据浪费资源</li>
-<li>避免建立不必要连接。<ul>
-<li>两次握手就建立连接话（客户端发送连接请求，服务端接收到并发送确认），如果一个连接请求在网络中跑的慢，超时了，客户端重发请求，跑的慢的请求最后到了服务器，服务端就会创建两个连接，浪费资源；</li>
-<li>加第三次握手（客户端确认），客户端在接受到一个服务器的ACK后，后面的ACK就可以抛弃。</li>
-</ul>
-</li>
-</ul>
-<h1 id="为什么需要四次分手"><a href="#为什么需要四次分手" class="headerlink" title="为什么需要四次分手"></a>为什么需要四次分手</h1><p>由于TCP连接是全双工(双向)的，因此每个方向都必须单独进行关闭。每个方向的关闭又需要请求和确认，所以一共就4次</p>
-<p>原则是当一方完成它的数据发送任务后就能发送一个FIN来终止这个方向的连接。收到一个 FIN只意味着这一方向上没有数据流动，一个TCP连接在收到一个FIN后仍能发送数据。首先进行关闭的一方将执行主动关闭，而另一方执行被动关闭。</p>
-<h1 id="初始序列号-ISN-为什么要随机生成"><a href="#初始序列号-ISN-为什么要随机生成" class="headerlink" title="初始序列号(ISN)为什么要随机生成"></a>初始序列号(ISN)为什么要随机生成</h1><p>如果ISN是固定的，攻击者很容易猜出后续的确认号</p>
-<h1 id="半连接队列"><a href="#半连接队列" class="headerlink" title="半连接队列"></a>半连接队列</h1><p>服务器第一次收到客户端的 SYN 之后，就会处于 SYN_RCVD 状态，此时双方还没有完全建立其连接，服务器会把此种状态下请求连接放在一个队列里，我们把这种队列称之为<strong>半连接队列</strong>。</p>
-<h2 id="SYN-ACK-重传"><a href="#SYN-ACK-重传" class="headerlink" title="SYN-ACK 重传"></a>SYN-ACK 重传</h2><p>服务器发送完SYN-ACK包，如果未收到客户确认包，服务器进行首次重传，等待一段时间仍未收到客户确认包，进行第二次重传，如果重传次数超 过系统规定的<strong>最大重传次数</strong>，系统将该连接信息从半连接队列中删除。</p>
-<p>注意，每次重传等待的<strong>超时时间</strong>不一定相同，一般会是指数增长，例如间隔时间为 1s, 2s, 4s, 8s, ….</p>
-<h2 id="SYN攻击"><a href="#SYN攻击" class="headerlink" title="SYN攻击"></a>SYN攻击</h2><p>DDoS攻击的一种</p>
-<p>最常见又最容易被利用的一种攻击手法</p>
-<p>利用TCP协议缺陷，短时间内不断向服务器发送大量的半连接请求（伪造不存在的IP），服务器回复确认包，并等待客户的确认，由于源地址是不存在的，服务器需要不断的重发直至超时，这些伪造的SYN包将长时间占用未连接队列，正常的SYN请求被丢弃，目标系统运行缓慢，严重者引起网络堵塞甚至系统瘫痪。</p>
-<h3 id="防范"><a href="#防范" class="headerlink" title="防范"></a>防范</h3><h4 id="注册表设置"><a href="#注册表设置" class="headerlink" title="注册表设置"></a>注册表设置</h4><p>启用 SynAttackProtect ，指定 SYN_RCVD 状态中的 TCP 连接阈值，超过 SynAttackProtect 时，触发 SYN flood 保护</p>
-<h4 id="丰富带宽资源"><a href="#丰富带宽资源" class="headerlink" title="丰富带宽资源"></a>丰富带宽资源</h4><h4 id="防火墙"><a href="#防火墙" class="headerlink" title="防火墙"></a>防火墙</h4><p>最有效的方法</p>
-<p>当然前提是攻击在防护带宽范围之内，也就是为什么第二条推荐带宽资源，这是保证在防火墙前面不会造成堵塞</p>
-<h1 id="全连接队列"><a href="#全连接队列" class="headerlink" title="全连接队列"></a>全连接队列</h1><p>已经完成三次握手，建立起连接的就会放在全连接队列中。</p>
-<p>如果队列满了就有可能会出现丢包现象。</p>
-<h1 id="三次握手过程中可以携带数据吗"><a href="#三次握手过程中可以携带数据吗" class="headerlink" title="三次握手过程中可以携带数据吗"></a>三次握手过程中可以携带数据吗</h1><p><strong>第三次握手可以携带数据</strong></p>
-<p>此时客户端已经处于 established 状态，也就是说，对于客户端来说，他已经建立起连接了，并且也已经知道服务器的接收、发送能力是正常的了，所以能携带数据页没啥毛病。</p>
-<p>假如第一次握手可以携带数据的话，恶意攻击者根本就不理服务器的接收、发送能力是否正常，疯狂着重复发 SYN 报文。这会让服务器花费很多时间、内存空间来接收这些报文。让服务器更加容易受到攻击了。</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://juejin.im/post/5caed6925188251ac6386c7b" target="_blank" rel="noopener">关于三次握手与四次挥手面试官想考我们什么？</a></li>
-<li><a href="https://baijiahao.baidu.com/s?id=1593714120815701015&amp;wfr=spider&amp;for=pc" target="_blank" rel="noopener">对TCP三次握手四次分手还不清楚，超简单解析</a></li>
-<li><a href="https://baike.baidu.com/item/%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B/7794287?fr=aladdin#2" target="_blank" rel="noopener">四次挥手</a></li>
-<li><a href="https://juejin.im/post/5cb93204f265da039955d770" target="_blank" rel="noopener">漫画：一招学会TCP的三次握手和四次挥手</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/11/Android/UI性能优化/内存Code部分的占用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/11/Android/UI性能优化/内存Code部分的占用/" itemprop="url">内存Code部分的占用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-11T16:43:53+08:00">
-                2019-04-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>加载 dex，so文件 占用的内存</p>
-<p><strong>工具</strong>：Linux /proc/<pid>/smaps 文件分析脚本</pid></p>
-<p>python代码 (本目录下 smap.py文件)：<a href="https://gist.github.com/LanderlYoung/aedd0e1fe09214545a7f20c40c01776c" target="_blank" rel="noopener">https://gist.github.com/LanderlYoung/aedd0e1fe09214545a7f20c40c01776c</a></p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://wetest.qq.com/lab/view/359.html?from=adsout_qqtips_past2_359" target="_blank" rel="noopener">我这样减少了26.5M Java内存！</a> 腾讯WeTest上企鹅FM的内存优化</li>
-</ul>
 
           
         
@@ -1883,7 +2500,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -1933,7 +2550,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">214</span>
+                  <span class="site-state-item-count">263</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1955,7 +2572,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">63</span>
+                  <span class="site-state-item-count">65</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

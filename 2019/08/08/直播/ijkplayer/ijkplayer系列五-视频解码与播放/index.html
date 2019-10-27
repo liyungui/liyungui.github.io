@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="直播," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="解码线程从数据读取线程分析那篇文章我们可以看到，ijkplayer的视频解码线程的入口函数是video_thread()/ff_ffplayer.c video_thread12345678910static int video_thread(void *arg)&amp;#123;    FFPlayer *ffp = (FFPlayer *)arg;    int       ret = 0;">
+<meta name="keywords" content="直播">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ijkplayer系列五-视频解码与播放">
+<meta property="og:url" content="http://yoursite.com/2019/08/08/直播/ijkplayer/ijkplayer系列五-视频解码与播放/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="解码线程从数据读取线程分析那篇文章我们可以看到，ijkplayer的视频解码线程的入口函数是video_thread()/ff_ffplayer.c video_thread12345678910static int video_thread(void *arg)&amp;#123;    FFPlayer *ffp = (FFPlayer *)arg;    int       ret = 0;">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-10-27T08:42:12.636Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ijkplayer系列五-视频解码与播放">
+<meta name="twitter:description" content="解码线程从数据读取线程分析那篇文章我们可以看到，ijkplayer的视频解码线程的入口函数是video_thread()/ff_ffplayer.c video_thread12345678910static int video_thread(void *arg)&amp;#123;    FFPlayer *ffp = (FFPlayer *)arg;    int       ret = 0;">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/08/直播/ijkplayer/ijkplayer系列五-视频解码与播放/"/>
+
+
+
+
+
+  <title>ijkplayer系列五-视频解码与播放 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/08/直播/ijkplayer/ijkplayer系列五-视频解码与播放/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ijkplayer系列五-视频解码与播放</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-08T10:22:14+08:00">
+                2019-08-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="解码线程"><a href="#解码线程" class="headerlink" title="解码线程"></a>解码线程</h1><p>从数据读取线程分析那篇文章我们可以看到，ijkplayer的视频解码线程的入口函数是<code>video_thread()/ff_ffplayer.c</code></p>
+<h2 id="video-thread"><a href="#video-thread" class="headerlink" title="video_thread"></a><code>video_thread</code></h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">video_thread</span><span class="params">(<span class="keyword">void</span> *arg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    FFPlayer *ffp = (FFPlayer *)arg;</span><br><span class="line">    <span class="keyword">int</span>       ret = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ffp-&gt;node_vdec) &#123;</span><br><span class="line">        ret = ffpipenode_run_sync(ffp-&gt;node_vdec);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ffpipenode_run_sync()/ff_ffpipenode.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">ffpipenode_run_sync</span><span class="params">(IJKFF_Pipenode *node)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> node-&gt;func_run_sync(node);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最终调用的实际是 <code>ffp-&gt;node_vdec-&gt;func_run_sync(node);</code></p>
+<p>又是直接运行的ffplayer结构体里面的函数，肯定和音频播放一样，在之前初始化的时候给这个函数指针赋值过，那么我们回过头看看到底在哪里为它赋值的:</p>
+<p>我们还是看到之前初始化的<code>ijkmp_android_create()</code>调用<code>ffpipeline_create_from_android()</code>，然后里面有一句:</p>
+<p><code>pipeline-&gt;func_open_video_decoder = func_open_video_decoder;</code></p>
+<p>然后我们再返回看到在<code>stream_component_open()/ff_ffplayer.c</code>里面有一句:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">decoder_init(&amp;is-&gt;viddec, avctx, &amp;is-&gt;videoq, is-&gt;continue_read_thread);</span><br><span class="line">ffp-&gt;node_vdec = ffpipeline_open_video_decoder(ffp-&gt;pipeline, ffp);</span><br></pre></td></tr></table></figure>
+<p>点进去<code>ffpipeline_open_video_decoder(ffp-&gt;pipeline, ffp);</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">IJKFF_Pipenode* <span class="title">ffpipeline_open_video_decoder</span><span class="params">(IJKFF_Pipeline *pipeline, FFPlayer *ffp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> pipeline-&gt;func_open_video_decoder(pipeline, ffp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结合上面的分析，在<code>stream_component_open()/ff_ffplayer.c</code>里面其实运行了<code>func_open_video_decoder()/ffpipeline_android.c</code>，然后把返回值赋值给<code>ffp-&gt;node_vdec</code>;继续跟着流程到<code>func_open_video_decoder()</code>。由于这里跳转比较麻烦，我就直接上：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">func_open_video_decoder()</span><br><span class="line">&#123;</span><br><span class="line">        |(调用)</span><br><span class="line">    <span class="comment">//(这里其实有个判断，是用硬解码还是软解，我们只分析硬解码)</span></span><br><span class="line">    node = ffpipenode_create_video_decoder_from_android_mediacodec(ffp, pipeline, opaque-&gt;weak_vout);</span><br><span class="line">    <span class="keyword">return</span> node;</span><br><span class="line">        |(执行)</span><br><span class="line">    <span class="comment">//alloc一个IJKFF_Pipenode </span></span><br><span class="line">    IJKFF_Pipenode *node =  ffpipenode_alloc(<span class="keyword">sizeof</span>(IJKFF_Pipenode_Opaque));</span><br><span class="line">    node-&gt;func_destroy  = func_destroy;</span><br><span class="line">    node-&gt;func_run_sync = func_run_sync;</span><br><span class="line">    node-&gt;func_flush    = func_flush;</span><br><span class="line">    reutnr node;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最终 <code>ffp-&gt;node_vdec =node</code></p>
+<p>现在终于找到赋值的地方了，前面调用的<code>ffp-&gt;node_vdec-&gt;func_run_sync(node);</code>现在看来就是调用的<code>func_run_sync()</code>函数</p>
+<h3 id="func-run-sync"><a href="#func-run-sync" class="headerlink" title="func_run_sync"></a><code>func_run_sync</code></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">func_run_sync</span><span class="params">(IJKFF_Pipenode *node)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    IJKFF_Pipenode_Opaque *opaque   = node-&gt;opaque;</span><br><span class="line">    FFPlayer              *ffp      = opaque-&gt;ffp;</span><br><span class="line">    VideoState            *is       = ffp-&gt;is;</span><br><span class="line">    Decoder               *d        = &amp;is-&gt;viddec;</span><br><span class="line">    PacketQueue           *q        = d-&gt;<span class="built_in">queue</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">    opaque-&gt;enqueue_thread = SDL_CreateThreadEx(&amp;opaque-&gt;_enqueue_thread, enqueue_thread_func, node, <span class="string">"amediacodec_input_thread"</span>);</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">    <span class="keyword">while</span> (!q-&gt;abort_request) &#123;</span><br><span class="line">      	<span class="comment">//...</span></span><br><span class="line">        ret = drain_output_buffer(env, node, timeUs, &amp;dequeue_count, frame, &amp;got_frame);</span><br><span class="line">  		<span class="comment">//...</span></span><br><span class="line">		ret = ffp_queue_picture(ffp, frame, pts, duration, av_frame_get_pkt_pos(frame), is-&gt;viddec.pkt_serial);</span><br><span class="line">     <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">	fail:</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="线程enqueue-thread-func"><a href="#线程enqueue-thread-func" class="headerlink" title="线程enqueue_thread_func"></a>线程<code>enqueue_thread_func</code></h4><p>在视频解码流程里面又创建了一个线程:</p>
+<p><code>opaque-&gt;enqueue_thread = SDL_CreateThreadEx(&amp;opaque-&gt;_enqueue_thread, enqueue_thread_func, node, &quot;amediacodec_input_thread&quot;);</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">从命名来看，是一个input_thread，我们先来看看这个线程:</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">enqueue_thread_func</span><span class="params">(<span class="keyword">void</span> *arg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    IJKFF_Pipenode        *node     = arg;</span><br><span class="line">    IJKFF_Pipenode_Opaque *opaque   = node-&gt;opaque;</span><br><span class="line">    FFPlayer              *ffp      = opaque-&gt;ffp;</span><br><span class="line">    VideoState            *is       = ffp-&gt;is;</span><br><span class="line">    Decoder               *d        = &amp;is-&gt;viddec;</span><br><span class="line">    PacketQueue           *q        = d-&gt;<span class="built_in">queue</span>;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">    <span class="keyword">while</span> (!q-&gt;abort_request) &#123;</span><br><span class="line">        ret = feed_input_buffer(env, node, AMC_INPUT_TIMEOUT_US, &amp;dequeue_count);</span><br><span class="line">        <span class="keyword">if</span> (ret != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">goto</span> fail;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>点进去<code>feed_input_buffer()/ffpipenode_android_mediacodec_vdec.c</code>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">staticint <span class="title">feed_input_buffer</span><span class="params">(JNIEnv *env, IJKFF_Pipenode *node, <span class="keyword">int64_t</span> timeUs, <span class="keyword">int</span>*enqueue_count)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(ffp_packet_queue_get_or_buffering(ffp, d-&gt;<span class="built_in">queue</span>, &amp;pkt,&amp;d-&gt;pkt_serial, &amp;d-&gt;finished) &lt; <span class="number">0</span>) &#123; <span class="comment">//取得数据包</span></span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">        input_buffer_ptr= SDL_AMediaCodec_getInputBuffer(opaque-&gt;acodec, input_buffer_index,&amp;input_buffer_size); <span class="comment">//得到硬解码应该输入的buffer的地址</span></span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">        <span class="built_in">memcpy</span>(input_buffer_ptr,d-&gt;pkt_temp.data, copy_size);</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">        amc_ret= SDL_AMediaCodec_queueInputBuffer(opaque-&gt;acodec, input_buffer_index, <span class="number">0</span>,copy_size, time_stamp, <span class="number">0</span>); </span><br><span class="line"><span class="comment">//送到AMediaCodec解码器</span></span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>OK，这一步原来就是用硬解码器解码。这个<code>input_thread</code>也就只是把每一帧数据送到解码器去解码而已。</p>
+<h4 id="drain-output-buffer-l"><a href="#drain-output-buffer-l" class="headerlink" title="drain_output_buffer_l"></a><code>drain_output_buffer_l</code></h4><p>从硬解码器中获得解码后的数据</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">drain_output_buffer_l</span><span class="params">(JNIEnv *env, IJKFF_Pipenode *node, <span class="keyword">int64_t</span> timeUs,<span class="keyword">int</span> *dequeue_count)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">	<span class="comment">//从硬解码器中获得解码后的数据</span></span><br><span class="line">	output_buffer_index= SDL_AMediaCodec_dequeueOutputBuffer(opaque-&gt;acodec, &amp;bufferInfo,timeUs); </span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="ffp-queue-picture"><a href="#ffp-queue-picture" class="headerlink" title="ffp_queue_picture"></a><code>ffp_queue_picture</code></h4><p>把数据插入到显示队列 <code>ijkplayer-&gt;ffplayer-&gt;is-&gt;pictq</code> 中</p>
+<h1 id="显示线程"><a href="#显示线程" class="headerlink" title="显示线程"></a>显示线程</h1><p>显示线程从 <code>is-&gt;pictq</code> 读取数据，然后直接推送给硬件设备，完成渲染。</p>
+<p>前面关于启动流程的分析我们知道，IjkMediaPlayer.prepareAsync <code>stream_open</code>中创建了视频显示进程</p>
+<p><code>is-&gt;video_refresh_tid = SDL_CreateThreadEx(&amp;is-&gt;_video_refresh_tid, video_refresh_thread, ffp, &quot;ff_vout&quot;);</code></p>
+<h2 id="video-refresh-thread-ff-ffplayer-c"><a href="#video-refresh-thread-ff-ffplayer-c" class="headerlink" title="video_refresh_thread()/ff_ffplayer.c"></a><code>video_refresh_thread()/ff_ffplayer.c</code></h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">video_refresh_thread(<span class="keyword">void</span> *arg)</span><br><span class="line">              |(调用)</span><br><span class="line">video_refresh(ffp, &amp;remaining_time);</span><br><span class="line">              |(调用)</span><br><span class="line"> video_display2(ffp);</span><br><span class="line">              |(调用)</span><br><span class="line">video_image_display2(ffp);</span><br></pre></td></tr></table></figure>
+<h3 id="video-image-display2"><a href="#video-image-display2" class="headerlink" title="video_image_display2"></a><code>video_image_display2</code></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">video_image_display2</span><span class="params">(FFPlayer *ffp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    VideoState *is = ffp-&gt;is;</span><br><span class="line">    Frame *vp;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//从队列中取出数据</span></span><br><span class="line">	<span class="comment">//然后调用SDL_VoutDisplayYUVOverlay()完成渲染。</span></span><br><span class="line">    vp = frame_queue_peek(&amp;is-&gt;pictq);</span><br><span class="line">    <span class="keyword">if</span> (vp-&gt;bmp) &#123;</span><br><span class="line">        SDL_VoutDisplayYUVOverlay(ffp-&gt;vout, vp-&gt;bmp);</span><br><span class="line">        ffp-&gt;stat.vfps = SDL_SpeedSamplerAdd(&amp;ffp-&gt;vfps_sampler, FFP_SHOW_VFPS_FFPLAY, <span class="string">"vfps[ffplay]"</span>);</span><br><span class="line">        <span class="keyword">if</span> (!ffp-&gt;first_video_frame_rendered) &#123;</span><br><span class="line">            ffp-&gt;first_video_frame_rendered = <span class="number">1</span>;</span><br><span class="line">            ffp_notify_msg1(ffp, FFP_MSG_VIDEO_RENDERING_START);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="SDL-VoutDisplayYUVOverlay"><a href="#SDL-VoutDisplayYUVOverlay" class="headerlink" title="SDL_VoutDisplayYUVOverlay"></a><code>SDL_VoutDisplayYUVOverlay</code></h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SDL_VoutDisplayYUVOverlay</span><span class="params">(SDL_Vout *vout, SDL_VoutOverlay *overlay)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (vout &amp;&amp; overlay &amp;&amp; vout-&gt;display_overlay)</span><br><span class="line">        <span class="keyword">return</span> vout-&gt;display_overlay(vout, overlay);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在初始化的时候，在 <code>ijkmp_android_create()</code>里面调用的<code>SDL_VoutAndroid_CreateForAndroidSurface();</code> 赋值的：</p>
+<p><code>vout-&gt;display_overlay = func_display_overlay;</code></p>
+<p>所以其实调用了 <code>func_display_overlay()</code> 完成渲染。从pictq列表中获取视频frame数据，然后再写入nativewindows的视频缓冲中进行渲染。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/bilibili/ijkplayer" target="_blank" rel="noopener">github</a></li>
+<li><a href="https://www.jianshu.com/p/5345ab4cf979" target="_blank" rel="noopener">ijkplayer 源码分析（上）</a> 王英豪，基于k0.8.8版本</li>
+<li><a href="https://cloud.tencent.com/developer/article/1032547" target="_blank" rel="noopener">ijkplayer框架深入剖析</a> 金山云团队，基于k0.7.6版本</li>
+<li><a href="https://www.jianshu.com/p/7d9b86919682" target="_blank" rel="noopener">ijkplayer视频播放器源码分析(android)</a> 尸情化异，基于k0.5.1版本，系列专栏5篇：使用，初始化，数据读取，音频解码播放，视频解码播放</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/直播/" rel="tag"><i class="fa fa-tag"></i> 直播</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/07/编程思想/DIP IOC DI/" rel="next" title="DIP IOC DI">
+                <i class="fa fa-chevron-left"></i> DIP IOC DI
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/08/直播/ijkplayer/ijkplayer系列六-音视频同步/" rel="prev" title="ijkplayer系列六-音视频同步">
+                ijkplayer系列六-音视频同步 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">263</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#解码线程"><span class="nav-number">1.</span> <span class="nav-text">解码线程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#video-thread"><span class="nav-number">1.1.</span> <span class="nav-text">video_thread</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#func-run-sync"><span class="nav-number">1.1.1.</span> <span class="nav-text">func_run_sync</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#线程enqueue-thread-func"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">线程enqueue_thread_func</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#drain-output-buffer-l"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">drain_output_buffer_l</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ffp-queue-picture"><span class="nav-number">1.1.1.3.</span> <span class="nav-text">ffp_queue_picture</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#显示线程"><span class="nav-number">2.</span> <span class="nav-text">显示线程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#video-refresh-thread-ff-ffplayer-c"><span class="nav-number">2.1.</span> <span class="nav-text">video_refresh_thread()/ff_ffplayer.c</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#video-image-display2"><span class="nav-number">2.1.1.</span> <span class="nav-text">video_image_display2</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SDL-VoutDisplayYUVOverlay"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">SDL_VoutDisplayYUVOverlay</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">3.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

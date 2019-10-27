@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="直播," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="使用实例：用ijkplayer播放CCTV1 123456789101112# required, enough for most devices.compile &apos;tv.danmaku.ijk.media:ijkplayer-java:0.8.8&apos;compile &apos;tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8&apos;# Other ABIs: optional">
+<meta name="keywords" content="直播">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ijkplayer系列二-初始化流程">
+<meta property="og:url" content="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="使用实例：用ijkplayer播放CCTV1 123456789101112# required, enough for most devices.compile &apos;tv.danmaku.ijk.media:ijkplayer-java:0.8.8&apos;compile &apos;tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8&apos;# Other ABIs: optional">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/使用.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/IjkMediaPlayer和Native交互.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/初始化序列图.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/ijkplayer音视频播放.jpg">
+<meta property="og:image" content="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/stream_open方法.png">
+<meta property="og:updated_time" content="2019-10-27T08:42:12.632Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ijkplayer系列二-初始化流程">
+<meta name="twitter:description" content="使用实例：用ijkplayer播放CCTV1 123456789101112# required, enough for most devices.compile &apos;tv.danmaku.ijk.media:ijkplayer-java:0.8.8&apos;compile &apos;tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8&apos;# Other ABIs: optional">
+<meta name="twitter:image" content="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/使用.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/"/>
+
+
+
+
+
+  <title>ijkplayer系列二-初始化流程 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ijkplayer系列二-初始化流程</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-05T16:22:14+08:00">
+                2019-08-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><p>实例：用ijkplayer播放CCTV1</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># required, enough for most devices.</span><br><span class="line">compile <span class="string">'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'</span></span><br><span class="line">compile <span class="string">'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'</span></span><br><span class="line"></span><br><span class="line"># Other ABIs: optional</span><br><span class="line">compile <span class="string">'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'</span></span><br><span class="line">compile <span class="string">'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'</span></span><br><span class="line">compile <span class="string">'tv.danmaku.ijk.media:ijkplayer-x86:0.8.8'</span></span><br><span class="line">compile <span class="string">'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.8'</span></span><br><span class="line"></span><br><span class="line"># ExoPlayer as IMediaPlayer: optional, experimental</span><br><span class="line">compile <span class="string">'tv.danmaku.ijk.media:ijkplayer-exo:0.8.8'</span></span><br></pre></td></tr></table></figure>
+<p>导入官方demo目录下的这些文件：</p>
+<img src="/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/使用.png">
+<p>开始播放</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// init player</span></span><br><span class="line">videoView.setVideoURI(Uri.parse(<span class="string">"http://106.36.45.36/live.aishang.ctlcdn.com/00000110240001_1/encoder/1/playlist.m3u8"</span>));</span><br><span class="line"></span><br><span class="line">videoView.setOnPreparedListener(<span class="keyword">new</span> IMediaPlayer.OnPreparedListener() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onPrepared</span><span class="params">(IMediaPlayer mp)</span> </span>&#123;</span><br><span class="line">        videoView.start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h1 id="IjkMediaPlayer和Native交互"><a href="#IjkMediaPlayer和Native交互" class="headerlink" title="IjkMediaPlayer和Native交互"></a>IjkMediaPlayer和Native交互</h1><p><strong>播放控制</strong>相关的 <code>start、pause、stop</code> 等，调用 对应的 native 方法</p>
+<p><strong>底层状态信息的上报(比如底层的播放状态回调)</strong>相关的 <code>postEventFromNative</code> 等，这些方法由底层主动调用(有<code>@CalledByNative</code> 注解)</p>
+<img src="/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/IjkMediaPlayer和Native交互.png">
+<h1 id="事件处理"><a href="#事件处理" class="headerlink" title="事件处理"></a>事件处理</h1><p>在播放过程中，某些行为的完成或者变化，如prepare完成，开始渲染等，需要以事件形式通知到外部，以便上层作出具体的业务处理。</p>
+<p>播放器底层上报事件时，实际上就是将待发送的消息放入消息队列，另外有一个线程会不断从队列中取出消息，上报给外部</p>
+<h1 id="初始化IjkVideoView"><a href="#初始化IjkVideoView" class="headerlink" title="初始化IjkVideoView"></a>初始化IjkVideoView</h1><img src="/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/初始化序列图.png">
+<img src="/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/ijkplayer音视频播放.jpg">
+<h2 id="setVideoURI-amp-openVideo"><a href="#setVideoURI-amp-openVideo" class="headerlink" title="setVideoURI &amp; openVideo"></a>setVideoURI &amp; openVideo</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IjkVideoView</span> <span class="keyword">extends</span> <span class="title">FrameLayout</span> <span class="keyword">implements</span> <span class="title">MediaController</span>.<span class="title">MediaPlayerControl</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">setVideoURI</span><span class="params">(Uri uri, Map&lt;String, String&gt; headers)</span> </span>&#123;</span><br><span class="line">        mUri = uri;</span><br><span class="line">        mHeaders = headers;</span><br><span class="line">        mSeekWhenPrepared = <span class="number">0</span>;</span><br><span class="line">        openVideo();</span><br><span class="line">        requestLayout();</span><br><span class="line">        invalidate();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">openVideo</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mUri == <span class="keyword">null</span> || mSurfaceHolder == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// not ready for playback just yet, will try again later</span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// we shouldn't clear the target state, because somebody might have</span></span><br><span class="line">    <span class="comment">// called start() previously</span></span><br><span class="line">    release(<span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">    AudioManager am = (AudioManager) mAppContext.getSystemService(Context.AUDIO_SERVICE);</span><br><span class="line">    am.requestAudioFocus(<span class="keyword">null</span>, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        mMediaPlayer = createPlayer(mSettings.getPlayer());</span><br><span class="line">        mMediaPlayer.setOnPreparedListener(mPreparedListener);</span><br><span class="line">        <span class="comment">//这里省略一大波setListener......</span></span><br><span class="line">        mCurrentBufferPercentage = <span class="number">0</span>;</span><br><span class="line">        </span><br><span class="line">        String scheme = mUri.getScheme();</span><br><span class="line">        <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M &amp;&amp;</span><br><span class="line">                mSettings.getUsingMediaDataSource() &amp;&amp;</span><br><span class="line">                (TextUtils.isEmpty(scheme) || scheme.equalsIgnoreCase(<span class="string">"file"</span>))) &#123;</span><br><span class="line">            IMediaDataSource dataSource = <span class="keyword">new</span> FileMediaDataSource(<span class="keyword">new</span> File(mUri.toString()));</span><br><span class="line">            mMediaPlayer.setDataSource(dataSource);</span><br><span class="line">        &#125;  <span class="keyword">else</span> <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.ICE_CREAM_SANDWICH) &#123;</span><br><span class="line">            mMediaPlayer.setDataSource(mAppContext, mUri, mHeaders);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            mMediaPlayer.setDataSource(mUri.toString());</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        bindSurfaceHolder(mMediaPlayer, mSurfaceHolder);</span><br><span class="line">        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);</span><br><span class="line">        mMediaPlayer.setScreenOnWhilePlaying(<span class="keyword">true</span>);</span><br><span class="line">        mPrepareStartTime = System.currentTimeMillis();</span><br><span class="line">        mMediaPlayer.prepareAsync();</span><br><span class="line">        <span class="keyword">if</span> (mHudViewHolder != <span class="keyword">null</span>)</span><br><span class="line">            mHudViewHolder.setMediaPlayer(mMediaPlayer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// REMOVED: mPendingSubtitleTracks</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// we don't set the target state here either, but preserve the</span></span><br><span class="line">        <span class="comment">// target state that was there before.</span></span><br><span class="line">        mCurrentState = STATE_PREPARING;</span><br><span class="line">        attachMediaController();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException ex) &#123;</span><br><span class="line">        Log.w(TAG, <span class="string">"Unable to open content: "</span> + mUri, ex);</span><br><span class="line">        mCurrentState = STATE_ERROR;</span><br><span class="line">        mTargetState = STATE_ERROR;</span><br><span class="line">        mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, <span class="number">0</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IllegalArgumentException ex) &#123;</span><br><span class="line">        Log.w(TAG, <span class="string">"Unable to open content: "</span> + mUri, ex);</span><br><span class="line">        mCurrentState = STATE_ERROR;</span><br><span class="line">        mTargetState = STATE_ERROR;</span><br><span class="line">        mErrorListener.onError(mMediaPlayer, MediaPlayer.MEDIA_ERROR_UNKNOWN, <span class="number">0</span>);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// REMOVED: mPendingSubtitleTracks.clear();</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这里， 做了下面几件事：</p>
+<ul>
+<li>获得AudioManager</li>
+<li>通过setting获取player的类型</li>
+<li>初始化IMediaPlayer (createPlayer()函数)</li>
+<li>然后调用setDataSource(String)</li>
+<li>屏幕常亮等</li>
+<li>设置MediaController</li>
+<li>mMediaPlayer.prepareAsync()   </li>
+</ul>
+<h3 id="createPlayer"><a href="#createPlayer" class="headerlink" title="createPlayer"></a>createPlayer</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> IMediaPlayer <span class="title">createPlayer</span><span class="params">(<span class="keyword">int</span> playerType)</span> </span>&#123;</span><br><span class="line">    IMediaPlayer mediaPlayer = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">switch</span> (playerType) &#123;</span><br><span class="line">        <span class="keyword">case</span> Settings.PV_PLAYER__IjkExoMediaPlayer: &#123;</span><br><span class="line">            IjkExoMediaPlayer IjkExoMediaPlayer = <span class="keyword">new</span> IjkExoMediaPlayer(mAppContext);</span><br><span class="line">            mediaPlayer = IjkExoMediaPlayer;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> Settings.PV_PLAYER__AndroidMediaPlayer: &#123;</span><br><span class="line">            AndroidMediaPlayer androidMediaPlayer = <span class="keyword">new</span> AndroidMediaPlayer();</span><br><span class="line">            mediaPlayer = androidMediaPlayer;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> Settings.PV_PLAYER__IjkMediaPlayer:</span><br><span class="line">        <span class="keyword">default</span>: &#123;</span><br><span class="line">            IjkMediaPlayer ijkMediaPlayer = <span class="keyword">null</span>;</span><br><span class="line">            <span class="keyword">if</span> (mUri != <span class="keyword">null</span>) &#123;</span><br><span class="line">                ijkMediaPlayer = <span class="keyword">new</span> IjkMediaPlayer();</span><br><span class="line">                <span class="comment">//各种设置；ijkMediaPlayer.setOption()</span></span><br><span class="line">                mediaPlayer = ijkMediaPlayer;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mSettings.getEnableDetachedSurfaceTextureView()) &#123;</span><br><span class="line">        mediaPlayer = <span class="keyword">new</span> TextureMediaPlayer(mediaPlayer);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> mediaPlayer;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="IjkMediaPlayer-setOption-配置"><a href="#IjkMediaPlayer-setOption-配置" class="headerlink" title="IjkMediaPlayer.setOption 配置"></a>IjkMediaPlayer.setOption 配置</h4><p>初始化后 IjkMediaPlayer 后，可以对其进行一系列配置，例如:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设置硬解码</span></span><br><span class="line">mIjkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, <span class="string">"mediacodec"</span>, <span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置 opensles 方式输出音频</span></span><br><span class="line">mIjkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, <span class="string">"opensles"</span>, <span class="number">1</span>);</span><br></pre></td></tr></table></figure>
+<p>setOption() 会调用到底层 ff_ffplay.c 的 ffp_set_option() 方法</p>
+<h5 id="软硬解码选择"><a href="#软硬解码选择" class="headerlink" title="软硬解码选择"></a>软硬解码选择</h5><p>跟踪 <code>pipeline/ffpipeline_android.c</code> 的 <code>ffpipeline_create_from_android</code> 方法</p>
+<p>发现是 用函数指针记录 类 IjkMediaPlayer.setOption() 设置的属性</p>
+<h3 id="IjkMediaPlayer-setDataSource-amp-setDataSource"><a href="#IjkMediaPlayer-setDataSource-amp-setDataSource" class="headerlink" title="IjkMediaPlayer.setDataSource &amp; _setDataSource"></a>IjkMediaPlayer.setDataSource &amp; _setDataSource</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDataSource</span><span class="params">(String path, Map&lt;String, String&gt; headers)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> IOException, IllegalArgumentException, SecurityException, IllegalStateException</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (headers != <span class="keyword">null</span> &amp;&amp; !headers.isEmpty()) &#123;</span><br><span class="line">        StringBuilder sb = <span class="keyword">new</span> StringBuilder();</span><br><span class="line">        <span class="keyword">for</span>(Map.Entry&lt;String, String&gt; entry: headers.entrySet()) &#123;</span><br><span class="line">            sb.append(entry.getKey());</span><br><span class="line">            sb.append(<span class="string">":"</span>);</span><br><span class="line">            String value = entry.getValue();</span><br><span class="line">            <span class="keyword">if</span> (!TextUtils.isEmpty(value))</span><br><span class="line">                sb.append(entry.getValue());</span><br><span class="line">            sb.append(<span class="string">"\r\n"</span>);</span><br><span class="line">            setOption(OPT_CATEGORY_FORMAT, <span class="string">"headers"</span>, sb.toString());</span><br><span class="line">            setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, <span class="string">"protocol_whitelist"</span>, <span class="string">"async,cache,crypto,file,http,https,ijkhttphook,ijkinject,ijklivehook,ijklongurl,ijksegment,ijktcphook,pipe,rtp,tcp,tls,udp,ijkurlhook,data"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    setDataSource(path);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">native</span> <span class="keyword">void</span> <span class="title">_setDataSource</span><span class="params">(String path, String[] keys, String[] values)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException, IllegalArgumentException, SecurityException, IllegalStateException</span>;</span><br></pre></td></tr></table></figure>
+<p><code>ijkplayer_jni.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">IjkMediaPlayer_setDataSourceAndHeaders(</span><br><span class="line">    JNIEnv *env, jobject thiz, jstring path,</span><br><span class="line">    jobjectArray keys, jobjectArray values)</span><br><span class="line">&#123;</span><br><span class="line">    MPTRACE(<span class="string">"%s\n"</span>, __func__);</span><br><span class="line">    <span class="keyword">int</span> retval = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *c_path = <span class="literal">NULL</span>;</span><br><span class="line">    IjkMediaPlayer *mp = jni_get_media_player(env, thiz);</span><br><span class="line">    JNI_CHECK_GOTO(path, env, <span class="string">"java/lang/IllegalArgumentException"</span>, <span class="string">"mpjni: setDataSource: null path"</span>, LABEL_RETURN);</span><br><span class="line">    JNI_CHECK_GOTO(mp, env, <span class="string">"java/lang/IllegalStateException"</span>, <span class="string">"mpjni: setDataSource: null mp"</span>, LABEL_RETURN);</span><br><span class="line"></span><br><span class="line">    c_path = (*env)-&gt;GetStringUTFChars(env, path, <span class="literal">NULL</span> );</span><br><span class="line">    JNI_CHECK_GOTO(c_path, env, <span class="string">"java/lang/OutOfMemoryError"</span>, <span class="string">"mpjni: setDataSource: path.string oom"</span>, LABEL_RETURN);</span><br><span class="line"></span><br><span class="line">    ALOGV(<span class="string">"setDataSource: path %s"</span>, c_path);</span><br><span class="line">    retval = ijkmp_set_data_source(mp, c_path);</span><br><span class="line">    (*env)-&gt;ReleaseStringUTFChars(env, path, c_path);</span><br><span class="line"></span><br><span class="line">    IJK_CHECK_MPRET_GOTO(retval, env, LABEL_RETURN);</span><br><span class="line"></span><br><span class="line">LABEL_RETURN:</span><br><span class="line">    ijkmp_dec_ref_p(&amp;mp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="IjkMediaPlayer-prepareAsync-amp-prepareAsync"><a href="#IjkMediaPlayer-prepareAsync-amp-prepareAsync" class="headerlink" title="IjkMediaPlayer.prepareAsync &amp; _prepareAsync"></a>IjkMediaPlayer.prepareAsync &amp; _prepareAsync</h3><p>最终调用到 <code>ijkmp_prepare_async_l</code>  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">prepareAsync</span><span class="params">()</span> <span class="keyword">throws</span> IllegalStateException </span>&#123;</span><br><span class="line">    _prepareAsync();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">native</span> <span class="keyword">void</span> <span class="title">_prepareAsync</span><span class="params">()</span> <span class="keyword">throws</span> IllegalStateException</span>;</span><br></pre></td></tr></table></figure>
+<p><code>ijkplayer_jni.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">IjkMediaPlayer_prepareAsync(JNIEnv *env, jobject thiz)</span><br><span class="line">&#123;</span><br><span class="line">    MPTRACE(<span class="string">"%s\n"</span>, __func__);</span><br><span class="line">    <span class="keyword">int</span> retval = <span class="number">0</span>;</span><br><span class="line">    IjkMediaPlayer *mp = jni_get_media_player(env, thiz);</span><br><span class="line">    JNI_CHECK_GOTO(mp, env, <span class="string">"java/lang/IllegalStateException"</span>, <span class="string">"mpjni: prepareAsync: null mp"</span>, LABEL_RETURN);</span><br><span class="line"></span><br><span class="line">    retval = ijkmp_prepare_async(mp);</span><br><span class="line">    IJK_CHECK_MPRET_GOTO(retval, env, LABEL_RETURN);</span><br><span class="line"></span><br><span class="line">LABEL_RETURN:</span><br><span class="line">    ijkmp_dec_ref_p(&amp;mp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ijkplayer.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">ijkmp_prepare_async</span><span class="params">(IjkMediaPlayer *mp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    assert(mp);</span><br><span class="line">    MPTRACE(<span class="string">"ijkmp_prepare_async()\n"</span>);</span><br><span class="line">    pthread_mutex_lock(&amp;mp-&gt;mutex);</span><br><span class="line">    <span class="keyword">int</span> retval = ijkmp_prepare_async_l(mp);</span><br><span class="line">    pthread_mutex_unlock(&amp;mp-&gt;mutex);</span><br><span class="line">    MPTRACE(<span class="string">"ijkmp_prepare_async()=%d\n"</span>, retval);</span><br><span class="line">    <span class="keyword">return</span> retval;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">ijkmp_prepare_async_l</span><span class="params">(IjkMediaPlayer *mp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    assert(mp);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//状态判断，符合直接返回</span></span><br><span class="line">    MPST_RET_IF_EQ(mp-&gt;mp_state, MP_STATE_IDLE);</span><br><span class="line">    <span class="comment">// MPST_RET_IF_EQ(mp-&gt;mp_state, MP_STATE_INITIALIZED);</span></span><br><span class="line">    MPST_RET_IF_EQ(mp-&gt;mp_state, MP_STATE_ASYNC_PREPARING);</span><br><span class="line">    MPST_RET_IF_EQ(mp-&gt;mp_state, MP_STATE_PREPARED);</span><br><span class="line">    MPST_RET_IF_EQ(mp-&gt;mp_state, MP_STATE_STARTED);</span><br><span class="line">    MPST_RET_IF_EQ(mp-&gt;mp_state, MP_STATE_PAUSED);</span><br><span class="line">    MPST_RET_IF_EQ(mp-&gt;mp_state, MP_STATE_COMPLETED);</span><br><span class="line">    <span class="comment">// MPST_RET_IF_EQ(mp-&gt;mp_state, MP_STATE_STOPPED);</span></span><br><span class="line">    MPST_RET_IF_EQ(mp-&gt;mp_state, MP_STATE_ERROR);</span><br><span class="line">    MPST_RET_IF_EQ(mp-&gt;mp_state, MP_STATE_END);</span><br><span class="line"></span><br><span class="line">    assert(mp-&gt;data_source);</span><br><span class="line"></span><br><span class="line">    ijkmp_change_state_l(mp, MP_STATE_ASYNC_PREPARING);</span><br><span class="line"></span><br><span class="line">    msg_queue_start(&amp;mp-&gt;ffplayer-&gt;msg_queue);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// released in msg_loop</span></span><br><span class="line">    ijkmp_inc_ref(mp);</span><br><span class="line">    mp-&gt;msg_thread = SDL_CreateThreadEx(&amp;mp-&gt;_msg_thread, ijkmp_msg_loop, mp, <span class="string">"ff_msg_loop"</span>);</span><br><span class="line">    <span class="comment">// msg_thread is detached inside msg_loop</span></span><br><span class="line">    <span class="comment">// <span class="doctag">TODO:</span> 9 release weak_thiz if pthread_create() failed;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> retval = ffp_prepare_async_l(mp-&gt;ffplayer, mp-&gt;data_source);</span><br><span class="line">    <span class="keyword">if</span> (retval &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        ijkmp_change_state_l(mp, MP_STATE_ERROR);</span><br><span class="line">        <span class="keyword">return</span> retval;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主要做了一下几件事：</p>
+<ul>
+<li><code>ijkmp_change_state_l()</code><ul>
+<li>向<code>msg_queue</code>发送一个<code>FFP_MSG_PLAYBACK_STATE_CHANGED</code>消息</li>
+</ul>
+</li>
+<li><code>msg_queue_start()</code><ul>
+<li>向<code>msg_queue</code>发送一个<code>FFP_MSG_FLUSH</code>消息</li>
+</ul>
+</li>
+<li>创建消息循环线程，线程入口为<code>ijkmp_msg_loop</code><ul>
+<li>处理<code>msg_queue</code>发送的消息</li>
+</ul>
+</li>
+<li><code>ffp_prepare_async_l()</code><ul>
+<li>打开读取线程和视频解码播放进程 </li>
+</ul>
+</li>
+</ul>
+<h4 id="ijkmp-change-state-l"><a href="#ijkmp-change-state-l" class="headerlink" title="ijkmp_change_state_l"></a><code>ijkmp_change_state_l</code></h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ijkmp_change_state_l</span><span class="params">(IjkMediaPlayer *mp, <span class="keyword">int</span> new_state)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    mp-&gt;mp_state = new_state;</span><br><span class="line">    ffp_notify_msg1(mp-&gt;ffplayer, FFP_MSG_PLAYBACK_STATE_CHANGED);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="msg-queue-start"><a href="#msg-queue-start" class="headerlink" title="msg_queue_start"></a><code>msg_queue_start</code></h4><p><code>ff_ffmsg_queue.h</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">inline</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">msg_queue_start</span><span class="params">(MessageQueue *q)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    SDL_LockMutex(q-&gt;mutex);</span><br><span class="line">    q-&gt;abort_request = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    AVMessage msg;</span><br><span class="line">    msg_init_msg(&amp;msg);</span><br><span class="line">    msg.what = FFP_MSG_FLUSH;</span><br><span class="line">    msg_queue_put_private(q, &amp;msg);</span><br><span class="line">    SDL_UnlockMutex(q-&gt;mutex);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="创建消息循环线程"><a href="#创建消息循环线程" class="headerlink" title="创建消息循环线程"></a>创建消息循环线程</h4><h4 id="ffp-prepare-async-l"><a href="#ffp-prepare-async-l" class="headerlink" title="ffp_prepare_async_l"></a><code>ffp_prepare_async_l</code></h4><p><code>ijkmedia/ijkplayer/ff_ffplay.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">ffp_prepare_async_l</span><span class="params">(FFPlayer *ffp, <span class="keyword">const</span> <span class="keyword">char</span> *file_name)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    <span class="comment">//log信息，打印FFmpeg相关信息</span></span><br><span class="line">    av_log(<span class="literal">NULL</span>, AV_LOG_INFO, <span class="string">"===== versions =====\n"</span>);</span><br><span class="line">    ffp_show_version_str(ffp, <span class="string">"ijkplayer"</span>,      ijk_version_info());</span><br><span class="line">    ffp_show_version_str(ffp, <span class="string">"FFmpeg"</span>,         av_version_info());</span><br><span class="line">    ffp_show_version_int(ffp, <span class="string">"libavutil"</span>,      avutil_version());</span><br><span class="line">    ffp_show_version_int(ffp, <span class="string">"libavcodec"</span>,     avcodec_version());</span><br><span class="line">    ffp_show_version_int(ffp, <span class="string">"libavformat"</span>,    avformat_version());</span><br><span class="line">    ffp_show_version_int(ffp, <span class="string">"libswscale"</span>,     swscale_version());</span><br><span class="line">    ffp_show_version_int(ffp, <span class="string">"libswresample"</span>,  swresample_version());</span><br><span class="line">    av_log(<span class="literal">NULL</span>, AV_LOG_INFO, <span class="string">"===== options =====\n"</span>);</span><br><span class="line">    ffp_show_dict(ffp, <span class="string">"player-opts"</span>, ffp-&gt;player_opts);</span><br><span class="line">    ffp_show_dict(ffp, <span class="string">"format-opts"</span>, ffp-&gt;format_opts);</span><br><span class="line">    ffp_show_dict(ffp, <span class="string">"codec-opts "</span>, ffp-&gt;codec_opts);</span><br><span class="line">    ffp_show_dict(ffp, <span class="string">"sws-opts   "</span>, ffp-&gt;sws_dict);</span><br><span class="line">    ffp_show_dict(ffp, <span class="string">"swr-opts   "</span>, ffp-&gt;swr_opts);</span><br><span class="line">    av_log(<span class="literal">NULL</span>, AV_LOG_INFO, <span class="string">"===================\n"</span>);</span><br><span class="line">    </span><br><span class="line">    VideoState *is = stream_open(ffp, file_name, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="keyword">if</span> (!is) &#123;</span><br><span class="line">        av_log(<span class="literal">NULL</span>, AV_LOG_WARNING, <span class="string">"ffp_prepare_async_l: stream_open failed OOM"</span>);</span><br><span class="line">        <span class="keyword">return</span> EIJK_OUT_OF_MEMORY;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ffp-&gt;is = is;</span><br><span class="line">    ffp-&gt;input_filename = av_strdup(file_name);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>做了以下几件事：</p>
+<ul>
+<li>logcat打印FFmpeg相关信息</li>
+<li><code>stream_open()</code> </li>
+</ul>
+<h5 id="stream-open"><a href="#stream-open" class="headerlink" title="stream_open"></a><code>stream_open</code></h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> VideoState *<span class="title">stream_open</span><span class="params">(FFPlayer *ffp, <span class="keyword">const</span> <span class="keyword">char</span> *filename, AVInputFormat *iformat)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">/* start video display */</span></span><br><span class="line">    <span class="comment">//初始化队列 frame_queue_init()</span></span><br><span class="line">    <span class="comment">//第一个参数是解码出来的队列,第二个参数是未解码的队列</span></span><br><span class="line">    <span class="comment">//有三个队列：音频，视频，字幕</span></span><br><span class="line">    <span class="keyword">if</span> (frame_queue_init(&amp;is-&gt;pictq, &amp;is-&gt;videoq, ffp-&gt;pictq_size, <span class="number">1</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">goto</span> fail;</span><br><span class="line">    <span class="keyword">if</span> (frame_queue_init(&amp;is-&gt;subpq, &amp;is-&gt;subtitleq, SUBPICTURE_QUEUE_SIZE, <span class="number">0</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">goto</span> fail;</span><br><span class="line">    <span class="keyword">if</span> (frame_queue_init(&amp;is-&gt;sampq, &amp;is-&gt;audioq, SAMPLE_QUEUE_SIZE, <span class="number">1</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">goto</span> fail;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (packet_queue_init(&amp;is-&gt;videoq) &lt; <span class="number">0</span> ||</span><br><span class="line">        packet_queue_init(&amp;is-&gt;audioq) &lt; <span class="number">0</span> ||</span><br><span class="line">        packet_queue_init(&amp;is-&gt;subtitleq) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">goto</span> fail;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建video_refresh_thread视频显示进程(视频渲染，音视频同步）</span></span><br><span class="line">    is-&gt;video_refresh_tid = SDL_CreateThreadEx(&amp;is-&gt;_video_refresh_tid, video_refresh_thread, ffp, <span class="string">"ff_vout"</span>);</span><br><span class="line">    <span class="comment">//创建read_thread数据读取线程</span></span><br><span class="line">    is-&gt;read_tid = SDL_CreateThreadEx(&amp;is-&gt;_read_tid, read_thread, ffp, <span class="string">"ff_read"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<img src="/2019/08/05/直播/ijkplayer/ijkplayer系列二-初始化流程/stream_open方法.png">
+<p>主要做了三件事：</p>
+<ul>
+<li><code>frame_queue_init()</code>开始视频展示</li>
+<li>创建<code>video_refresh_thread</code>视频显示进程</li>
+<li>创建<code>read_thread</code>数据读取线程</li>
+</ul>
+<p>在<code>read_thread</code>里面向<code>msg_queue</code>发送了一个消息<code>ffp_notify_msg1(ffp, FFP_MSG_PREPARED)</code>;，消息循环线程收到这个消息后，会调用java层的handler发送<code>MEDIA_PREPARED</code>消息，然后在handler的handleMessage函数里面会处理这个消息：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> MEDIA_PREPARED:</span><br><span class="line">    player.notifyOnPrepared();</span><br><span class="line">    <span class="keyword">return</span>;</span><br></pre></td></tr></table></figure>
+<p>最终调用到我们设置的 <code>IMediaPlayer.OnPreparedListener</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">videoView.setOnPreparedListener(<span class="keyword">new</span> IMediaPlayer.OnPreparedListener() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onPrepared</span><span class="params">(IMediaPlayer mp)</span> </span>&#123;</span><br><span class="line">        videoView.start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h1 id="初始化IjkMediaPlayer"><a href="#初始化IjkMediaPlayer" class="headerlink" title="初始化IjkMediaPlayer"></a>初始化IjkMediaPlayer</h1><h2 id="构造函数-amp-initPlayer"><a href="#构造函数-amp-initPlayer" class="headerlink" title="构造函数 &amp; initPlayer"></a>构造函数 &amp; initPlayer</h2><p>构造函数在上面的 <code>IjkVideoView.createPlayer(int playerType)</code> 中被调用</p>
+<p>这里只讲一下IjkMediaPlayer，其实我们除了使用IjkMediaPlayer，还可以使用IjkExoMediaPlayer或者AndroidMediaPlayer。只需要修改一下createPlayer(int playerType)的参数就行了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">IjkMediaPlayer</span> <span class="keyword">extends</span> <span class="title">AbstractMediaPlayer</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">IjkMediaPlayer</span><span class="params">(IjkLibLoader libLoader)</span> </span>&#123;</span><br><span class="line">        initPlayer(libLoader);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initPlayer</span><span class="params">(IjkLibLoader libLoader)</span> </span>&#123;</span><br><span class="line">    loadLibrariesOnce(libLoader);</span><br><span class="line">    initNativeOnce();</span><br><span class="line"></span><br><span class="line">    Looper looper;</span><br><span class="line">    <span class="keyword">if</span> ((looper = Looper.myLooper()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">        mEventHandler = <span class="keyword">new</span> EventHandler(<span class="keyword">this</span>, looper);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> ((looper = Looper.getMainLooper()) != <span class="keyword">null</span>) &#123;</span><br><span class="line">        mEventHandler = <span class="keyword">new</span> EventHandler(<span class="keyword">this</span>, looper);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        mEventHandler = <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Native setup requires a weak reference to our object. It's easier to</span></span><br><span class="line"><span class="comment">     * create it here than in C++.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    native_setup(<span class="keyword">new</span> WeakReference&lt;IjkMediaPlayer&gt;(<span class="keyword">this</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>initPlayer</code> 方法，共做了四件事：</p>
+<ul>
+<li>loadLibrariesOnce() 加载 so 库</li>
+<li>initNativeOnce() 静态初始化底层，其实什么都没做</li>
+<li>创建 EventHandler，用来处理底层状态信息的上报</li>
+<li><code>native_setup()</code> 初始化底层创建播放器</li>
+</ul>
+<h3 id="loadLibrariesOnce-加载-so-库"><a href="#loadLibrariesOnce-加载-so-库" class="headerlink" title="loadLibrariesOnce 加载 so 库"></a>loadLibrariesOnce 加载 so 库</h3><h4 id="加载-so-库"><a href="#加载-so-库" class="headerlink" title="加载 so 库"></a>加载 so 库</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">libLoader.loadLibrary(<span class="string">"ijkffmpeg"</span>);</span><br><span class="line">libLoader.loadLibrary(<span class="string">"ijksdl"</span>);</span><br><span class="line">libLoader.loadLibrary(<span class="string">"ijkplayer"</span>);</span><br></pre></td></tr></table></figure>
+<h4 id="JNI-OnLoad"><a href="#JNI-OnLoad" class="headerlink" title="JNI_OnLoad"></a>JNI_OnLoad</h4><p>加载so,虚拟机先自动执行JNI_OnLoad；</p>
+<p>卸载so,虚拟机先自动执行JNI_UnLoad；</p>
+<p><code>ijkplayer_jni.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">JNIEXPORT jint <span class="title">JNI_OnLoad</span><span class="params">(JavaVM *vm, <span class="keyword">void</span> *reserved)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    JNIEnv* env = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    g_jvm = vm;</span><br><span class="line">    <span class="keyword">if</span> ((*vm)-&gt;GetEnv(vm, (<span class="keyword">void</span>**) &amp;env, JNI_VERSION_1_4) != JNI_OK) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    assert(env != <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    pthread_mutex_init(&amp;g_clazz.mutex, <span class="literal">NULL</span> );</span><br><span class="line"></span><br><span class="line">    <span class="comment">// FindClass returns LocalReference</span></span><br><span class="line">    IJK_FIND_JAVA_CLASS(env, g_clazz.clazz, JNI_CLASS_IJKPLAYER);</span><br><span class="line">    (*env)-&gt;RegisterNatives(env, g_clazz.clazz, g_methods, NELEM(g_methods) );</span><br><span class="line"></span><br><span class="line">    ijkmp_global_init();</span><br><span class="line">    ijkmp_global_set_inject_callback(inject_callback);</span><br><span class="line"></span><br><span class="line">    FFmpegApi_global_init(env);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> JNI_VERSION_1_4;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主要做了以下几件事：</p>
+<ul>
+<li>RegisterNatives()注册native方法<code>_start</code>(系列播放器控制API)</li>
+<li><code>ijkmp_global_init</code> 初始化ffmpeg</li>
+<li><code>FFmpegApi_global_init</code> 注册native方法<code>av_base64_encode</code></li>
+</ul>
+<h5 id="RegisterNatives-注册native方法"><a href="#RegisterNatives-注册native方法" class="headerlink" title="RegisterNatives()注册native方法"></a>RegisterNatives()注册native方法</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> JNINativeMethod g_methods[] = &#123;</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="string">"_setDataSource"</span>,</span><br><span class="line">        <span class="string">"(Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)V"</span>,</span><br><span class="line">        (<span class="keyword">void</span> *) IjkMediaPlayer_setDataSourceAndHeaders</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123; <span class="string">"_setDataSourceFd"</span>,       <span class="string">"(I)V"</span>,     (<span class="keyword">void</span> *) IjkMediaPlayer_setDataSourceFd &#125;,</span><br><span class="line">    &#123; <span class="string">"_setDataSource"</span>,         <span class="string">"(Ltv/danmaku/ijk/media/player/misc/IMediaDataSource;)V"</span>, (<span class="keyword">void</span> *)IjkMediaPlayer_setDataSourceCallback &#125;,</span><br><span class="line">    &#123; <span class="string">"_setAndroidIOCallback"</span>,  <span class="string">"(Ltv/danmaku/ijk/media/player/misc/IAndroidIO;)V"</span>, (<span class="keyword">void</span> *)IjkMediaPlayer_setAndroidIOCallback &#125;,</span><br><span class="line"></span><br><span class="line">    &#123; <span class="string">"_setVideoSurface"</span>,       <span class="string">"(Landroid/view/Surface;)V"</span>, (<span class="keyword">void</span> *) IjkMediaPlayer_setVideoSurface &#125;,</span><br><span class="line">    &#123; <span class="string">"_prepareAsync"</span>,          <span class="string">"()V"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_prepareAsync &#125;,</span><br><span class="line">    &#123; <span class="string">"_start"</span>,                 <span class="string">"()V"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_start &#125;,</span><br><span class="line">    &#123; <span class="string">"_stop"</span>,                  <span class="string">"()V"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_stop &#125;,</span><br><span class="line">    &#123; <span class="string">"seekTo"</span>,                 <span class="string">"(J)V"</span>,     (<span class="keyword">void</span> *) IjkMediaPlayer_seekTo &#125;,</span><br><span class="line">    &#123; <span class="string">"_pause"</span>,                 <span class="string">"()V"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_pause &#125;,</span><br><span class="line">    &#123; <span class="string">"isPlaying"</span>,              <span class="string">"()Z"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_isPlaying &#125;,</span><br><span class="line">    &#123; <span class="string">"getCurrentPosition"</span>,     <span class="string">"()J"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_getCurrentPosition &#125;,</span><br><span class="line">    &#123; <span class="string">"getDuration"</span>,            <span class="string">"()J"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_getDuration &#125;,</span><br><span class="line">    &#123; <span class="string">"_release"</span>,               <span class="string">"()V"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_release &#125;,</span><br><span class="line">    &#123; <span class="string">"_reset"</span>,                 <span class="string">"()V"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_reset &#125;,</span><br><span class="line">    &#123; <span class="string">"setVolume"</span>,              <span class="string">"(FF)V"</span>,    (<span class="keyword">void</span> *) IjkMediaPlayer_setVolume &#125;,</span><br><span class="line">    &#123; <span class="string">"getAudioSessionId"</span>,      <span class="string">"()I"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_getAudioSessionId &#125;,</span><br><span class="line">    &#123; <span class="string">"native_init"</span>,            <span class="string">"()V"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_native_init &#125;,</span><br><span class="line">    &#123; <span class="string">"native_setup"</span>,           <span class="string">"(Ljava/lang/Object;)V"</span>, (<span class="keyword">void</span> *) IjkMediaPlayer_native_setup &#125;,</span><br><span class="line">    &#123; <span class="string">"native_finalize"</span>,        <span class="string">"()V"</span>,      (<span class="keyword">void</span> *) IjkMediaPlayer_native_finalize &#125;,</span><br><span class="line"></span><br><span class="line">    &#123; <span class="string">"_setOption"</span>,             <span class="string">"(ILjava/lang/String;Ljava/lang/String;)V"</span>, (<span class="keyword">void</span> *) IjkMediaPlayer_setOption &#125;,</span><br><span class="line">    &#123; <span class="string">"_setOption"</span>,             <span class="string">"(ILjava/lang/String;J)V"</span>,                  (<span class="keyword">void</span> *) IjkMediaPlayer_setOptionLong &#125;,</span><br><span class="line"></span><br><span class="line">    &#123; <span class="string">"_getColorFormatName"</span>,    <span class="string">"(I)Ljava/lang/String;"</span>,    (<span class="keyword">void</span> *) IjkMediaPlayer_getColorFormatName &#125;,</span><br><span class="line">    &#123; <span class="string">"_getVideoCodecInfo"</span>,     <span class="string">"()Ljava/lang/String;"</span>,     (<span class="keyword">void</span> *) IjkMediaPlayer_getVideoCodecInfo &#125;,</span><br><span class="line">    &#123; <span class="string">"_getAudioCodecInfo"</span>,     <span class="string">"()Ljava/lang/String;"</span>,     (<span class="keyword">void</span> *) IjkMediaPlayer_getAudioCodecInfo &#125;,</span><br><span class="line">    &#123; <span class="string">"_getMediaMeta"</span>,          <span class="string">"()Landroid/os/Bundle;"</span>,    (<span class="keyword">void</span> *) IjkMediaPlayer_getMediaMeta &#125;,</span><br><span class="line">    &#123; <span class="string">"_setLoopCount"</span>,          <span class="string">"(I)V"</span>,                     (<span class="keyword">void</span> *) IjkMediaPlayer_setLoopCount &#125;,</span><br><span class="line">    &#123; <span class="string">"_getLoopCount"</span>,          <span class="string">"()I"</span>,                      (<span class="keyword">void</span> *) IjkMediaPlayer_getLoopCount &#125;,</span><br><span class="line">    &#123; <span class="string">"_getPropertyFloat"</span>,      <span class="string">"(IF)F"</span>,                    (<span class="keyword">void</span> *) ijkMediaPlayer_getPropertyFloat &#125;,</span><br><span class="line">    &#123; <span class="string">"_setPropertyFloat"</span>,      <span class="string">"(IF)V"</span>,                    (<span class="keyword">void</span> *) ijkMediaPlayer_setPropertyFloat &#125;,</span><br><span class="line">    &#123; <span class="string">"_getPropertyLong"</span>,       <span class="string">"(IJ)J"</span>,                    (<span class="keyword">void</span> *) ijkMediaPlayer_getPropertyLong &#125;,</span><br><span class="line">    &#123; <span class="string">"_setPropertyLong"</span>,       <span class="string">"(IJ)V"</span>,                    (<span class="keyword">void</span> *) ijkMediaPlayer_setPropertyLong &#125;,</span><br><span class="line">    &#123; <span class="string">"_setStreamSelected"</span>,     <span class="string">"(IZ)V"</span>,                    (<span class="keyword">void</span> *) ijkMediaPlayer_setStreamSelected &#125;,</span><br><span class="line"></span><br><span class="line">    &#123; <span class="string">"native_profileBegin"</span>,    <span class="string">"(Ljava/lang/String;)V"</span>,    (<span class="keyword">void</span> *) IjkMediaPlayer_native_profileBegin &#125;,</span><br><span class="line">    &#123; <span class="string">"native_profileEnd"</span>,      <span class="string">"()V"</span>,                      (<span class="keyword">void</span> *) IjkMediaPlayer_native_profileEnd &#125;,</span><br><span class="line"></span><br><span class="line">    &#123; <span class="string">"native_setLogLevel"</span>,     <span class="string">"(I)V"</span>,                     (<span class="keyword">void</span> *) IjkMediaPlayer_native_setLogLevel &#125;,</span><br><span class="line">    &#123; <span class="string">"_setFrameAtTime"</span>,        <span class="string">"(Ljava/lang/String;JJII)V"</span>, (<span class="keyword">void</span> *) IjkMediaPlayer_setFrameAtTime &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h5 id="ijkmp-global-init初始化ffmpeg"><a href="#ijkmp-global-init初始化ffmpeg" class="headerlink" title="ijkmp_global_init初始化ffmpeg"></a><code>ijkmp_global_init</code>初始化ffmpeg</h5><p>ffmpeg的初始化工作, ijkplayer是基于ffmpeg。最终调用了 <code>ffp_global_init()</code></p>
+<p><code>ijkplayer.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ijkmp_global_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ffp_global_init();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ff_ffplay.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">ffp_global_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (g_ffmpeg_global_inited)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    ALOGD(<span class="string">"ijkmediaplayer version : %s"</span>, ijkmp_version());</span><br><span class="line">    <span class="comment">/* register all codecs, demux and protocols */</span></span><br><span class="line">    avcodec_register_all();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> CONFIG_AVDEVICE</span></span><br><span class="line">    avdevice_register_all();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> CONFIG_AVFILTER</span></span><br><span class="line">    avfilter_register_all();</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    av_register_all();</span><br><span class="line"></span><br><span class="line">    ijkav_register_all();</span><br><span class="line"></span><br><span class="line">    avformat_network_init();</span><br><span class="line"></span><br><span class="line">    av_lockmgr_register(lockmgr);</span><br><span class="line">    av_log_set_callback(ffp_log_callback_brief);</span><br><span class="line"></span><br><span class="line">    av_init_packet(&amp;flush_pkt);</span><br><span class="line">    flush_pkt.data = (<span class="keyword">uint8_t</span> *)&amp;flush_pkt;</span><br><span class="line"></span><br><span class="line">    g_ffmpeg_global_inited = <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="FFmpegApi-global-init"><a href="#FFmpegApi-global-init" class="headerlink" title="FFmpegApi_global_init"></a><code>FFmpegApi_global_init</code></h5><p>动态注册 <code>av_base64_encode</code> 函数</p>
+<p><code>/Users/liyungui/StudioProjects/ijkplayer/android/ijkplayer/ijkplayer-armv7a/src/main/jni/ijkmedia/ijkplayer/android/ffmpeg_api_jni.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">FFmpegApi_global_init</span><span class="params">(JNIEnv *env)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">int</span> ret = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    IJK_FIND_JAVA_CLASS(env, g_clazz.clazz, JNI_CLASS_FFMPEG_API);</span><br><span class="line">    (*env)-&gt;RegisterNatives(env, g_clazz.clazz, g_methods, NELEM(g_methods));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> JNINativeMethod g_methods[] = &#123;</span><br><span class="line">    &#123;<span class="string">"av_base64_encode"</span>, <span class="string">"([B)Ljava/lang/String;"</span>, (<span class="keyword">void</span> *) FFmpegApi_av_base64_encode&#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="initNativeOnce-静态初始化底层"><a href="#initNativeOnce-静态初始化底层" class="headerlink" title="initNativeOnce 静态初始化底层"></a>initNativeOnce 静态初始化底层</h3><p>最终调用了 <code>native_init</code> native方法，其实什么都没做</p>
+<p><code>ijkplayer_jni.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">IjkMediaPlayer_native_init(JNIEnv *env)</span><br><span class="line">&#123;</span><br><span class="line">    MPTRACE(<span class="string">"%s\n"</span>, __func__);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="创建-EventHandler，用来处理底层状态信息的上报"><a href="#创建-EventHandler，用来处理底层状态信息的上报" class="headerlink" title="创建 EventHandler，用来处理底层状态信息的上报"></a>创建 EventHandler，用来处理底层状态信息的上报</h3><p>初始化一个handler，在c层通过调用java的方法来post message，处理底层状态信息的上报。</p>
+<h3 id="native-setup-初始化底层创建播放器"><a href="#native-setup-初始化底层创建播放器" class="headerlink" title="native_setup 初始化底层创建播放器"></a>native_setup 初始化底层创建播放器</h3><p>最终调用了 <code>ijkmp_android_create</code>创建播放器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">native</span> <span class="keyword">void</span> <span class="title">native_setup</span><span class="params">(Object IjkMediaPlayer_this)</span></span>;</span><br><span class="line">``` </span><br><span class="line"></span><br><span class="line">`ijkplayer_jni.c`</span><br><span class="line"></span><br><span class="line">```c</span><br><span class="line"><span class="keyword">static</span> <span class="keyword">void</span></span><br><span class="line">IjkMediaPlayer_native_setup(JNIEnv *env, jobject thiz, jobject weak_this)</span><br><span class="line">&#123;</span><br><span class="line">    MPTRACE(<span class="string">"%s\n"</span>, __func__);</span><br><span class="line">    IjkMediaPlayer *mp = ijkmp_android_create(message_loop);</span><br><span class="line">    JNI_CHECK_GOTO(mp, env, <span class="string">"java/lang/OutOfMemoryError"</span>, <span class="string">"mpjni: native_setup: ijkmp_create() failed"</span>, LABEL_RETURN);</span><br><span class="line"></span><br><span class="line">    jni_set_media_player(env, thiz, mp);</span><br><span class="line">    ijkmp_set_weak_thiz(mp, (*env)-&gt;NewGlobalRef(env, weak_this));</span><br><span class="line">    ijkmp_set_inject_opaque(mp, ijkmp_get_weak_thiz(mp));</span><br><span class="line">    ijkmp_set_ijkio_inject_opaque(mp, ijkmp_get_weak_thiz(mp));</span><br><span class="line">    ijkmp_android_set_mediacodec_select_callback(mp, mediacodec_select_callback, ijkmp_get_weak_thiz(mp));</span><br><span class="line"></span><br><span class="line">LABEL_RETURN:</span><br><span class="line">    ijkmp_dec_ref_p(&amp;mp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ijkplayer_android.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">IjkMediaPlayer *ijkmp_android_create(int(*msg_loop)(void*))</span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// 创建底层播放器对象，设置消息处理函数</span></span><br><span class="line">    IjkMediaPlayer *mp = ijkmp_create(msg_loop);</span><br><span class="line">    <span class="keyword">if</span> (!mp)</span><br><span class="line">        <span class="keyword">goto</span> fail;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 创建图像渲染对象</span></span><br><span class="line">    mp-&gt;ffplayer-&gt;vout = SDL_VoutAndroid_CreateForAndroidSurface();</span><br><span class="line">    <span class="keyword">if</span> (!mp-&gt;ffplayer-&gt;vout)</span><br><span class="line">        <span class="keyword">goto</span> fail;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 初始化视频解码器（软/硬）、音频输出设备（opensles/audioTrack）</span></span><br><span class="line">    mp-&gt;ffplayer-&gt;pipeline = ffpipeline_create_from_android(mp-&gt;ffplayer);</span><br><span class="line">    <span class="keyword">if</span> (!mp-&gt;ffplayer-&gt;pipeline)</span><br><span class="line">        <span class="keyword">goto</span> fail;</span><br><span class="line"></span><br><span class="line">    ffpipeline_set_vout(mp-&gt;ffplayer-&gt;pipeline, mp-&gt;ffplayer-&gt;vout);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> mp;</span><br><span class="line"></span><br><span class="line">fail:</span><br><span class="line">    ijkmp_dec_ref_p(&amp;mp);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ijkplayer.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">IjkMediaPlayer *ijkmp_create(int (*msg_loop)(void*))</span><br><span class="line">&#123;</span><br><span class="line">    IjkMediaPlayer *mp = (IjkMediaPlayer *) mallocz(<span class="keyword">sizeof</span>(IjkMediaPlayer));</span><br><span class="line">    <span class="keyword">if</span> (!mp)</span><br><span class="line">        <span class="keyword">goto</span> fail;</span><br><span class="line"></span><br><span class="line">    mp-&gt;ffplayer = ffp_create();</span><br><span class="line">    <span class="keyword">if</span> (!mp-&gt;ffplayer)</span><br><span class="line">        <span class="keyword">goto</span> fail;</span><br><span class="line"></span><br><span class="line">    mp-&gt;msg_loop = msg_loop;</span><br><span class="line"></span><br><span class="line">    ijkmp_inc_ref(mp);</span><br><span class="line">    pthread_mutex_init(&amp;mp-&gt;mutex, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> mp;</span><br><span class="line"></span><br><span class="line">    fail:</span><br><span class="line">    ijkmp_destroy_p(&amp;mp);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>主要做了以下几件事：</p>
+<ul>
+<li><code>ijkmp_android_create</code> 创建播放器<ul>
+<li><code>ijkmp_create</code>创建IJKMediaPlayer<ul>
+<li>创建 IjkMediaPlayer 结构体 </li>
+<li>设置IJKMediaPlayer结构体<ul>
+<li>设置 mp-&gt;ffplayer<ul>
+<li>ffplayer，通过 <code>ffp_create()</code>创建</li>
+</ul>
+</li>
+<li>设置 mp-&gt;msg_loop    </li>
+</ul>
+</li>
+</ul>
+</li>
+<li>设置 mp-&gt;ffplayer-&gt;vout。<ul>
+<li>输出设备vout，通过 <code>SDL_VoutAndroid_CreateForAndroidSurface()</code>创建</li>
+</ul>
+</li>
+<li>设置 mp-&gt;ffplayer-&gt;pipeline</li>
+</ul>
+</li>
+<li>jni_set_media_player</li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/bilibili/ijkplayer" target="_blank" rel="noopener">github</a></li>
+<li><a href="https://www.jianshu.com/p/5345ab4cf979" target="_blank" rel="noopener">ijkplayer 源码分析（上）</a> 王英豪，基于k0.8.8版本</li>
+<li><a href="https://cloud.tencent.com/developer/article/1032547" target="_blank" rel="noopener">ijkplayer框架深入剖析</a> 金山云团队，基于k0.7.6版本</li>
+<li><a href="https://www.jianshu.com/p/7d9b86919682" target="_blank" rel="noopener">ijkplayer视频播放器源码分析(android)</a> 尸情化异，基于k0.5.1版本，系列专栏5篇：使用，初始化，数据读取，音频解码播放，视频解码播放</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/直播/" rel="tag"><i class="fa fa-tag"></i> 直播</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/05/直播/ijkplayer/ijkplayer系列一-开篇/" rel="next" title="ijkplayer系列一-开篇">
+                <i class="fa fa-chevron-left"></i> ijkplayer系列一-开篇
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/06/直播/ijkplayer/ijkplayer系列三-数据读取线程/" rel="prev" title="ijkplayer系列三-数据读取线程">
+                ijkplayer系列三-数据读取线程 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">263</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#使用"><span class="nav-number">1.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IjkMediaPlayer和Native交互"><span class="nav-number">2.</span> <span class="nav-text">IjkMediaPlayer和Native交互</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#事件处理"><span class="nav-number">3.</span> <span class="nav-text">事件处理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#初始化IjkVideoView"><span class="nav-number">4.</span> <span class="nav-text">初始化IjkVideoView</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#setVideoURI-amp-openVideo"><span class="nav-number">4.1.</span> <span class="nav-text">setVideoURI &amp; openVideo</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#createPlayer"><span class="nav-number">4.1.1.</span> <span class="nav-text">createPlayer</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IjkMediaPlayer-setOption-配置"><span class="nav-number">4.1.1.1.</span> <span class="nav-text">IjkMediaPlayer.setOption 配置</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#软硬解码选择"><span class="nav-number">4.1.1.1.1.</span> <span class="nav-text">软硬解码选择</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IjkMediaPlayer-setDataSource-amp-setDataSource"><span class="nav-number">4.1.2.</span> <span class="nav-text">IjkMediaPlayer.setDataSource &amp; _setDataSource</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IjkMediaPlayer-prepareAsync-amp-prepareAsync"><span class="nav-number">4.1.3.</span> <span class="nav-text">IjkMediaPlayer.prepareAsync &amp; _prepareAsync</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ijkmp-change-state-l"><span class="nav-number">4.1.3.1.</span> <span class="nav-text">ijkmp_change_state_l</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#msg-queue-start"><span class="nav-number">4.1.3.2.</span> <span class="nav-text">msg_queue_start</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#创建消息循环线程"><span class="nav-number">4.1.3.3.</span> <span class="nav-text">创建消息循环线程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ffp-prepare-async-l"><span class="nav-number">4.1.3.4.</span> <span class="nav-text">ffp_prepare_async_l</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#stream-open"><span class="nav-number">4.1.3.4.1.</span> <span class="nav-text">stream_open</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#初始化IjkMediaPlayer"><span class="nav-number">5.</span> <span class="nav-text">初始化IjkMediaPlayer</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#构造函数-amp-initPlayer"><span class="nav-number">5.1.</span> <span class="nav-text">构造函数 &amp; initPlayer</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#loadLibrariesOnce-加载-so-库"><span class="nav-number">5.1.1.</span> <span class="nav-text">loadLibrariesOnce 加载 so 库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#加载-so-库"><span class="nav-number">5.1.1.1.</span> <span class="nav-text">加载 so 库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JNI-OnLoad"><span class="nav-number">5.1.1.2.</span> <span class="nav-text">JNI_OnLoad</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#RegisterNatives-注册native方法"><span class="nav-number">5.1.1.2.1.</span> <span class="nav-text">RegisterNatives()注册native方法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#ijkmp-global-init初始化ffmpeg"><span class="nav-number">5.1.1.2.2.</span> <span class="nav-text">ijkmp_global_init初始化ffmpeg</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#FFmpegApi-global-init"><span class="nav-number">5.1.1.2.3.</span> <span class="nav-text">FFmpegApi_global_init</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initNativeOnce-静态初始化底层"><span class="nav-number">5.1.2.</span> <span class="nav-text">initNativeOnce 静态初始化底层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建-EventHandler，用来处理底层状态信息的上报"><span class="nav-number">5.1.3.</span> <span class="nav-text">创建 EventHandler，用来处理底层状态信息的上报</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#native-setup-初始化底层创建播放器"><span class="nav-number">5.1.4.</span> <span class="nav-text">native_setup 初始化底层创建播放器</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">6.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
