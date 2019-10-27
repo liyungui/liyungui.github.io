@@ -41,7 +41,7 @@ public class UserDaoImpl implements UserDao{
     }
 }
 
-public interface Uservice{
+public interface UserService{
     void storeUser(User user);
 }
 
@@ -66,10 +66,9 @@ public class UserServiceImpl implments UserService{
 
 解决方案：增加一个中间件(容器)，负责创建和存储所有注册对象(控制权转移，解耦)，运行时按需从容器中取对象
 
-**控制反转是DIP原则的升级**,旨在解决对象依赖这问题
+**控制反转是DIP原则的升级**,旨在解决对象依赖问题
 
-依赖注入是
-
+控制反转是一种思维方式的变化,**依赖注入**则是该思想的**具体实践**.
 
 # 总结
 

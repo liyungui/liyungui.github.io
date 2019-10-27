@@ -511,7 +511,9 @@ release 版本发现一些小错误。需要 hotfix
 
 **特别注意：**
 
-不要通过rebase对任何公共仓库中的公共分支(push)进行修改；即**只能rebase修改自己个人分支**
+- 不要通过rebase对任何公共仓库中的公共分支(push)进行修改；即**只能rebase修改自己个人分支**
+
+- 如果当前分支提交记录已经push，rebase后本地commit和远程push就会有两条形成两条分支；把远程分支删除即可。merge push本地分支到公共分支
 
 ## merge Vs rebase
 

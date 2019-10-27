@@ -101,5 +101,5 @@ Executor– 通过Worker Thread Executor让Interactor在后台执行。一般不
 
 - [Architecting Android...The clean way?](https://fernandocejas.com/2014/09/03/architecting-android-the-clean-way/) by Fernando Cejas (Fernando 大神) - 原文
 - [一种更清晰的Android架构](https://zhuanlan.zhihu.com/p/20001838) - by 何红辉 - 译文
-- [实例源码](https://github.com/android10/Android-CleanArchitecture)
+- [实例源码](https://github.com/android10/Android-CleanArchitecture)by Fernando Cejas (Fernando 大神)
 - [Clean架构探讨](https://www.jianshu.com/p/66e749e19f0d)

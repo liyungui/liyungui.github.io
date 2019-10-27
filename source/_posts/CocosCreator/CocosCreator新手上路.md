@@ -20,7 +20,7 @@ categories:
 
 ## 下载
 
-访问 [Cocos Creator 产品首页](https://www.cocos.com/creator/) 上的下载链接获得 Cocos Creator 的安装包
+访问 [Cocos Creator 产品首页,详细发版记录](https://www.cocos.com/creator/) 上的下载链接获得 Cocos Creator 的安装包
 
 兼容已有旧项目，选择 [2.1.0版本](http://cocos2d-x.org/filedown/CocosCreator_v2.1.0_mac)
 
@@ -255,3 +255,7 @@ Compile native project successfully.
 接下来您只要使用原生平台对应的 IDE （如 Xcode、Android Studio、Visual Studio）打开这些工程，就可以进行进一步的编译、预览、发布操作了。
 
 注意：在 MIUI 10 系统上运行 debug 模式构建的工程可能会弹出 “Detected problems with API compatibility” 的提示框，这是 MIUI 10 系统自身引入的问题，使用 release 模式构建即可。
+s
+# 参考&扩展
+
+- [Cocos Creator 产品首页,详细发版记录](https://www.cocos.com/creator/)
