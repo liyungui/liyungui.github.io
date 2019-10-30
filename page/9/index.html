@@ -262,6 +262,520 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/16/Android/AOP实现点击防抖的gradle插件/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/16/Android/AOP实现点击防抖的gradle插件/" itemprop="url">AOP实现点击防抖的gradle插件</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-16T18:10:53+08:00">
+                2019-06-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="为什么使用AOP"><a href="#为什么使用AOP" class="headerlink" title="为什么使用AOP"></a>为什么使用AOP</h1><p>对旧代码零入侵</p>
+<h1 id="为什么选择-ASM-实现-AOP"><a href="#为什么选择-ASM-实现-AOP" class="headerlink" title="为什么选择 ASM 实现 AOP"></a>为什么选择 ASM 实现 AOP</h1><p>因为ASM的语法更通俗易懂，并且与gradle的联动效果更好，能够非常方便的修改字节码</p>
+<p>AspectJ在这些维度的比较上实在显得笨重。</p>
+<h1 id="支持的点击事件"><a href="#支持的点击事件" class="headerlink" title="支持的点击事件"></a>支持的点击事件</h1><ul>
+<li>View.OnClickListener</li>
+<li>AdapterView.OnItemClickListener</li>
+</ul>
+<h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><p>常规的集成</p>
+<p>不需要配置混淆规则，因为纯字节码操作，没任何反射</p>
+<h2 id="设置防抖间隔时间"><a href="#设置防抖间隔时间" class="headerlink" title="设置防抖间隔时间"></a>设置防抖间隔时间</h2><p>默认 300 milliseconds</p>
+<p><code>DebouncedPredictor.FROZEN_WINDOW_MILLIS = 400L</code></p>
+<h2 id="忽略某些点击方法"><a href="#忽略某些点击方法" class="headerlink" title="忽略某些点击方法"></a>忽略某些点击方法</h2><p>推荐 在 gradle 中配置，会自动 添加 <code>@Debounce</code>注解</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">debounce &#123;</span><br><span class="line">  // enable log</span><br><span class="line">  loggable = true</span><br><span class="line">  // java bytecode descriptor: [class: [methods]]</span><br><span class="line">  exclusion = [&quot;com/smartdengg/clickdebounce/ClickProxy&quot;: [&apos;onClick(Landroid/view/View;)V&apos;,</span><br><span class="line">                                                           &apos;onItemClick(Landroid/widget/AdapterView;Landroid/view/View;IJ)V&apos;]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>某些匿名内部类不太好在 gradle中配置，手动 添加 <code>@Debounce</code>注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.setOnClickListener(<span class="keyword">new</span> View.OnClickListener() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="meta">@Debounced</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClick</span><span class="params">(View v)</span> </span>&#123;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><p><a href="https://github.com/SmartDengg/click-debounce" target="_blank" rel="noopener">click-debounce</a></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/13/web/nginx使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/13/web/nginx使用/" itemprop="url">nginx使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-13T12:54:14+08:00">
+                2019-06-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web/" itemprop="url" rel="index">
+                    <span itemprop="name">web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h1><p>Nginx (engine x) 是一个<strong>高性能</strong>(占有内存少，并发能力强)<strong>高可扩展</strong>的 HTTP和反向代理web服务器，同时也提供了IMAP/POP3/SMTP服务。</p>
+<p>高并发的情况下，Nginx是Apache服务不错的替代品</p>
+<p>兼容性：Linux系统,Windows NT系统</p>
+<h1 id="版本选择"><a href="#版本选择" class="headerlink" title="版本选择"></a>版本选择</h1><p>Nginx高性能，高可扩展。但并非指随便下载一款事先编译好的，就能满足要求，尤其是<strong>不建议使用官方编译好的Windows版本</strong></p>
+<h2 id="官方编译的Windows版本基本事实："><a href="#官方编译的Windows版本基本事实：" class="headerlink" title="官方编译的Windows版本基本事实："></a>官方编译的Windows版本基本事实：</h2><ol>
+<li><p>使用的是内生Win32 API，不是通过Cygwin的模拟层。</p>
+</li>
+<li><p>仅用了select()连接方法，无缘高性能、高可扩展。</p>
+</li>
+<li><p>Nginx运行时有两种进程，一个是主进程，一个是工作进程。Windows版的，只有一个有效的工作进程，虽然你可以运行多个工作进程。</p>
+</li>
+<li><p>没有windows服务进程版，计划在下个版本加入。</p>
+</li>
+</ol>
+<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="Mac版安装"><a href="#Mac版安装" class="headerlink" title="Mac版安装"></a>Mac版安装</h2><ol>
+<li>安装Command Line tools</li>
+</ol>
+<p><code>xcode-select --install</code></p>
+<ol start="2">
+<li>安装brew</li>
+</ol>
+<p><code>ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;</code></p>
+<ol start="3">
+<li>安装nginx</li>
+</ol>
+<p><code>brew install nginx</code></p>
+<p>安装完毕的提示</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">==&gt; Caveats</span><br><span class="line">==&gt; openssl</span><br><span class="line">A CA file has been bootstrapped using certificates from the SystemRoots</span><br><span class="line">keychain. To add additional certificates (e.g. the certificates added in</span><br><span class="line">the System keychain), place .pem files in</span><br><span class="line">  /usr/local/etc/openssl/certs</span><br><span class="line"></span><br><span class="line">and run</span><br><span class="line">  /usr/local/opt/openssl/bin/c_rehash</span><br><span class="line"></span><br><span class="line">openssl is keg-only, which means it was not symlinked into /usr/local,</span><br><span class="line">because Apple has deprecated use of OpenSSL in favor of its own TLS and crypto libraries.</span><br><span class="line"></span><br><span class="line">If you need to have openssl first in your PATH run:</span><br><span class="line">  echo &apos;export PATH=&quot;/usr/local/opt/openssl/bin:$PATH&quot;&apos; &gt;&gt; ~/.bash_profile</span><br><span class="line"></span><br><span class="line">For compilers to find openssl you may need to set:</span><br><span class="line">  export LDFLAGS=&quot;-L/usr/local/opt/openssl/lib&quot;</span><br><span class="line">  export CPPFLAGS=&quot;-I/usr/local/opt/openssl/include&quot;</span><br><span class="line"></span><br><span class="line">==&gt; nginx</span><br><span class="line">Docroot is: /usr/local/var/www</span><br><span class="line"></span><br><span class="line">The default port has been set in /usr/local/etc/nginx/nginx.conf to 8080 so that</span><br><span class="line">nginx can run without sudo.</span><br><span class="line"></span><br><span class="line">nginx will load all files in /usr/local/etc/nginx/servers/.</span><br><span class="line"></span><br><span class="line">To have launchd start nginx now and restart at login:</span><br><span class="line">  brew services start nginx</span><br><span class="line">Or, if you don&apos;t want/need a background service you can just run:</span><br><span class="line">  nginx</span><br></pre></td></tr></table></figure>
+<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h1><p><code>brew services start nginx</code></p>
+<p>访问 <a href="http://localhost:8080/" target="_blank" rel="noopener">http://localhost:8080/</a></p>
+<p>重启</p>
+<p><code>brew services restart nginx</code></p>
+<h1 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h1><h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p><code>/usr/local/etc/nginx/nginx.conf</code></p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="http://nginx.org/en/" target="_blank" rel="noopener">官方文档</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/04/网络/反向代理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/04/网络/反向代理/" itemprop="url">反向代理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-04T12:51:53+08:00">
+                2019-06-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/网络/" itemprop="url" rel="index">
+                    <span itemprop="name">网络</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="直接访问"><a href="#直接访问" class="headerlink" title="直接访问"></a>直接访问</h1><p>直接访问目标网站</p>
+<p>用户直接找到房东租房的这种情况</p>
+<h1 id="正向代理-forward-proxy"><a href="#正向代理-forward-proxy" class="headerlink" title="正向代理 forward proxy"></a>正向代理 forward proxy</h1><p>客户端向代理服务器发送一个请求并指定目标，然后代理服务器向目标服务器转交请求并将获得的内容返回给客户端。</p>
+<p>这种代理其实在生活中是比较常见的，比如科学上网技术，其用到的就是代理技术。</p>
+<p><strong>正向代理，其实是”代理服务器”代理了”客户端”，去和”目标服务器”进行交互</strong></p>
+<p>租房子的时候，一般情况下，我们很难联系到房东，因为有些房东为了图方便，只把自己的房屋信息和钥匙交给中介了。而房客想要租房子，只能通过中介才能联系到房东。而对于房东来说，他可能根本不知道真正要租他的房子的人是谁，他只知道是中介在联系他。</p>
+<h2 id="正向代理的用途"><a href="#正向代理的用途" class="headerlink" title="正向代理的用途"></a>正向代理的用途</h2><h3 id="突破访问限制"><a href="#突破访问限制" class="headerlink" title="突破访问限制"></a>突破访问限制</h3><p> 通过代理服务器，可以突破自身IP访问限制，访问国外网站，教育网等。即，租客可以通过中介，来解决无法联系上房东的问题。</p>
+<h2 id="提高访问速度"><a href="#提高访问速度" class="headerlink" title="提高访问速度"></a>提高访问速度</h2><p>通常代理服务器都设置一个较大的硬盘缓冲区，会将部分请求的响应保存到<strong>缓冲区</strong>中，当其他用户再访问相同的信息时， 则直接由缓冲区中取出信息，传给用户，以提高访问速度。即，中介手里留存了很多房源信息和钥匙，可以直接带租客去看房。</p>
+<h2 id="隐藏客户端真实IP"><a href="#隐藏客户端真实IP" class="headerlink" title="隐藏客户端真实IP"></a>隐藏客户端真实IP</h2><h1 id="反向代理-reverse-proxy"><a href="#反向代理-reverse-proxy" class="headerlink" title="反向代理 reverse proxy"></a>反向代理 reverse proxy</h1><p>以代理服务器来接受internet上的连接请求，然后将请求转发给内部网络上的服务器，并将从服务器上得到的结果返回给internet上请求连接的客户端</p>
+<p><strong>反向代理，其实是”代理服务器”代理了”目标服务器”，去和”客户端”进行交互。</strong></p>
+<p>租房子的时候，我们以为我们接触的是房东，其实有时候也有可能并非房主本人，有可能是他的亲戚、朋友，甚至是二房东。但是我们并不知道和我们沟通的并不是真正的房东。这种帮助真正的房主租房的二房东其实就是反向代理服务器。这个过程就是反向代理。</p>
+<h2 id="反向代理的用途"><a href="#反向代理的用途" class="headerlink" title="反向代理的用途"></a>反向代理的用途</h2><h3 id="隐藏服务器真实IP"><a href="#隐藏服务器真实IP" class="headerlink" title="隐藏服务器真实IP"></a>隐藏服务器真实IP</h3><p>使用反向代理，可以对客户端隐藏服务器的IP地址。即，租客并不房东知道的真实身份。</p>
+<h3 id="负载均衡"><a href="#负载均衡" class="headerlink" title="负载均衡"></a>负载均衡</h3><p>反向代理服务器可以做负载均衡，根据所有真实服务器的负载情况，将客户端请求分发到不同的真实服务器上。即，二房东发现房主本人很忙，于是找到房主的妻子帮忙处理租房事宜。</p>
+<h3 id="提高访问速度-1"><a href="#提高访问速度-1" class="headerlink" title="提高访问速度"></a>提高访问速度</h3><p>反向代理服务器可以对于静态内容及短时间内有大量访问请求的动态内容提供<strong>缓存</strong>服务，提高访问速度。即，二房东同样有房屋信息和钥匙。</p>
+<h3 id="提供安全保障"><a href="#提供安全保障" class="headerlink" title="提供安全保障"></a>提供安全保障</h3><p>反向代理服务器可以作为应用层防火墙，为网站提供对基于Web的攻击行为（例如DoS/DDoS）的防护，更容易排查恶意软件等。还可以为后端服务器统一提供加密和SSL加速（如SSL终端代理），提供HTTP访问认证等。</p>
+<h1 id="联系与区别"><a href="#联系与区别" class="headerlink" title="联系与区别"></a>联系与区别</h1><h2 id="共同点"><a href="#共同点" class="headerlink" title="共同点"></a>共同点</h2><ul>
+<li>位置：都是位于客户端和真实服务器之间</li>
+<li>功能：都是把客户端的请求转发给服务器，再把服务器的响应转发给客户端</li>
+<li>都能提高访问速度。</li>
+</ul>
+<h2 id="不同点"><a href="#不同点" class="headerlink" title="不同点"></a>不同点</h2><h3 id="代理的目标不同"><a href="#代理的目标不同" class="headerlink" title="代理的目标不同"></a>代理的目标不同</h3><ul>
+<li>正向代理其实是客户端的代理，帮助客户端访问其无法访问的服务器资源。</li>
+<li>反向代理则是服务器的代理，帮助服务器做负载均衡，安全防护等。</li>
+</ul>
+<h3 id="架设者不同"><a href="#架设者不同" class="headerlink" title="架设者不同"></a>架设者不同</h3><ul>
+<li>正向代理一般是客户端架设的，在自己的机器上和代理服务器上安装一个代理软件。</li>
+<li>反向代理一般是服务器架设的，比如在自己的机器集群中部署一个反向代理服务器。</li>
+</ul>
+<h3 id="客户端和服务端可见性"><a href="#客户端和服务端可见性" class="headerlink" title="客户端和服务端可见性"></a>客户端和服务端可见性</h3><ul>
+<li>正向代理中，隐藏客户端IP。服务器不知道真正的客户端到底是谁，以为访问自己的就是真实的客户端。</li>
+<li>反向代理中，隐藏服务器IP。客户端不知道真正的服务器是谁，以为自己访问的就是真实的客户端。</li>
+</ul>
+<h3 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h3><ul>
+<li>正向代理主要是用来解决访问限制问题。</li>
+<li>反向代理则是提供负载均衡、安全防护等作用。</li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://juejin.im/post/5c737a976fb9a049a81ff5a7" target="_blank" rel="noopener">漫话：如何给女朋友解释什么是反向代理？</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/02/手机/Exchange邮箱服务实现跨平台同步日历和联系人/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1375,494 +1889,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/11/Android/UI性能优化/内存Code部分的占用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/04/11/Android/UI性能优化/内存Code部分的占用/" itemprop="url">内存Code部分的占用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-04-11T16:43:53+08:00">
-                2019-04-11
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>加载 dex，so文件 占用的内存</p>
-<p><strong>工具</strong>：Linux /proc/<pid>/smaps 文件分析脚本</pid></p>
-<p>python代码 (本目录下 smap.py文件)：<a href="https://gist.github.com/LanderlYoung/aedd0e1fe09214545a7f20c40c01776c" target="_blank" rel="noopener">https://gist.github.com/LanderlYoung/aedd0e1fe09214545a7f20c40c01776c</a></p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://wetest.qq.com/lab/view/359.html?from=adsout_qqtips_past2_359" target="_blank" rel="noopener">我这样减少了26.5M Java内存！</a> 腾讯WeTest上企鹅FM的内存优化</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/29/RN/RN之Native处理异常/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/29/RN/RN之Native处理异常/" itemprop="url">RN之Native处理异常</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-29T17:41:12+08:00">
-                2019-03-29
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>研究RN框架异常的动机在于，我们需要建立起一套针对性的容错机制，毕竟它还是一个不够成熟的框架。期望能够做到的效果就是，对于每一个RN页面的启动，我们能够在<strong>进入页面至退出页面</strong>期间侦测所有发生的<strong>RN相关</strong>的崩溃，然后根据崩溃来考虑该页面是否该有降级策略、判断框架是否真的能够支持稳定迭代。</p>
-<p>并且，集中地处理崩溃，也有利于我们后续对框架稳定性进行针对性的统计与优化。即使最后还是最简单粗暴的try-catch，这个catch的位置也是一门艺术。</p>
-<p><strong>异常种类</strong></p>
-<ul>
-<li>产生位置<ul>
-<li>JS</li>
-<li>Java </li>
-<li>C++</li>
-</ul>
-</li>
-<li>产生时期<ul>
-<li>启动期</li>
-<li>运行期</li>
-</ul>
-</li>
-</ul>
-<h1 id="启动期异常"><a href="#启动期异常" class="headerlink" title="启动期异常"></a>启动期异常</h1><h2 id="框架启动流程"><a href="#框架启动流程" class="headerlink" title="框架启动流程"></a>框架启动流程</h2><p>ReactActivity.onCreate 调用 ReactActivityDelegate.loadApp 开始核心启动流程</p>
-<ul>
-<li><strong>预初始化</strong>：<ul>
-<li>初始化ReactRootView与ReactInstanceManager实例</li>
-</ul>
-</li>
-<li><strong>创建React上下文</strong>：由ReactRootView.startReactApplication一路走下来，会用懒加载方式创建React上下文，通过进入ReactInstanceManager.ReactContextInitAsyncTask这个AsyncTask中执行上下文创建的工作，里面执行的东西可以说是所有的Java部分初始化内容（收集与注册提供的Native/JS/View模块、初始化CatalystInstance（负责核心Bridge相关）、运行JSBundle、将界面展示到ReactRootView上等）。</li>
-</ul>
-<h2 id="预初始化"><a href="#预初始化" class="headerlink" title="预初始化"></a>预初始化</h2><p>涉及了so加载的操作，可以在 <code>ReactRootView.startReactApplication</code><br>外部再加一层try-catch</p>
-<h2 id="创建React上下文阶段"><a href="#创建React上下文阶段" class="headerlink" title="创建React上下文阶段"></a>创建React上下文阶段</h2><img src="/2019/03/29/RN/RN之Native处理异常/启动期异常.png">
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">runCreateReactContextOnNewThread</span><span class="params">(<span class="keyword">final</span> ReactContextInitParams initParams)</span> </span>&#123;</span><br><span class="line">  mCreateReactContextThread = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> ReactApplicationContext reactApplicationContext = createReactContext(</span><br><span class="line">            initParams.getJsExecutorFactory().create(),</span><br><span class="line">            initParams.getJsBundleLoader());</span><br><span class="line"></span><br><span class="line">        Runnable setupReactContextRunnable = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">          <span class="meta">@Override</span></span><br><span class="line">          <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">              setupReactContext(reactApplicationContext);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">              mDevSupportManager.handleException(e);</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        mDevSupportManager.handleException(e);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在框架启动的核心阶段，RN有捕获异常，但是仅仅只用 <code>DevSupportManager</code> 去处理，当不使用 <code>develop support</code> 时，会直接抛出异常。</p>
-<p>这里我们可以做<strong>第一个修改</strong>，不使用dev support时</p>
-<ul>
-<li>传入一个Handler去专门处理启动期的崩溃</li>
-<li>用<code>ReactInstanceManagerBuilder.setNativeModuleCallExceptionHandler()</code> 传入的ExceptionHandler 统一去处理崩溃</li>
-</ul>
-<h2 id="运行期异常"><a href="#运行期异常" class="headerlink" title="运行期异常"></a>运行期异常</h2><ol>
-<li>JS调用Native产生异常<ul>
-<li>Native模块不存在</li>
-<li>Native模块函数原型不一致</li>
-<li>Native模块执行的异常</li>
-</ul>
-</li>
-<li>Native调用JS异常<ul>
-<li>JS模块不存在</li>
-<li>JS模块函数原型不一致</li>
-<li>JS模块执行的异常</li>
-</ul>
-</li>
-<li>JS本身代码执行的异常</li>
-<li>UI操作的异常</li>
-</ol>
-<h3 id="运行线程"><a href="#运行线程" class="headerlink" title="运行线程"></a>运行线程</h3><p>RN维护了三个线程的MessageQueue，所有的操作都会被push到上面运行</p>
-<ul>
-<li><strong>NativeQueue</strong> 运行Native模块函数的线程（通常由JS发起），后台线程；</li>
-<li><strong>JSQueue</strong> 运行JS的线程，后台线程。</li>
-<li><strong>UIQueue</strong> 专门做UI操作，使用Android里面的<strong>主线程</strong>；</li>
-</ul>
-<p>在CatalystInstance初始化的时候会初始化三个Queue，启动后台线程，并将他们的句柄传给C++层的Bridge。Queue里面调度使用的Handler，重写了dispatchMessage，并在外面包装了层try-catch，统统都会交到 <code>CatalystInstance.onNativeException</code> 中。而这其中使用的就是我们传入给ReactInstanceManager的ExceptionHandler。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">private</span> <span class="title">CatalystInstanceImpl</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> ReactQueueConfigurationSpec reactQueueConfigurationSpec,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> JavaScriptExecutor jsExecutor,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> NativeModuleRegistry nativeModuleRegistry,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> JSBundleLoader jsBundleLoader,</span></span></span><br><span class="line"><span class="function"><span class="params">     NativeModuleCallExceptionHandler nativeModuleCallExceptionHandler)</span> </span>&#123;</span><br><span class="line">   Log.d(ReactConstants.TAG, <span class="string">"Initializing React Xplat Bridge."</span>);</span><br><span class="line">   mHybridData = initHybrid();</span><br><span class="line"></span><br><span class="line"><span class="comment">//创建三大线程：UI线程、Native线程与JS线程</span></span><br><span class="line">   mReactQueueConfiguration = ReactQueueConfigurationImpl.create(</span><br><span class="line">       reactQueueConfigurationSpec,</span><br><span class="line">       <span class="keyword">new</span> NativeExceptionHandler());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">onNativeException</span><span class="params">(Exception e)</span> </span>&#123;</span><br><span class="line">    mNativeModuleCallExceptionHandler.handleException(e);</span><br><span class="line">    mReactQueueConfiguration.getUIQueueThread().runOnQueue(</span><br><span class="line">      <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">          destroy();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">NativeExceptionHandler</span> <span class="keyword">implements</span> <span class="title">QueueThreadExceptionHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleException</span><span class="params">(Exception e)</span> </span>&#123;</span><br><span class="line">      <span class="comment">// Any Exception caught here is because of something in JS. Even if it's a bug in the</span></span><br><span class="line">      <span class="comment">// framework/native code, it was triggered by JS and theoretically since we were able</span></span><br><span class="line">      <span class="comment">// to set up the bridge, JS could change its logic, reload, and not trigger that crash.</span></span><br><span class="line">      onNativeException(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>初始化 <code>ReactInstanceManager</code> 时传的Handler 可以处理上面的前7种异常，我们需要单独处理UI操作异常</p>
-<h3 id="UI操作的异常"><a href="#UI操作的异常" class="headerlink" title="UI操作的异常"></a>UI操作的异常</h3><p>UI操作，其实是调用的UIManagerModule这个Java模块进行的操作，但是实际上它不是马上被同步执行的，而是仅仅只有一个入队列的操作。所有的UI操作都通过Choreographer来驱动执行，那这个时候虽然是在主线程运行，但是不在上面任何一个MessageQueue里面了，于是上面的方式捕获不到。</p>
-<p>以创建视图(<code>UIManagerModule.createView()</code>)为例，来追踪调用流程</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">GuardedFrameCallback</span> <span class="keyword">extends</span> <span class="title">ChoreographerCompat</span>.<span class="title">FrameCallback</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> ReactContext mReactContext;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> <span class="title">GuardedFrameCallback</span><span class="params">(ReactContext reactContext)</span> </span>&#123;</span><br><span class="line">    mReactContext = reactContext;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">doFrame</span><span class="params">(<span class="keyword">long</span> frameTimeNanos)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      doFrameGuarded(frameTimeNanos);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RuntimeException e) &#123;</span><br><span class="line">      mReactContext.handleException(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>UI操作的异常默认由 <code>ReactContext.handleException</code> 处理，追踪发现是 RN React上下文创建时设给它一个Handler，只在develop support时才起作用</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> ReactApplicationContext <span class="title">createReactContext</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      JavaScriptExecutor jsExecutor,</span></span></span><br><span class="line"><span class="function"><span class="params">      JSBundleLoader jsBundleLoader)</span> </span>&#123;</span><br><span class="line">    Log.d(ReactConstants.TAG, <span class="string">"ReactInstanceManager.createReactContext()"</span>);</span><br><span class="line">    ReactMarker.logMarker(CREATE_REACT_CONTEXT_START);</span><br><span class="line">    <span class="keyword">final</span> ReactApplicationContext reactContext = <span class="keyword">new</span> ReactApplicationContext(mApplicationContext);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mUseDeveloperSupport) &#123;</span><br><span class="line">      reactContext.setNativeModuleCallExceptionHandler(mDevSupportManager);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    NativeModuleRegistry nativeModuleRegistry = processPackages(reactContext, mPackages, <span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">    NativeModuleCallExceptionHandler exceptionHandler = mNativeModuleCallExceptionHandler != <span class="keyword">null</span></span><br><span class="line">      ? mNativeModuleCallExceptionHandler</span><br><span class="line">      : mDevSupportManager;</span><br><span class="line">    CatalystInstanceImpl.Builder catalystInstanceBuilder = <span class="keyword">new</span> CatalystInstanceImpl.Builder()</span><br><span class="line">      .setReactQueueConfigurationSpec(mUseSeparateUIBackgroundThread ?</span><br><span class="line">        ReactQueueConfigurationSpec.createWithSeparateUIBackgroundThread() :</span><br><span class="line">        ReactQueueConfigurationSpec.createDefault())</span><br><span class="line">      .setJSExecutor(jsExecutor)</span><br><span class="line">      .setRegistry(nativeModuleRegistry)</span><br><span class="line">      .setJSBundleLoader(jsBundleLoader)</span><br><span class="line">      .setNativeModuleCallExceptionHandler(exceptionHan&#125;ler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这里我们可以做<strong>第二个修改</strong>，初始化ReactContext时，可以像设给CatalystInstance的一样</p>
-<ul>
-<li>在使用develop support时设给它DevSupportManagerImpl</li>
-<li>否则使用传入的NativeModuleExceptionHandler</li>
-</ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://mp.weixin.qq.com/s/aWuenpGOKug4fovT5uKXTQ?" target="_blank" rel="noopener">React Native for Android 异常处理概览</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/字符串分割/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/字符串分割/" itemprop="url">字符串分割</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:51:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="split"><a href="#split" class="headerlink" title="split"></a>split</h1><pre><code>1、如果用“.”作为分隔的话，必须是如下写法：String.split(&quot;\\.&quot;),这样才能正确的分隔开，不能用String.split(&quot;.&quot;);
-2、如果用“|”作为分隔的话，必须是如下写法：String.split(&quot;\\|&quot;),这样才能正确的分隔开，不能用String.split(&quot;|&quot;);
-“.”和“|”都是转义字符，必须得加&quot;\\&quot;;
-而且分隔出来的字符串可能带有不可见特殊部分，可能出现equal 不成立bug    
-</code></pre><p>StringTokenizer</p>
-<ul>
-<li>比spilt<strong>效率高</strong></li>
-<li>支持多个分隔符</li>
-<li>支持是否返回分隔符</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">StringTokenizer st = <span class="keyword">new</span> StringTokenizer(testWord, <span class="string">" ,?.!:\"\"\n#"</span>, <span class="keyword">true</span>);</span><br><span class="line">List&lt;String&gt; wordList = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"><span class="keyword">while</span> (st.hasMoreElements()) &#123;</span><br><span class="line">    wordList.add(st.nextToken());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1917,7 +1943,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">263</span>
+                  <span class="site-state-item-count">266</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1928,7 +1954,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -1939,7 +1965,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-count">66</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

@@ -262,6 +262,571 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/Android/Android动态运行时权限/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/30/Android/Android动态运行时权限/" itemprop="url">Android动态运行时权限</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T10:53:53+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="运行时申请权限"><a href="#运行时申请权限" class="headerlink" title="运行时申请权限"></a>运行时申请权限</h1><h2 id="新权限模型"><a href="#新权限模型" class="headerlink" title="新权限模型"></a>新权限模型</h2><p>权限分为：</p>
+<ul>
+<li>普通权限 <code>AndroidManifest.xml</code>文件中直接添加权限即可</li>
+<li>危险权限 动态获取权限</li>
+</ul>
+<p><strong>危险权限分为9组24种</strong></p>
+<img src="/2019/01/30/Android/Android动态运行时权限/危险权限.png">
+<h2 id="两个条件"><a href="#两个条件" class="headerlink" title="两个条件"></a>两个条件</h2><ul>
+<li>项目TargetSDKVersion &gt;=23</li>
+<li>手机系统 Android 6.0 以上</li>
+</ul>
+<p>直接访问权接导致app崩溃</p>
+<h3 id="targetSdkVersion-说明"><a href="#targetSdkVersion-说明" class="headerlink" title="targetSdkVersion 说明"></a>targetSdkVersion 说明</h3><ol>
+<li>targetSdkVersion版本号&lt;= 22时，不需要动态处理权限 。但有时应用程序会打不开。</li>
+<li><p>如果是之前的老版本升级上来的，系统会默认开启之前所有的权限。</p>
+<p> 比如之前的targetSdkVersion是21，后来升级之后变成了25，这个时候系统会自动授权。</p>
+<p> 一定要是升级变成的25，否则还是需要授权。</p>
+</li>
+</ol>
+<h2 id="申请流程"><a href="#申请流程" class="headerlink" title="申请流程"></a>申请流程</h2><ul>
+<li>检测是否有权限 <code>ContextCompat.checkSelfPermission()</code></li>
+<li>有权限，直接使用</li>
+<li><p>无权限，请求权限 <code>ActivityCompat.requestPermissions()</code></p>
+<ul>
+<li><p>根据需要设置权限说明</p>
+<p>  <code>ActivityCompat.shouldShowRequestPermissionRationale()</code></p>
+</li>
+<li><p>Activity中获取回调结果 </p>
+<p>  重写 <code>onRequestPermissionsResult()</code> </p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><ol>
+<li>运行时申请</li>
+<li>支持单个权限、多个权限申请</li>
+<li>无侵入式申请，无需关注权限申请的逻辑</li>
+<li>除了Activity、Fragment之外，还需要支持Service中申请</li>
+<li>对国产手机做兼容处理</li>
+</ol>
+<p>1和2，Google都有对应的API</p>
+<p>3 可以通过自定义注解+AOP切面方式来解决</p>
+<p>4 通过一个透明的Activity去申请权限，并且把申请结果返回来。Google提供的API只支持在Activity和Fragment中去申请权限</p>
+<p>5 国产安卓手机碎片化比较严重，特殊处理</p>
+<h1 id="流行的三方库"><a href="#流行的三方库" class="headerlink" title="流行的三方库"></a>流行的三方库</h1><table>
+<thead>
+<tr>
+<th>权限库</th>
+<th>是否使用注解</th>
+<th>是否支持链式调用</th>
+<th>是否支持Service</th>
+<th>是否适配国产机</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RxPermissions</td>
+<td>No</td>
+<td>Yes 基于RX的思想</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>PermissionsDispatcher</td>
+<td>Yes 编译时注解</td>
+<td>No</td>
+<td>No</td>
+<td>适配了小米</td>
+</tr>
+</tbody>
+</table>
+<h1 id="设计"><a href="#设计" class="headerlink" title="设计"></a>设计</h1><h2 id="概念定义"><a href="#概念定义" class="headerlink" title="概念定义"></a>概念定义</h2><ul>
+<li><strong>申请权限</strong>：弹出系统权限弹窗 <code>@NeedPermission</code></li>
+<li><strong>权限被拒绝</strong>：用户没有给权限，并且选中不再提示 <code>@PermissionCanceled</code></li>
+<li><strong>权限被取消</strong>：用户没有给权限，但是没有选中不再提示 <code>@PermissionDenied</code> </li>
+</ul>
+<p>注解都是声明在Method级别上的。</p>
+<h2 id="整体思路"><a href="#整体思路" class="headerlink" title="整体思路"></a>整体思路</h2><p>在我们的Activity、Fragment及Service中声明注解，然后在AOP中解析我们的注解，并把申请的权限传递给一个透明的Activity去处理，并把处理结果返回来。</p>
+<img src="/2019/01/30/Android/Android动态运行时权限/整体思路.png">
+<h2 id="可能会遇到的问题"><a href="#可能会遇到的问题" class="headerlink" title="可能会遇到的问题"></a>可能会遇到的问题</h2><ol>
+<li>不同型号的手机兼容问题（申请权限、跳设置界面）</li>
+<li>AOP解析注解以及传值问题</li>
+</ol>
+<h1 id="国产手机兼容"><a href="#国产手机兼容" class="headerlink" title="国产手机兼容"></a>国产手机兼容</h1><h2 id="兼容问题"><a href="#兼容问题" class="headerlink" title="兼容问题"></a>兼容问题</h2><ol>
+<li>无法弹出权限申请对话框 <code>ActivityCompat.shouldShowRequestPermissionRationale(Activity, String)</code> </li>
+<li>用户点击拒绝授权，却回调权限申请成功方法</li>
+<li>只能弹出一次权限申请，拒绝后就无法再弹出权限申请对话框</li>
+</ol>
+<h2 id="跳转到系统设置页面或者手机管家界面"><a href="#跳转到系统设置页面或者手机管家界面" class="headerlink" title="跳转到系统设置页面或者手机管家界面"></a>跳转到系统设置页面或者手机管家界面</h2><p>权限申请对话框不再弹出时，跳转到系统设置页面或者手机管家界面</p>
+<p>国产手机各个设置界面不一样，用通用的API跳转不到相应的APP设置界面，Aopermission采用了策略模式</p>
+<img src="/2019/01/30/Android/Android动态运行时权限/跳转到设置页.png">
+<p>如需做兼容，只需要在库里修改，调用方是不需要处理的。</p>
+<p>跳转到设置界面调用如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SettingUtil.go2Setting(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure>
+<p><a href="https://github.com/crazyqiang/Aopermission" target="_blank" rel="noopener">Aopermission</a> AOP方式封装的6.0运行时申请权限库</p>
+<p><a href="https://github.com/jokermonn/permissions4m" target="_blank" rel="noopener">permissions4m</a> 国产 Android 权限申请最佳适配方案。支持国产手机 5.0 权限申请。年久失修</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/23/Flutter/Flutter三方库/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/23/Flutter/Flutter三方库/" itemprop="url">Flutter三方库</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-23T10:47:29+08:00">
+                2019-01-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://github.com/flutter/plugins" target="_blank" rel="noopener">Flutter plugins汇总</a></p>
+<p><a href="https://pub.dartlang.org/packages/flutter_screenutil" target="_blank" rel="noopener">屏幕适配 flutter_screenutil</a></p>
+<p><a href="https://pub.dartlang.org/packages/url_launcher" target="_blank" rel="noopener">URL打开web 电话 短信 邮件 url_launcher</a></p>
+<p><a href="https://pub.dartlang.org/packages/flutter_refresh" target="_blank" rel="noopener">列表下拉刷新 加载更多 flutter_refresh</a></p>
+<p><a href="https://pub.dartlang.org/packages/flutter_spinkit" target="_blank" rel="noopener">加载动画 flutter_spinkit</a></p>
+<p><a href="https://pub.dartlang.org/packages/cupertino_icons" target="_blank" rel="noopener">iOS风格图标 cupertino_icons</a></p>
+<p><a href="https://pub.dartlang.org/flutter/packages?q=SharedPreferences" target="_blank" rel="noopener">存储 SharedPreferences</a></p>
+<p><a href="https://github.com/flutterchina/dio" target="_blank" rel="noopener">网络框架 dio</a></p>
+<p><a href="https://github.com/serenader2014/flutter_carousel_slider" target="_blank" rel="noopener">轮播图 carousel_slider</a></p>
+<p><a href="https://github.com/renefloor/flutter_cached_network_image" target="_blank" rel="noopener">图片加载 cached_network_image</a></p>
+<p><a href="https://github.com/flutter/plugins/tree/master/packages/share" target="_blank" rel="noopener">链接分享 share</a></p>
+<p><a href="https://github.com/flutter/plugins/tree/master/packages/webview_flutter" target="_blank" rel="noopener">WebView  <code>flutter_webview_plugin</code></a></p>
+<p><a href="https://github.com/crazecoder/flutter_bugly" target="_blank" rel="noopener">bugly flutter_bugly</a> </p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/20/web/php/PHP教程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/20/web/php/PHP教程/" itemprop="url">PHP教程</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-20T11:32:25+08:00">
+                2019-01-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index">
+                    <span itemprop="name">Web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><h2 id="PHP"><a href="#PHP" class="headerlink" title="PHP"></a>PHP</h2><p>Hypertext Preprocessor 超文本预处理器</p>
+<p>是一种通用开源脚本语言</p>
+<p><strong>弱类型语言</strong></p>
+<h2 id="PHP-文件"><a href="#PHP-文件" class="headerlink" title="PHP 文件"></a>PHP 文件</h2><ul>
+<li>默认文件扩展名是 “.php”</li>
+<li>可包含文本、HTML、JavaScript代码和 PHP 代码</li>
+<li>PHP 代码在服务器上执行，结果以纯 HTML 形式返回给浏览器<br>PHP 文件</li>
+</ul>
+<h1 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h1><h2 id="基本语法"><a href="#基本语法" class="headerlink" title="基本语法"></a>基本语法</h2><ul>
+<li>PHP 脚本以 <code>&lt;?php</code> 开始，以 <code>?&gt;</code>结束：</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// PHP 代码</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>代码行必须以分号结束</li>
+</ul>
+<h2 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// 这是 PHP 单行注释</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">这是 </span></span><br><span class="line"><span class="comment">PHP 多行</span></span><br><span class="line"><span class="comment">注释</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<h1 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h1><h2 id="命名规则"><a href="#命名规则" class="headerlink" title="命名规则"></a>命名规则</h2><ul>
+<li><strong>以 $ 符号开始</strong>，后面跟变量名称</li>
+<li>变量名称以字母或者下划线开始</li>
+<li>变量名称只能包含字母数字字符以及下划线（A-z、0-9 和 _ ）</li>
+<li>变量名称区分大小写</li>
+</ul>
+<h2 id="创建-声明"><a href="#创建-声明" class="headerlink" title="创建/声明"></a>创建/声明</h2><p>弱类型语言，而且没有声明变量的命令。</p>
+<p>变量在第一次赋值时被创建</p>
+<h2 id="作用域"><a href="#作用域" class="headerlink" title="作用域"></a>作用域</h2><ul>
+<li>local 函数内可见</li>
+<li>global 函数外可见。函数内可以使用 <code>global</code>关键字访问</li>
+<li>static 使局部变量不被删除</li>
+<li>parameter 函数参数，函数内可见</li>
+</ul>
+<h3 id="全局变量"><a href="#全局变量" class="headerlink" title="全局变量"></a>全局变量</h3><p>全局变量存储在一个名为 <strong>$GLOBALS</strong>[index] 的数组中。 index 保存变量的名称。这个数组可以在函数内部访问</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$x=<span class="number">5</span>;</span><br><span class="line">$y=<span class="number">10</span>;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myTest</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">global</span> $x,$y;<span class="comment">//函数内访问全局变量需要使用global关键字</span></span><br><span class="line">    $y=$x+$y;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">myTest();</span><br><span class="line"><span class="keyword">echo</span> $y; <span class="comment">// 输出 15</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>上面的实例可以写成这样：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$x=<span class="number">5</span>;</span><br><span class="line">$y=<span class="number">10</span>;</span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myTest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    $GLOBALS[<span class="string">'y'</span>]=$GLOBALS[<span class="string">'x'</span>]+$GLOBALS[<span class="string">'y'</span>];</span><br><span class="line">&#125; </span><br><span class="line"> </span><br><span class="line">myTest();</span><br><span class="line"><span class="keyword">echo</span> $y;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="static"><a href="#static" class="headerlink" title="static"></a>static</h3><p>使局部变量不被删除。每次调用该函数时，static变量将会保留着函数前一次被调用时的值。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">myTest</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">static</span> $x=<span class="number">0</span>;<span class="comment">//只在第一次函数调用时赋值，然后保留着函数前一次被调用时的值</span></span><br><span class="line">    <span class="keyword">echo</span> $x;</span><br><span class="line">    $x++;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">myTest();<span class="comment">//0</span></span><br><span class="line">myTest();<span class="comment">//1</span></span><br><span class="line">myTest();<span class="comment">//2</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h1 id="常量"><a href="#常量" class="headerlink" title="常量"></a>常量</h1><ul>
+<li>常量名命名规则同变量名<ul>
+<li>常量用 define 声明</li>
+<li>变量 $变量名     </li>
+</ul>
+</li>
+<li>值不可变</li>
+<li>全局作用局</li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bool define ( string $name , mixed $value [, bool $case_insensitive = <span class="keyword">false</span> ] )</span><br></pre></td></tr></table></figure>
+<p>默认大小写敏感</p>
+<h1 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h1><h2 id="Integer（整型）"><a href="#Integer（整型）" class="headerlink" title="Integer（整型）"></a>Integer（整型）</h2><p>支持10进制，16进制 <code>0x8C</code>，8进制 <code>047</code></p>
+<h2 id="Float（浮点型）"><a href="#Float（浮点型）" class="headerlink" title="Float（浮点型）"></a>Float（浮点型）</h2><h2 id="Boolean（布尔型）"><a href="#Boolean（布尔型）" class="headerlink" title="Boolean（布尔型）"></a>Boolean（布尔型）</h2><p>true, false</p>
+<h2 id="String（字符串）"><a href="#String（字符串）" class="headerlink" title="String（字符串）"></a>String（字符串）</h2><p>单引号，双引号</p>
+<h3 id="操作"><a href="#操作" class="headerlink" title="操作"></a>操作</h3><h4 id="拼接"><a href="#拼接" class="headerlink" title="拼接"></a>拼接</h4><p>并置运算符 <code>.</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line">$txt1=<span class="string">"Hello world!"</span>; </span><br><span class="line">$txt2=<span class="string">"What a nice day!"</span>; </span><br><span class="line"><span class="keyword">echo</span> $txt1 . <span class="string">" "</span> . $txt2; </span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h4 id="api"><a href="#api" class="headerlink" title="api"></a>api</h4><pre><code>strlen() 长度
+strpos() 子字符串在字符串中的位置。未找到返回 FALSE
+</code></pre><h3 id="EOF-heredoc"><a href="#EOF-heredoc" class="headerlink" title="EOF(heredoc)"></a>EOF(heredoc)</h3><h2 id="Array（数组）"><a href="#Array（数组）" class="headerlink" title="Array（数组）"></a>Array（数组）</h2><h2 id="Object（对象）"><a href="#Object（对象）" class="headerlink" title="Object（对象）"></a>Object（对象）</h2><h2 id="NULL（空值）"><a href="#NULL（空值）" class="headerlink" title="NULL（空值）"></a>NULL（空值）</h2><p>可以通过设置变量值为 NULL 来清空变量数据</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/17/Android/自定义Activity背景-奇葩的启动页实现方式/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2194,753 +2759,6 @@ public class AddEditTaskPresenterTest {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/google mvp clean 架构解读/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/google mvp clean 架构解读/" itemprop="url">google mvp clean 架构解读</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:07:56+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.jianshu.com/p/cba6663435c7" target="_blank" rel="noopener">学习 CleanArchitecture 心得体会</a> </p>
-<p><a href="https://github.com/googlesamples/android-architecture/tree/todo-mvp-clean/" target="_blank" rel="noopener">google mvp clean architecture sample</a></p>
-<p><a href="https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html" target="_blank" rel="noopener">uncle-bob Clean Architecture</a></p>
-<h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>google samples<br><img src="https://upload-images.jianshu.io/upload_images/1019822-cda363d399934d04.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/700" alt=""></p>
-<p>uncle-bob<br><img src="http://upload-images.jianshu.io/upload_images/1019822-b2acfd9ed6182541.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
-<p><strong>两个图其实是一个意思。都是三层结构</strong></p>
-<p>It’s based on the MVP sample, adding a <code>domain</code> layer between the <code>presentation</code> layer and <code>data</code> layar, splitting the app in three layers:</p>
-<ul>
-<li>PresentationLayer。 展示层，原来的MVP</li>
-<li>DomainLayer。 新加的层</li>
-<li><p>DataLayer。原来的数据层。</p>
-<p>  最底层，完全不知道 DomainLayer 和PresentationLayer 的存在。这是保证 <code>可测试性</code> <code>低耦合度</code> 的关键所在 </p>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/Clean架构/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/Clean架构/" itemprop="url">Clean架构</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:06:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>作者尝试使用简单的观点将各种架构的共通之处和最终目标说清楚。</p>
-<p>全文要说清楚的就是一件事“如何写出整洁的架构”。</p>
-<p>作者希望在架构系统的时候只需要秉持最简单的两个观点（<strong>分层和依赖规则</strong>）开发，就能开发出干净整洁的系统架构。</p>
-<h1 id="好架构共性"><a href="#好架构共性" class="headerlink" title="好架构共性"></a>好架构共性</h1><img src="/2019/01/14/编程思想/Clean架构/Clean架构.png">
-<p>过去几年间有许多关于系统架构的观点。虽然这些架构在细节处都有一些变化，但是实际上，它们是非常相似的。它们的目标是一样的，将各种实体间的关系进行分离。它们分离操作的方法也是一样的，采用软件分层的方式。它们分的层中至少有一个业务逻辑层，并且有其他的接口层。</p>
-<p>每一种架构在写系统的<strong>业务逻辑</strong>的时候有以下特征：</p>
-<ol>
-<li><p>与框架的分离。<br>框架决不能依赖一些有限制特征的库。这样就能保证你能像使用手边的工具一样简单地使用这些框架，而不会让你的系统业务逻辑在使用前就有一些强制性的约束。</p>
-</li>
-<li><p>可测试性。<br>业务逻辑必须能独立测试，不需要UI，数据库，Web服务器或者一些其他的外部条件。</p>
-</li>
-<li><p>与UI的分离。<br>UI必须能非常容易独立地修改。而不能在改变UI的同时需要改变系统其他部分。比如当把系统的UI从Web UI改成控制台UI，你并不需要改变任何业务逻辑的代码。</p>
-</li>
-<li><p>与数据库的分离。<br>能很方便地在Oracle，SQL Server，Mongo DB，BigTable，CouchDB或者其他数据库中进行切换和改变。业务逻辑决不能依赖这些数据库。</p>
-</li>
-<li><p>与外部结构的分离。<br>系统的业务逻辑并不需要知道任何外部的结构。</p>
-</li>
-</ol>
-<p>文章最上面的图就是将所有这些架构进行统一概括，提取出统一的观点。</p>
-<h1 id="Clean架构要点"><a href="#Clean架构要点" class="headerlink" title="Clean架构要点"></a>Clean架构要点</h1><h2 id="依赖规则（The-Dependency-Rule）"><a href="#依赖规则（The-Dependency-Rule）" class="headerlink" title="依赖规则（The Dependency Rule）"></a>依赖规则（The Dependency Rule）</h2><p><strong>单向向内依赖</strong>。内层完全不知道外层的存在；</p>
-<h2 id="分层"><a href="#分层" class="headerlink" title="分层"></a>分层</h2><h3 id="实体层（Entities）"><a href="#实体层（Entities）" class="headerlink" title="实体层（Entities）"></a>实体层（Entities）</h3><p>业务逻辑对象，封装了最通用的规则。</p>
-<p>外部环境变化的时候，这些实体是最不需要被变化的。即<strong>用户实例层的任何改变都不会影响到实体层</strong></p>
-<p>比如在增加翻页需求或者是安全需求的时候，这些实体是最不应该被改变的。</p>
-<h3 id="用户实例层（Use-Cases）"><a href="#用户实例层（Use-Cases）" class="headerlink" title="用户实例层（Use Cases）"></a>用户实例层（Use Cases）</h3><p>具体的业务逻辑</p>
-<p>由流入实体的数据流和流出实体的数据流实现，用户实例使得内层的实体能依靠实体内定义的业务逻辑规则来完成系统的用户需求。</p>
-<p>能够引起用户实例层<strong>改变的唯一原因是 用户需求改变</strong>。外层，比如UI、数据库或者任何公共的框架，改变都不会影响到用户实例层</p>
-<h3 id="接口适配层（Interface-Adapters）"><a href="#接口适配层（Interface-Adapters）" class="headerlink" title="接口适配层（Interface Adapters）"></a>接口适配层（Interface Adapters）</h3><p>目的就是进行<strong>数据结构转换</strong> DataMapper</p>
-<p>按数据流向需要，转换 <strong>用户实例层和实体层</strong> 和 <strong>外层(比如数据库或者Web)</strong> 的数据结构。</p>
-<p>接口适配层 并不需要知道任何数据库的信息。如果数据库是SQL数据库，那么，所有的SQL语言应当在这层被限制使用</p>
-<p>这里可以是Presenters(MVP),ViewModel(MVVM),Controller(MVC)等MVX结构，X所在的地方</p>
-<h3 id="框架和驱动层（Frameworks-and-Drivers）"><a href="#框架和驱动层（Frameworks-and-Drivers）" class="headerlink" title="框架和驱动层（Frameworks and Drivers）"></a>框架和驱动层（Frameworks and Drivers）</h3><p>最外层是由<strong>框架和工具</strong>组成的</p>
-<p>数据最终到达的地方(Web、数据库)</p>
-<h1 id="Clean架构问题"><a href="#Clean架构问题" class="headerlink" title="Clean架构问题"></a>Clean架构问题</h1><h2 id="只有四层？"><a href="#只有四层？" class="headerlink" title="只有四层？"></a>只有四层？</h2><p>答案是否定的。这个分层模型是纲要性的。</p>
-<p>并没有任何规定说你必须只能实现这四个层级。但是，<strong>依赖规则（The Dependency Rule）是必须遵守的</strong>：代码依赖只能 <strong>单向向内</strong> 。越向内，抽象程度越高，需要设计越高层面的策略。</p>
-<h2 id="跨层调用-反向调用"><a href="#跨层调用-反向调用" class="headerlink" title="跨层调用/反向调用"></a>跨层调用/反向调用</h2><p>图片的右下角是一个如何跨层调用的例子。准确的说是 反向调用</p>
-<p>它演示了 控制器、表现器和 用户实例层 进行交互。</p>
-<p>注意流向，从控制器开始，通过用户实例层，然后向上执行到表现器。</p>
-<p>为了遵守向内依赖规则，通常使用 <strong>依赖倒置原则</strong>（Dependency Inversion Principle）来实现这种反向调用。</p>
-<p>例子中，让 用户实例层 调用一个接口（Use Case Output Port），然后让表现层在外部实现这个接口。</p>
-<p>实践中，一般都是通过 <strong>依赖注入(DI)</strong> 来实现依赖倒置。</p>
-<h2 id="数据跨层传递原则"><a href="#数据跨层传递原则" class="headerlink" title="数据跨层传递原则"></a>数据跨层传递原则</h2><p>保持简单的数据结构。原则是不要违背向内依赖规则</p>
-<p>所以，没有必要在各层定义数据结构实体(比如 框架和驱动层、用户实例层、实体层)，外层是可以跨层依赖内层的(符合向内依赖规则)</p>
-<h1 id="三层与洋葱图的对应关系"><a href="#三层与洋葱图的对应关系" class="headerlink" title="三层与洋葱图的对应关系"></a>三层与洋葱图的对应关系</h1><p>Domain Layer 对应洋葱图最里面两层：Entities，Use Cases</p>
-<p>Presentation Layer 和 Data Layer 对应洋葱图最外层：Frameworks and Drivers 即(UI Web Devices DB)</p>
-<h1 id="数据流向"><a href="#数据流向" class="headerlink" title="数据流向"></a>数据流向</h1><img src="/2019/01/14/编程思想/Clean架构/数据流向.png">
-<p>实例：从Presenter层传递一个对象UserModel给Data层进行存储</p>
-<h2 id="Presenter层"><a href="#Presenter层" class="headerlink" title="Presenter层"></a>Presenter层</h2><ul>
-<li>用户输入数据，并点击OK按钮(View)</li>
-<li>Presenter(ViewModel,Controller等)获取到数据，并构造一个UserModel</li>
-<li>使用UserModelMapper（Presenter层的数据Mapper对象）将UserModel转换成User对象。<ul>
-<li>这步可以省略，上一步直接构造User对象</li>
-</ul>
-</li>
-<li>调用UseCase.store(user)</li>
-</ul>
-<h2 id="Domain层"><a href="#Domain层" class="headerlink" title="Domain层"></a>Domain层</h2><p>唯一目:执行上面的业务逻辑(存储对象)</p>
-<ul>
-<li>StoreUseCase接受到User对象</li>
-<li>调用UserRepository接口的方法，传入User</li>
-</ul>
-<h2 id="Data层"><a href="#Data层" class="headerlink" title="Data层"></a>Data层</h2><ul>
-<li>UserDataRepository(UserRepository接口的实现类)，接受到User对象</li>
-<li>调用Mapper方法(Data层的)将User对象转换成UserEntity</li>
-<li>存储UserEntity对象</li>
-</ul>
-<p>这只是数据的流动过程，与依赖关系无关。Domain层实际上不持有任何依赖。</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Clean 架构是 <strong>分层 和 单向内向依赖</strong> 。即内层完全不知道外层的存在</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html" target="_blank" rel="noopener">The Clean Code Blog</a> by Robert C. Martin (Uncle Bob) - 原文</li>
-<li><a href="https://www.cnblogs.com/yjf512/archive/2012/09/10/2678313.html" target="_blank" rel="noopener">架构整洁之道</a> - 译文</li>
-<li><a href="https://www.jianshu.com/p/66e749e19f0d" target="_blank" rel="noopener">Clean架构探讨</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/重构！将Google官方Android MVP应用于已有项目/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/重构！将Google官方Android MVP应用于已有项目/" itemprop="url">重构将Google官方Android MVP应用于已有项目</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:05:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.jianshu.com/p/bb5df9b7e357" target="_blank" rel="noopener">重构！将Google官方Android MVP应用于已有项目</a></p>
-<p>采用MVP架构进行重构，代码量上相对于原项目时有所增加的</p>
-<h1 id="Google示例项目"><a href="#Google示例项目" class="headerlink" title="Google示例项目"></a>Google示例项目</h1><p><a href="https://github.com/googlesamples/android-architecture" target="_blank" rel="noopener">Android Architecture Blueprints [beta]</a></p>
-<h1 id="重构"><a href="#重构" class="headerlink" title="重构"></a>重构</h1><h2 id="建立两个Base接口，BaseView和BasePresenter"><a href="#建立两个Base接口，BaseView和BasePresenter" class="headerlink" title="建立两个Base接口，BaseView和BasePresenter"></a>建立两个Base接口，BaseView和BasePresenter</h2><pre><code>public interface BasePresenter {
-}
-
-public interface BaseView&lt;T&gt; {
-    void setPresenter(T presenter);//将Presenter实例传入view，调用时机为Presenter实现类的构造方法中
-}
-</code></pre><h2 id="创建契约类-统一管理View和Presenter的所有接口"><a href="#创建契约类-统一管理View和Presenter的所有接口" class="headerlink" title="创建契约类,统一管理View和Presenter的所有接口"></a>创建契约类,统一管理View和Presenter的所有接口</h2><pre><code>public interface MainActivityContract {
-
-    interface View extends BaseView&lt;Presenter&gt; {
-
-        void showError();
-
-        void showLoading();
-
-        void stopLoading();
-
-        void showResults(ArrayList&lt;String&gt; list);
-
-        void showNetworkError();
-
-    }
-
-    interface Presenter extends BasePresenter {
-
-        void loadPosts(String url, boolean clearing);
-
-        void refresh(String url);
-
-        void loadMore(String url);
-
-    }
-
-}
-</code></pre><h2 id="创建Presenter实现类"><a href="#创建Presenter实现类" class="headerlink" title="创建Presenter实现类"></a>创建Presenter实现类</h2><pre><code>public class MainActivityPresenter implements MainActivityContract.Presenter, NewsListener {
-
-    private MainActivityContract.View view;//持有View接口
-    private NewsModel model;//持有Model实现类
-
-    private ArrayList&lt;String&gt; list = new ArrayList&lt;String&gt;();
-
-    public MainActivityPresenter(MainActivityContract.View view) {
-        this.view = view;
-        this.view.setPresenter(this);//View设置Present
-        model = new NewsModel();
-    }
-
-    @Override
-    public void loadPosts(String url, boolean clearing) {
-        view.showLoading();
-        if (clearing) {
-            list.clear();
-        }
-        model.load(url, this);
-    }
-
-    @Override
-    public void refresh(String url) {
-        list.clear();
-        loadPosts(url, true);
-    }
-
-    @Override
-    public void loadMore(String url) {
-        model.load(url, this);
-    }
-
-    @Override
-    public void start() {
-
-    }
-
-    @Override
-    public void onSuccess(String result) {
-        list.add(result);
-        view.showResults(list);
-        view.stopLoading();
-
-    }
-
-    @Override
-    public void onError(String error) {
-        view.stopLoading();
-        view.showError();
-    }
-
-}
-</code></pre><h2 id="创建View实现类。-作为View和Presenter的桥梁，创建View和Presenter实现类的实例"><a href="#创建View实现类。-作为View和Presenter的桥梁，创建View和Presenter实现类的实例" class="headerlink" title="创建View实现类。 作为View和Presenter的桥梁，创建View和Presenter实现类的实例"></a>创建View实现类。 作为View和Presenter的桥梁，创建View和Presenter实现类的实例</h2><pre><code>public class MainActivity extends AppCompatActivity implements MainActivityContract.View {
-
-    private SwipeRefreshLayout refresh;
-    private TextView tvRefresh;
-    private TextView tvLoadMore;
-    private TextView tvContent;
-
-    private MainActivityContract.Presenter presenter;
-
-    private String cnnews = &quot;cnnews&quot;;
-    private String usanews = &quot;usanews&quot;;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        new MainActivityPresenter(this);//创建Presenter实例
-
-        refresh = (SwipeRefreshLayout) findViewById(R.id.refresh);
-        tvRefresh = (TextView) findViewById(R.id.tvRefresh);
-        tvLoadMore = (TextView) findViewById(R.id.tvLoadMore);
-        tvContent = (TextView) findViewById(R.id.tvContent);
-        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                refresh.setRefreshing(false);
-            }
-        });
-        tvRefresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                presenter.refresh(cnnews);
-            }
-        });
-        tvLoadMore.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                presenter.loadMore(usanews);
-            }
-        });
-
-        presenter.loadPosts(cnnews, false);
-    }
-
-    @Override
-    public void showError() {
-        tvContent.setText(&quot;出现错误&quot;);
-    }
-
-    @Override
-    public void showLoading() {
-        refresh.setRefreshing(true);
-    }
-
-    @Override
-    public void stopLoading() {
-        refresh.setRefreshing(false);
-    }
-
-    @Override
-    public void showResults(ArrayList&lt;String&gt; list) {
-        String content = &quot;&quot;;
-        for (String string : list) {
-            if (!TextUtils.isEmpty(content)) {
-                content += &quot;\n&quot;;
-            }
-            content += string;
-            tvContent.setText(content + &quot;\n&quot;);
-        }
-    }
-
-    @Override
-    public void showNetworkError() {
-        tvContent.setText(&quot;网络错误&quot;);
-    }
-
-    @Override
-    public void setPresenter(MainActivityContract.Presenter presenter) {
-        if (null != presenter) {
-            this.presenter = presenter;
-        }
-    }
-}
-</code></pre><h2 id="Model实现类"><a href="#Model实现类" class="headerlink" title="Model实现类"></a>Model实现类</h2><p>Gson解析接口返回</p>
-<pre><code>public class News {
-    private String content;
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-}
-</code></pre><p>网络请求异步，返回接口需要接口回调</p>
-<pre><code>public interface NewsListener {
-
-    void onSuccess(String result);
-
-    void onError(String error);
-
-}
-</code></pre><p>Retrofit网络请求</p>
-<pre><code>public class NewsModel {
-
-    public void load(String url, final NewsListener listener) {
-        NewsAPI.get(url, new Callback&lt;News&gt;() {
-            @Override
-            public void onResponse(Call&lt;News&gt; call, Response&lt;News&gt; response) {
-                if (response.code() == 200) {
-                    listener.onSuccess(response.body().getContent());
-                }
-            }
-
-            @Override
-            public void onFailure(Call&lt;News&gt; call, Throwable t) {
-                listener.onError(call.request().url() + &quot; faild&quot;);
-                t.printStackTrace();
-            }
-        });
-
-    }
-}
-</code></pre><h2 id="mvp是如何互相持有的"><a href="#mvp是如何互相持有的" class="headerlink" title="mvp是如何互相持有的"></a>mvp是如何互相持有的</h2><p>View与Presenter</p>
-<pre><code>View中
-    new MainActivityPresenter(this);//创建Presenter实例
-
-    implements MainActivityContract.View
-    @Override
-    public void setPresenter(MainActivityContract.Presenter presenter) {
-        if (null != presenter) {
-            this.presenter = presenter;//持有了Presenter
-        }
-    }
-
-Presenter中
-    public MainActivityPresenter(MainActivityContract.View view) {
-        this.view = view;//持有了View
-        this.view.setPresenter(this);//View设置Present
-        model = new NewsModel();
-    }
-</code></pre><p>Presenter与Model</p>
-<pre><code>Model中
-    public void load(String url, final NewsListener listener) 
-
-Presenter中
-    public class MainActivityPresenter implements MainActivityContract.Presenter, NewsListener 
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2995,7 +2813,7 @@ Presenter中
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">263</span>
+                  <span class="site-state-item-count">266</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -3006,7 +2824,7 @@ Presenter中
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -3017,7 +2835,7 @@ Presenter中
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-count">66</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

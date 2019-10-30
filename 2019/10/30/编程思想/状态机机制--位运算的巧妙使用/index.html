@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="位运算在android源码中的使用基本原理1|2|4|8分别对应的二进制数：     1 ： 0001     2 ： 0010     4 ： 0100     8 ： 1000 位运算应用口诀清零取反要用与，某位置一可用或 若要取反和交换，轻轻松松用异或 添加多个标志位 – 或mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLA">
+<meta property="og:type" content="article">
+<meta property="og:title" content="风">
+<meta property="og:url" content="http://yoursite.com/2019/10/30/编程思想/状态机机制--位运算的巧妙使用/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="位运算在android源码中的使用基本原理1|2|4|8分别对应的二进制数：     1 ： 0001     2 ： 0010     4 ： 0100     8 ： 1000 位运算应用口诀清零取反要用与，某位置一可用或 若要取反和交换，轻轻松松用异或 添加多个标志位 – 或mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLA">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-10-30T06:55:10.376Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="风">
+<meta name="twitter:description" content="位运算在android源码中的使用基本原理1|2|4|8分别对应的二进制数：     1 ： 0001     2 ： 0010     4 ： 0100     8 ： 1000 位运算应用口诀清零取反要用与，某位置一可用或 若要取反和交换，轻轻松松用异或 添加多个标志位 – 或mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLA">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/10/30/编程思想/状态机机制--位运算的巧妙使用/"/>
+
+
+
+
+
+  <title> | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/30/编程思想/状态机机制--位运算的巧妙使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline"></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-30T14:55:10+08:00">
+                2019-10-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="位运算在android源码中的使用"><a href="#位运算在android源码中的使用" class="headerlink" title="位运算在android源码中的使用"></a>位运算在android源码中的使用</h1><h2 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h2><pre><code>1|2|4|8分别对应的二进制数：
+    1 ： 0001
+    2 ： 0010
+    4 ： 0100
+    8 ： 1000
+</code></pre><h2 id="位运算应用口诀"><a href="#位运算应用口诀" class="headerlink" title="位运算应用口诀"></a>位运算应用口诀</h2><p>清零取反要用与，某位置一可用或</p>
+<p>若要取反和交换，轻轻松松用异或</p>
+<h2 id="添加多个标志位-–-或"><a href="#添加多个标志位-–-或" class="headerlink" title="添加多个标志位 – 或"></a>添加多个标志位 – 或</h2><pre><code>mIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED | Intent.FLAG_ACTIVITY_SINGLE_TOP );  
+</code></pre><h2 id="判断某个标志位-–-与"><a href="#判断某个标志位-–-与" class="headerlink" title="判断某个标志位 – 与"></a>判断某个标志位 – 与</h2><pre><code>// 返回是否可点击  
+return (((viewFlags &amp; CLICKABLE) == CLICKABLE || (viewFlags &amp; LONG_CLICKABLE) == LONG_CLICKABLE));  
+
+if ((intent.getFlags()&amp;Intent.FLAG_ACTIVITY_NEW_TASK) == 0)｛//intent.getFlags()不包含NEW_TASK  
+...  
+｝
+</code></pre><h2 id="清除某个标志位-–-与-标志位"><a href="#清除某个标志位-–-与-标志位" class="headerlink" title="清除某个标志位 – 与~标志位"></a>清除某个标志位 – 与~标志位</h2><p>View.java</p>
+<pre><code>private static final int PRESSED                = 0x00004000;
+int mPrivateFlags ;
+
+public void setPressed(boolean pressed) {
+    if (pressed) {
+        mPrivateFlags |= PRESSED;     // 添加PRESSED状态
+    } else {
+        mPrivateFlags &amp;= ~PRESSED;    // 取消PRESSED状态
+    }
+    refreshDrawableState();
+    dispatchSetPressed(pressed);
+}
+</code></pre><h1 id="状态"><a href="#状态" class="headerlink" title="状态"></a>状态</h1><p>定义十六进制状态常量，和模式状态集</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> STATUS_1 = <span class="number">0x0001</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> STATUS_2 = <span class="number">0x0002</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> STATUS_3 = <span class="number">0x0004</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> STATUS_4 = <span class="number">0x0008</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> STATUS_5 = <span class="number">0x0010</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> STATUS_6 = <span class="number">0x0020</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> STATUS_7 = <span class="number">0x0040</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> STATUS_8 = <span class="number">0x0080</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> MODE_A = STATUS_1 | STATUS_2 | STATUS_3;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> MODE_B = STATUS_1 | STATUS_4 | STATUS_5 | STATUS_6;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">int</span> MODE_C = STATUS_1 | STATUS_7 | STATUS_8;</span><br></pre></td></tr></table></figure>
+<h1 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h1><h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>一个分享对话框，可以分享到 微信好友，微信朋友圈，app好友，app社群</p>
+<h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><pre><code> private static final int BASE = 0x1;
+
+/**
+ * 展示微信好友
+ */
+public static final int WECHAT_CONTACTS = BASE;
+
+/**
+ * 展示微信朋友圈
+ */
+public static final int WECHAT_MOMENTS = BASE &lt;&lt; 1;
+
+/**
+ * 展示好友
+ */
+public static final int APP_CONTACTS = BASE &lt;&lt; 2;
+
+/**
+ * 展示社群
+ */
+public static final int APP_COMMUNITY = BASE &lt;&lt; 3;
+
+public void show(int flag) {
+    if ((WECHAT_CONTACTS &amp; flag) == 0) {
+        wechatContacts.setVisibility(View.GONE);
+    } else {
+        wechatContacts.setVisibility(View.VISIBLE);
+    }
+
+    if ((WECHAT_MOMENTS &amp; flag) == 0) {
+        wechatMoments.setVisibility(View.GONE);
+    } else {
+        wechatMoments.setVisibility(View.VISIBLE);
+    }
+
+    if ((APP_CONTACTS &amp; flag) == 0) {
+        appContacts.setVisibility(View.GONE);
+    } else {
+        appContacts.setVisibility(View.VISIBLE);
+    }
+
+    if ((APP_COMMUNITY &amp; flag) == 0) {
+        appCommunity.setVisibility(View.GONE);
+    } else {
+        appCommunity.setVisibility(View.VISIBLE);
+    }
+
+    dialog.show();
+}
+</code></pre><h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="http://blog.csdn.net/zzp16/article/details/7956768" target="_blank" rel="noopener">Android中巧妙的位运算</a></li>
+<li><a href="https://juejin.im/post/5d1a148e6fb9a07ea6488ba3#heading-5" target="_blank" rel="noopener">Android 状态管理最佳实践</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/10/30/直播/音视频/AMR音频在Android和iOS跨平台应用/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">266</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#位运算在android源码中的使用"><span class="nav-number">1.</span> <span class="nav-text">位运算在android源码中的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本原理"><span class="nav-number">1.1.</span> <span class="nav-text">基本原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#位运算应用口诀"><span class="nav-number">1.2.</span> <span class="nav-text">位运算应用口诀</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加多个标志位-–-或"><span class="nav-number">1.3.</span> <span class="nav-text">添加多个标志位 – 或</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#判断某个标志位-–-与"><span class="nav-number">1.4.</span> <span class="nav-text">判断某个标志位 – 与</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#清除某个标志位-–-与-标志位"><span class="nav-number">1.5.</span> <span class="nav-text">清除某个标志位 – 与~标志位</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#状态"><span class="nav-number">2.</span> <span class="nav-text">状态</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实例"><span class="nav-number">3.</span> <span class="nav-text">实例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#需求"><span class="nav-number">3.1.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码"><span class="nav-number">3.2.</span> <span class="nav-text">代码</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">4.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

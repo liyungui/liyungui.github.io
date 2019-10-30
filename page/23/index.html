@@ -262,6 +262,1232 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/12/NATS消息系统/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/12/NATS消息系统/" itemprop="url">NATS消息系统</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-12T16:08:02+08:00">
+                2018-07-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="简单原理"><a href="#简单原理" class="headerlink" title="简单原理"></a>简单原理</h1><p>NATS的服务端监听了一个端口，并将此端口暴露在公网。所有客户端通过长连接连上这个IP的端口，可以相互实时传输消息，发布和订阅消息。</p>
+<h1 id="物理架构"><a href="#物理架构" class="headerlink" title="物理架构"></a>物理架构</h1><p>以下是发起连麦的一个例子，序号表示发生的顺序。</p>
+<p>注：</p>
+<ul>
+<li>req表示请求(有响应回执)</li>
+<li>sub表示订阅主题</li>
+<li>pub表示发布广播。req和pub的时候可以带上消息、一般是一串JSON文本。</li>
+<li>$classid.mic.request这种字符串是一个主题(频道)。</li>
+</ul>
+<img src="/2018/07/12/NATS消息系统/NATS.png">
+<h2 id="NATS集群起什么作用？"><a href="#NATS集群起什么作用？" class="headerlink" title="NATS集群起什么作用？"></a>NATS集群起什么作用？</h2><ol>
+<li>去单点，提高可用性，当单机挂掉的时候，备用机器补上；</li>
+<li>提高并发，单机并发只能到60000+，但多机器可以非常高；</li>
+</ol>
+<h2 id="为什么学生发起连麦是点对点req而不是发广播pub？"><a href="#为什么学生发起连麦是点对点req而不是发广播pub？" class="headerlink" title="为什么学生发起连麦是点对点req而不是发广播pub？"></a>为什么学生发起连麦是点对点req而不是发广播pub？</h2><p>假设网络畅通的前提下，两种做法对比：</p>
+<ol>
+<li>如果直接广播这个$classid.mic.request连麦请求，后台可能没有收到消息，或者后台收到之后处理消息发生异常，没有正确入队。造成<strong>状态不一致</strong>：其他学生会以为这个学生已经成功入队，事实上没有；</li>
+<li>如果是学生发起req请求，后台接收到消息之后，进行入队处理，成功会发送回执消息，并广播「成功入队」的消息给所有人，可以确保入队是已经执行成功的。这个状态有接收方(后台)的验证，是可信的；</li>
+</ol>
+<h2 id="设计原则"><a href="#设计原则" class="headerlink" title="设计原则"></a>设计原则</h2><ul>
+<li><p>传递信息量相同的情况下，消息越短越好。</p>
+<p>  所有JSON都需要uglify，不能排版，不能有多余的空格。有n个学生，则消息量会被放大n倍，这些消息都要吞噬掉服务器的CPU、内存、带宽。如果可能，应该用二进制协议而非文本协议，性能更高，带宽要求更小。</p>
+</li>
+<li><p>不影响正常功能的情况下，消息覆盖人数越少越好。</p>
+<p>  可用「奥卡姆剃刀」。那么提个问题，禁言消息怎么设计？</p>
+<ul>
+<li>是设计成每个人一个主题，老师点对点沟通？</li>
+<li>还是设计成大班中的每个人都接收到禁言消息？</li>
+<li>还是小班中每个人都接收到禁言消息？</li>
+</ul>
+</li>
+<li><p>协商定义好每个主题的触发条件、内容格式，形式(广播/点对点)。当新增角色模块，如管路员的时候，对照格式规范，对各自的逻辑进行编码即可。</p>
+</li>
+</ul>
+<h1 id="性能测试"><a href="#性能测试" class="headerlink" title="性能测试"></a>性能测试</h1><p>一般上课过程中，可能的publisher是老师、辅导老师、管理员。publisher不会很多，学生上线发的状态、心跳除外，因为订阅者也只有老师端和管理员。</p>
+<p>所以大部分情况下，频繁发布消息的人只有老师。</p>
+<pre><code># -s  nats地址
+# -np publisher数量
+# -ns subcriber数量
+# -n  总的消息数量，会按publisher数量平均分
+# -ms 消息的长度
+# foo.shit 发布订阅的主题
+# 性能测试不要开启日志，日志的IO会严重影响性能，直接下降2个数量级。
+# 配置文件的max_connections也非常重要，会直接限制连接数
+nats-bench -s nats://mobile:$passwd@localhost:4222 -np 1 -ns 1000 -n 10000 -ms 128 foo.shit
+</code></pre><p>注：</p>
+<ul>
+<li>由于公网的网络有上限，实际吞吐量会比较小。</li>
+<li>使用自带工具<a href="https://nats.io/documentation/tutorials/nats-benchmarking/" target="_blank" rel="noopener">nats-bench</a>测试。</li>
+<li>20000+并发后，报错：「Can’t connect: nats: no servers available for connection」，需要修改~/go/src/github.com/nats-io/go-nats/nats.go中的DefaultTimeout为30秒，参照本页性能优化小节。</li>
+</ul>
+<img src="/2018/07/12/NATS消息系统/1.png">
+<h1 id="各端使用方法"><a href="#各端使用方法" class="headerlink" title="各端使用方法"></a>各端使用方法</h1><h2 id="前端"><a href="#前端" class="headerlink" title="前端"></a>前端</h2><p>前端使用的客户端是<a href="https://github.com/isobit/websocket-nats" target="_blank" rel="noopener">websocket-nats</a>，后端把原来的TCP协议通过<a href="https://github.com/isobit/ws-tcp-relay" target="_blank" rel="noopener">ws-tcp-relay</a>转成了websocket协议。</p>
+<p>性能测试结果如下：</p>
+<img src="/2018/07/12/NATS消息系统/2.png">
+<h2 id="C"><a href="#C" class="headerlink" title="C++"></a>C++</h2><h2 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h2><p>java客户端是<a href="https://github.com/nats-io/java-nats" target="_blank" rel="noopener">java-nats</a></p>
+<h3 id="Android"><a href="#Android" class="headerlink" title="Android"></a>Android</h3><p>Gradle/Grails</p>
+<pre><code>compile &apos;io.nats:jnats:1.0&apos;
+</code></pre><h3 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h3><h4 id="重复收到消息"><a href="#重复收到消息" class="headerlink" title="重复收到消息"></a>重复收到消息</h4><p>原因是重复subscribe(String subject)</p>
+<p>每次subscribe都会生成一个AsyncSubscriptionImpl并添加到队列中接受消息</p>
+<p>所以要特别注意动态订阅的主题重复订阅问题</p>
+<pre><code>SubscriptionImpl subscribe(String subject, String queue, MessageHandler cb,
+                           BlockingQueue&lt;Message&gt; ch) {
+    final SubscriptionImpl sub;
+    try {
+        if (cb != null) {
+            sub = new AsyncSubscriptionImpl(this, subject, queue, cb);
+            // If we have an async callback, start up a sub specific Runnable to deliver the messages
+            logger.debug(&quot;Starting subscription for subject &apos;{}&apos;&quot;, subject);
+            subexec.submit(new Runnable() {
+                public void run() {
+                    try {
+                        waitForMsgs((AsyncSubscriptionImpl) sub);
+                    } catch (InterruptedException e) {
+                        logger.debug(&quot;Interrupted in waitForMsgs&quot;);
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            });
+        } 
+
+        // Sets sid and adds to subs map
+        addSubscription(sub);
+        ...
+    } finally {
+        mu.unlock();
+    }
+}
+</code></pre><h4 id="重复收到自己reply-to-request的消息"><a href="#重复收到自己reply-to-request的消息" class="headerlink" title="重复收到自己reply to request的消息"></a>重复收到自己reply to request的消息</h4><p>如果所有subscribe使用了同一个MessageHandler，就会出现这种情况。因为我们request和publish的主题相同，我们发送reply的publish，自己也会收到，然后又reply自己…反复循环</p>
+<pre><code>if (&quot;help&quot;.equals(msg.getSubject())) {
+    NATSManager.getInstance().getNATSService().reply(msg.getSubject(), msg.getReplyTo(), &quot;I can help!&quot;.getBytes(), new NATSService.CallBack() {
+        @Override
+        public void onError(Exception e) {
+            e.printStackTrace();
+        }
+    });
+}
+</code></pre><h1 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h1><h2 id="slow-consumer"><a href="#slow-consumer" class="headerlink" title="slow consumer"></a>slow consumer</h2><h1 id="安装-搭建-启动"><a href="#安装-搭建-启动" class="headerlink" title="安装/搭建/启动"></a>安装/搭建/启动</h1><p>这节和以后的内容，仅后端同学关注即可。</p>
+<h2 id="安装Go语言环境与nast服务端"><a href="#安装Go语言环境与nast服务端" class="headerlink" title="安装Go语言环境与nast服务端"></a>安装Go语言环境与nast服务端</h2><p>Go 语言虽然是静态编译型语言，但是它却拥有脚本化的语法，支持多种编程范式(函数式和面向对象)。</p>
+<p>去<a href="https://golang.org/" target="_blank" rel="noopener">Go官网</a>下载Linux的安装包，按照<a href="https://golang.org/doc/install" target="_blank" rel="noopener">安装文档</a>安装，注意GOROOT和PATH环境变量的配置。</p>
+<p>安装并验证hello程序之后，安装nast服务端：</p>
+<pre><code># 执行命令后，我的go workspace是默认的$HOME/go，所以会安装在go workspace目录内
+go get github.com/nats-io/gnatsd
+# 在PATH环境变量中加入$HOME/go/bin并source，执行以下命令，验证安装成功
+gnatsd version
+
+# 安装nats-top，跟top类似的监控工具
+go get github.com/nats-io/nats-top
+# 测试是否安装成功
+nats-top
+
+# 安装go client，用来测试
+go get github.com/nats-io/go-nats
+</code></pre><h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p>为了便于多人维护和守护执行，建议用配置文件配置而非用启动参数，故障时便于他人重启。</p>
+<pre><code># nast.conf
+
+# 监听端口
+port: 4222
+net: &quot;0.0.0.0&quot;
+
+# 监控服务
+http_port: 8222
+
+# 对客户端鉴权，timeout为验证限时
+authorization {
+  user:     mobile
+  password: samplepassword
+  timeout:  3
+}
+
+# 日志, trace为打印所有的原始消息
+debug: false
+trace: true
+logtime: true
+log_file: &quot;/home/zhonggy/nats/logs/gnatsd.log&quot;
+
+
+# PID文件
+pid_file: &quot;/home/zhonggy/nats/gnatsd.pid&quot;
+
+# 最大连接数，很重要，否则很容易不够用
+max_connections: 1000000
+
+# 控制命令最大长度
+max_control_line: 512
+
+# 消息最大长度
+max_payload: 65536
+
+# socket往客户端写的时间，超过deadline时间会标记为slow consumer
+# 会丢弃消息并断开slow consumer，以避免高负载导致整个系统异常
+# 客户端会收到异常，慢消息异常应该由客户端去处理而非服务器来hold
+# 参考: https://nats.io/documentation/server/gnatsd-slow-consumers/
+write_deadline: &quot;3s&quot;
+</code></pre><p>建立start启动脚本：</p>
+<pre><code>#!/bin/sh
+
+gnatsd -c ./nats.conf &amp;
+</code></pre><h2 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h2><h3 id="内核参数调整"><a href="#内核参数调整" class="headerlink" title="内核参数调整"></a>内核参数调整</h3><p>所有的高并发性能优化，必然牵扯到打开文件数内核参数，如MySQL，Nginx的优化必然先优化系统内核参数。</p>
+<p>每个socket连接都会占用一个文件描述符fd。可通过以下命令查看数量。如果不做配置，则不可能达到高并发。</p>
+<pre><code>ls /proc/$pid/fd/
+</code></pre><p>修改内核参数：</p>
+<pre><code># vi /etc/sysctl.conf
+# 修改内核可打开的文件上线
+fs.file-max = 6815744
+# 执行sysctl -p生效
+# sysctl -a | grep file-max检查是否设置成功
+
+# vi /etc/security/limits.conf
+# 修改每用户可打开文件数
+* soft nofile 1024000
+* hard nofile 1024000
+# 重新ssh登陆后ulimit -n检查是否设置成功
+</code></pre><h2 id="日志"><a href="#日志" class="headerlink" title="日志"></a>日志</h2><h2 id="用户权限"><a href="#用户权限" class="headerlink" title="用户权限"></a>用户权限</h2><h2 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h2><h1 id="demo"><a href="#demo" class="headerlink" title="demo"></a>demo</h1><pre><code>public static void main(String[] args) {
+    try {
+        private String url = &quot;nats://android:cKCOzJv2ywY20H8a@192.168.30.53:4222&quot;;
+        final Connection nc = Nats.connect(url);
+        // Simple Async Subscriber
+        nc.subscribe(&quot;foo&quot;, new MessageHandler() {
+            @Override
+            public void onMessage(Message msg) {
+                System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
+            }
+        });
+        // Simple Publisher
+        nc.publish(&quot;foo&quot;, &quot;Hello World&quot;.getBytes());
+
+        // Replies
+        nc.subscribe(&quot;help&quot;, new MessageHandler() {
+            @Override
+            public void onMessage(Message msg) {
+                try {
+                    System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
+                    nc.subscribe(msg.getReplyTo(), new MessageHandler() {
+                        @Override
+                        public void onMessage(Message msg) {
+                            System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
+                        }
+                    });
+                    nc.publish(msg.getReplyTo(), &quot;I can help!&quot;.getBytes());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        // Requests
+        Message msg = nc.request(&quot;help&quot;, &quot;help me&quot;.getBytes(), 10000);
+
+        //nc.close();
+
+
+        nc.subscribe(&quot;1.vote.ask&quot;, new MessageHandler() {
+            @Override
+            public void onMessage(Message msg) {
+                System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
+            }
+        });
+        nc.publish(&quot;1.vote.ask&quot;, &quot;{\&quot;code\&quot;:0,\&quot;msg\&quot;:\&quot;\&quot;,\&quot;data\&quot;:{\&quot;online_num\&quot;:{\&quot;chatroom_id\&quot;:\&quot;liveroom_262\&quot;,\&quot;total_online_num\&quot;:1,\&quot;detail_online_num\&quot;:[{\&quot;team_id\&quot;:352,\&quot;online_num\&quot;:1}]},\&quot;vote\&quot;:null,\&quot;connect\&quot;:null,\&quot;timestamp\&quot;:1531884212049}}&quot;.getBytes());
+
+        nc.subscribe(&quot;1.vote.data&quot;, new MessageHandler() {
+            @Override
+            public void onMessage(Message msg) {
+                System.out.printf(&quot;Received a message: %s\n&quot;, new String(msg.getData()));
+            }
+        });
+        nc.publish(&quot;backend.vote.answer&quot;, &quot;{\&quot;data\&quot;:{\&quot;display\&quot;:false,\&quot;custom\&quot;:{\&quot;class_id\&quot;:1,\&quot;team_id\&quot;:1,\&quot;vote_id\&quot;:1,\&quot;answer\&quot;:\&quot;B\&quot;}}}&quot;.getBytes());
+        nc.publish(&quot;backend.vote.answer&quot;, &quot;{\&quot;data\&quot;:{\&quot;display\&quot;:false,\&quot;custom\&quot;:{\&quot;class_id\&quot;:1,\&quot;team_id\&quot;:2,\&quot;vote_id\&quot;:1,\&quot;answer\&quot;:\&quot;B\&quot;}}}&quot;.getBytes());
+        nc.publish(&quot;backend.vote.answer&quot;, &quot;{\&quot;data\&quot;:{\&quot;display\&quot;:false,\&quot;custom\&quot;:{\&quot;class_id\&quot;:1,\&quot;team_id\&quot;:3,\&quot;vote_id\&quot;:1,\&quot;answer\&quot;:\&quot;B\&quot;}}}&quot;.getBytes());
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/11/Android/获取View坐标/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/11/Android/获取View坐标/" itemprop="url">获取View坐标</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-11T16:17:40+08:00">
+                2018-07-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Android坐标系：坐标原点在屏幕左上角"><a href="#Android坐标系：坐标原点在屏幕左上角" class="headerlink" title="Android坐标系：坐标原点在屏幕左上角"></a>Android坐标系：坐标原点在屏幕左上角</h1><img src="/2018/07/11/Android/获取View坐标/1.jpg">
+<p><strong>public void getLocationOnScreen(int[] location)</strong></p>
+<p>Computes the coordinates of this view on the screen.</p>
+<h1 id="视图坐标系：原点在父视图左上角"><a href="#视图坐标系：原点在父视图左上角" class="headerlink" title="视图坐标系：原点在父视图左上角"></a>视图坐标系：原点在父视图左上角</h1><img src="/2018/07/11/Android/获取View坐标/2.jpg">
+<img src="/2018/07/11/Android/获取View坐标/3.jpg">
+<h2 id="View提供的获取坐标的方法：到父布局的距离"><a href="#View提供的获取坐标的方法：到父布局的距离" class="headerlink" title="View提供的获取坐标的方法：到父布局的距离"></a>View提供的获取坐标的方法：到父布局的距离</h2><p>getTop()</p>
+<p>getLeft()</p>
+<p>getRight()</p>
+<p>getBottom()</p>
+<h2 id="MotionEvent提供的方法"><a href="#MotionEvent提供的方法" class="headerlink" title="MotionEvent提供的方法"></a>MotionEvent提供的方法</h2><p>getX()：点击事件到控件自身左边的距离</p>
+<p>getY()：点击事件到控件自身顶边的</p>
+<p>getRawX()：点击事件到屏幕左边的</p>
+<p>getRawY()：点击事件到屏幕顶边的</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/04/Flutter/Flutter-for-Android-开发者/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/04/Flutter/Flutter-for-Android-开发者/" itemprop="url">Flutter for Android 开发者</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-04T15:42:04+08:00">
+                2018-07-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文档适用于Android开发人员，可以将您现有的Android知识应用于使用Flutter构建移动应用程序。您可以将此文档用作Flutter开发的一个开端</p>
+<h1 id="View"><a href="#View" class="headerlink" title="View"></a>View</h1><h2 id="Widget-Android中的View"><a href="#Widget-Android中的View" class="headerlink" title="Widget = Android中的View"></a>Widget = Android中的View</h2><p>在Flutter中，Widget相当于Android的View。</p>
+<h3 id="Widget与View不同之处"><a href="#Widget与View不同之处" class="headerlink" title="Widget与View不同之处"></a>Widget与View不同之处</h3><ul>
+<li>绘制<ul>
+<li>Widget仅支持一帧，并且每一帧上Flutter框架都会创建一个Widget实例树(每一帧它们都会重新构建)。</li>
+<li>View绘制结束后，就不会重绘，直到调用invalidate时才会重绘</li>
+</ul>
+</li>
+<li>更新<ul>
+<li>widget是不可变的，不会直接更新，而必须使用Widget的状态。这允许widget变得超级轻量</li>
+<li>直接对view进行改变来更新视图（在framework改变View视图）</li>
+</ul>
+</li>
+</ul>
+<p><strong>Widget特性</strong></p>
+<ul>
+<li>每一帧都会重新构建</li>
+<li>不可变(不能直接更新)</li>
+<li>通过Widget的状态(State对象)更新</li>
+</ul>
+<h2 id="如何布局"><a href="#如何布局" class="headerlink" title="如何布局"></a>如何布局</h2><p>Android中，通过XML编写布局</p>
+<p>但在Flutter中，使用widget树来编写布局</p>
+<h2 id="如何更新widget"><a href="#如何更新widget" class="headerlink" title="如何更新widget"></a>如何更新widget</h2><p>Android中，通过方法直接更新View</p>
+<p>但在Flutter中，使用Widget的状态更新Widget</p>
+<p>这是Stateful和Stateless widget的概念的来源。</p>
+<p>StatefulWidget有一个State对象，它可以跨帧存储状态数据并恢复它(更新)。<strong>State对象有个<code>widget</code>变量持有它的widget</strong></p>
+<p>可以将StatelessWidget包装在StatefulWidget中实现更新</p>
+<h3 id="Widget如何创建子Widget"><a href="#Widget如何创建子Widget" class="headerlink" title="Widget如何创建子Widget"></a>Widget如何创建子Widget</h3><p>StatelessWidget实现 <code>Widget build(BuildContext context)</code> 创建 Widget</p>
+<p>StatefulWidget实现 <code>State createState();</code> 创建 自定义State –&gt; 自定义State实现 <code>Widget build(BuildContext context)</code> 创建 Widget</p>
+<p>示例：<strong>点击按钮更新Text(StatelessWidget的子类)</strong></p>
+<pre><code>class SampleApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new MaterialApp(
+      title: &apos;Sample App&apos;,
+      theme: new ThemeData(primarySwatch: Colors.blue),
+      home: new SampleAppHomePage(),
+    );
+  }
+}
+
+class SampleAppHomePage extends StatefulWidget {
+  SampleAppPage({Key key}) : super(key: key);//官方文档源码有定义该构造函数。但是不写测试没发现问题
+  @override
+  State createState() {
+    return new SampleAppHomeState();
+  }
+}
+
+class SampleAppHomeState extends State&lt;SampleAppHomePage&gt; {
+  String textToShow = &apos;I Like Flutter&apos;;
+
+  void updateText() {
+    setState(() {//匿名函数。void setState(VoidCallback fn)，typedef void VoidCallback();
+      textToShow = &apos;Flutter is Awesome&apos;;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(&apos;HomePage&apos;),
+      ),
+      body: new Center(
+        child: new Text(textToShow),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: updateText,//很奇怪
+        tooltip: &apos;Update Text&apos;,//长按会展示action的描述
+        child: new Icon(Icons.update),
+      ),
+    );
+  }
+}
+</code></pre><h2 id="如何在布局中添加或删除组件Widget"><a href="#如何在布局中添加或删除组件Widget" class="headerlink" title="如何在布局中添加或删除组件Widget"></a>如何在布局中添加或删除组件Widget</h2><p>Android中，可以从父级控件调用addChild或removeChild以动态添加或删除View。 </p>
+<p>在Flutter中，在返回widget给父项的函数中通过值(一般是布尔值)控制widget的创建</p>
+<p>示例：<strong>点击按钮切换widget</strong></p>
+<pre><code>class SampleAppHomeState extends State&lt;SampleAppHomePage&gt; {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(&apos;HomePage&apos;),
+      ),
+      body: new Center(
+        child: getBodyChild(),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: onPress,
+        child: new Icon(Icons.update),
+      ),
+    );
+  }
+
+  getBodyChild() {
+    if (toggle) {
+      return new Text(&apos;Toggle One&apos;);
+    } else {
+      return new MaterialButton(
+        onPressed: () {},
+        child: new Text(&apos;Toggle Two&apos;),
+      );
+    }
+  }
+
+  bool toggle = true;
+  void onPress() {
+    setState(() {
+      toggle = !toggle;
+    });
+  }
+}
+</code></pre><h2 id="动画"><a href="#动画" class="headerlink" title="动画"></a>动画</h2><p>Android中，可以通过XML创建动画或在视图上调用.animate()</p>
+<p>Flutter中，将widget包装到Animation中，告诉<strong>控制器</strong>(<code>AnimationController</code>和<code>Interpolator</code>)启动<strong>动画</strong></p>
+<p>示例：<strong>FadeTransition淡入</strong></p>
+<pre><code>class SampleAppHomeState extends State&lt;SampleAppHomePage&gt; with TickerProviderStateMixin {
+  AnimationController animationController;
+  CurvedAnimation curvedAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    animationController = new AnimationController(duration: new Duration(microseconds: 2000), vsync: this);
+    curvedAnimation = new CurvedAnimation(parent: animationController, curve: Curves.easeIn);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(&apos;HomePage&apos;),
+      ),
+      body: new Center(
+        child: getBodyChild(),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: onPress,
+        child: new Icon(Icons.update),
+      ),
+    );
+  }
+
+  getBodyChild() {
+    return new Container(
+      child: new FadeTransition(
+        opacity: curvedAnimation,
+        child: new FlutterLogo(
+          size: 100.0,
+        ),
+      ),
+    );
+  }
+
+  void onPress() {
+    animationController.forward();
+  }
+}
+</code></pre><h2 id="Canvas-draw-paint"><a href="#Canvas-draw-paint" class="headerlink" title="Canvas draw/paint"></a>Canvas draw/paint</h2><p>CustomPaint和CustomPainter，Canvas</p>
+<p>示例使用了手势，先跳过</p>
+<h2 id="自定义-Widget"><a href="#自定义-Widget" class="headerlink" title="自定义 Widget"></a>自定义 Widget</h2><p>在Android中，通过<strong>继承</strong>View(覆盖其方法)和<strong>组合</strong>View来实现自定义View</p>
+<p>在Flutter中，自定义widget通常是通过<strong>组合</strong>其它widget来实现的，而不是继承。</p>
+<h1 id="Intent"><a href="#Intent" class="headerlink" title="Intent"></a>Intent</h1><p>Intent主要有两种使用场景：在Activity之间切换，以及调用外部组件(如Camera或File picker)</p>
+<p><strong>Flutter没有Intent</strong></p>
+<p>如果需要的话，Flutter可以通过<strong>Native</strong>集成来触发Intent</p>
+<h2 id="Flutter中切换屏幕"><a href="#Flutter中切换屏幕" class="headerlink" title="Flutter中切换屏幕"></a>Flutter中切换屏幕</h2><p>两个核心概念和类：</p>
+<ul>
+<li><strong>Route</strong>是应用程序的“屏幕”或“页面”的抽象（可以认为是Activity）</li>
+<li><strong>Navigator</strong>是通过堆栈管理Route的Widget。Navigator可以通过push和pop route以实现页面切换</li>
+</ul>
+<p>声明页面：</p>
+<ul>
+<li>Android，您可以在<strong>AndroidManifest.xml</strong>中声明您的Activities</li>
+<li><p>Flutter中，您可以将具有指定Route的Map传递到<strong>顶层MaterialApp</strong>实例</p>
+<pre><code>new MaterialApp(
+    home: new MyAppHome(), // becomes the route named &apos;/&apos;
+    routes: &lt;String, WidgetBuilder&gt; {
+      &apos;/a&apos;: (BuildContext context) =&gt; new MyPage(title: &apos;page A&apos;),
+      &apos;/b&apos;: (BuildContext context) =&gt; new MyPage(title: &apos;page B&apos;),
+      &apos;/c&apos;: (BuildContext context) =&gt; new MyPage(title: &apos;page C&apos;),
+    },
+  )
+</code></pre></li>
+</ul>
+<p>通过Navigator来切换到命名路由的页面</p>
+<pre><code>Navigator.of(context).pushNamed(&apos;/b&apos;);
+</code></pre><p>通过Navigator切换到MaterialPageRoute实例页面</p>
+<pre><code>Navigator.push(context, new MaterialPageRoute&lt;void&gt;(
+  builder: (BuildContext context) {//通过build创建widget展示到屏幕，从而绑定context实现push和pop
+    return new Scaffold(
+      appBar: new AppBar(title: new Text(&apos;My Page&apos;)),
+      body: new Center(
+        child: new FlatButton(
+          child: new Text(&apos;POP&apos;),
+          onPressed: () {
+            Navigator.pop(context);//退出页面
+          },
+        ),
+      ),
+    );
+  },
+));
+</code></pre><h3 id="路由带参和返回参数"><a href="#路由带参和返回参数" class="headerlink" title="路由带参和返回参数"></a>路由带参和返回参数</h3><p>必须使用 MaterialPageRoute 进行路由。</p>
+<p>使用命名路由报错如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">type &apos;MaterialPageRoute&lt;dynamic&gt;&apos; is not a subtype of type &apos;Route&lt;String&gt;&apos;</span><br></pre></td></tr></table></figure>
+<p>实例：跳转登录页面，返回用户信息刷新页面</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">String</span> string = <span class="keyword">await</span> Navigator.push(</span><br><span class="line">        context,</span><br><span class="line">        MaterialPageRoute(builder: (_) =&gt; Login()));</span><br><span class="line">        </span><br><span class="line">login.dart页面</span><br><span class="line">Navigator.pop(context, <span class="string">""</span>);</span><br></pre></td></tr></table></figure>
+<h2 id="处理Android传入的Intent"><a href="#处理Android传入的Intent" class="headerlink" title="处理Android传入的Intent"></a>处理Android传入的Intent</h2><p><strong>Flutter通过自定义MethodChannel和原生交互</strong></p>
+<p>示例：<strong>其他应用程序共享文本到Flutter应用程序</strong></p>
+<p>基本流程：首先处理Android端的共享文本数据，然后等待Flutter请求数据，然后通过MethodChannel发送</p>
+<p>manifest中为MainActivity添加 intent-filter</p>
+<pre><code>&lt;intent-filter&gt;
+    &lt;action android:name=&quot;android.intent.action.SEND&quot; /&gt;
+    &lt;category android:name=&quot;android.intent.category.DEFAULT&quot; /&gt;
+    &lt;data android:mimeType=&quot;text/plain&quot; /&gt;
+&lt;/intent-filter&gt;
+</code></pre><p>MainActivity中 注册MethodChannel</p>
+<pre><code>public class MainActivity extends FlutterActivity {//继承FlutterActivity
+  String sharedText;
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    GeneratedPluginRegistrant.registerWith(this);//生成Flutter工程默认实现
+
+    Intent intent = getIntent();
+    String action = intent.getAction();
+    String type = intent.getType();
+
+    if (Intent.ACTION_SEND.equals(action) &amp;&amp; type != null) {
+      if (&quot;text/plain&quot;.equals(type)) {
+        sharedText = intent.getStringExtra(Intent.EXTRA_TEXT); // Handle text being sent
+      }
+    }
+
+    new MethodChannel(getFlutterView(), &quot;app.channel.shared.data&quot;).setMethodCallHandler(new MethodChannel.MethodCallHandler() {
+      @Override
+      public void onMethodCall(MethodCall methodCall, MethodChannel.Result result) {
+        if (methodCall.method.contentEquals(&quot;getSharedText&quot;)) {
+          result.success(sharedText);
+          sharedText = null;
+        }
+      }
+    });
+  }
+
+}
+</code></pre><p>Flutter中 使用MethodChannel</p>
+<pre><code>import &apos;package:flutter/material.dart&apos;;
+import &apos;package:flutter/services.dart&apos;;
+
+  static const platform = const MethodChannel(&apos;app.channel.shared.data&apos;);
+  String dataShared = &quot;No data&quot;;
+
+  @override
+  void initState() {
+    super.initState();
+    getSharedText();
+  }
+
+  getBodyChild() {
+    return new Text(dataShared);
+  }
+
+  getSharedText() async {
+    var sharedData = await platform.invokeMethod(&quot;getSharedText&quot;);
+    if (sharedData != null) {
+      setState(() {
+        dataShared = sharedData;
+      });
+    }
+  }
+</code></pre><p>在系统浏览器中选中一段文本，右键分享，选择APP，发现APP内容刷新为分享的文本</p>
+<h2 id="Flutter实现startActivityForResult"><a href="#Flutter实现startActivityForResult" class="headerlink" title="Flutter实现startActivityForResult"></a>Flutter实现startActivityForResult</h2><p>Navigator.push()返回结果就是新route页面pop的数据</p>
+<p>示例：<strong>选择定位位置</strong></p>
+<pre><code>Map coordinates = await Navigator.of(context).pushNamed(&apos;/location&apos;);
+Navigator.of(context).pop({&quot;lat&quot;:43.821757,&quot;long&quot;:-79.226392});//位置路由中，用户选择位置，将结果”pop”出栈
+</code></pre><h2 id="PopupRoute"><a href="#PopupRoute" class="headerlink" title="PopupRoute"></a>PopupRoute</h2><p>半透明模态页面(阻断下面的页面获取焦点)，直接覆盖在当前route上面</p>
+<p>创建和显示PopupRoute的函数有：<code>showDialog</code>, <code>showMenu</code>, <code>showModalBottomSheet</code></p>
+<p>PopupRoute类Widget有：<code>PopupMenuButton</code>, <code>DropdownButton</code>。原理是创建 PopupRoute的内部子类，通过Navigator来显示隐藏</p>
+<h2 id="Custom-routes"><a href="#Custom-routes" class="headerlink" title="Custom routes"></a>Custom routes</h2><p><code>PageRouteBuilder</code>自定义页面，包括页面动画，样式，行为等</p>
+<h1 id="Activity-和-Fragment"><a href="#Activity-和-Fragment" class="headerlink" title="Activity 和 Fragment"></a>Activity 和 Fragment</h1><p>在Flutter中，这两个概念都等同于Widget</p>
+<h2 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h2><p>Android中，可以复写Activity/Fragment的生命周期回调函数</p>
+<p>Flutter中，通过添加<code>WidgetsBindingObserver</code>监听生命周期事件</p>
+<pre><code>WidgetsBinding.instance.addObserver.(WidgetsBindingObserver)
+</code></pre><p>WidgetsBindingObserver</p>
+<pre><code>abstract class WidgetsBindingObserver {
+    void didChangeAppLifecycleState(AppLifecycleState state) { }//前后台切换回调
+}
+</code></pre><p>AppLifecycleState</p>
+<ul>
+<li>resumed<ul>
+<li>可见有焦点。</li>
+<li>类似Android的onResume</li>
+</ul>
+</li>
+<li>inactive<ul>
+<li>可见，无焦点</li>
+<li>随时可能转为 paused</li>
+</ul>
+</li>
+<li>paused<ul>
+<li>不可见</li>
+<li>随时可能转为 suspending</li>
+</ul>
+</li>
+<li>suspending<ul>
+<li>暂时中止</li>
+<li>iOS暂时不可用</li>
+</ul>
+</li>
+</ul>
+<h1 id="资源"><a href="#资源" class="headerlink" title="资源"></a>资源</h1><h2 id="图片"><a href="#图片" class="headerlink" title="图片"></a>图片</h2><p>Flutter遵循类似iOS简单的3种分辨率格式: 1x, 2x, 3x.</p>
+<ul>
+<li><p>项目根创建images文件夹，子文件夹2x和3x，放入对应图片</p>
+<pre><code>…/my_icon.png
+…/2.0x/my_icon.png
+…/3.0x/my_icon.png
+</code></pre></li>
+<li><p>pubspec.yaml文件中声明这些图片</p>
+<pre><code>assets:
+ - images/my_icon.png
+</code></pre></li>
+<li><p>使用AssetImage访问图片</p>
+<pre><code>return new AssetImage(&quot;images/my_icon.png&quot;);
+</code></pre></li>
+</ul>
+<h2 id="依赖：Android-Gradle-vs-Flutter-pubspec-yaml"><a href="#依赖：Android-Gradle-vs-Flutter-pubspec-yaml" class="headerlink" title="依赖：Android Gradle vs Flutter pubspec.yaml"></a>依赖：Android Gradle vs Flutter pubspec.yaml</h2><p>在Android中，您可以在Gradle文件来添加依赖项。</p>
+<p>在Flutter中，虽然在Flutter项目中的Android文件夹下有Gradle文件，但只有在添加平台相关所需的依赖关系时才使用这些文件。 否则，应该使用pubspec.yaml声明用于Flutter的外部依赖项。</p>
+<h1 id="触摸事件处理"><a href="#触摸事件处理" class="headerlink" title="触摸事件处理"></a>触摸事件处理</h1><h2 id="Widget支持事件监听"><a href="#Widget支持事件监听" class="headerlink" title="Widget支持事件监听"></a>Widget支持事件监听</h2><p>将一个函数传递给它并进行处理</p>
+<pre><code>return new RaisedButton(
+  onPressed: () {
+    print(&quot;click&quot;);
+  },
+  child: new Text(&quot;Button&quot;));
+</code></pre><h2 id="Widget不支持事件监听-–-GestureDetector"><a href="#Widget不支持事件监听-–-GestureDetector" class="headerlink" title="Widget不支持事件监听 – GestureDetector"></a>Widget不支持事件监听 – GestureDetector</h2><p>将该Widget包装到GestureDetector中</p>
+<p>GestureDetector，可以监听多种手势</p>
+<ul>
+<li>Tap<ul>
+<li>onTapDown</li>
+<li>onTapUp</li>
+<li>onTapCancel</li>
+<li>onTap</li>
+</ul>
+</li>
+<li>Double tap 用户快速连续两次在同一位置轻敲屏幕.<ul>
+<li>onDoubleTap </li>
+</ul>
+</li>
+<li>长按<ul>
+<li>onLongPress</li>
+</ul>
+</li>
+<li>垂直拖动<ul>
+<li>onVerticalDragStart</li>
+<li>onVerticalDragUpdate</li>
+<li>onVerticalDragEnd</li>
+</ul>
+</li>
+<li>水平拖拽<ul>
+<li>onHorizontalDragStart</li>
+<li>onHorizontalDragUpdate</li>
+<li>onHorizontalDragEnd</li>
+</ul>
+</li>
+</ul>
+<p>示例：双击旋转FlutterLogo</p>
+<pre><code>class SampleAppHomeState extends State&lt;SampleAppHomePage&gt;  with TickerProviderStateMixin {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(&apos;HomePage&apos;),
+      ),
+      body: new Center(
+        child: getBodyChild(),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: onPress,
+        child: new Icon(Icons.update),
+      ),
+    );
+  }
+
+  AnimationController controller;
+  CurvedAnimation curve;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = new AnimationController(duration: const Duration(milliseconds: 2000), vsync: this);
+    curve = new CurvedAnimation(parent: controller, curve: Curves.easeIn);
+  }
+
+  getBodyChild() {
+    return new GestureDetector(
+      child: new RotationTransition(
+          turns: curve,
+          child: new FlutterLogo(
+            size: 200.0,
+          )),
+      onDoubleTap: () {
+        if (controller.isCompleted) {
+          controller.reverse();
+        } else {
+          controller.forward();
+        }
+      },
+    );
+  }
+
+  void onPress() {
+  }
+}
+</code></pre><h1 id="Listview-amp-Adapter"><a href="#Listview-amp-Adapter" class="headerlink" title="Listview &amp; Adapter"></a>Listview &amp; Adapter</h1><p>必须确保在合适的时机回收行，否则，你会得到各种疯狂的视觉和内存问题。</p>
+<pre><code>class SampleAppHomeState extends State&lt;SampleAppHomePage&gt;  with TickerProviderStateMixin {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text(&apos;HomePage&apos;),
+      ),
+      body: new Center(
+        child: getBodyChild(),
+      ),
+      floatingActionButton: new FloatingActionButton(
+        onPressed: onPress,
+        child: new Icon(Icons.update),
+      ),
+    );
+  }
+
+  void onPress() {
+  }
+
+  getBodyChild() {
+    return new ListView(children: getListData());
+  }
+
+  getListData() {
+    List&lt;Widget&gt; widgets = [];
+    for (int i = 0; i &lt; 100; i++) {
+      widgets.add(new GestureDetector(
+        child: new Padding(
+            padding: new EdgeInsets.all(10.0),
+            child: new Text(&quot;Row $i&quot;)),
+        onTap: () {//点击item事件
+          print(&apos;row $i tapped&apos;);
+        },
+      ));
+    }
+    return widgets;
+  }
+
+}
+
+logcat输出： 07-05 06:21:57.034 1997-2032/com.lyg.flutterapp I/flutter: row 0 tapped
+</code></pre><h2 id="动态更新ListView"><a href="#动态更新ListView" class="headerlink" title="动态更新ListView"></a>动态更新ListView</h2><p>示例：点击item，在列表末尾add一个item</p>
+<h3 id="新建ListView：setState中创建一个新的List"><a href="#新建ListView：setState中创建一个新的List" class="headerlink" title="新建ListView：setState中创建一个新的List"></a>新建ListView：setState中创建一个新的List</h3><p>setState被调用时，Flutter渲染引擎会遍历所有的widget以查看它们是否已经改变。 当遍历到ListView时，它会做一个==运算，以查看两个ListView是否相同，因为没有任何改变，因此没有更新数据。</p>
+<pre><code>List&lt;Widget&gt; widgets = [];
+
+@override
+void initState() {
+  super.initState();
+  for (int i = 0; i &lt; 100; i++) {
+    widgets.add(getRow(i));
+  }
+}
+
+getBodyChild() {
+  return new ListView(children: widgets);
+}
+
+Widget getRow(int i) {
+  return new GestureDetector(
+    child: new Padding(
+        padding: new EdgeInsets.all(10.0),
+        child: new Text(&quot;Row $i&quot;)),
+    onTap: () {
+      print(&apos;row $i tapped&apos;);
+      setState(() {
+        widgets = new List.from(widgets);//创建新列表
+        widgets.add(getRow(widgets.length));
+      });
+    },
+  );
+}
+</code></pre><h3 id="新建ListView-Builder：推荐使用"><a href="#新建ListView-Builder：推荐使用" class="headerlink" title="新建ListView.Builder：推荐使用"></a>新建ListView.Builder：推荐使用</h3><p><strong>动态列表或包含大量数据的列表</strong>时，ListView.Builder非常有用。</p>
+<p>实际上相当于在Android上使用RecyclerView，会<strong>自动回收列表元素</strong></p>
+<pre><code>getBodyChild() {
+  return new ListView.builder(
+      itemCount: widgets.length,
+      itemBuilder: (BuildContext context, int position) {//非常类似Android适配器中的getView()
+        return getRow(position);
+      });
+}
+
+Widget getRow(int i) {
+  return new GestureDetector(
+    child: new Padding(
+        padding: new EdgeInsets.all(10.0),
+        child: new Text(&quot;Row $i&quot;)),
+    onTap: () {
+      print(&apos;row $i tapped&apos;);
+      setState(() {
+        widgets.add(getRow(widgets.length));//不创建新列表，只添加新元素到列表
+      });
+    },
+  );
+}
+</code></pre><h1 id="异步UI"><a href="#异步UI" class="headerlink" title="异步UI"></a>异步UI</h1><p>Dart是单线程执行模型(默认在主UI线程中运行)，并由事件循环驱动</p>
+<p>支持Isolates、事件循环和异步编程。 </p>
+<h2 id="异步函数–async和await"><a href="#异步函数–async和await" class="headerlink" title="异步函数–async和await"></a>异步函数–async和await</h2><p>将函数声明为异步函数 <code>async</code>，并在该函数中等待 <code>await</code> 这个耗时任务返回即可。Dart的事件循环将负责其余的事情</p>
+<p>声明异步函数的方式需要注意，是将  <code>async</code> 放在 函数体{} 前面</p>
+<ul>
+<li>await关键字可以获取async函数返回值</li>
+<li>await关键字必须在async函数内部使用</li>
+</ul>
+<h3 id="示例：异步加载数据并将其显示在ListView中"><a href="#示例：异步加载数据并将其显示在ListView中" class="headerlink" title="示例：异步加载数据并将其显示在ListView中"></a>示例：<strong>异步加载数据并将其显示在ListView中</strong></h3><p>添加http依赖</p>
+<pre><code>pubspec.yaml文件
+    dependencies:
+        http: &apos;&gt;=0.11.3+12&apos;
+</code></pre><p>代码</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">'package:flutter/material.dart'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'dart:convert'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'package:http/http.dart'</span> <span class="keyword">as</span> http;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">List</span> widgets = [];</span><br><span class="line">	</span><br><span class="line">  <span class="meta">@override</span></span><br><span class="line">  <span class="keyword">void</span> initState() &#123;</span><br><span class="line">    <span class="keyword">super</span>.initState();</span><br><span class="line">    loadData();</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  getBodyChild() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ListView.builder(</span><br><span class="line">        itemCount: widgets.length,</span><br><span class="line">        itemBuilder: (BuildContext context, <span class="built_in">int</span> position) &#123;</span><br><span class="line">          <span class="keyword">return</span> getRow(position);</span><br><span class="line">        &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  Widget getRow(<span class="built_in">int</span> i) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Padding(</span><br><span class="line">        padding: <span class="keyword">new</span> EdgeInsets.all(<span class="number">10.0</span>),</span><br><span class="line">        child: <span class="keyword">new</span> Text(<span class="string">"Row <span class="subst">$&#123;widgets[i][<span class="string">"title"</span>]&#125;</span>"</span>)</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  loadData() <span class="keyword">async</span> &#123;</span><br><span class="line">    <span class="built_in">String</span> dataURL = <span class="string">"https://jsonplaceholder.typicode.com/posts"</span>;</span><br><span class="line">    http.Response response = <span class="keyword">await</span> http.<span class="keyword">get</span>(dataURL);</span><br><span class="line">    setState(() &#123;</span><br><span class="line">      widgets = JSON.decode(response.body);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>HTTP的get请求返回值为<code>Future&lt;String&gt;</code>类型</p>
+<h2 id="Dart进程-线程机制–Isolates"><a href="#Dart进程-线程机制–Isolates" class="headerlink" title="Dart进程/线程机制–Isolates"></a>Dart进程/线程机制–Isolates</h2><p>isolates    英[‘aɪsəleɪts]    使隔离;使分离;</p>
+<p>Dart进程/线程机制，名叫isolate。</p>
+<p>APP的启动入口main函数就是一个isolate</p>
+<p>Isolates是一个独立的执行线程，线程之间无法直接共享内存，只能通过isolate API进行通信。所以子线程不能访问类变量或通过调用setState来更新UI。</p>
+<p>示例：<strong>Isolate与主线程通信共享数据更新UI(带进度指示器)</strong></p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">'package:flutter/material.dart'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'dart:convert'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'package:http/http.dart'</span> <span class="keyword">as</span> http;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'dart:async'</span>;</span><br><span class="line"><span class="keyword">import</span> <span class="string">'dart:isolate'</span>;</span><br><span class="line"></span><br><span class="line">  getBodyChild() &#123;</span><br><span class="line">    <span class="keyword">if</span> (widgets.length == <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> Center(child: <span class="keyword">new</span> CircularProgressIndicator());<span class="comment">//LoadingDialog</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> ListView.builder(</span><br><span class="line">          itemCount: widgets.length,</span><br><span class="line">          itemBuilder: (BuildContext context, <span class="built_in">int</span> position) &#123;</span><br><span class="line">            <span class="keyword">return</span> getRow(position);</span><br><span class="line">          &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  Widget getRow(<span class="built_in">int</span> i) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Padding(</span><br><span class="line">        padding: <span class="keyword">new</span> EdgeInsets.all(<span class="number">10.0</span>),</span><br><span class="line">        child: <span class="keyword">new</span> Text(<span class="string">"Row <span class="subst">$&#123;widgets[i][<span class="string">"title"</span>]&#125;</span>"</span>)</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  loadData() <span class="keyword">async</span> &#123;</span><br><span class="line">    ReceivePort receivePort = <span class="keyword">new</span> ReceivePort();</span><br><span class="line">    <span class="keyword">await</span> Isolate.spawn(dataLoader, receivePort.sendPort);</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// The 'echo' isolate sends it's SendPort as the first message</span></span><br><span class="line">    SendPort sendPort = <span class="keyword">await</span> receivePort.first;</span><br><span class="line">	</span><br><span class="line">    <span class="built_in">List</span> msg = <span class="keyword">await</span> sendReceive(sendPort, <span class="string">"https://jsonplaceholder.typicode.com/posts"</span>);</span><br><span class="line">	</span><br><span class="line">    setState(() &#123;</span><br><span class="line">      widgets = msg;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line"><span class="comment">// the entry point for the isolate</span></span><br><span class="line">  <span class="keyword">static</span> dataLoader(SendPort sendPort) <span class="keyword">async</span> &#123;</span><br><span class="line">    <span class="comment">// Open the ReceivePort for incoming messages.</span></span><br><span class="line">    ReceivePort port = <span class="keyword">new</span> ReceivePort();</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// Notify any other isolates what port this isolate listens to.</span></span><br><span class="line">    sendPort.send(port.sendPort);</span><br><span class="line">	</span><br><span class="line">    <span class="keyword">await</span> <span class="keyword">for</span> (<span class="keyword">var</span> msg <span class="keyword">in</span> port) &#123;</span><br><span class="line">      <span class="built_in">String</span> data = msg[<span class="number">0</span>];</span><br><span class="line">      SendPort replyTo = msg[<span class="number">1</span>];</span><br><span class="line">	</span><br><span class="line">      <span class="built_in">String</span> dataURL = data;</span><br><span class="line">      http.Response response = <span class="keyword">await</span> http.<span class="keyword">get</span>(dataURL);</span><br><span class="line">      <span class="comment">// Lots of JSON to parse</span></span><br><span class="line">      replyTo.send(JSON.decode(response.body));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">	</span><br><span class="line">  Future sendReceive(SendPort port, msg) &#123;</span><br><span class="line">    ReceivePort response = <span class="keyword">new</span> ReceivePort();</span><br><span class="line">    port.send([msg, response.sendPort]);</span><br><span class="line">    <span class="keyword">return</span> response.first;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="Future"><a href="#Future" class="headerlink" title="Future"></a>Future</h2><h3 id="线程消息循环机制"><a href="#线程消息循环机制" class="headerlink" title="线程消息循环机制"></a>线程消息循环机制</h3><img src="/2018/07/04/Flutter/Flutter-for-Android-开发者/event-loop.png">
+<p>Dart线程中消息循环机制（event loop）有两个队列（event queue和microtask queue）</p>
+<ul>
+<li><strong>event queue</strong><ul>
+<li>所有外来的事件都会先放入event queue中排队等待执行。<ul>
+<li>事件：I/O，mouse events，drawing events，timers，isolate之间的message等 </li>
+</ul>
+</li>
+<li>好比机场的公共排队大厅。</li>
+</ul>
+</li>
+<li><strong>microtask queue</strong><ul>
+<li>只在当前isolate的任务队列中排队</li>
+<li>优先级高于event queue</li>
+<li>好比机场里的某个VIP候机室，总是VIP用户先登机了，才开放公共排队入口。</li>
+<li>实际提供了一种插队机制</li>
+<li>当事件循环正在处理microtask的时候，event queue会被堵塞。这时候app就无法进行UI绘制，响应鼠标事件和I/O等事件</li>
+</ul>
+</li>
+</ul>
+<p>当main方法执行完毕退出后，event loop就会以FIFO(先进先出)的顺序执行microtask，当所有microtask执行完后它会从event queue中取事件并执行。如此反复，直到两个队列都为空</p>
+<h3 id="Future是event"><a href="#Future是event" class="headerlink" title="Future是event"></a>Future是event</h3><p>每创建一个Future就会把这个Future扔进event queue中排队等候安检~</p>
+<p>Http的get函数、RefreshIndicator的onRefresh函数是event。</p>
+<p>被await标记的句柄也是一个event</p>
+<h3 id="为什么要用Future"><a href="#为什么要用Future" class="headerlink" title="为什么要用Future"></a>为什么要用Future</h3><p>用async和await组合，即可向event queue中插入event实现异步操作</p>
+<p>为什么还要用Future呢？</p>
+<ul>
+<li>定义Flutter函数时，可以指定其运行结果<strong>返回值类型</strong>，以提高代码的<strong>可读性</strong></li>
+<li>最主要的功能就是提供了<strong>链式调用</strong><ul>
+<li>链式调用解决两大问题：明确代码执行的依赖关系和实现异常捕获</li>
+</ul>
+</li>
+</ul>
+<p>实例代码</p>
+<figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Future.then(funA()).then(funB());   <span class="comment">// 明确表现出了后者依赖前者设置的变量值</span></span><br><span class="line"> </span><br><span class="line">  <span class="keyword">new</span> Future.then(funA()).then((_) &#123;<span class="keyword">new</span> Future(funB())&#125;);    <span class="comment">//还可以这样用</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">//链式调用，捕获异常</span></span><br><span class="line">  <span class="keyword">new</span> Future.then(funA(),onError: (e) &#123; handleError(e); &#125;).then(funB(),onError: (e) &#123; handleError(e); &#125;)</span><br></pre></td></tr></table></figure>
+<h1 id="Flutter-packages"><a href="#Flutter-packages" class="headerlink" title="Flutter packages"></a>Flutter packages</h1><h2 id="使用-packages"><a href="#使用-packages" class="headerlink" title="使用 packages"></a>使用 packages</h2><p><a href="https://pub.dartlang.org/packages/location" target="_blank" rel="noopener">GPS插件</a></p>
+<p><a href="https://pub.dartlang.org/packages/image_picker" target="_blank" rel="noopener">相机插件</a></p>
+<p>Packages会被发布到了 <a href="https://pub.dartlang.org/" target="_blank" rel="noopener">Pub</a> 包仓库.</p>
+<h3 id="使用步骤"><a href="#使用步骤" class="headerlink" title="使用步骤"></a>使用步骤</h3><ul>
+<li>添加包依赖<ul>
+<li><code>pubspec.yaml</code>文件<code>dependencies</code>下添加</li>
+</ul>
+</li>
+<li>安装包依赖<ul>
+<li>terminal中: 运行 flutter packages get</li>
+<li>或者IntelliJ中: 点击pubspec.yaml文件顶部的’Packages Get’</li>
+</ul>
+</li>
+<li>导入包依赖<ul>
+<li>在Dart代码中添加相应的import语句.</li>
+</ul>
+</li>
+</ul>
+<h3 id="管理包依赖和版本"><a href="#管理包依赖和版本" class="headerlink" title="管理包依赖和版本"></a>管理包依赖和版本</h3><h4 id="Package-versions"><a href="#Package-versions" class="headerlink" title="Package versions"></a>Package versions</h4><pre><code>dependencies:
+  css_colors: //被解释为 css_colors: any可以使用任何版本的包。为了稳定性，建议指定版本范围
+  url_launcher: &apos;&gt;=0.1.2 &lt;0.2.0&apos;  //指定一个最小和最大的版本号
+  collection: &apos;^0.1.2&apos; //caret 语法
+</code></pre><h4 id="更新依赖包"><a href="#更新依赖包" class="headerlink" title="更新依赖包"></a>更新依赖包</h4><p>添加一个包后首次运行（IntelliJ中的’Packages Get’）flutter packages get，Flutter将找到包的版本保存在 <code>pubspec.lock</code>。这确保了团队中的其他开发人员运行flutter packages get后回获取相同版本的包</p>
+<p>升级到软件包的新版本，请运行flutter packages upgrade（在IntelliJ中点击Upgrade dependencies）。 这将根据您在pubspec.yaml中指定的版本约束下载所允许的最高可用版本</p>
+<h4 id="管理包依赖"><a href="#管理包依赖" class="headerlink" title="管理包依赖"></a>管理包依赖</h4><ul>
+<li>发布到 <strong>Pub</strong></li>
+<li><p><strong>路径</strong> 支持相对路径和绝对路径</p>
+<pre><code>dependencies:
+    plugin1:
+    path: ../plugin1/
+</code></pre></li>
+<li><p><strong>Git</strong></p>
+<pre><code>dependencies:
+  plugin1:
+    git:
+      url: git://github.com/flutter/plugin1.git //包位于Git存储库的根目录中
+      //还可以通过path指定非根目录包，ref指定commit，branch或tag
+      path: packages/package1    
+</code></pre></li>
+</ul>
+<h2 id="开发Packages"><a href="#开发Packages" class="headerlink" title="开发Packages"></a>开发Packages</h2><h3 id="Package-介绍"><a href="#Package-介绍" class="headerlink" title="Package 介绍"></a>Package 介绍</h3><p>创建可轻松共享的模块化代码</p>
+<h4 id="Package-结构"><a href="#Package-结构" class="headerlink" title="Package 结构"></a>Package 结构</h4><p>一个最小的package包括</p>
+<ul>
+<li><p>一个 <code>pubspec.yaml</code> 文件：声明了package的名称、版本、作者等的元数据文件。</p>
+</li>
+<li><p>一个 <code>lib</code> 文件夹：包括包中公开的(public)代码，最少应有一个 <code>&lt;package-name&gt;.dart</code> 文件</p>
+</li>
+</ul>
+<h4 id="Package-类型"><a href="#Package-类型" class="headerlink" title="Package 类型"></a>Package 类型</h4><ul>
+<li>Dart包：<ul>
+<li>可能依赖Flutter框架</li>
+</ul>
+</li>
+<li>插件包：<ul>
+<li>包含针对Android（使用Java或Kotlin）和/或针对iOS（使用ObjC或Swift）平台的特定实现。一个具体的例子是<code>battery</code>插件包。</li>
+</ul>
+</li>
+</ul>
+<h3 id="开发Dart包"><a href="#开发Dart包" class="headerlink" title="开发Dart包"></a>开发Dart包</h3>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/03/Flutter/Flutter布局/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2073,558 +3299,6 @@ private void layoutView(View v) {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/07/Android/Bitmap图片生成/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/06/07/Android/Bitmap图片生成/" itemprop="url">Bitmap图片生成</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-07T15:51:21+08:00">
-                2018-06-07
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>把两张bitmap合成为一张图</p>
-<pre><code>/**
- * 把两个位图覆盖合成为一个位图，以底层位图的长宽为基准
- * @param backBitmap 在底部的位图
- * @param frontBitmap 盖在上面的位图
- * @return
- */
-public static Bitmap mergeBitmap(Bitmap backBitmap, Bitmap frontBitmap) {
-
-    if (backBitmap == null || backBitmap.isRecycled() 
-            || frontBitmap == null || frontBitmap.isRecycled()) {
-        Log.e(TAG, &quot;backBitmap=&quot; + backBitmap + &quot;;frontBitmap=&quot; + frontBitmap);
-        return null;
-    }
-    Bitmap bitmap = backBitmap.copy(Config.ARGB_8888, true);
-    Canvas canvas = new Canvas(bitmap);
-    Rect baseRect  = new Rect(0, 0, backBitmap.getWidth(), backBitmap.getHeight());
-    Rect frontRect = new Rect(0, 0, frontBitmap.getWidth(), frontBitmap.getHeight());
-    canvas.drawBitmap(frontBitmap, frontRect, baseRect, null);
-    return bitmap;
-}
-
-/**
- * 把两个位图覆盖合成为一个位图，左右拼接
- * @param leftBitmap 
- * @param rightBitmap 
- * @param isBaseMax 是否以宽度大的位图为准，true则小图等比拉伸，false则大图等比压缩
- * @return
- */
-public static Bitmap mergeBitmap_LR(Bitmap leftBitmap, Bitmap rightBitmap, boolean isBaseMax) {
-
-    if (leftBitmap == null || leftBitmap.isRecycled() 
-            || rightBitmap == null || rightBitmap.isRecycled()) {
-        JDLog.logError(TAG, &quot;leftBitmap=&quot; + leftBitmap + &quot;;rightBitmap=&quot; + rightBitmap);
-        return null;
-    }
-    int height = 0; // 拼接后的高度，按照参数取大或取小
-    if (isBaseMax) {
-        height = leftBitmap.getHeight() &gt; rightBitmap.getHeight() ? leftBitmap.getHeight() : rightBitmap.getHeight();
-    } else {
-        height = leftBitmap.getHeight() &lt; rightBitmap.getHeight() ? leftBitmap.getHeight() : rightBitmap.getHeight();
-    }
-
-    // 缩放之后的bitmap
-    Bitmap tempBitmapL = leftBitmap;
-    Bitmap tempBitmapR = rightBitmap;
-
-    if (leftBitmap.getHeight() != height) {
-        tempBitmapL = Bitmap.createScaledBitmap(leftBitmap, (int)(leftBitmap.getWidth()*1f/leftBitmap.getHeight()*height), height, false);
-    } else if (rightBitmap.getHeight() != height) {
-        tempBitmapR = Bitmap.createScaledBitmap(rightBitmap, (int)(rightBitmap.getWidth()*1f/rightBitmap.getHeight()*height), height, false);
-    }
-
-    // 拼接后的宽度
-    int width = tempBitmapL.getWidth() + tempBitmapR.getWidth();
-
-    // 定义输出的bitmap
-    Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
-    Canvas canvas = new Canvas(bitmap);
-
-    // 缩放后两个bitmap需要绘制的参数
-    Rect leftRect = new Rect(0, 0, tempBitmapL.getWidth(), tempBitmapL.getHeight());
-    Rect rightRect  = new Rect(0, 0, tempBitmapR.getWidth(), tempBitmapR.getHeight());
-
-    // 右边图需要绘制的位置，往右边偏移左边图的宽度，高度是相同的
-    Rect rightRectT  = new Rect(tempBitmapL.getWidth(), 0, width, height);
-
-    canvas.drawBitmap(tempBitmapL, leftRect, leftRect, null);
-    canvas.drawBitmap(tempBitmapR, rightRect, rightRectT, null);
-    return bitmap;
-}
-
-
-/**
- * 把两个位图覆盖合成为一个位图，上下拼接
- * @param leftBitmap 
- * @param rightBitmap 
- * @param isBaseMax 是否以高度大的位图为准，true则小图等比拉伸，false则大图等比压缩
- * @return
- */
-public static Bitmap mergeBitmap_TB(Bitmap topBitmap, Bitmap bottomBitmap, boolean isBaseMax) {
-
-    if (topBitmap == null || topBitmap.isRecycled() 
-            || bottomBitmap == null || bottomBitmap.isRecycled()) {
-        JDLog.logError(TAG, &quot;topBitmap=&quot; + topBitmap + &quot;;bottomBitmap=&quot; + bottomBitmap);
-        return null;
-    }
-    int width = 0;
-    if (isBaseMax) {
-        width = topBitmap.getWidth() &gt; bottomBitmap.getWidth() ? topBitmap.getWidth() : bottomBitmap.getWidth();
-    } else {
-        width = topBitmap.getWidth() &lt; bottomBitmap.getWidth() ? topBitmap.getWidth() : bottomBitmap.getWidth();
-    }
-    Bitmap tempBitmapT = topBitmap;
-    Bitmap tempBitmapB = bottomBitmap;
-
-    if (topBitmap.getWidth() != width) {
-        tempBitmapT = Bitmap.createScaledBitmap(topBitmap, width, (int)(topBitmap.getHeight()*1f/topBitmap.getWidth()*width), false);
-    } else if (bottomBitmap.getWidth() != width) {
-        tempBitmapB = Bitmap.createScaledBitmap(bottomBitmap, width, (int)(bottomBitmap.getHeight()*1f/bottomBitmap.getWidth()*width), false);
-    }
-
-    int height = tempBitmapT.getHeight() + tempBitmapB.getHeight();
-
-    Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
-    Canvas canvas = new Canvas(bitmap);
-
-    Rect topRect = new Rect(0, 0, tempBitmapT.getWidth(), tempBitmapT.getHeight());
-    Rect bottomRect  = new Rect(0, 0, tempBitmapB.getWidth(), tempBitmapB.getHeight());
-
-    Rect bottomRectT  = new Rect(0, tempBitmapT.getHeight(), width, height);
-
-    canvas.drawBitmap(tempBitmapT, topRect, topRect, null);
-    canvas.drawBitmap(tempBitmapB, bottomRect, bottomRectT, null);
-    return bitmap;
-}
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/25/Android/Android-Studio-运行-Java代码/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/25/Android/Android-Studio-运行-Java代码/" itemprop="url">Android Studio 运行 Java代码</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-25T11:45:08+08:00">
-                2018-05-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="修改启动方式"><a href="#修改启动方式" class="headerlink" title="修改启动方式"></a>修改启动方式</h1><p>目前有2种方法 :</p>
-<h2 id="右键运行方法"><a href="#右键运行方法" class="headerlink" title="右键运行方法"></a>右键运行方法</h2><p>在Java文件中添加main方法，  鼠标点击到main方法里任意地方，然后点击鼠标右键，选择Run ‘MainActivity main()’或者Debug ‘MainActivity main’就行了</p>
-<pre><code>public static void main(String[] args) {
-       System.out.println(&quot;ok&quot;);
-   }
-</code></pre><h3 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h3><pre><code>Error:Gradle: failed to create directory &apos;D:\AndroidProject\app\build\generated\source\r\debug\com\example\test&apos;.
-</code></pre><p>Android Studio 3.0，在项目的 gradle.properties 中添加 android.enableAapt2=false 即可</p>
-<h2 id="Java-Library"><a href="#Java-Library" class="headerlink" title="Java Library"></a>Java Library</h2><p>new Module – Java Library</p>
-<p>运行处有个下拉小箭头，点击Edit Configuration – Add New Configuration – Application</p>
-<pre><code>Name 名字随便，这里取名Java
-Main class 填要运行的Java类路径
-Use class of Module 选择lib名字
-</code></pre><p>运行处选择运行方式为Java， 然后点击绿色运行按钮就行了</p>
-<h1 id="直接创建JAVA文件"><a href="#直接创建JAVA文件" class="headerlink" title="直接创建JAVA文件"></a>直接创建JAVA文件</h1><p>类文件上右键 ，<code>Run &#39;MainClass.mian()&#39;</code></p>
-<h1 id="使用Gradle编译和运行Java程序"><a href="#使用Gradle编译和运行Java程序" class="headerlink" title="使用Gradle编译和运行Java程序"></a>使用Gradle编译和运行Java程序</h1><p>build.gradle</p>
-<pre><code>apply plugin: &apos;java&apos;  
-apply plugin: &apos;application&apos;  
-
-mainClassName = &apos;com.binwin20.testjava.Main&apos; // main() 的路径
-</code></pre><p>运行java</p>
-<pre><code>gradle -q run  
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/Android/AndroidManifest合并原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/24/Android/AndroidManifest合并原理/" itemprop="url">AndroidManifest合并原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-24T18:44:53+08:00">
-                2018-05-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://mouxuejie.com/blog/2016-02-05/androidmanifest-merge/" target="_blank" rel="noopener">ss</a></p>
-<p><a href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn" target="_blank" rel="noopener">啊啊</a></p>
-<p>APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。</p>
-<p>清单合并工具通过遵循某些<strong>合并冲突启发式算法</strong>，和 <strong>合并首选项</strong>(通过特殊 XML 属性定义)，来合并各个文件中的所有 XML 元素 。</p>
-<h1 id="合并优先级"><a href="#合并优先级" class="headerlink" title="合并优先级"></a>合并优先级</h1><p><strong>从优先级最低的文件合并至优先级最高的文件</strong></p>
-<img src="/2018/05/24/Android/AndroidManifest合并原理/manifest-merger_priority.png">
-<h2 id="库清单文件"><a href="#库清单文件" class="headerlink" title="库清单文件"></a>库清单文件</h2><p>多个库，则其清单优先级与依赖顺序（库出现在 Gradle dependencies 块中的顺序，由高到低）匹配</p>
-<h2 id="构建变体"><a href="#构建变体" class="headerlink" title="构建变体"></a>构建变体</h2><p>变体有多个源集，则其清单优先级如下(由高到低)：</p>
-<ul>
-<li>构建变体清单（如 src/demoDebug/）</li>
-<li>构建类型清单（如 src/debug/）</li>
-<li>产品定制清单（如 src/demo/）</li>
-</ul>
-<p>如果使用的是定制维度，清单优先级将与每个维度在 flavorDimensions 属性中的列示顺序(由高到低)对应。</p>
-<h1 id="合并冲突启发式算法"><a href="#合并冲突启发式算法" class="headerlink" title="合并冲突启发式算法"></a>合并冲突启发式算法</h1><h2 id="默认合并规则"><a href="#默认合并规则" class="headerlink" title="默认合并规则"></a>默认合并规则</h2><img src="/2018/05/24/Android/AndroidManifest合并原理/merge.png">
-<h3 id="编码原则：不依赖于默认属性值"><a href="#编码原则：不依赖于默认属性值" class="headerlink" title="编码原则：不依赖于默认属性值"></a>编码原则：不依赖于默认属性值</h3><p>高优先级清单实际上依赖于属性的默认值而不需要声明，则可能会导致意外结果。</p>
-<p>例如，高优先级清单不声明android:launchMode 属性，则会使用 “standard” 的默认值；但如果低优先级清单声明此属性具有其他值，该值将应用于合并清单（替代默认值）。因此，您应该按期望明确定义每个属性。（每个属性的默认值都会记录在 <a href="https://developer.android.com/guide/topics/manifest/manifest-intro?hl=zh-cn" target="_blank" rel="noopener">Manifest reference</a> 中）。</p>
-<h2 id="合并工具为减少合并冲突的特殊规则"><a href="#合并工具为减少合并冲突的特殊规则" class="headerlink" title="合并工具为减少合并冲突的特殊规则"></a>合并工具为减少合并冲突的特殊规则</h2><ul>
-<li><code>&lt;manifest&gt;</code>元素的属性绝不合并—仅使用优先级最高的清单中的属性。</li>
-<li><code>&lt;uses-feature&gt;</code>元素 <code>&lt;uses-library&gt;</code>元素<code>android:required</code>属性 使用 <strong>OR</strong> 合并，因此如果出现冲突，系统将应用 “true” 并始终包括某个清单所需的功能或库。</li>
-<li><code>&lt;uses-sdk&gt;</code>元素始终使用较高优先级的清单中的值，但以下情况有些特殊：<ul>
-<li>minSdkVersion，低优先级清单的值 较高<ul>
-<li>默认，使用 低优先级清单的值</li>
-<li>应用 overrideLibrary 合并规则，使用 较高优先级的清单中的值</li>
-</ul>
-</li>
-<li>targetSdkVersion，低优先级清单的值 较低<ul>
-<li>合并工具将使用高优先级清单中的值</li>
-<li>但也会添加任何必要的系统权限，以确保所导入的库继续正常工作<ul>
-<li>适用于 较高的 Android 版本需要更多权限限制的情况。 如需了解有关此行为的详细信息，请参阅有关隐式系统权限的部分。</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><code>&lt;intent-filter&gt;</code>元素。 每个元素都被视为唯一元素，直接添加至合并清单中的常用父元素。</li>
-</ul>
-<h1 id="合并规则标记"><a href="#合并规则标记" class="headerlink" title="合并规则标记"></a>合并规则标记</h1><ul>
-<li>是什么：是一个 XML 属性</li>
-<li>作用：标记如何解决合并冲突和属性的首选项</li>
-<li>作用域：整个元素或元素的特定属性</li>
-<li>合并工具会在高优先级清单文件中寻找这些标记</li>
-<li>所有标记均属于 Android <code>tools</code> 命名空间，必须先在 <code>&lt;manifest&gt;</code>元素中声明此命名空间</li>
-</ul>
-<h2 id="元素-节点标记"><a href="#元素-节点标记" class="headerlink" title="元素/节点标记"></a>元素/节点标记</h2><p><strong>tools:node=”xx”</strong></p>
-<ul>
-<li><strong>merge</strong> <ul>
-<li>元素的默认行为</li>
-<li>合并所有属性以及所有嵌套元素。 例如：<code>&lt;activity&gt;</code> 嵌套 <code>&lt;intent-filter&gt;</code></li>
-</ul>
-</li>
-<li><strong>merge-only-attributes</strong><ul>
-<li>仅合并属性，不合并嵌套元素</li>
-</ul>
-</li>
-<li><strong>remove</strong></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2679,7 +3353,7 @@ mainClassName = &apos;com.binwin20.testjava.Main&apos; // main() 的路径
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">263</span>
+                  <span class="site-state-item-count">266</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2690,7 +3364,7 @@ mainClassName = &apos;com.binwin20.testjava.Main&apos; // main() 的路径
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2701,7 +3375,7 @@ mainClassName = &apos;com.binwin20.testjava.Main&apos; // main() 的路径
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-count">66</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

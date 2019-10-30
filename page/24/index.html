@@ -262,6 +262,558 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/07/Android/Bitmap图片生成/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/06/07/Android/Bitmap图片生成/" itemprop="url">Bitmap图片生成</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-07T15:51:21+08:00">
+                2018-06-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>把两张bitmap合成为一张图</p>
+<pre><code>/**
+ * 把两个位图覆盖合成为一个位图，以底层位图的长宽为基准
+ * @param backBitmap 在底部的位图
+ * @param frontBitmap 盖在上面的位图
+ * @return
+ */
+public static Bitmap mergeBitmap(Bitmap backBitmap, Bitmap frontBitmap) {
+
+    if (backBitmap == null || backBitmap.isRecycled() 
+            || frontBitmap == null || frontBitmap.isRecycled()) {
+        Log.e(TAG, &quot;backBitmap=&quot; + backBitmap + &quot;;frontBitmap=&quot; + frontBitmap);
+        return null;
+    }
+    Bitmap bitmap = backBitmap.copy(Config.ARGB_8888, true);
+    Canvas canvas = new Canvas(bitmap);
+    Rect baseRect  = new Rect(0, 0, backBitmap.getWidth(), backBitmap.getHeight());
+    Rect frontRect = new Rect(0, 0, frontBitmap.getWidth(), frontBitmap.getHeight());
+    canvas.drawBitmap(frontBitmap, frontRect, baseRect, null);
+    return bitmap;
+}
+
+/**
+ * 把两个位图覆盖合成为一个位图，左右拼接
+ * @param leftBitmap 
+ * @param rightBitmap 
+ * @param isBaseMax 是否以宽度大的位图为准，true则小图等比拉伸，false则大图等比压缩
+ * @return
+ */
+public static Bitmap mergeBitmap_LR(Bitmap leftBitmap, Bitmap rightBitmap, boolean isBaseMax) {
+
+    if (leftBitmap == null || leftBitmap.isRecycled() 
+            || rightBitmap == null || rightBitmap.isRecycled()) {
+        JDLog.logError(TAG, &quot;leftBitmap=&quot; + leftBitmap + &quot;;rightBitmap=&quot; + rightBitmap);
+        return null;
+    }
+    int height = 0; // 拼接后的高度，按照参数取大或取小
+    if (isBaseMax) {
+        height = leftBitmap.getHeight() &gt; rightBitmap.getHeight() ? leftBitmap.getHeight() : rightBitmap.getHeight();
+    } else {
+        height = leftBitmap.getHeight() &lt; rightBitmap.getHeight() ? leftBitmap.getHeight() : rightBitmap.getHeight();
+    }
+
+    // 缩放之后的bitmap
+    Bitmap tempBitmapL = leftBitmap;
+    Bitmap tempBitmapR = rightBitmap;
+
+    if (leftBitmap.getHeight() != height) {
+        tempBitmapL = Bitmap.createScaledBitmap(leftBitmap, (int)(leftBitmap.getWidth()*1f/leftBitmap.getHeight()*height), height, false);
+    } else if (rightBitmap.getHeight() != height) {
+        tempBitmapR = Bitmap.createScaledBitmap(rightBitmap, (int)(rightBitmap.getWidth()*1f/rightBitmap.getHeight()*height), height, false);
+    }
+
+    // 拼接后的宽度
+    int width = tempBitmapL.getWidth() + tempBitmapR.getWidth();
+
+    // 定义输出的bitmap
+    Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+    Canvas canvas = new Canvas(bitmap);
+
+    // 缩放后两个bitmap需要绘制的参数
+    Rect leftRect = new Rect(0, 0, tempBitmapL.getWidth(), tempBitmapL.getHeight());
+    Rect rightRect  = new Rect(0, 0, tempBitmapR.getWidth(), tempBitmapR.getHeight());
+
+    // 右边图需要绘制的位置，往右边偏移左边图的宽度，高度是相同的
+    Rect rightRectT  = new Rect(tempBitmapL.getWidth(), 0, width, height);
+
+    canvas.drawBitmap(tempBitmapL, leftRect, leftRect, null);
+    canvas.drawBitmap(tempBitmapR, rightRect, rightRectT, null);
+    return bitmap;
+}
+
+
+/**
+ * 把两个位图覆盖合成为一个位图，上下拼接
+ * @param leftBitmap 
+ * @param rightBitmap 
+ * @param isBaseMax 是否以高度大的位图为准，true则小图等比拉伸，false则大图等比压缩
+ * @return
+ */
+public static Bitmap mergeBitmap_TB(Bitmap topBitmap, Bitmap bottomBitmap, boolean isBaseMax) {
+
+    if (topBitmap == null || topBitmap.isRecycled() 
+            || bottomBitmap == null || bottomBitmap.isRecycled()) {
+        JDLog.logError(TAG, &quot;topBitmap=&quot; + topBitmap + &quot;;bottomBitmap=&quot; + bottomBitmap);
+        return null;
+    }
+    int width = 0;
+    if (isBaseMax) {
+        width = topBitmap.getWidth() &gt; bottomBitmap.getWidth() ? topBitmap.getWidth() : bottomBitmap.getWidth();
+    } else {
+        width = topBitmap.getWidth() &lt; bottomBitmap.getWidth() ? topBitmap.getWidth() : bottomBitmap.getWidth();
+    }
+    Bitmap tempBitmapT = topBitmap;
+    Bitmap tempBitmapB = bottomBitmap;
+
+    if (topBitmap.getWidth() != width) {
+        tempBitmapT = Bitmap.createScaledBitmap(topBitmap, width, (int)(topBitmap.getHeight()*1f/topBitmap.getWidth()*width), false);
+    } else if (bottomBitmap.getWidth() != width) {
+        tempBitmapB = Bitmap.createScaledBitmap(bottomBitmap, width, (int)(bottomBitmap.getHeight()*1f/bottomBitmap.getWidth()*width), false);
+    }
+
+    int height = tempBitmapT.getHeight() + tempBitmapB.getHeight();
+
+    Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+    Canvas canvas = new Canvas(bitmap);
+
+    Rect topRect = new Rect(0, 0, tempBitmapT.getWidth(), tempBitmapT.getHeight());
+    Rect bottomRect  = new Rect(0, 0, tempBitmapB.getWidth(), tempBitmapB.getHeight());
+
+    Rect bottomRectT  = new Rect(0, tempBitmapT.getHeight(), width, height);
+
+    canvas.drawBitmap(tempBitmapT, topRect, topRect, null);
+    canvas.drawBitmap(tempBitmapB, bottomRect, bottomRectT, null);
+    return bitmap;
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/25/Android/Android-Studio-运行-Java代码/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/25/Android/Android-Studio-运行-Java代码/" itemprop="url">Android Studio 运行 Java代码</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-25T11:45:08+08:00">
+                2018-05-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="修改启动方式"><a href="#修改启动方式" class="headerlink" title="修改启动方式"></a>修改启动方式</h1><p>目前有2种方法 :</p>
+<h2 id="右键运行方法"><a href="#右键运行方法" class="headerlink" title="右键运行方法"></a>右键运行方法</h2><p>在Java文件中添加main方法，  鼠标点击到main方法里任意地方，然后点击鼠标右键，选择Run ‘MainActivity main()’或者Debug ‘MainActivity main’就行了</p>
+<pre><code>public static void main(String[] args) {
+       System.out.println(&quot;ok&quot;);
+   }
+</code></pre><h3 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h3><pre><code>Error:Gradle: failed to create directory &apos;D:\AndroidProject\app\build\generated\source\r\debug\com\example\test&apos;.
+</code></pre><p>Android Studio 3.0，在项目的 gradle.properties 中添加 android.enableAapt2=false 即可</p>
+<h2 id="Java-Library"><a href="#Java-Library" class="headerlink" title="Java Library"></a>Java Library</h2><p>new Module – Java Library</p>
+<p>运行处有个下拉小箭头，点击Edit Configuration – Add New Configuration – Application</p>
+<pre><code>Name 名字随便，这里取名Java
+Main class 填要运行的Java类路径
+Use class of Module 选择lib名字
+</code></pre><p>运行处选择运行方式为Java， 然后点击绿色运行按钮就行了</p>
+<h1 id="直接创建JAVA文件"><a href="#直接创建JAVA文件" class="headerlink" title="直接创建JAVA文件"></a>直接创建JAVA文件</h1><p>类文件上右键 ，<code>Run &#39;MainClass.mian()&#39;</code></p>
+<h1 id="使用Gradle编译和运行Java程序"><a href="#使用Gradle编译和运行Java程序" class="headerlink" title="使用Gradle编译和运行Java程序"></a>使用Gradle编译和运行Java程序</h1><p>build.gradle</p>
+<pre><code>apply plugin: &apos;java&apos;  
+apply plugin: &apos;application&apos;  
+
+mainClassName = &apos;com.binwin20.testjava.Main&apos; // main() 的路径
+</code></pre><p>运行java</p>
+<pre><code>gradle -q run  
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/Android/AndroidManifest合并原理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/24/Android/AndroidManifest合并原理/" itemprop="url">AndroidManifest合并原理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-24T18:44:53+08:00">
+                2018-05-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://mouxuejie.com/blog/2016-02-05/androidmanifest-merge/" target="_blank" rel="noopener">ss</a></p>
+<p><a href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn" target="_blank" rel="noopener">啊啊</a></p>
+<p>APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。</p>
+<p>清单合并工具通过遵循某些<strong>合并冲突启发式算法</strong>，和 <strong>合并首选项</strong>(通过特殊 XML 属性定义)，来合并各个文件中的所有 XML 元素 。</p>
+<h1 id="合并优先级"><a href="#合并优先级" class="headerlink" title="合并优先级"></a>合并优先级</h1><p><strong>从优先级最低的文件合并至优先级最高的文件</strong></p>
+<img src="/2018/05/24/Android/AndroidManifest合并原理/manifest-merger_priority.png">
+<h2 id="库清单文件"><a href="#库清单文件" class="headerlink" title="库清单文件"></a>库清单文件</h2><p>多个库，则其清单优先级与依赖顺序（库出现在 Gradle dependencies 块中的顺序，由高到低）匹配</p>
+<h2 id="构建变体"><a href="#构建变体" class="headerlink" title="构建变体"></a>构建变体</h2><p>变体有多个源集，则其清单优先级如下(由高到低)：</p>
+<ul>
+<li>构建变体清单（如 src/demoDebug/）</li>
+<li>构建类型清单（如 src/debug/）</li>
+<li>产品定制清单（如 src/demo/）</li>
+</ul>
+<p>如果使用的是定制维度，清单优先级将与每个维度在 flavorDimensions 属性中的列示顺序(由高到低)对应。</p>
+<h1 id="合并冲突启发式算法"><a href="#合并冲突启发式算法" class="headerlink" title="合并冲突启发式算法"></a>合并冲突启发式算法</h1><h2 id="默认合并规则"><a href="#默认合并规则" class="headerlink" title="默认合并规则"></a>默认合并规则</h2><img src="/2018/05/24/Android/AndroidManifest合并原理/merge.png">
+<h3 id="编码原则：不依赖于默认属性值"><a href="#编码原则：不依赖于默认属性值" class="headerlink" title="编码原则：不依赖于默认属性值"></a>编码原则：不依赖于默认属性值</h3><p>高优先级清单实际上依赖于属性的默认值而不需要声明，则可能会导致意外结果。</p>
+<p>例如，高优先级清单不声明android:launchMode 属性，则会使用 “standard” 的默认值；但如果低优先级清单声明此属性具有其他值，该值将应用于合并清单（替代默认值）。因此，您应该按期望明确定义每个属性。（每个属性的默认值都会记录在 <a href="https://developer.android.com/guide/topics/manifest/manifest-intro?hl=zh-cn" target="_blank" rel="noopener">Manifest reference</a> 中）。</p>
+<h2 id="合并工具为减少合并冲突的特殊规则"><a href="#合并工具为减少合并冲突的特殊规则" class="headerlink" title="合并工具为减少合并冲突的特殊规则"></a>合并工具为减少合并冲突的特殊规则</h2><ul>
+<li><code>&lt;manifest&gt;</code>元素的属性绝不合并—仅使用优先级最高的清单中的属性。</li>
+<li><code>&lt;uses-feature&gt;</code>元素 <code>&lt;uses-library&gt;</code>元素<code>android:required</code>属性 使用 <strong>OR</strong> 合并，因此如果出现冲突，系统将应用 “true” 并始终包括某个清单所需的功能或库。</li>
+<li><code>&lt;uses-sdk&gt;</code>元素始终使用较高优先级的清单中的值，但以下情况有些特殊：<ul>
+<li>minSdkVersion，低优先级清单的值 较高<ul>
+<li>默认，使用 低优先级清单的值</li>
+<li>应用 overrideLibrary 合并规则，使用 较高优先级的清单中的值</li>
+</ul>
+</li>
+<li>targetSdkVersion，低优先级清单的值 较低<ul>
+<li>合并工具将使用高优先级清单中的值</li>
+<li>但也会添加任何必要的系统权限，以确保所导入的库继续正常工作<ul>
+<li>适用于 较高的 Android 版本需要更多权限限制的情况。 如需了解有关此行为的详细信息，请参阅有关隐式系统权限的部分。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>&lt;intent-filter&gt;</code>元素。 每个元素都被视为唯一元素，直接添加至合并清单中的常用父元素。</li>
+</ul>
+<h1 id="合并规则标记"><a href="#合并规则标记" class="headerlink" title="合并规则标记"></a>合并规则标记</h1><ul>
+<li>是什么：是一个 XML 属性</li>
+<li>作用：标记如何解决合并冲突和属性的首选项</li>
+<li>作用域：整个元素或元素的特定属性</li>
+<li>合并工具会在高优先级清单文件中寻找这些标记</li>
+<li>所有标记均属于 Android <code>tools</code> 命名空间，必须先在 <code>&lt;manifest&gt;</code>元素中声明此命名空间</li>
+</ul>
+<h2 id="元素-节点标记"><a href="#元素-节点标记" class="headerlink" title="元素/节点标记"></a>元素/节点标记</h2><p><strong>tools:node=”xx”</strong></p>
+<ul>
+<li><strong>merge</strong> <ul>
+<li>元素的默认行为</li>
+<li>合并所有属性以及所有嵌套元素。 例如：<code>&lt;activity&gt;</code> 嵌套 <code>&lt;intent-filter&gt;</code></li>
+</ul>
+</li>
+<li><strong>merge-only-attributes</strong><ul>
+<li>仅合并属性，不合并嵌套元素</li>
+</ul>
+</li>
+<li><strong>remove</strong></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/24/Android/Android系统版本适配/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1458,654 +2010,6 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi注入原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android/Android逆向/Android-Hook/android-hook框架/ADBI--Native InLine/adbi注入原理/" itemprop="url">adbi 注入原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://blog.csdn.net/roland_sun/article/details/34109569" target="_blank" rel="noopener">Android平台下hook框架adbi的研究（上）</a></p>
-<p><a href="https://github.com/crmulliner/adbi" target="_blank" rel="noopener">adbi源代码</a></p>
-<p>Linux可以利用ptrace()函数来attach到一个进程上，从而可以修改对应该进程的内存内容和寄存器的值</p>
-<p>adbi（The Android Dynamic Binary Instrumentation Toolkit）是一个通用的框架，使得hook变得异常简单。</p>
-<h1 id="进程注入基本实现原理"><a href="#进程注入基本实现原理" class="headerlink" title="进程注入基本实现原理"></a>进程注入基本实现原理</h1><p>利用ptrace()attach到一个进程上，然后在进程调用序列中插入一个调用dlopen()加载so文件（初始化函数中hook指定的函数）的步骤。</p>
-<p>adbi工具集由两个主要模块组成，分别是用于注入.so文件的进程劫持工具（hijack tool）和一个修改函数入口的基础库。</p>
-<p>接下来，我们还是通过阅读代码来分别了解这两个模块的实现原理，本篇我们先将重点放在劫持工具的实现上。</p>
-<p><strong>注入进程需要解决两个问题</strong></p>
-<ol>
-<li>获得目标进程dlopen()函数的调用地址</li>
-<li>插入一个调用dlopen()函数的步骤到目标进程的调用序列中。</li>
-</ol>
-<h2 id="1-获得目标进程dlopen-函数的调用地址"><a href="#1-获得目标进程dlopen-函数的调用地址" class="headerlink" title="1. 获得目标进程dlopen()函数的调用地址"></a>1. 获得目标进程dlopen()函数的调用地址</h2><pre><code>----main()-----------------------------------------------------------------------
-//在当前进程中dlopen()加载libdl.so动态库，接着用dlsym()函数获得当前进程dlopen()函数的调用地址
-//libdl.so动态库肯定早已加载到当前进程中了，这里再加载一次并不会真的再在内存中的另一个位置加载一次，而是返回已经加载过的地址
-void *ldl = dlopen(&quot;libdl.so&quot;, RTLD_LAZY);  
-if (ldl) {  
-    dlopenaddr = dlsym(ldl, &quot;dlopen&quot;);  
-    dlclose(ldl);  
-}  
-
-unsigned long int lkaddr; //本进程linker地址。linker是Android提供的动态链接器，不同于普通的Linux。dlopen()函数就是在linker里面定义的（bionic/linker/dlfcn.cpp中: soinfo libdl_info = {&quot;libdl.so&quot;）  
-unsigned long int lkaddr2; //目标进程linker地址   
-find_linker(getpid(), &amp;lkaddr);  
-find_linker(pid, &amp;lkaddr2);  
-
-dlopenaddr = lkaddr2 + (dlopenaddr - lkaddr); //同一台机器上的进程肯定用的是同一个linker，所以其内部的dlopen()函数和linker头的偏移量是固定的
-
-----find_linker()-----------------------------------------------------------------------
-static int find_linker(pid_t pid, unsigned long *addr) {  
-    struct mm mm[1000];  
-    unsigned long libcaddr;  
-    int nmm;  
-    char libc[256];  
-    symtab_t s;  
-
-    if (0 &gt; load_memmap(pid, mm, &amp;nmm)) {  
-        printf(&quot;cannot read memory map\n&quot;);  
-        return -1;  
-    }  
-    if (0 &gt; find_linker_mem(libc, sizeof(libc), &amp;libcaddr, mm, nmm)) {  
-        printf(&quot;cannot find libc\n&quot;);  
-        return -1;  
-    }  
-
-    *addr = libcaddr;  
-
-    return 1;  
-} 
-
-      ----load_memmap()-----------------------------------------------------------------------
-    static int load_memmap(pid_t pid, struct mm *mm, int *nmmp) {  
-        char raw[80000]; // this depends on the number of libraries an executable uses  
-        char name[MAX_NAME_LEN];  
-        char *p;  
-        unsigned long start, end;  
-        struct mm *m;  
-        int nmm = 0;  
-        int fd, rv;  
-        int i;  
-
-        //打开文件(路径是“/proc/&lt;进程号&gt;/maps”)读出指定进程的内存映射信息，其格式大概如下：
-        sprintf(raw, &quot;/proc/%d/maps&quot;, pid);  
-        fd = open(raw, O_RDONLY);  
-        if (0 &gt; fd) {  
-            printf(&quot;Can&apos;t open %s for reading\n&quot;, raw);  
-            return -1;  
-        }  
-
-        //逐行读取内存映射信息文件的内容
-        memset(raw, 0, sizeof(raw));  /* Zero to ensure data is null terminated */                
-        p = raw;  
-        while (1) {  
-            rv = read(fd, p, sizeof(raw)-(p-raw));  
-            if (0 &gt; rv) {  
-                return -1;  
-            }  
-            if (0 == rv)  
-                break;  
-            p += rv;  
-            if (p-raw &gt;= sizeof(raw)) {  
-                printf(&quot;Too many memory mapping\n&quot;);  
-                return -1;  
-            }  
-        }  
-        close(fd);  
-
-        //逐行解析内存映射信息文件的内容。文件格式如下：
-        40096000-40098000 r-xp 00000000 b3:16 109        /system/bin/app_process  
-        40098000-40099000 r--p 00001000 b3:16 109        /system/bin/app_process  
-        40099000-4009a000 rw-p 00000000 00:00 0   
-        4009a000-400a9000 r-xp 00000000 b3:16 176        /system/bin/linker  
-        400a9000-400aa000 r--p 0000e000 b3:16 176        /system/bin/linker  
-        400aa000-400ab000 rw-p 0000f000 b3:16 176        /system/bin/linker  
-        400ab000-400ae000 rw-p 00000000 00:00 0   
-        400ae000-400b0000 r--p 00000000 00:00 0   
-        400b0000-400b9000 r-xp 00000000 b3:16 855        /system/lib/libcutils.so  
-        be846000-be867000 rw-p 00000000 00:00 0          [stack] 
-        p = strtok(raw, &quot;\n&quot;);  
-        m = mm;  
-        while (p) {  
-            /* parse current map line */  
-            rv = sscanf(p, &quot;%08lx-%08lx %*s %*s %*s %*s %s\n&quot;,  
-                &amp;start, &amp;end, name);  //解析出当前行的 起始地址，结束地址，和名称。
-
-            p = strtok(NULL, &quot;\n&quot;);  //获取下一行
-
-            if (rv == 2) {  //没有解析出名称(只有两个返回值)，就会用一个自定义的名称补上（“[memory]”）
-                m = &amp;mm[nmm++];  
-                m-&gt;start = start;  
-                m-&gt;end = end;  
-                strcpy(m-&gt;name, MEMORY_ONLY);  
-                continue;  
-            }  
-
-            if (strstr(name, &quot;stack&quot;) != 0) {  //名字是“stack”，表明这段内存用于栈
-                stack_start = start;  
-                stack_end = end;  
-            }  
-
-            //将连续的并且名字相同的内存段合并一下.(从前面的格式中可以看出，会有几行都叫一个名字的情况)
-            /* search backward for other mapping with same name */  
-            for (i = nmm-1; i &gt;= 0; i--) {  
-                m = &amp;mm[i];  
-                if (!strcmp(m-&gt;name, name))  
-                    break;  
-            }  
-
-            if (i &gt;= 0) {  
-                if (start &lt; m-&gt;start)  
-                    m-&gt;start = start;  
-                if (end &gt; m-&gt;end)  
-                    m-&gt;end = end;  
-            } else {  
-                /* new entry */  
-                m = &amp;mm[nmm++];  
-                m-&gt;start = start;  
-                m-&gt;end = end;  
-                strcpy(m-&gt;name, name);  
-        }  
-
-        *nmmp = nmm;  
-        return 0;  
-    } 
-
-    ----find_linker_mem()-----------------------------------------------------------------------
-    static int find_linker_mem(char *name, int len, unsigned long *start, struct mm *mm, int nmm) {  
-        int i;  
-        struct mm *m;  
-        char *p;  
-        for (i = 0, m = mm; i &lt; nmm; i++, m++) {  
-            if (!strcmp(m-&gt;name, MEMORY_ONLY))  
-                continue;  
-            p = strrchr(m-&gt;name, &apos;/&apos;);  
-            if (!p)  
-                continue;  
-            p++;  
-            if (strncmp(&quot;linker&quot;, p, 6))  //找出名字以“linker”结尾(/system/bin/linker)的那段内存的起始地址。
-                continue;  
-        break;  
-        }  
-        if (i &gt;= nmm)  
-        /* not found */  
-            return -1;  
-
-        *start = m-&gt;start;  
-        strncpy(name, m-&gt;name, len);  
-        if (strlen(m-&gt;name) &gt;= len)  
-            name[len-1] = &apos;\0&apos;;  
-        return 0;  
-    }  
-</code></pre><h2 id="2-插入一个调用dlopen-函数的步骤到目标进程的调用序列中"><a href="#2-插入一个调用dlopen-函数的步骤到目标进程的调用序列中" class="headerlink" title="2. 插入一个调用dlopen()函数的步骤到目标进程的调用序列中"></a>2. 插入一个调用dlopen()函数的步骤到目标进程的调用序列中</h2><pre><code>// Attach 
-if (0 &gt; ptrace(PTRACE_ATTACH, pid, 0, 0)) {//被Attach的进程将成为当前进程的子进程，并且会暂停执行。
-    printf(&quot;cannot attach to %d, error!\n&quot;, pid);
-    exit(1);
-}
-waitpid(pid, NULL, 0);//等待被Attach的进程暂停运行才返回
-ptrace(PTRACE_GETREGS, pid, 0, &amp;regs); //获得目标进程的所有寄存器的值
-//unsigned int sc[]
-sc[11] = regs.ARM_r0;  
-sc[12] = regs.ARM_r1;  
-sc[13] = regs.ARM_r2;  
-sc[14] = regs.ARM_r3;  
-sc[15] = regs.ARM_lr;  
-sc[16] = regs.ARM_pc;  
-sc[17] = regs.ARM_sp;  
-sc[19] = dlopenaddr;
-// push library name to stack  
-//case &apos;l&apos;: n = strlen(optarg)+1; n = n/4 + (n%4 ? 1 : 0); 
-//命令行-l参数后就是so库完整名称。ptrace()写入目标进程以4字节为单位 
-libaddr = regs.ARM_sp - n*4 - sizeof(sc);  
-sc[18] = libaddr; 
-// write library name to stack  
-if (0 &gt; write_mem(pid, (unsigned long*)arg, n, libaddr)) {  
-    printf(&quot;cannot write library name (%s) to stack, error!\n&quot;, arg);  
-    exit(1);  
-}  
-// write code to stack  
-codeaddr = regs.ARM_sp - sizeof(sc);  
-if (0 &gt; write_mem(pid, (unsigned long*)&amp;sc, sizeof(sc)/sizeof(long), codeaddr)) {  
-    printf(&quot;cannot write code, error!\n&quot;);  
-    exit(1);  
-}
-
-    ----write_mem()-----------------------------------------------------------------------
-    /* Write NLONG 4 byte words from BUF into PID starting at address POS.  Calling process must be attached to PID. */  
-    static int write_mem(pid_t pid, unsigned long *buf, int nlong, unsigned long pos) {  
-        unsigned long *p;  
-        int i;  
-
-        for (p = buf, i = 0; i &lt; nlong; p++, i++)  
-            if (0 &gt; ptrace(PTRACE_POKETEXT, pid, pos+(i*4), *p))  
-                return -1;  
-        return 0;  
-    }
-
-mprotect()给栈内存段设置可执行属性。
-    adbi采用了另一种方法找目标进程mprotect()内存地址。
-    思路是分析ELF文件libc.so来获得其中符号mprotect的值（其实就是mprotect()函数相对于文件头的偏移），再加上libc.so文件在内存中映射的起始地址，就是mprotect()函数真正的调用地址了
-// calc stack pointer  
-regs.ARM_sp = regs.ARM_sp - n*4 - sizeof(sc);  
-
-// call mprotect() to make stack executable  
-regs.ARM_r0 = stack_start; // want to make stack executable  
-regs.ARM_r1 = stack_end - stack_start; // stack size  
-regs.ARM_r2 = PROT_READ|PROT_WRITE|PROT_EXEC; // protections  
-
-regs.ARM_lr = codeaddr; // points to loading and fixing code  
-regs.ARM_pc = mprotectaddr; // execute mprotect()
-
-ptrace(PTRACE_SETREGS, pid, 0, &amp;regs);  
-ptrace(PTRACE_DETACH, pid, 0, SIGCONT); //deAttach,让目标进程恢复运行 
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android/Android逆向/Android-Hook/android-hook框架/Cydia-- Native Dalvik FrameWork/CydiaSubstrate/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android/Android逆向/Android-Hook/android-hook框架/Cydia-- Native Dalvik FrameWork/CydiaSubstrate/" itemprop="url">CydiaSubstrate</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Cydia Substrate可以修改任何主进程的代码，不管是用Java还是C/C++（native代码）编写的。而Xposed（开源）只支持 HOOK app_process中的java函数，因此Cydia Substrate是一款强大而实用的HOOK工具</p>
-<p>Cydia Substrate</p>
-<pre><code>参考自： 
-    Android HOOK工具Cydia Substrate使用详解 http://mobile.51cto.com/aprogram-454091.htm
-    周圣韬 Android上玩玩Hook：Cydia Substrate实战 http://www.csdn.net/article/2015-08-07/2825405 
-Cydia Substrate原名MobileSubstrate（类库中都是以MS开头），
-作者为大名鼎鼎的Jay Freeman（saurik）
-Cydia Substrate框架对于inline Hook(框架实现都是通过该方式)的操作目前还是存在一些bug，
-    使用的时候可能会出现崩溃的现象，
-    部分使用了国内定制ROM的设备在使用Cydia Substrate框架时会造成设备无法重新启动或无法Hook的现象。
-    无法重启可以按住音量+ 键 跳过hook插件，进入系统。
-</code></pre><p>1.安装substrate.apk，点击”Link Substrate Files”（连接本地的Substrate服务文件），<br>    这一步是需要Root权限的，连接后还需要重启设备才能够生效<br>    <a href="http://www.cydiasubstrate.com/download/com.saurik.substrate.apk" target="_blank" rel="noopener">http://www.cydiasubstrate.com/download/com.saurik.substrate.apk</a></p>
-<p>2.创建空Android工程。复制jar和so到libs文件夹中。<br>    其中的substrate.h头文件与lib文件夹下的so文件<br>        主要是substrate-api.jar<br>        .h和so是提供在使用NDK进行原生Hook程序开发中的函数支持库<br>    <a href="http://asdk.cydiasubstrate.com/zips/cydia_substrate-r2.zip" target="_blank" rel="noopener">http://asdk.cydiasubstrate.com/zips/cydia_substrate-r2.zip</a></p>
-<p>3.Manifest文件配置 权限和hook类（入口）<br>（1）需要指定权限：cydia.permission.SUBSTRATE<br>        manifest下 <uses-permission android:name="cydia.permission.SUBSTRATE"><br>（2）添加meta-data标签，指定自定义的hook类<br>        application下 <meta-data android:name="com.saurik.substrate.main" android:value=".Main"><br>            name 固定，value就是我们自定义的hook类完整类名（包含包名）</meta-data></uses-permission></p>
-<p>4.自定义hook类<br>    public class Main {<br>        static void initialize() { //插件加载时回调 static方法initialize<br>             MS.hookClassLoad(“android.content.res.Resources”, new MS.ClassLoadHook() { //hook 类加载<br>                public void classLoaded(Class&lt;?&gt; resources) { //类被加载时回调<br>                    Method getColor;<br>                    try {<br>                        getColor = resources.getMethod(“getColor”, Integer.TYPE);<br>                    } catch (NoSuchMethodException e) {<br>                        getColor = null;<br>                    }</p>
-<pre><code>                if (getColor != null) {
-                    final MS.MethodPointer old = new MS.MethodPointer(); //原方法指针。可以在任何时候运行原方法（被hook方法）
-
-                    MS.hookMethod(resources, getColor, new MS.MethodHook() {
-                        public Object invoked(Object resources, Object... args)
-                            throws Throwable
-                        {
-                            int color = (Integer) old.invoke(resources, args);
-                            return color &amp; ~0x0000ff00 | 0x00ff0000; //改变系统颜色
-                        }
-                    }, old);
-                }
-            }
-        });
-    }
-}
-
-也可以用以下代码实现hook
-MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer&gt;() {
-    public Integer invoked(Resources resources, Object... args)
-        throws Throwable
-    {
-        return invoke(resources, args) &amp; ~0x0000ff00 | 0x00ff0000;
-    }
-});
-</code></pre><p>5.安装apk，重启手机，生效。</p>
-<p>关键api<br>    void hookClassLoad(String className, MS.ClassLoadHook hook); Hook一个指定的Class<br>    void hookMethod(Class _class, Member member, MS.MethodHook methodhHook, MS.MethodPointer old);<br>    void hookMethod(Class _class, Member member, MS.MethodAlteration alteration);好用，稳定<br>        _class,需要hook的方法所属类<br>        member,需要hook的方法(或构造函数). 注意：不能HOOK字段 (在编译的时候会进行检测).<br>        methodhHook,MethodHook实例，其包含的invoked方法会被调用，用以代替被hook方法中的代码<br>        old,原方法指针，指向原方法（随时用该指针调用方法）<br>        alteration，MethodAlteration实例，其包含的invoked方法会被调用，用以代替被hook方法中的代码<br>            比MethodHook更好用稳定，在该方法直接调用invoke方法就是调用原方法<br>                不用自己定义 MS.MethodPointer old 指向原方法（随时用该指针调用方法）<br>    <t> T moveUnderClassLoader(ClassLoader loader, T object);   使用ClassLoder重载对象(少用)</t></p>
-<p>6.补充<br>“卧槽”洗脑病毒分析 <a href="http://www.2cto.com/Article/201505/400301.html" target="_blank" rel="noopener">http://www.2cto.com/Article/201505/400301.html</a><br>    表现：所有字变为 卧槽。<br>    分析：跟上例改变字体颜色原理相同，只是hook的设置字体的方法<br>        TextView.setText(CharSequence)<br>    复现：<br>        public class Main {<br>            public static void initialize() {<br>                MS.hookClassLoad(“android.widget.TextView”, new MS.ClassLoadHook() {<br>                    @Override<br>                    public void classLoaded(Class arg0) {<br>                        Method smstest ;<br>                        try {<br>                           smstest=arg0.getMethod(“setText”, CharSequence.class);<br>                        } catch (SecurityException e) {<br>                            smstest=null;<br>                            e.printStackTrace();<br>                        } catch (NoSuchMethodException e) {<br>                            smstest=null;<br>                            e.printStackTrace();<br>                        }  </p>
-<pre><code>               if(smstest!=null){        
-                    final MS.MethodPointer old = new MS.MethodPointer();  
-                    MS.hookMethod(arg0, smstest, new MS.MethodHook() {  
-                       @Override 
-                        public Object invoked(Object arg0, Object... arg1)throws Throwable {                                        
-                            return old.invoke(arg0, &quot;爱破解，爱鬼哥&quot;);                                                                 
-                        }                             
-                    }, old);                          
-                }                     
-            }                
-        });               
-    }                                 
-}  
-</code></pre><p>周圣韬 Android上玩玩Hook：Cydia Substrate实战 <a href="http://www.csdn.net/article/2015-08-07/2825405" target="_blank" rel="noopener">http://www.csdn.net/article/2015-08-07/2825405</a><br>    开始实战（广告注入）<br>    针对Android操作系统的浏览器应用，Hook其首页Activity的onCreate方法（其他方法不一定存在，但是onCreate方法一定会有），<br>        (1)声明一个透明的广告的Activity<br>            为什么设置透明背景的Activity?<br>                就是为了使得弹出来的广告与浏览器融为一体，让用户感觉是浏览器弹出的广告，<br>                也是恶意广告程序为了防止自身被卸载掉的一些通用隐藏手段。<br>                这里演示的注入广告是通过Hook指定的Activity中的onCreate方法来启动一个广告Activity。<br>                如果启动的Activity带有恶意性，如将Activity做得与原Activity一模一样的钓鱼Activity，<br>                那么对于移动设备用户来说是极具欺骗性的。<br>            <!-- 透明无动画的广告Activity --><br>            <activity android:name="com.example.hookad.MainActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar"><br>                <intent-filter><br>                    <action android:name="android.intent.action.VIEW"><br>                    <category android:name="android.intent.category.DEFAULT"><br>                    <!-- 广告的action,方便无context时启动  --><br>                    <action android:name="com.example.hook.AD"><br>                </action></category></action></intent-filter><br>            </activity><br>        (2)找到浏览器主页的Activity名称<br>            使用adb shell下使用dumpsys activity命令找到浏览器主页的Activity名称为<br>                com.android.browser.BrowserActivity<br>        (3)关键hook代码<br>            // 执行Hook前的onCreate方法，保证浏览器正常启动<br>            Object result =  old.invoke(object, args);<br>            // 没有Context。所以执行一个shell 启动我们的广告Activity<br>            CMD.run(“am start -a com.example.hook.AD”);</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/Android/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/18/Android/Android逆向/Android-Hook/android-hook框架/DDI--Dalvik InLine/ddi-原理/" itemprop="url">ddi 原理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
-                2018-05-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://blog.csdn.net/roland_sun/article/details/38640297" target="_blank" rel="noopener">Android平台下Dalvik层hook框架ddi的研究</a> </p>
-<p><a href="https://github.com/crmulliner/ddi" target="_blank" rel="noopener">ddi源码</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2160,7 +2064,7 @@ MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">263</span>
+                  <span class="site-state-item-count">266</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2171,7 +2075,7 @@ MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2182,7 +2086,7 @@ MS.hookMethod(resources, getColor, new MS.MethodAlteration&lt;Resources, Integer
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-count">66</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

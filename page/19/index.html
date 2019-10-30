@@ -262,6 +262,543 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/11/Android/Android逆向/Android-Hook/Frida使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/11/Android/Android逆向/Android-Hook/Frida使用/" itemprop="url">Frida使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-11T18:16:53+08:00">
+                2018-12-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="安装-frida-tools"><a href="#安装-frida-tools" class="headerlink" title="安装 frida tools"></a>安装 frida tools</h2><p><code>pip install frida-tools</code></p>
+<h2 id="安装-Android-frida-server"><a href="#安装-Android-frida-server" class="headerlink" title="安装 Android frida-server"></a>安装 Android frida-server</h2><p><a href="https://github.com/frida/frida/releases" target="_blank" rel="noopener">下载frida-server</a>。 根据手机CPU下载不同文件<code>frida-server-12.2.26-android-arm.xz</code></p>
+<p>安装运行</p>
+<pre><code>$ adb root # might be required
+$ adb push frida-server /data/local/tmp/ 
+$ adb shell &quot;chmod 755 /data/local/tmp/frida-server&quot;
+$ adb shell &quot;/data/local/tmp/frida-server &amp;&quot;
+</code></pre><p>快速冒烟测试(A quick smoke-test)</p>
+<p>终端执行 <code>frida-ps -U</code> 能够看到手机上的进程列表</p>
+<h3 id="运行错误"><a href="#运行错误" class="headerlink" title="运行错误"></a>运行错误</h3><h4 id="地址被占用"><a href="#地址被占用" class="headerlink" title="地址被占用"></a>地址被占用</h4><p><code>Unable to start server: Error binding to address: Address already in use</code></p>
+<p>之前运行过frida-server。</p>
+<p>杀死进程即可</p>
+<pre><code>adb shell
+ps |grep frida
+    root      4341  4292  41036  36132 ffffffff b5b29960 S /data/local/tmp/frida-server
+    root      4354  4341  5748   1448  ffffffff b6d2f960 S /data/local/tmp/re.frida.server/frida-helper-32
+kill 4341
+</code></pre><h4 id="运行后手机重启"><a href="#运行后手机重启" class="headerlink" title="运行后手机重启"></a>运行后手机重启</h4><p>bug。重新运行</p>
+<h1 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h1><p>frida-discover 发现APP内部方法</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/10/Android/Android加载网络图片为Bitmap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/10/Android/Android加载网络图片为Bitmap/" itemprop="url">Android加载网络图片为Bitmap</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-10T16:56:18+08:00">
+                2018-12-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="HttpURLConnection下载"><a href="#HttpURLConnection下载" class="headerlink" title="HttpURLConnection下载"></a>HttpURLConnection下载</h1><ul>
+<li><p>注意二次采样，防止OOM</p>
+<pre><code>options.inJustDecodeBounds = true;
+BitmapFactory.decodeResource(getResources(), R.id.myimage, options);
+ 设置为true 时，返回的BitMap 将为 Null
+</code></pre></li>
+<li><p>读取网络图片常用的是decodeStream，但是如果需要读取两次，第二次读的时候流已经改变，读取的是null。可以用字节数组存储流，以后可以多次使用</p>
+</li>
+</ul>
+<p>代码：</p>
+<pre><code>public static Observable&lt;Bitmap&gt; getHttpBitmap(String drawableUrl, final int reqWidth, final int reqHeight) {
+    return Observable
+            .just(drawableUrl)
+            .filter(new Func1&lt;String, Boolean&gt;() {
+                @Override
+                public Boolean call(String s) {
+                    if (TextUtils.isEmpty(s)) {
+                        return false;
+                    }
+                    return true;
+                }
+            })
+            .map(new Func1&lt;String, Bitmap&gt;() {
+                @Override
+                public Bitmap call(String s) {
+                    try {
+                        HttpURLConnection conn = (HttpURLConnection) new URL(s).openConnection();
+                        //设置超时时间为6000毫秒，conn.setConnectionTiem(0);表示没有时间限制
+                        conn.setConnectTimeout(6000);
+                        //连接设置获得数据流
+                        conn.setDoInput(true);
+                        //不使用缓存
+                        conn.setUseCaches(false);
+                        //此方法用于在预先不知道内容长度时启用没有进行内部缓冲的 HTTP请求正文的流
+                        conn.setChunkedStreamingMode(51200); // 128K
+                        conn.connect();
+                        InputStream is = conn.getInputStream();
+                        if (is != null) {
+                            BitmapFactory.Options options = new BitmapFactory.Options();
+                            options.inJustDecodeBounds = true;
+                            byte[] data = inputStream2ByteArr(is);
+                            BitmapFactory.decodeByteArray(data, 0, data.length, options);
+                            options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+                            options.inJustDecodeBounds = false;
+                            //解析得到图片
+                            return BitmapFactory.decodeByteArray(data, 0, data.length, options);
+                        }
+                        is.close();
+                    } catch (Exception e) {
+                        throw Exceptions.propagate(e);
+                    }
+                    return null;
+                }
+            })
+            .subscribeOn(Schedulers.io());
+}
+
+/**
+ * 输入流转成字节数组(重复读取)
+ *
+ * @param inputStream
+ * @return
+ * @throws IOException
+ */
+
+public static byte[] inputStream2ByteArr(InputStream inputStream) throws IOException {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    byte[] buff = new byte[1024];
+    int len = 0;
+    while ((len = inputStream.read(buff)) != -1) {
+        outputStream.write(buff, 0, len);
+    }
+    inputStream.close();
+    outputStream.close();
+    return outputStream.toByteArray();
+}
+
+/**
+ * 计算options.InSampleSize值 此算法可根据需求改动
+ *
+ * @param options
+ * @param reqWidth  期望宽
+ * @param reqHeight 期望高
+ * @return
+ */
+
+public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    // 源图片的高度和宽度
+    final int height = options.outHeight;
+    final int width = options.outWidth;
+    int inSampleSize = 1;
+    if (height &gt; reqHeight || width &gt; reqWidth) {
+        // 计算出实际宽高和目标宽高的比率
+        final int heightRatio = Math.round((float) height / (float) reqHeight);
+        final int widthRatio = Math.round((float) width / (float) reqWidth);
+        // 选择宽和高中最小的比率作为inSampleSize的值，这样可以保证最终图片的宽和高
+        // 一定都会大于等于目标的宽和高。
+        inSampleSize = heightRatio &lt; widthRatio ? heightRatio : widthRatio;
+    }
+    return inSampleSize;
+}
+</code></pre><h1 id="glide"><a href="#glide" class="headerlink" title="glide"></a>glide</h1><pre><code>public  void getBitmap(Context context, String uri, final GlideLoadBitmapCallback callback) {
+    Glide.with(context)
+            .load(uri)
+            .asBitmap()
+            .centerCrop()
+            .override(150, 150)
+            .into(new SimpleTarget&lt;Bitmap&gt;() {
+                @Override
+                public void onResourceReady(Bitmap bitmap, GlideAnimation anim) {
+                    callback.getBitmapCallback(bitmap);
+                }
+            });
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/06/Android/Android设备唯一标识符/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/06/Android/Android设备唯一标识符/" itemprop="url">Android设备唯一标识符</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-06T17:18:53+08:00">
+                2018-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="常用的获取设备唯一标识符的方法"><a href="#常用的获取设备唯一标识符的方法" class="headerlink" title="常用的获取设备唯一标识符的方法"></a>常用的获取设备唯一标识符的方法</h1><ul>
+<li><strong>IMEI</strong> International Mobile Equipment Identity <ul>
+<li>无插卡模块的设备无法获取。如pad</li>
+<li>需要用户授权。获取Android 6 开始动态权限获取</li>
+</ul>
+</li>
+<li><strong>SIM Serial Num</strong><ul>
+<li>对应 SIM卡。不插卡时无法获取， CDMA卡支持不充分</li>
+</ul>
+</li>
+<li><strong>Mac</strong> Media Access Control Address<ul>
+<li>网卡地址</li>
+<li>手机必须具有上网功能</li>
+<li>Android6.0 运行时权限修改geMacAddress()返回的mac地址永远是一样的， 但是可以其他途径获取。 </li>
+<li>属于Android系统的保护信息，高版本系统获取的话容易失败，返回0000000</li>
+</ul>
+</li>
+<li><strong>ANDROID_ID</strong><ul>
+<li>设备首次运行(恢复出厂设置)，系统会随机生成一64位的数字(16进制保存)</li>
+<li>部分定制ROM bug，所有设备都一样</li>
+<li><code>Settings.System.getString(getContentResolver(), Settings.System.ANDROID_ID);</code></li>
+</ul>
+</li>
+<li><strong>DEVICE_ID</strong><ul>
+<li>根据不同的手机设备返回IMEI，MEID或者ESN码</li>
+<li>非手机设备(没有通话硬件，如Wifi设备，TV，音乐播放器)没有</li>
+<li>需要用户授权。获取Android 6 开始动态权限获取DEVICE_ID </li>
+<li>部分定制ROM bug，所有设备都一样</li>
+<li><code>((TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();</code></li>
+</ul>
+</li>
+<li><strong>Serial Number</strong> 设备序列号 <ul>
+<li>部分定制ROM bug。比如比如红米手机返回的就是连续的非随机数    - <code>android.os.Build.SERIAL</code> </li>
+</ul>
+</li>
+<li><strong>UniquePsuedoID</strong><ul>
+<li>硬件信息拼装而成</li>
+</ul>
+</li>
+<li><strong>Installtion ID</strong><ul>
+<li>程序首次运行时生成一个ID。重装会变化，常用来跟踪应用安装量</li>
+</ul>
+</li>
+</ul>
+<h1 id="方案一"><a href="#方案一" class="headerlink" title="方案一"></a>方案一</h1><p>ANDROID_ID 拼接     Serial Number。不需要权限</p>
+<pre><code>String androidID = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+String id = androidID + Build.SERIAL;
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/06/Android/Mac运行Windows程序/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1903,562 +2440,6 @@ public class PaletteView extends View {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/06/Android/AndroidStudio在Mac端使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/11/06/Android/AndroidStudio在Mac端使用/" itemprop="url">AndroidStudio在Mac端使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-06T18:40:53+08:00">
-                2018-11-06
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Java安装"><a href="#Java安装" class="headerlink" title="Java安装"></a>Java安装</h1><h2 id="Java目录"><a href="#Java目录" class="headerlink" title="Java目录"></a>Java目录</h2><p><code>/System/Libray/Frameworks/JavaVM.Framwork/Versions</code>目录下是已经安装了的不同版本的jdk。</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/1814304-771fec34bb725b50.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
-<p><code>/Library/Java/JavaVirtualMachines</code>目录下是已经安装了的不同版本的jdk。</p>
-<h1 id="AndroidStudio3无法打开Android-device-monitor"><a href="#AndroidStudio3无法打开Android-device-monitor" class="headerlink" title="AndroidStudio3无法打开Android device monitor"></a>AndroidStudio3无法打开Android device monitor</h1><p>首先提示安装 jdk 6</p>
-<pre><code>直接点更多信息跳转安装即可
-</code></pre><p>再次打开，报错</p>
-<p><img src="http://upload-images.jianshu.io/upload_images/1814304-9eda3efb3c659f0e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
-<pre><code>安装 jdk8
-</code></pre><p>打开，发现白屏</p>
-<pre><code>发现安装的是jdk1.8.0_191
-降到 jdk1.8.0_144
-    要删除较高版本的jdk，因为它会默认使用较高版本的。
-    需要重启，source只能让环境变量对当前线程生效
-搞定
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/27/Flutter/Android内嵌混合Flutter-跨平台的渐进式解决方案/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/27/Flutter/Android内嵌混合Flutter-跨平台的渐进式解决方案/" itemprop="url">Android内嵌混合Flutter-跨平台的渐进式解决方案</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-27T11:00:04+08:00">
-                2018-09-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Flutter工程只作为一个module引入工程，代码入侵极小，Android工程和Flutter工程都可以独立运行。</p>
-<p>可以只从一个view/一个页面开始来让Flutter参与到项目中去</p>
-<p>写此文时，GDD 2018已经结束，使用的是会上发布的preview 2版本，即<code>Flutter 0.8.2 • channel beta •</code></p>
-<h1 id="创建工程"><a href="#创建工程" class="headerlink" title="创建工程"></a>创建工程</h1><h2 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h2><pre><code>项目根目录
-    ├── 原生安卓工程 (android) AS打开此工程，可独立运行
-        ├── app module
-        ├── 其他 module
-    └── Flutter module (flutter_lib) AS打开此工程，可独立运行
-        ├── .android (纯Flutter工程flutter_app 没有.前缀)
-            ├── app 
-            ├── Flutter (纯Flutter工程flutter_app 没有该module)
-        ├── lib
-            ├── main.dart
-        ├── .ios (纯Flutter工程flutter_app 没有.前缀)
-</code></pre><table>
-<thead>
-<tr>
-<th>区别</th>
-<th>Flutter module工程中的Android工程</th>
-<th>纯Flutter应用工程中的Android工程</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>文件夹名称</td>
-<td>.android</td>
-<td>android</td>
-</tr>
-<tr>
-<td>包含的module</td>
-<td>app和Flutter</td>
-<td>app</td>
-</tr>
-<tr>
-<td>说明</td>
-<td>app只提供了入口Activity，Flutter包含了插件扩展及原生工程调用的接口</td>
-<td>app包含入口Activity及插件扩展</td>
-</tr>
-<tr>
-<td>说明</td>
-<td>app供Flutter自身开发调试，Flutter作为module供Android原生调用</td>
-<td>app作为Android工程运行及打包</td>
-</tr>
-</tbody>
-</table>
-<h2 id="创建Android工程"><a href="#创建Android工程" class="headerlink" title="创建Android工程"></a>创建Android工程</h2><p>这里勾选上kotlin支持。准备用kotlin实现Android原生</p>
-<h2 id="创建Flutter-module"><a href="#创建Flutter-module" class="headerlink" title="创建Flutter module"></a>创建Flutter module</h2><p>flutter create -t module flutter_lib</p>
-<h2 id="引用Flutter-module"><a href="#引用Flutter-module" class="headerlink" title="引用Flutter module"></a>引用Flutter module</h2><p>android根目录 setting.gradle</p>
-<pre><code> //加入下面配置
-setBinding(new Binding([gradle: this]))
-evaluate(new File(
-        settingsDir.parentFile,
-        &apos;flutter_lib/.android/include_flutter.groovy&apos;
-))
-</code></pre><p>app的 build.gradle</p>
-<pre><code>...
-dependencies {
-    ...
-    // 加入下面配置
-    implementation project(&apos;:flutter&apos;)
-}    
-</code></pre><p>AS打开android工程，重新构建项目，即可成功的将Flutter加入Android工程(即生成 <code>根目录/flutter_lib/.android/Flutter</code>)。    </p>
-<h1 id="Android工程中使用Flutter组件"><a href="#Android工程中使用Flutter组件" class="headerlink" title="Android工程中使用Flutter组件"></a>Android工程中使用Flutter组件</h1><p>Flutter提供了两种方式让Android工程来引用组件</p>
-<ul>
-<li><p>一种是View</p>
-<p>  <code>FlutterView createView(Activity activity, final Lifecycle lifecycle, final String initialRoute)</code></p>
-</li>
-<li><p>一种是Fragment</p>
-<p>  <code>FlutterFragment createFragment(String initialRoute)</code></p>
-</li>
-</ul>
-<h2 id="实例：作为页面的根View"><a href="#实例：作为页面的根View" class="headerlink" title="实例：作为页面的根View"></a>实例：作为页面的根View</h2><pre><code>class MainActivity : AppCompatActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        val flutterView = Flutter.createView(this@MainActivity, lifecycle, &quot;route1&quot;)
-        val layout = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
-        val layout = FrameLayout.LayoutParams(600, 1200)
-        addContentView(flutterView, layout)
-    }
-}
-</code></pre><h3 id="setContentView然后addContentView的原因–防止启动黑屏"><a href="#setContentView然后addContentView的原因–防止启动黑屏" class="headerlink" title="setContentView然后addContentView的原因–防止启动黑屏"></a>setContentView然后addContentView的原因–防止启动黑屏</h3><p><strong>设置FlutterView加载完成之前展示给用户的界面。</strong> 当然大部分情况下用户根本感知不到这个界面Flutter就已经加载完成了，但我们仍需要它</p>
-<ul>
-<li>虽然FLutter的加载速度非常快，但是这个过程依然存在</li>
-<li>如果没有这个界面的话在Activity的加载过程会出现一个黑色的闪屏，用户体验差</li>
-<li>debug模式下Flutter的加载速度并不是非常快，这个界面可以给开发人员看<ul>
-<li>实际测试发现，即使这样处理，在测试机上debug有黑色闪屏，release正常<ul>
-<li>可能测试机太渣，直接新建一个helloworld工程(kotlin)冷启动都会有明显白屏</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h1 id="Flutter工程中根据route创建组件"><a href="#Flutter工程中根据route创建组件" class="headerlink" title="Flutter工程中根据route创建组件"></a>Flutter工程中根据route创建组件</h1><p>可以通过window的全局变量中获取到当前的routeName，这个值正是上面通过原生工程传给Flutter的标识，有了这个标识就可以简单的做判断来进行不同的组件创建了：<br>import ‘dart:ui’;<br>import ‘package:flutter/material.dart’;</p>
-<p>void main() =&gt; runApp(_widgetForRoute(window.defaultRouteName));</p>
-<p>//根据不同的标识创建不同的组件给原生工程调用<br>Widget _widgetForRoute(String route) {<br>  switch (route) {<br>    case ‘route1’:<br>      return SomeWidget(…);<br>    case ‘route2’:<br>      return SomeOtherWidget(…);<br>    default:<br>      return Center(<br>        child: Text(‘Unknown route: $route’, textDirection: TextDirection.ltr),<br>      );<br>  }<br>}</p>
-<h1 id="让Flutter模块支持热加载"><a href="#让Flutter模块支持热加载" class="headerlink" title="让Flutter模块支持热加载"></a>让Flutter模块支持热加载</h1><p>项目根目录/flutter_lib下执行</p>
-<pre><code>flutter attach
-</code></pre><p>代码执行后，监听服务会等待并监听debug应用中flutter的状态</p>
-<p>然后AS中以正常方式调试运行android，当flutter的view或Fragment激活时会触发文件同步。</p>
-<p>终端输出如下</p>
-<pre><code>Waiting for a connection from Flutter on Le X620...
-Done.
-Syncing files to device Le X620...                           2.3s
-🔥  To hot reload changes while running, press &quot;r&quot;. To hot restart (and rebuild state), press &quot;R&quot;.
-An Observatory debugger and profiler on Le X620 is available at: http://127.0.0.1:61500/
-For a more detailed help message, press &quot;h&quot;. To detach, press &quot;d&quot;; to quit, press &quot;q&quot;.
-</code></pre><p>修改flutter工程中的dart代码文件，保存后在<strong>终端中</strong>点击r键即可进行热加载，R键进行热重启。</p>
-<h1 id="签名打包"><a href="#签名打包" class="headerlink" title="签名打包"></a>签名打包</h1><p>常规打包操作即可</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/13/Android/Travis-CI-使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/09/13/Android/Travis-CI-使用/" itemprop="url">Travis CI 使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-13T11:31:14+08:00">
-                2018-09-13
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="关于"><a href="#关于" class="headerlink" title="关于"></a>关于</h1><p>新兴的开源持续集成构建项目，与jenkins，GO的明显的特点在于</p>
-<ul>
-<li><p>采用yaml格式，简洁清新独树一帜。</p>
-</li>
-<li><p>在线环境，不用本地部署</p>
-</li>
-</ul>
-<p>目前大多数的github项目都已经移入到Travis CI的构建队列中</p>
-<h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><h2 id="GitHub-生成供Travis使用的token"><a href="#GitHub-生成供Travis使用的token" class="headerlink" title="GitHub 生成供Travis使用的token"></a>GitHub 生成供Travis使用的token</h2><ul>
-<li><p>Settings – Developer settings – Personal access tokens</p>
-</li>
-<li><p>填写token的描述，如hexoblog</p>
-</li>
-<li><p>选择repo</p>
-</li>
-<li><p>Generate token</p>
-</li>
-<li><p>复制生成的token(只允许看见一次)</p>
-</li>
-</ul>
-<h2 id="Travis-设置集成仓库"><a href="#Travis-设置集成仓库" class="headerlink" title="Travis 设置集成仓库"></a>Travis 设置集成仓库</h2><ul>
-<li><p>使用GitHub账号登录 <a href="https://travis-ci.org" target="_blank" rel="noopener">Travis 免费网站</a>(com是付费私有仓库)</p>
-</li>
-<li><p>Settings – 打开需要集成的仓库 – Settings 页面</p>
-<ul>
-<li><p>Environment Variables 新增一个变量记录token(变量名HEXO_TOKEN)</p>
-<p>  <code>如果有仓库未同步过来，手动同步 Sync account</code></p>
-</li>
-<li><p>Cron Jobs 设置需要构建的分支名</p>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="配置-travis-yml"><a href="#配置-travis-yml" class="headerlink" title="配置 .travis.yml"></a>配置 <code>.travis.yml</code></h2><p>项目根目录下新建 <code>.travis.yml</code> 文件</p>
-<h3 id="hexo-博客构建"><a href="#hexo-博客构建" class="headerlink" title="hexo 博客构建"></a>hexo 博客构建</h3><p>node_js 实现的md生成静态博客系统</p>
-<pre><code>language: node_js
-node_js: stable
-cache:
-  apt: true
-  directories:
-  - node_modules
-before_install:
-- export TZ=&apos;Asia/Shanghai&apos;
-install:
-- npm install
-script:
-- hexo clean
-- hexo g &amp;&amp; gulp
-after_script:
-- git clone https://${GH_REF} .deploy_git
-- cd .deploy_git
-- git checkout master
-- cd ../
-- mv .deploy_git/.git/ ./public/
-- cd ./public
-- git config user.name &quot;lyg&quot;
-- git config user.email &quot;liyungui@163.com&quot;
-- git add .
-- git commit -m &quot;Travis CI Auto Builder at `date +&quot;%Y-%m-%d %H:%M&quot;`&quot;
-- git push --force --quiet &quot;https://${HEXO_TOKEN}@${GH_REF}&quot; master:master
-branches:
-  only:
-  - master
-env:
-  global:
-  - GH_REF: github.com/liyungui/liyungui.github.io.git
-notifications:
-  email:
-  - liyungui89@163.com
-  on_success: change
-  on_failure: always
-</code></pre><ul>
-<li>HEXO_TOKEN：集成配置的token变量名</li>
-<li>GH_REF：GitHub仓库地址(不要https://前缀)</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2513,7 +2494,7 @@ notifications:
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">263</span>
+                  <span class="site-state-item-count">266</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2524,7 +2505,7 @@ notifications:
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-count">14</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2535,7 +2516,7 @@ notifications:
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">65</span>
+                  <span class="site-state-item-count">66</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
