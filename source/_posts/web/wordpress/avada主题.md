@@ -335,6 +335,50 @@ Slide Timing 建议设置为 duration:3000，shift:1000
 
 在 Fusion Page Options 的 sliders 中选择 LayerSlider，在列表中选择之前创建的 homepage slider。
 
+# 产品分类页和产品详情页
+
+## 是否使用 WooCommerce管理产品
+
+Avada 的作者认为不管是 B2B 还是 B2C，最好是用 WooCommerce 插件来做。
+
+我个人感觉，Avada 主题本身就比较复杂了，再去安装 WooCommerce 来做产品系统，太繁琐。所以一般来说，B2B 的外贸网站不考虑装 WooCommerce，但 B2C 的外贸网站是可以用的。至少 WordPress Avada+WooCommerce 也比 Magento 简单多了。
+
+## Portfolio 和 Page
+
+Portfolio 是 一种Post，创建之初是为了图片相册展示，支持通过分类来集体显示；而Page天生是不支持按分类调用的
+
+## 产品详情页面用 Page 还是 Portfolio
+
+两者都可以。用 Page 也可以创建，但是会有点麻烦。
+
+因为不是所有的 page 都是产品详情页，比如有些是 about us, contact, resource, FAQ 等等，所以如果通过主题的 theme options 对整体的产品详情页进行布局或功能的设置的话，就没办法单独对产品页类型的 Page 来设定。
+
+因此，我们最好使用 Portfolio 来创建产品详情页面。而且，最新版的 Avada 主题对 Portfolio 的修改使得我们更适合用 Portfolio 来作为产品详情页了。
+
+## 产品分类页面用 Portfolio Category 还是 Page
+
+- 先建立一个 `Portfolio Category`
+- 同时也在 Page 中建立一个 Porduct Category
+- 在该页中用 Fusion Builder 中的 Element 来调用 Portfolio Category。
+- 每个具体的产品用 Portfolio 建，并选择好对应的 Portfolio Category。
+
+由于 Portfolio Category 页面无法编辑，因此我们在 Portfolio 模块创建了 Portfolio Category 之后，也要通过 Page 来创建一次 Category Page。
+
+## 确定产品结构
+
+## 建产品分类
+
+根据分类新建 `Portfolio Category`
+
+## 设置 Portfolio 默认属性
+
+在 【Avada】-【Theme Options】-【Portfolio】- Portfolio Singe Post，进行配置
+
+- Previous/Next Pagination： 关闭 上一页/下一页 页码
+- Project Description Title： 关闭 描述标题
+- Project Details: 关闭 详情
+- Social Sharing Box：开启 社交分享
+- Related Projects：开启 相关推荐
 # 参考案例
 
 - [三一重工官网](https://www.sanyglobal.com/)
@@ -343,3 +387,4 @@ Slide Timing 建议设置为 duration:3000，shift:1000
 
 - [哪些网站是用Avada主题做的？Avada真实案例分享](https://www.1deng.me/avada-examples.html)
 - [WordPress外贸建站,WordPress操作流程全攻略（详细图文教程）](https://www.liaosam.com/wordpress-build-website-operation.html)
+- [AVADA常见问题大全](https://www.imhunk.com/avada-custom-css/)
