@@ -262,938 +262,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/mvp模型/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/mvp模型/" itemprop="url">MVP模型</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:08:56+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文所采用的架构是单Activity多View栈模式，跟常见的Activity架构不同</p>
-<h1 id="基础架构"><a href="#基础架构" class="headerlink" title="基础架构"></a>基础架构</h1><img src="/2019/01/14/编程思想/mvc%20mvp%20mvvm%20clean/mvp模型/基础架构.jpg">
-<p><strong>Contract</strong>：协议层，负责定义MVP三层所有对外的接口。</p>
-<p><strong>Model</strong>：数据业务层，负责数据获取、处理等逻辑，其通过回调接口将数据返回给Presenter层(可以不通过接口回调，持有Presenter返回数据)。</p>
-<p><strong>Presenter</strong>：中间层，Model层与View层的中间枢纽，负责表现层逻辑以及提供模块对外的方法，其持有Model层与View层的引用（对View层的引用为弱引用，以防出现内存泄漏）。</p>
-<p><strong>View</strong>：视图层，只负责UI更新和交互相关的逻辑，持有Presenter的引用，用以响应控件的交互事件。</p>
-<h2 id="View层"><a href="#View层" class="headerlink" title="View层"></a>View层</h2><img src="/2019/01/14/编程思想/mvc%20mvp%20mvvm%20clean/mvp模型/view.png">
-<p>一般一个交互模块(比如直播投票)需要多个视图组件协同工作，因此设置ViewManager类统一管理模块内部的所有组件。ViewManager作为View层的黑盒入口，起到隔离Presenter与View层的作用（Presenter无需知道View层内部的具体实现）。那么对于Presenter来说，它就只需要在特定时机下，调用IView.showVote()方法即可。</p>
-<p>关于ViewManager还有以下几点说明：</p>
-<ul>
-<li>ViewManager对象的初始化是在主模块ScreenLiveRoom中完成的，在初始化的时候会注入模块相关的父容器和控件</li>
-<li>需要动态加载的子View会在ViewManager中完成初始化</li>
-<li>ViewManager负责子View生命周期的管理（动态添加到相关区域的父容器、互动结束时清除View对象等）</li>
-<li>在ViewManager的构造方法中会初始化此模块的Presenter对象</li>
-</ul>
-<h2 id="Presenter层"><a href="#Presenter层" class="headerlink" title="Presenter层"></a>Presenter层</h2><img src="/2019/01/14/编程思想/mvc%20mvp%20mvvm%20clean/mvp模型/presenter.png">
-<p>Presenter的职责如下：</p>
-<ul>
-<li>初始化Model对象，接收Model层数据，实现表现层逻辑</li>
-<li>在构造方法中注入持有ViewManager的引用，控制View层更新UI</li>
-<li>作为互动模块的黑盒入口对外提供接口方法</li>
-</ul>
-<h2 id="Model层"><a href="#Model层" class="headerlink" title="Model层"></a>Model层</h2><img src="/2019/01/14/编程思想/mvc%20mvp%20mvvm%20clean/mvp模型/model.png">
-<p>持有Repository对象的引用。Model负责加工处理数据以及数据的映射工作，而Repository则为Model提供数据（数据可以是从网络也可以是从本地获取）。</p>
-<h1 id="模块通信"><a href="#模块通信" class="headerlink" title="模块通信"></a>模块通信</h1><img src="/2019/01/14/编程思想/mvc%20mvp%20mvvm%20clean/mvp模型/基础架构-模块.jpg">
-<p>模块之间将处于各自独立的状态，无法直接通信</p>
-<p>通过路由的方式解决模块间通信的问题</p>
-<p>路由内部维护着一份路由表（通过Map实现），路由表保存着所有直播间模块（包括主模块）的Presenter对象，其索引为对象的类型。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LiveRouter</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Map&lt;Class, Object&gt; mPresenterMap = <span class="keyword">new</span> HashMap&lt;&gt;();<span class="comment">// 互动模块Presenter路由表</span></span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">savePresenter</span><span class="params">(Object presenter)</span> </span>&#123;</span><br><span class="line">        mPresenterMap.put(presenter.getClass(), presenter);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span>  &lt;T&gt; <span class="function">T <span class="title">findPresenter</span><span class="params">(Class&lt;T&gt; clazz)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (mPresenterMap.containsKey(clazz)) &#123;</span><br><span class="line">            <span class="keyword">return</span> (T) mPresenterMap.get(clazz);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">clearCache</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mPresenterMap.clear();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在Presenter基类的构造方法中调用LiveRouter.savePresenter()方法将本类对象存入路由表中，然后在其他模块里就可以通过LiveRouter.findPresenter()方法查找到目标对象。这样，通过路由器LiveRouter的中转作用，模块之间就可以以间接调用的方式访问对方的外部方法了。</p>
-<p>当前LiveRouter的实现方式成本极低（只有十几行代码），但有不足的地方。LiveRouter.findPresenter()方法需要显式地传入Presenter的类型来查找对应的对象，这会造成一定程度上的耦合，当需要移除某个模块所有代码时，就要去到其他模块删除其Presenter类型的引用。但这种代价是可以接受的，因为这样的引用并不会太多，而且清理起来非常方便，此外，对比其他实现方案（事件总线、apt实现的路由），这种方式性价比是最高的，因此直播间模块通信暂定为这种方法。</p>
-<img src="/2019/01/14/编程思想/mvc%20mvp%20mvvm%20clean/mvp模型/整体架构.jpg">
-<h1 id="mvp接口迷局"><a href="#mvp接口迷局" class="headerlink" title="mvp接口迷局"></a>mvp接口迷局</h1><p>MVP的问题在于，使用接口去连接view层和presenter层，这就导致一个逻辑复杂的页面，接口会有很多，十几二十个都不足为奇。维护接口的成本就会非常的大。</p>
-<p>这个问题的解决方案就是你得根据自己的业务逻辑去斟酌着写接口。你可以定义一些基类接口，把一些公共的逻辑，比如网络请求成功失败，toast等等放在里面，之后你再定义新的接口的时候可以继承自那些基类，这样会好不少。</p>
-<h1 id="mvp开源库"><a href="#mvp开源库" class="headerlink" title="mvp开源库"></a>mvp开源库</h1><p><a href="https://github.com/sockeqwe/mosby" target="_blank" rel="noopener">A Model-View-Presenter library for modern Android apps</a></p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="http://blog.csdn.net/lmj623565791/article/details/46596109" target="_blank" rel="noopener">mvp in android</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/Google官方MVP Sample代码解读/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/Google官方MVP Sample代码解读/" itemprop="url">Google官方MVP Sample代码解读</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:07:56+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.cnblogs.com/mengdd/p/5988104.html" target="_blank" rel="noopener">Google官方MVP Sample代码解读</a></p>
-<p><a href="http://blog.csdn.net/ljd2038/article/details/51477475" target="_blank" rel="noopener">Android官方MVP架构解读</a></p>
-<p><a href="https://github.com/boredream/DesignResCollection/tree/master/DesignResCollection_MVP" target="_blank" rel="noopener">一个简单项目（反馈页面）搞定 MVP + Mockito进行单元测试 + Espresso进行UI测试，配详细介绍文档</a></p>
-<h1 id="项目结构分析"><a href="#项目结构分析" class="headerlink" title="项目结构分析"></a>项目结构分析</h1><p>项目是一个备忘录。添加任务到待办任务列表。列表中标记任务已完成，任务详细页面修改任务内容，统计已完成的任务和未完成的任务数量。 </p>
-<p><img src="http://img.blog.csdn.net/20160522165007677" alt=""></p>
-<ul>
-<li><p>一个源码目录 <code>mian</code> ，四个测试目录 <code>androidTest</code> <code>androidTestMock</code> <code>mock</code> <code>test</code> 。</p>
-</li>
-<li><p>代码分包结构</p>
-<ul>
-<li>四个功能包：<ul>
-<li>任务的添加编辑(addedittask)。包内一般有类：xxActivity,xxFragment,xxPresenter,xxContract。<code>Presenter层</code>与<code>View层</code></li>
-<li>任务完成情况的统计(statistics)</li>
-<li>任务的详情(taskdetail)</li>
-<li>任务列表的显示(tasks)。</li>
-</ul>
-</li>
-<li>data包。数据源，数据库读写，网络请求，MVP架构中的 <code>Model层</code>。</li>
-<li>util包。工具类。</li>
-<li>在最外层存放了两接口BasePresenter和BaseView。Presenter层接口和View层接口的基类，项目中所有的Presenter接口和View层接口都继承自这两个接口。 </li>
-</ul>
-</li>
-</ul>
-<h1 id="MVP架构实现"><a href="#MVP架构实现" class="headerlink" title="MVP架构实现"></a>MVP架构实现</h1><h2 id="Model层的实现"><a href="#Model层的实现" class="headerlink" title="Model层的实现"></a>Model层的实现</h2><h3 id="public-interface-TasksDataSource"><a href="#public-interface-TasksDataSource" class="headerlink" title="public interface TasksDataSource"></a>public interface TasksDataSource</h3><pre><code>/**
- * For simplicity, only getTasks() and getTask() have callbacks.Consider adding callbacks to other methods
- */
-public interface TasksDataSource {
-    void getTasks(@NonNull LoadTasksCallback callback);
-    void getTask(@NonNull String taskId, @NonNull GetTaskCallback callback);
-    void saveTask(@NonNull Task task);
-    void completeTask(@NonNull Task task);//标记为已完成
-    void completeTask(@NonNull String taskId);
-    void activateTask(@NonNull Task task);//标记为进行中
-    void activateTask(@NonNull String taskId);
-    void clearCompletedTasks();
-    void refreshTasks();
-    void deleteAllTasks();
-    void deleteTask(@NonNull String taskId);
-</code></pre><h3 id="local数据源"><a href="#local数据源" class="headerlink" title="local数据源"></a>local数据源</h3><pre><code>/**
- * Concrete implementation of a data source as a db.
- */
-public class TasksLocalDataSource implements TasksDataSource {
-</code></pre><h3 id="remote数据源"><a href="#remote数据源" class="headerlink" title="remote数据源"></a>remote数据源</h3><pre><code>/**
- * Implementation of the data source that adds a latency simulating network.
- */
-public class TasksRemoteDataSource implements TasksDataSource {
-</code></pre><h3 id="数据三级缓存"><a href="#数据三级缓存" class="headerlink" title="数据三级缓存"></a>数据三级缓存</h3><pre><code>/**
- * Concrete implementation to load tasks from the data sources into a cache.
- * 
- * For simplicity, this implements a dumb synchronisation between locally persisted data and data
- * obtained from the server, by using the remote data source only if the local database doesn&apos;t
- * exist or is empty.
- */
-public class TasksRepository implements TasksDataSource {
-    Map&lt;String, Task&gt; mCachedTasks;
-    boolean mCacheIsDirty = false;
-
-    /**
-     * Gets tasks from cache, local data source (SQLite) or remote data source, whichever is available first.
-     * 
-     * LoadTasksCallback#onDataNotAvailable() is fired if all data sources fail to get the data.
-     */
-    @Override
-    public void getTasks(@NonNull final LoadTasksCallback callback) {
-        checkNotNull(callback);
-
-        // Respond immediately with cache if available and not dirty
-        if (mCachedTasks != null &amp;&amp; !mCacheIsDirty) {
-            callback.onTasksLoaded(new ArrayList&lt;&gt;(mCachedTasks.values()));
-            return;
-        }
-
-        if (mCacheIsDirty) {
-            // If the cache is dirty we need to fetch new data from the network.
-            getTasksFromRemoteDataSource(callback);
-        } else {
-            // Query the local storage if available. If not, query the network.
-            mTasksLocalDataSource.getTasks(new LoadTasksCallback() {
-                @Override
-                public void onTasksLoaded(List&lt;Task&gt; tasks) {
-                    refreshCache(tasks);
-                    callback.onTasksLoaded(new ArrayList&lt;&gt;(mCachedTasks.values()));
-                }
-
-                @Override
-                public void onDataNotAvailable() {
-                    getTasksFromRemoteDataSource(callback);
-                }
-            });
-        }
-    }
-
-    private void getTasksFromRemoteDataSource(@NonNull final LoadTasksCallback callback) {
-        mTasksRemoteDataSource.getTasks(new LoadTasksCallback() {
-            @Override
-            public void onTasksLoaded(List&lt;Task&gt; tasks) {
-                refreshCache(tasks);
-                refreshLocalDataSource(tasks);
-                callback.onTasksLoaded(new ArrayList&lt;&gt;(mCachedTasks.values()));
-            }
-
-            @Override
-            public void onDataNotAvailable() {
-                callback.onDataNotAvailable();
-            }
-        });
-    }
-
-    private void refreshCache(List&lt;Task&gt; tasks) {
-        if (mCachedTasks == null) {
-            mCachedTasks = new LinkedHashMap&lt;&gt;();
-        }
-        mCachedTasks.clear();
-        for (Task task : tasks) {
-            mCachedTasks.put(task.getId(), task);
-        }
-        mCacheIsDirty = false;
-    }
-
-    private void refreshLocalDataSource(List&lt;Task&gt; tasks) {
-        mTasksLocalDataSource.deleteAllTasks();
-        for (Task task : tasks) {
-            mTasksLocalDataSource.saveTask(task);
-        }
-    }
-</code></pre><p>实际使用的就是带三级缓存的数据源，它由手动实现的注入类Injection（该类在mock目录）提供:</p>
-<pre><code>public class Injection {
-    public static TasksRepository provideTasksRepository(@NonNull Context context) {
-        checkNotNull(context);
-        return TasksRepository.getInstance(FakeTasksRemoteDataSource.getInstance(),
-                TasksLocalDataSource.getInstance(context));
-    }
-}
-</code></pre><h2 id="contract"><a href="#contract" class="headerlink" title="contract"></a>contract</h2><pre><code>public interface BasePresenter {
-    void start();
-}
-
-public interface BaseView&lt;T&gt; {
-    void setPresenter(T presenter);
-}
-
-public interface AddEditTaskContract {
-
-    interface View extends BaseView&lt;Presenter&gt; {
-
-        void showEmptyTaskError();
-
-        void showTasksList();
-
-        void setTitle(String title);
-
-        void setDescription(String description);
-
-        boolean isActive();
-    }
-
-    interface Presenter extends BasePresenter {
-
-        void createTask(String title, String description);
-
-        void updateTask( String title, String description);
-
-        void populateTask();
-    }
-}
-</code></pre><h2 id="Presenter层的实现"><a href="#Presenter层的实现" class="headerlink" title="Presenter层的实现"></a>Presenter层的实现</h2><pre><code>/**
- * Listens to user actions from the UI ({@link AddEditTaskFragment}), retrieves the data and updates the UI as required.
- */
-public class AddEditTaskPresenter implements AddEditTaskContract.Presenter, TasksDataSource.GetTaskCallback {
-</code></pre><h2 id="View层的实现"><a href="#View层的实现" class="headerlink" title="View层的实现"></a>View层的实现</h2><ul>
-<li>View的实现是在Fragment中</li>
-<li><p>而在Activity中则是完成对Fragment的添加，Presenter的创建</p>
-<pre><code>// Create the presenter
-mAddEditTaskPresenter = new AddEditTaskPresenter(
-        taskId,
-        Injection.provideTasksRepository(getApplicationContext()),
-        addEditTaskFragment,
-        shouldLoadDataFromRepo);
-</code></pre></li>
-<li><p>官方对于采用Fragment的原因给出了两种解释。</p>
-<ul>
-<li>通过Activity和Fragment分离非常适合对于MVP架构的实现。Activity作为全局控制者将Presenter与View联系在一起。</li>
-<li>采用Fragment更有利于平板电脑的布局或者是多视图屏幕。</li>
-</ul>
-</li>
-</ul>
-<h1 id="单元测试"><a href="#单元测试" class="headerlink" title="单元测试"></a>单元测试</h1><ul>
-<li><p>MVP模式的主要优势就是便于为业务逻辑加上单元测试.</p>
-</li>
-<li><p>本例子中的单元测试是给TasksRepository和四个feature的Presenter加的.</p>
-</li>
-<li><p>单元测试的目录是  <code>mock</code> <code>test</code></p>
-</li>
-<li><p>单元测试使用的是 Junit + <a href="http://site.mockito.org/" target="_blank" rel="noopener">mockito</a></p>
-</li>
-</ul>
-<p>依赖配置</p>
-<pre><code>repositories { jcenter() }
-dependencies { testCompile &quot;org.mockito:mockito-core:1.+&quot; }
-</code></pre><p>Presenter的单元测试, Mock了View和Model, 测试调用逻辑, 如:</p>
-<pre><code>/**
- * Unit tests for the implementation of {@link AddEditTaskPresenter}.
- */
-public class AddEditTaskPresenterTest {
-
-    @Mock
-    private TasksRepository mTasksRepository;
-
-    @Mock
-    private AddEditTaskContract.View mAddEditTaskView;
-
-    /**
-     * {@link ArgumentCaptor} is a powerful Mockito API to capture argument values and use them to
-     * perform further actions or assertions on them.
-     */
-    @Captor
-    private ArgumentCaptor&lt;TasksDataSource.GetTaskCallback&gt; mGetTaskCallbackCaptor;
-
-    private AddEditTaskPresenter mAddEditTaskPresenter;
-
-    @Before
-    public void setupMocksAndView() {
-        // Mockito has a very convenient way to inject mocks by using the @Mock annotation. To
-        // inject the mocks in the test the initMocks method needs to be called.
-        MockitoAnnotations.initMocks(this);
-
-        // The presenter wont&apos;t update the view unless it&apos;s active.
-        when(mAddEditTaskView.isActive()).thenReturn(true);
-    }
-
-    @Test
-    public void saveNewTaskToRepository_showsSuccessMessageUi() {
-        // Get a reference to the class under test
-        mAddEditTaskPresenter = new AddEditTaskPresenter(
-                null, mTasksRepository, mAddEditTaskView, true);
-
-        // When the presenter is asked to save a task
-        mAddEditTaskPresenter.saveTask(&quot;New Task Title&quot;, &quot;Some Task Description&quot;);
-
-        // Then a task is saved in the repository and the view updated
-        verify(mTasksRepository).saveTask(any(Task.class)); // saved to the model
-        verify(mAddEditTaskView).showTasksList(); // shown in the UI
-    }
-</code></pre><h1 id="UI-测试"><a href="#UI-测试" class="headerlink" title="UI 测试"></a>UI 测试</h1><p>Espresso，Google官方提供的Android UI自动化测试的框架</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/google mvp clean 架构解读/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/mvc mvp mvvm clean/google mvp clean 架构解读/" itemprop="url">google mvp clean 架构解读</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:07:56+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.jianshu.com/p/cba6663435c7" target="_blank" rel="noopener">学习 CleanArchitecture 心得体会</a> </p>
-<p><a href="https://github.com/googlesamples/android-architecture/tree/todo-mvp-clean/" target="_blank" rel="noopener">google mvp clean architecture sample</a></p>
-<p><a href="https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html" target="_blank" rel="noopener">uncle-bob Clean Architecture</a></p>
-<h1 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h1><p>google samples<br><img src="https://upload-images.jianshu.io/upload_images/1019822-cda363d399934d04.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/700" alt=""></p>
-<p>uncle-bob<br><img src="http://upload-images.jianshu.io/upload_images/1019822-b2acfd9ed6182541.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
-<p><strong>两个图其实是一个意思。都是三层结构</strong></p>
-<p>It’s based on the MVP sample, adding a <code>domain</code> layer between the <code>presentation</code> layer and <code>data</code> layar, splitting the app in three layers:</p>
-<ul>
-<li>PresentationLayer。 展示层，原来的MVP</li>
-<li>DomainLayer。 新加的层</li>
-<li><p>DataLayer。原来的数据层。</p>
-<p>  最底层，完全不知道 DomainLayer 和PresentationLayer 的存在。这是保证 <code>可测试性</code> <code>低耦合度</code> 的关键所在 </p>
-</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/Clean架构/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/01/14/编程思想/Clean架构/" itemprop="url">Clean架构</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T09:06:53+08:00">
-                2019-01-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>作者尝试使用简单的观点将各种架构的共通之处和最终目标说清楚。</p>
-<p>全文要说清楚的就是一件事“如何写出整洁的架构”。</p>
-<p>作者希望在架构系统的时候只需要秉持最简单的两个观点（<strong>分层和依赖规则</strong>）开发，就能开发出干净整洁的系统架构。</p>
-<h1 id="好架构共性"><a href="#好架构共性" class="headerlink" title="好架构共性"></a>好架构共性</h1><img src="/2019/01/14/编程思想/Clean架构/Clean架构.png">
-<p>过去几年间有许多关于系统架构的观点。虽然这些架构在细节处都有一些变化，但是实际上，它们是非常相似的。它们的目标是一样的，将各种实体间的关系进行分离。它们分离操作的方法也是一样的，采用软件分层的方式。它们分的层中至少有一个业务逻辑层，并且有其他的接口层。</p>
-<p>每一种架构在写系统的<strong>业务逻辑</strong>的时候有以下特征：</p>
-<ol>
-<li><p>与框架的分离。<br>框架决不能依赖一些有限制特征的库。这样就能保证你能像使用手边的工具一样简单地使用这些框架，而不会让你的系统业务逻辑在使用前就有一些强制性的约束。</p>
-</li>
-<li><p>可测试性。<br>业务逻辑必须能独立测试，不需要UI，数据库，Web服务器或者一些其他的外部条件。</p>
-</li>
-<li><p>与UI的分离。<br>UI必须能非常容易独立地修改。而不能在改变UI的同时需要改变系统其他部分。比如当把系统的UI从Web UI改成控制台UI，你并不需要改变任何业务逻辑的代码。</p>
-</li>
-<li><p>与数据库的分离。<br>能很方便地在Oracle，SQL Server，Mongo DB，BigTable，CouchDB或者其他数据库中进行切换和改变。业务逻辑决不能依赖这些数据库。</p>
-</li>
-<li><p>与外部结构的分离。<br>系统的业务逻辑并不需要知道任何外部的结构。</p>
-</li>
-</ol>
-<p>文章最上面的图就是将所有这些架构进行统一概括，提取出统一的观点。</p>
-<h1 id="Clean架构要点"><a href="#Clean架构要点" class="headerlink" title="Clean架构要点"></a>Clean架构要点</h1><h2 id="依赖规则（The-Dependency-Rule）"><a href="#依赖规则（The-Dependency-Rule）" class="headerlink" title="依赖规则（The Dependency Rule）"></a>依赖规则（The Dependency Rule）</h2><p><strong>单向向内依赖</strong>。内层完全不知道外层的存在；</p>
-<h2 id="分层"><a href="#分层" class="headerlink" title="分层"></a>分层</h2><h3 id="实体层（Entities）"><a href="#实体层（Entities）" class="headerlink" title="实体层（Entities）"></a>实体层（Entities）</h3><p>业务逻辑对象，封装了最通用的规则。</p>
-<p>外部环境变化的时候，这些实体是最不需要被变化的。即<strong>用户实例层的任何改变都不会影响到实体层</strong></p>
-<p>比如在增加翻页需求或者是安全需求的时候，这些实体是最不应该被改变的。</p>
-<h3 id="用户实例层（Use-Cases）"><a href="#用户实例层（Use-Cases）" class="headerlink" title="用户实例层（Use Cases）"></a>用户实例层（Use Cases）</h3><p>具体的业务逻辑</p>
-<p>由流入实体的数据流和流出实体的数据流实现，用户实例使得内层的实体能依靠实体内定义的业务逻辑规则来完成系统的用户需求。</p>
-<p>能够引起用户实例层<strong>改变的唯一原因是 用户需求改变</strong>。外层，比如UI、数据库或者任何公共的框架，改变都不会影响到用户实例层</p>
-<h3 id="接口适配层（Interface-Adapters）"><a href="#接口适配层（Interface-Adapters）" class="headerlink" title="接口适配层（Interface Adapters）"></a>接口适配层（Interface Adapters）</h3><p>目的就是进行<strong>数据结构转换</strong> DataMapper</p>
-<p>按数据流向需要，转换 <strong>用户实例层和实体层</strong> 和 <strong>外层(比如数据库或者Web)</strong> 的数据结构。</p>
-<p>接口适配层 并不需要知道任何数据库的信息。如果数据库是SQL数据库，那么，所有的SQL语言应当在这层被限制使用</p>
-<p>这里可以是Presenters(MVP),ViewModel(MVVM),Controller(MVC)等MVX结构，X所在的地方</p>
-<h3 id="框架和驱动层（Frameworks-and-Drivers）"><a href="#框架和驱动层（Frameworks-and-Drivers）" class="headerlink" title="框架和驱动层（Frameworks and Drivers）"></a>框架和驱动层（Frameworks and Drivers）</h3><p>最外层是由<strong>框架和工具</strong>组成的</p>
-<p>数据最终到达的地方(Web、数据库)</p>
-<h1 id="Clean架构问题"><a href="#Clean架构问题" class="headerlink" title="Clean架构问题"></a>Clean架构问题</h1><h2 id="只有四层？"><a href="#只有四层？" class="headerlink" title="只有四层？"></a>只有四层？</h2><p>答案是否定的。这个分层模型是纲要性的。</p>
-<p>并没有任何规定说你必须只能实现这四个层级。但是，<strong>依赖规则（The Dependency Rule）是必须遵守的</strong>：代码依赖只能 <strong>单向向内</strong> 。越向内，抽象程度越高，需要设计越高层面的策略。</p>
-<h2 id="跨层调用-反向调用"><a href="#跨层调用-反向调用" class="headerlink" title="跨层调用/反向调用"></a>跨层调用/反向调用</h2><p>图片的右下角是一个如何跨层调用的例子。准确的说是 反向调用</p>
-<p>它演示了 控制器、表现器和 用户实例层 进行交互。</p>
-<p>注意流向，从控制器开始，通过用户实例层，然后向上执行到表现器。</p>
-<p>为了遵守向内依赖规则，通常使用 <strong>依赖倒置原则</strong>（Dependency Inversion Principle）来实现这种反向调用。</p>
-<p>例子中，让 用户实例层 调用一个接口（Use Case Output Port），然后让表现层在外部实现这个接口。</p>
-<p>实践中，一般都是通过 <strong>依赖注入(DI)</strong> 来实现依赖倒置。</p>
-<h2 id="数据跨层传递原则"><a href="#数据跨层传递原则" class="headerlink" title="数据跨层传递原则"></a>数据跨层传递原则</h2><p>保持简单的数据结构。原则是不要违背向内依赖规则</p>
-<p>所以，没有必要在各层定义数据结构实体(比如 框架和驱动层、用户实例层、实体层)，外层是可以跨层依赖内层的(符合向内依赖规则)</p>
-<h1 id="三层与洋葱图的对应关系"><a href="#三层与洋葱图的对应关系" class="headerlink" title="三层与洋葱图的对应关系"></a>三层与洋葱图的对应关系</h1><p>Domain Layer 对应洋葱图最里面两层：Entities，Use Cases</p>
-<p>Presentation Layer 和 Data Layer 对应洋葱图最外层：Frameworks and Drivers 即(UI Web Devices DB)</p>
-<h1 id="数据流向"><a href="#数据流向" class="headerlink" title="数据流向"></a>数据流向</h1><img src="/2019/01/14/编程思想/Clean架构/数据流向.png">
-<p>实例：从Presenter层传递一个对象UserModel给Data层进行存储</p>
-<h2 id="Presenter层"><a href="#Presenter层" class="headerlink" title="Presenter层"></a>Presenter层</h2><ul>
-<li>用户输入数据，并点击OK按钮(View)</li>
-<li>Presenter(ViewModel,Controller等)获取到数据，并构造一个UserModel</li>
-<li>使用UserModelMapper（Presenter层的数据Mapper对象）将UserModel转换成User对象。<ul>
-<li>这步可以省略，上一步直接构造User对象</li>
-</ul>
-</li>
-<li>调用UseCase.store(user)</li>
-</ul>
-<h2 id="Domain层"><a href="#Domain层" class="headerlink" title="Domain层"></a>Domain层</h2><p>唯一目:执行上面的业务逻辑(存储对象)</p>
-<ul>
-<li>StoreUseCase接受到User对象</li>
-<li>调用UserRepository接口的方法，传入User</li>
-</ul>
-<h2 id="Data层"><a href="#Data层" class="headerlink" title="Data层"></a>Data层</h2><ul>
-<li>UserDataRepository(UserRepository接口的实现类)，接受到User对象</li>
-<li>调用Mapper方法(Data层的)将User对象转换成UserEntity</li>
-<li>存储UserEntity对象</li>
-</ul>
-<p>这只是数据的流动过程，与依赖关系无关。Domain层实际上不持有任何依赖。</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Clean 架构是 <strong>分层 和 单向内向依赖</strong> 。即内层完全不知道外层的存在</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html" target="_blank" rel="noopener">The Clean Code Blog</a> by Robert C. Martin (Uncle Bob) - 原文</li>
-<li><a href="https://www.cnblogs.com/yjf512/archive/2012/09/10/2678313.html" target="_blank" rel="noopener">架构整洁之道</a> - 译文</li>
-<li><a href="https://www.jianshu.com/p/66e749e19f0d" target="_blank" rel="noopener">Clean架构探讨</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/mvc mvp mvvm clean/重构！将Google官方Android MVP应用于已有项目/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -3037,6 +2105,778 @@ public class Client{
 <p>本章讨论的就是如何在较高的抽象层级-系统层级 上保持整洁</p>
 <h2 id="11-2-将系统的构造和使用分开"><a href="#11-2-将系统的构造和使用分开" class="headerlink" title="11.2 将系统的构造和使用分开"></a>11.2 将系统的构造和使用分开</h2><p>Separate Constructing a System from Using It</p>
 <p>酒店建设时，先搭个框架，起重机升降机附着在外面，工人忙碌其间。建成后，起重机升降机都会消失，酒店变得整洁</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/VO DTO DO PO 概念/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/14/编程思想/VO DTO DO PO 概念/" itemprop="url">VO DTO DO PO 概念</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T08:56:53+08:00">
+                2019-01-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程思想/" itemprop="url" rel="index">
+                    <span itemprop="name">编程思想</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>浅析VO、DTO、DO、PO的概念、区别和用处 http://blog.csdn.net/zjrbiancheng/article/details/6253232
+</code></pre><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><pre><code>VO（View Object）：视图对象，用于展示层，它的作用是把某个指定页面（或组件）的所有数据封装起来。 展示User 可能是包含昵称头像
+DTO（Data Transfer Object）：数据传输对象，服务层返回的数据传输对象。 服务器返回的User不包含密码
+DO（Domain Object）：领域对象，就是从现实世界中抽象出来的有形或无形的业务实体。 抽象User可能包含密码和登录方法
+PO（Persistent Object）：持久化（通常是关系型数据库）对象。 存储User可能不包含密码
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/14/编程思想/面向切面编程AOP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/14/编程思想/面向切面编程AOP/" itemprop="url">面向切面编程AOP</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-14T08:56:53+08:00">
+                2019-01-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程思想/" itemprop="url" rel="index">
+                    <span itemprop="name">编程思想</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.jianshu.com/p/0fa8073fd144" target="_blank" rel="noopener">面向切面编程（AOP，Aspect-oriented programming）</a></p>
+<ul>
+<li>需要把程序逻辑分解成<strong>『关注点』</strong>（concerns，功能的内聚区域，多处代码中需要的逻辑，但没有一个单独的类来实现）</li>
+<li><strong>『关注点』</strong>只被实现一次</li>
+<li>不需要显式的修改就可以向代码中添加可执行的代码块（注入到需要该逻辑的地方）</li>
+</ul>
+<h1 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h1><ul>
+<li><p>Cross-cutting concerns（横切关注点）: 比如</p>
+<ul>
+<li>日志</li>
+<li>持久化</li>
+<li>性能监控</li>
+<li>数据校验</li>
+<li>缓存</li>
+</ul>
+</li>
+<li><p>Advice（注入代码）: 注入到class文件中的代码。</p>
+</li>
+<li><p>Joint point（注入点 / 连接点）: 程序中可能作为代码注入目标的特定的点，例如一个方法调用或者方法入口。</p>
+<ul>
+<li>方法。 类型有 before、after 和 around，分别表示在目标方法执行之前、执行后和完全替代目标方法执行的代码。 </li>
+<li>class。增加字段或者接口。</li>
+</ul>
+</li>
+<li><p>Pointcut（切入点）: 在何处注入何代码的表达式（给代码注入工具用）。例如，标记了自定义注解@DebguTrace的方法。</p>
+</li>
+<li><p>Aspect（切面）: Pointcut 和 Advice 的组合看做切面。例如，一个pointcut和恰当的advice = 一个日志切面。</p>
+</li>
+<li><p>Weaving（织入）: 注入代码（advices）到目标位置（joint points）的过程。</p>
+</li>
+</ul>
+<p>下面这张图简要总结了一下上述这些概念。<br><img src="http://upload-images.jianshu.io/upload_images/30689-55846998f4f5b4ce.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<h1 id="工具和库"><a href="#工具和库" class="headerlink" title="工具和库"></a>工具和库</h1><ul>
+<li><p><a href="https://eclipse.org/aspectj/" target="_blank" rel="noopener">AspectJ</a>: 一个 JavaTM 语言的面向切面编程的无缝扩展（适用Android）。</p>
+</li>
+<li><p><a href="https://github.com/crimsonwoods/javassist-android" target="_blank" rel="noopener">Javassist for Android</a>: 知名 java 类库 Javassist（字节码操作库） 的 Android 平台移植版。</p>
+</li>
+<li><p><a href="https://code.google.com/p/dexmaker/" target="_blank" rel="noopener">DexMaker</a>: Dalvik 虚拟机上，在编译期或者运行时生成代码的 Java API。</p>
+</li>
+<li><p><a href="http://asm.ow2.org/asmdex-index.html" target="_blank" rel="noopener">ASMDEX</a>: 一个类似 ASM 的字节码操作库，运行在Android平台，操作Dex字节码。</p>
+</li>
+</ul>
+<h1 id="为什么用-AspectJ"><a href="#为什么用-AspectJ" class="headerlink" title="为什么用 AspectJ"></a>为什么用 AspectJ</h1><ul>
+<li>功能强大</li>
+<li>支持<strong>编译期和加载时代码注入</strong></li>
+<li>易于使用</li>
+</ul>
+<h1 id="使用-AspectJ"><a href="#使用-AspectJ" class="headerlink" title="使用 AspectJ"></a>使用 AspectJ</h1><p><a href="https://github.com/android10/Android-AOPExample" target="_blank" rel="noopener">示例：</a>测量一个方法的性能（执行这个方法需要多长时间）。logcat 输出 @DebugTrace 注解标记的方法性能。<a href="https://github.com/JakeWharton/hugo" target="_blank" rel="noopener">Jake Wharton’s Hugo Library</a> 支持做同样的事情</p>
+<h2 id="依赖配置"><a href="#依赖配置" class="headerlink" title="依赖配置"></a>依赖配置</h2><p>module 的 <code>build.gradle</code></p>
+<pre><code>import org.aspectj.bridge.IMessage
+import org.aspectj.bridge.MessageHandler
+import org.aspectj.tools.ajc.Main
+
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath &apos;com.android.tools.build:gradle:2.1.0&apos;
+    classpath &apos;org.aspectj:aspectjtools:1.8.1&apos;
+  }
+}
+
+apply plugin: &apos;com.android.library&apos;
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile &apos;org.aspectj:aspectjrt:1.8.1&apos;
+}
+
+android {
+  compileSdkVersion 23
+  buildToolsVersion &apos;23.0.2&apos;
+
+  lintOptions {
+    abortOnError false
+  }
+}
+
+android.libraryVariants.all { variant -&gt;
+  LibraryPlugin plugin = project.plugins.getPlugin(LibraryPlugin)
+  JavaCompile javaCompile = variant.javaCompile
+  javaCompile.doLast {
+    String[] args = [&quot;-showWeaveInfo&quot;,
+                     &quot;-1.5&quot;,
+                     &quot;-inpath&quot;, javaCompile.destinationDir.toString(),
+                     &quot;-aspectpath&quot;, javaCompile.classpath.asPath,
+                     &quot;-d&quot;, javaCompile.destinationDir.toString(),
+                     &quot;-classpath&quot;, javaCompile.classpath.asPath,
+                     &quot;-bootclasspath&quot;, plugin.project.android.bootClasspath.join(
+        File.pathSeparator)]
+
+    MessageHandler handler = new MessageHandler(true);
+    new Main().run(args, handler)
+
+    def log = project.logger
+    for (IMessage message : handler.getMessages(null, true)) {
+      switch (message.getKind()) {
+        case IMessage.ABORT:
+        case IMessage.ERROR:
+        case IMessage.FAIL:
+          log.error message.message, message.thrown
+          break;
+        case IMessage.WARNING:
+        case IMessage.INFO:
+          log.info message.message, message.thrown
+          break;
+        case IMessage.DEBUG:
+          log.debug message.message, message.thrown
+          break;
+      }
+    }
+  }
+}
+</code></pre><h2 id="定义-DebugTrace注解"><a href="#定义-DebugTrace注解" class="headerlink" title="定义 DebugTrace注解"></a>定义 DebugTrace注解</h2><p>注解周期声明在 class 文件上，以注解构造函数和方法</p>
+<pre><code>@Retention(RetentionPolicy.CLASS)
+@Target({ ElementType.CONSTRUCTOR, ElementType.METHOD })
+public @interface DebugTrace {}
+</code></pre><h2 id="Aspect-类"><a href="#Aspect-类" class="headerlink" title="Aspect 类"></a>Aspect 类</h2><p>Aspect 类负责管理注解的处理和代码织入。</p>
+<pre><code>@Aspect
+public class TraceAspect {
+
+  private static final String POINTCUT_METHOD =
+      &quot;execution(@org.android10.gintonic.annotation.DebugTrace * *(..))&quot;;
+
+  private static final String POINTCUT_CONSTRUCTOR =
+      &quot;execution(@org.android10.gintonic.annotation.DebugTrace *.new(..))&quot;;
+
+  @Pointcut(POINTCUT_METHOD)
+  public void methodAnnotatedWithDebugTrace() {}
+
+  @Pointcut(POINTCUT_CONSTRUCTOR)
+  public void constructorAnnotatedDebugTrace() {}
+
+  @Around(&quot;methodAnnotatedWithDebugTrace() || constructorAnnotatedDebugTrace()&quot;)
+  public Object weaveJoinPoint(ProceedingJoinPoint joinPoint) throws Throwable {
+    MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+    String className = methodSignature.getDeclaringType().getSimpleName();
+    String methodName = methodSignature.getName();
+
+    final StopWatch stopWatch = new StopWatch();
+    stopWatch.start();
+    Object result = joinPoint.proceed();
+    stopWatch.stop();
+
+    DebugLog.log(className, buildLogMessage(methodName, stopWatch.getTotalTimeMillis()));
+
+    return result;
+  }
+
+  /**
+   * Create a log message.
+   *
+   * @param methodName A string with the method name.
+   * @param methodDuration Duration of the method in milliseconds.
+   * @return A string representing message.
+   */
+  private static String buildLogMessage(String methodName, long methodDuration) {
+    StringBuilder message = new StringBuilder();
+    message.append(&quot;Gintonic --&gt; &quot;);
+    message.append(methodName);
+    message.append(&quot; --&gt; &quot;);
+    message.append(&quot;[&quot;);
+    message.append(methodDuration);
+    message.append(&quot;ms&quot;);
+    message.append(&quot;]&quot;);
+
+    return message.toString();
+  }
+}
+</code></pre><ul>
+<li><p><code>@Pointcut</code> <strong>属性值声明的方法</strong>（“org.android10.gintonic.annotation.DebugTrace” 注解的方法和构造函数）<strong>注入@Pointcut注解的方法</strong></p>
+</li>
+<li><p><code>@Around</code> <strong>@Around注解的方法</strong>（“weaveJointPoint(ProceedingJoinPoint joinPoint)”）<strong>替换属性值声明的方法</strong>（@DebugTrace”注解的方法）</p>
+</li>
+<li><p><code>Object result = joinPoint.proceed();</code> 执行原来的方法</p>
+</li>
+</ul>
+<h2 id="测试-DebugTrace"><a href="#测试-DebugTrace" class="headerlink" title="测试 DebugTrace"></a>测试 DebugTrace</h2><pre><code>@DebugTrace
+  private void testAnnotatedMethod() {
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+</code></pre><h2 id="输出结果"><a href="#输出结果" class="headerlink" title="输出结果"></a>输出结果</h2><pre><code>Gintonic --&gt; testAnnotatedMethod --&gt; [10ms]
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/09/电脑使用/mac/PHP集成环境MAMP使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/09/电脑使用/mac/PHP集成环境MAMP使用/" itemprop="url">PHP集成环境MAMP使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-09T14:41:53+08:00">
+                2019-01-09
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h1><h2 id="配置mysql密码"><a href="#配置mysql密码" class="headerlink" title="配置mysql密码"></a>配置mysql密码</h2><h3 id="修改mysql密码"><a href="#修改mysql密码" class="headerlink" title="修改mysql密码"></a>修改mysql密码</h3><p><code>/Applications/MAMP/Library/bin/mysqladmin -u root -p password</code></p>
+<p>输入mysql密码，并且确认密码。就OK了</p>
+<h3 id="配置文件修改mysql密码"><a href="#配置文件修改mysql密码" class="headerlink" title="配置文件修改mysql密码"></a>配置文件修改mysql密码</h3><p><code>/Applications/MAMP/bin/phpMyAdmin-X.X.X/config.inc.php</code></p>
+<p>找到 <code>$cfg[‘Servers’][$i][‘password’]</code>，修改密码。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/07/电脑使用/mac/Mac自启动管理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/07/电脑使用/mac/Mac自启动管理/" itemprop="url">Mac自启动管理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-07T16:10:53+08:00">
+                2019-01-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>三种方式配置Mac OS X的启动项</p>
+<h1 id="Login-Items"><a href="#Login-Items" class="headerlink" title="Login Items"></a>Login Items</h1><p><code>System Preferences -&gt; System -&gt; Accounts，选择Login Items选项卡</code></p>
+<h1 id="StartupItems"><a href="#StartupItems" class="headerlink" title="StartupItems"></a>StartupItems</h1><ul>
+<li><p><code>/System/Library/StartupItems</code></p>
+</li>
+<li><p><code>/Library/StartupItems</code></p>
+</li>
+</ul>
+<h1 id="Launchd-Daemon"><a href="#Launchd-Daemon" class="headerlink" title="Launchd Daemon"></a>Launchd Daemon</h1><p><code>~/Library/LaunchAgents</code></p>
 
           
         

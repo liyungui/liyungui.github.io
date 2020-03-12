@@ -262,869 +262,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/pcm 转 amr/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/音频/pcm 转 amr/" itemprop="url">pcm 转 amr</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://blog.csdn.net/honeybaby201314/article/details/50379040" target="_blank" rel="noopener">pcm 转 amr</a></p>
-<p><a href="https://www.zybuluo.com/DevWiki/note/115307" target="_blank" rel="noopener">Android中Pcm文件转Amr文件</a></p>
-<p>Android系统自带的AmrInputStream类可以转换pcm到amr</p>
-<h1 id="思路一、反射调用"><a href="#思路一、反射调用" class="headerlink" title="思路一、反射调用"></a>思路一、反射调用</h1><ul>
-<li>通过Android系统自带的AmrInputStream类转换，因为它被隐藏了，只有通过反射来操作。</li>
-<li>手动加上 <code>amr文件头</code>，<code>byte[] header = new byte[]{0x23, 0x21, 0x41, 0x4D, 0x52, 0x0A};</code></li>
-</ul>
-<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><pre><code> /**
- * 通过反射调用android系统自身AmrInputStream类进行转换
- * @param inPath 源文件
- * @param outPath 目标文件
- */
-public void systemPcm2Amr(String inPath,String outPath){
-    try {
-        FileInputStream fileInputStream = new FileInputStream(inPath);
-        FileOutputStream fileoutputStream = new FileOutputStream(outPath);
-        // 获得Class
-        Class&lt;?&gt; cls = Class.forName(&quot;android.media.AmrInputStream&quot;);
-        // 通过Class获得所对应对象的方法
-        Method[] methods = cls.getMethods();
-        // 输出每个方法名
-        byte[] header = new byte[]{0x23, 0x21, 0x41, 0x4D, 0x52, 0x0A};
-        fileoutputStream.write(header);
-        Constructor&lt;?&gt; con = cls.getConstructor(InputStream.class);
-        Object obj = con.newInstance(fileInputStream);
-        for (Method method : methods) {
-            Class&lt;?&gt;[] parameterTypes = method.getParameterTypes();
-            if (&quot;read&quot;.equals(method.getName())
-                    &amp;&amp; parameterTypes.length == 3) {
-                byte[] buf = new byte[1024];
-                int len = 0;
-                while ((len = (int) method.invoke(obj, buf, 0, 1024)) &gt; 0) {
-                    fileoutputStream.write(buf, 0, len);
-                }
-                break;
-            }
-        }
-        for (Method method : methods) {
-            if (&quot;close&quot;.equals(method.getName())) {
-                method.invoke(obj);
-                break;
-            }
-        }
-        fileoutputStream.close();
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-</code></pre><h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>查看源码可知，AmrInputStream 转码默认 PCM 的采样率是 8000 Hz，所以要<strong>保证录制时采样率是8000Hz</strong>，否则amr音频会有快放和慢放的效果</p>
-<pre><code>public class AmrInputStream extends InputStream {      
-    ... 
-    // frame is 20 msec at 8.000 khz  
-    private final static int SAMPLES_PER_FRAME = 8000 * 20 / 1000;  
-</code></pre><p>在华为机型上，反射调用特别的慢，容易AR</p>
-<h1 id="思路二、复制类文件到工程"><a href="#思路二、复制类文件到工程" class="headerlink" title="思路二、复制类文件到工程"></a>思路二、复制类文件到工程</h1><p>不用反射，更加高效</p>
-<p>工程下新建包 <code>android.media</code>。因为调用Android自带的Pcm转amr的库:media_jni.so需要这个包名</p>
-<p>复制AmrInputStream类到该包下</p>
-<pre><code>public final class AmrInputStream extends InputStream {
-    static {
-        System.loadLibrary(&quot;media_jni&quot;);
-    }
-    private final static String TAG = &quot;AmrInputStream&quot;;
-    // frame is 20 msec at 8.000 khz
-    private final static int SAMPLES_PER_FRAME = 8000 * 20 / 1000;
-    // pcm input stream
-    private InputStream mInputStream;
-    // native handle
-    private int mGae;
-    // result amr stream
-    private byte[] mBuf = new byte[SAMPLES_PER_FRAME * 2];
-    private int mBufIn = 0;
-    private int mBufOut = 0;
-    // helper for bytewise read()
-    private byte[] mOneByte = new byte[1];
-    /**
-     * Create a new AmrInputStream, which converts 16 bit PCM to AMR
-     * @param inputStream InputStream containing 16 bit PCM.
-     */
-    public AmrInputStream(InputStream inputStream) {
-        mInputStream = inputStream;
-        mGae = GsmAmrEncoderNew();
-        GsmAmrEncoderInitialize(mGae);
-    }
-    @Override
-    public int read() throws IOException {
-        int rtn = read(mOneByte, 0, 1);
-        return rtn == 1 ? (0xff &amp; mOneByte[0]) : -1;
-    }
-    @Override
-    public int read(byte[] b) throws IOException {
-        return read(b, 0, b.length);
-    }
-    @Override
-    public int read(byte[] b, int offset, int length) throws IOException {
-        if (mGae == 0) throw new IllegalStateException(&quot;not open&quot;);
-        // local buffer of amr encoded audio empty
-        if (mBufOut &gt;= mBufIn) {
-            // reset the buffer
-            mBufOut = 0;
-            mBufIn = 0;
-            // fetch a 20 msec frame of pcm
-            for (int i = 0; i &lt; SAMPLES_PER_FRAME * 2; ) {
-                int n = mInputStream.read(mBuf, i, SAMPLES_PER_FRAME * 2 - i);
-                if (n == -1) return -1;
-                i += n;
-            }
-            // encode it
-            mBufIn = GsmAmrEncoderEncode(mGae, mBuf, 0, mBuf, 0);
-        }
-        // return encoded audio to user
-        if (length &gt; mBufIn - mBufOut) length = mBufIn - mBufOut;
-        System.arraycopy(mBuf, mBufOut, b, offset, length);
-        mBufOut += length;
-        return length;
-    }
-    @Override
-    public void close() throws IOException {
-        try {
-            if (mInputStream != null) mInputStream.close();
-        } finally {
-            mInputStream = null;
-            try {
-                if (mGae != 0) GsmAmrEncoderCleanup(mGae);
-            } finally {
-                try {
-                    if (mGae != 0) GsmAmrEncoderDelete(mGae);
-                } finally {
-                    mGae = 0;
-                }
-            }
-        }
-   }
-    @Override
-    protected void finalize() throws Throwable {
-        if (mGae != 0) {
-            close();
-            throw new IllegalStateException(&quot;someone forgot to close AmrInputStream&quot;);
-        }
-    }
-    //
-    // AudioRecord JNI interface
-    //
-    private static native int GsmAmrEncoderNew();
-    private static native void GsmAmrEncoderInitialize(int gae);
-    private static native int GsmAmrEncoderEncode(int gae,
-           byte[] pcm, int pcmOffset, byte[] amr, int amrOffset) throws IOException;
-    private static native void GsmAmrEncoderCleanup(int gae);
-    private static native void GsmAmrEncoderDelete(int gae);
-}
-</code></pre><p>复制AmrEncoder类</p>
-<pre><code>public class AmrEncoder {
-    public static void pcm2Amr(String pcmPath , String amrPath) {
-        FileInputStream fis;
-        try {
-            fis = new FileInputStream(pcmPath);
-            pcm2Amr(fis, amrPath);
-            fis.close();
-        } catch (FileNotFoundException e1) {
-            e1.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    public static void pcm2Amr(InputStream pcmStream, String amrPath) {
-        try {
-            AmrInputStream ais = new AmrInputStream(pcmStream);
-            OutputStream out = new FileOutputStream(amrPath);
-            byte[] buf = new byte[4096];
-            int len = -1;
-            /*
-             * 下面的AMR的文件头,缺少这几个字节是不行的
-             */
-            out.write(0x23);
-            out.write(0x21);
-            out.write(0x41);
-            out.write(0x4D);
-            out.write(0x52);
-            out.write(0x0A);   
-            while((len = ais.read(buf)) &gt;0){
-                out.write(buf,0,len);
-            }
-            out.close();
-            ais.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }       
-    }
-}
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/学乎录音实现方式/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/音频/学乎录音实现方式/" itemprop="url">学乎录音实现方式</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>学乎录音实现</p>
-<h1 id="学乎录音实现方式探索历程"><a href="#学乎录音实现方式探索历程" class="headerlink" title="学乎录音实现方式探索历程"></a>学乎录音实现方式探索历程</h1><p>尝试过 MedicaRecord,AudioRecord录音，lame库编码为MP3(<a href="https://github.com/liyungui/MP3LameRecord" target="_blank" rel="noopener">MP3LameRecord</a>)，webrtc降噪(<a href="https://github.com/liyungui/PCMNoiseSupression" target="_blank" rel="noopener">PCMNoiseSupression</a>)</p>
-<p>经过实践测试，发现音效最好(音量大，噪音小)的实现方式是：AudioRecord录制，使用Android系统自带的pcm转arm</p>
-<h2 id="关键细节"><a href="#关键细节" class="headerlink" title="关键细节"></a>关键细节</h2><pre><code>AudioManager audioManager = (AudioManager) App.getApplication().getSystemService(Context.AUDIO_SERVICE);
-audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-audioManager.setSpeakerphoneOn(true);
-
-// 获得缓冲区字节大小
-bufferSizeInBytes = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE,
-        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-
-// 创建AudioRecord对象
-recorder = new AudioRecord(AUDIO_INPUT, AUDIO_SAMPLE_RATE,
-        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSizeInBytes);
-voiceFilePath = PathUtil.getInstance().getVoicePath() + File.separator + getPCMFileName(&quot;&quot;);
-file = new File(voiceFilePath);
-recorder.startRecording();
-isRecording = true;// 让录制状态为true
-// 开启音频文件写入线程
-new Thread(new AudioRecordThread()).start();
-
-private void writeDateTOFile(String AudioName) {
-    // new一个byte数组用来存一些字节数据，大小为缓冲区大小
-    byte[] audiodata = new byte[bufferSizeInBytes];
-    FileOutputStream fos = null;
-    int readsize = 0;
-    try {
-        File file = new File(AudioName);
-        if (file.exists()) {
-            file.delete();
-        }
-        fos = new FileOutputStream(file);// 建立一个可存取字节的文件
-
-        while (isRecording) {
-            readsize = recorder.read(audiodata, 0, bufferSizeInBytes);
-            if (AudioRecord.ERROR_INVALID_OPERATION != readsize &amp;&amp; fos != null) {
-                try {
-                    fos.write(audiodata);
-
-                    getVolumeDB(readsize, audiodata);
-                } catch (Exception e) {
-                    if (e != null) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        if (fos != null)
-            fos.close();// 关闭写入流
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-</code></pre><p>pcm 转 amr实现细节参考另一篇笔记。反射调用在华为机型上容易ANR，要把系统类文件复制到工程中使用，性能好</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/微信语音编码-silk/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/音频/微信语音编码-silk/" itemprop="url">微信语音编码-silk</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Android微信语音聊天记录及文本聊天记录-数据库破解-silk-整理"><a href="#Android微信语音聊天记录及文本聊天记录-数据库破解-silk-整理" class="headerlink" title="Android微信语音聊天记录及文本聊天记录 数据库破解 silk 整理"></a><a href="http://blog.csdn.net/voler_HJL/article/details/53788126" target="_blank" rel="noopener">Android微信语音聊天记录及文本聊天记录 数据库破解 silk 整理</a></h1><p><strong>微信语音文件存储位置</strong></p>
-<pre><code>根目录 -》tencent -》MicroMsg -》名字很长又很乱的那个文件夹 -》voice2 
-</code></pre><p><strong>播放</strong></p>
-<p>.amr后缀，但它并不是真正的.amr文件，amr播放器是播放不了的 </p>
-<p>其实是silk v3格式，QQ的语音文件也是这种格式 </p>
-<h1 id="微信语音文件的格式转换"><a href="#微信语音文件的格式转换" class="headerlink" title="微信语音文件的格式转换"></a><a href="http://www.jianshu.com/p/71137d5acf78" target="_blank" rel="noopener">微信语音文件的格式转换</a></h1><p>起初，iOS 只是去掉了文件头的 amr，添上就能还原为 amr 了；Android 则是原生的 amr。</p>
-<p>微信6.0 之后开始采用 silk 编码来传输语音，必须用 slik v3 解码器</p>
-<p>这方面许多人做过工作，罗列一下：</p>
-<h2 id="个人"><a href="#个人" class="headerlink" title="个人"></a>个人</h2><p><strong>kn007</strong>: </p>
-<p><a href="https://kn007.net/topics/decoding-qq-wechat-silk-v3-encoded-audio-to-mp3-or-other-formats/" target="_blank" rel="noopener">解码转换QQ微信的SILK v3编码音频为MP3或其他格式</a></p>
-<p><a href="https://kn007.net/topics/batch-convert-silk-v3-audio-files-to-mp3-in-windows/" target="_blank" rel="noopener">Windows下批量转换Silk v3音频文件为MP3格式</a></p>
-<p><a href="https://kn007.net/topics/update-silk2mp3-to-official-version/" target="_blank" rel="noopener">更新了Silk2MP3</a></p>
-<p><strong>snakeninny</strong>：</p>
-<p><a href="http://bbs.iosre.com/t/topic/3199" target="_blank" rel="noopener">从微信中提取语音文件，并转换成文字的全自动化解决方案</a></p>
-<p><strong>hangcom</strong>：《iOS应用逆向工程》的作者，之前还开发了朋友圈导出。</p>
-<p><a href="https://zhuanlan.zhihu.com/p/21783890" target="_blank" rel="noopener">微信语音文件的解析</a></p>
-<p><strong>杨树下的狐狸</strong>：Android 方案</p>
-<p><a href="https://www.zhihu.com/question/19909162/answer/80640430" target="_blank" rel="noopener">微信的语音聊天记录可以从手机提取出来保存到PC上么？ - 知乎</a></p>
-<p><strong>cxun</strong>：整体解决方案</p>
-<p>（暂时失效）<a href="http://www.cnblogs.com/cxun/p/4338643.html" target="_blank" rel="noopener">微信聊天记录查看器（程序+源码）</a></p>
-<h2 id="商用"><a href="#商用" class="headerlink" title="商用"></a>商用</h2><p>iTools：可以转换 aud 到 wav</p>
-<p>楼月微信聊天记录导出恢复助手：同上</p>
-<p>其他还有：Silk 手机音频播放器、Silk 转换工具、WeBack 等等。</p>
-<h1 id="Skype-Silk-与Opus的关系"><a href="#Skype-Silk-与Opus的关系" class="headerlink" title="Skype Silk 与Opus的关系"></a><a href="http://tiger-beach.blogspot.com/2014/04/skype-silk-opus.html" target="_blank" rel="noopener">Skype Silk 与Opus的关系</a></h1><p>Skype自2009年1月以来一直采用自己的SILK音频编码解码器，但是从2012年起过渡到新的Opus标准。</p>
-<p>Opus标准已经获互联网工程任务组（IETF）批准，标准格式为RFC 6716。</p>
-<p>Opus支持6kbps到510kbps的可变比特率。</p>
-<p>它是一个有损声音编码的格式，适用于网络上的实时声音传输。</p>
-<p>由于是一个开放格式，Opus在使用上没有任何专利限制。</p>
-<p>Opus合并了Xiph.org的CELT低延时音频编解码器和Skype的SILK语音编解码器，专为互联网音频设计，可用于替代现有的私有音频编解码器</p>
-<p>由 Xiph.Org、Mozilla、微软、Broadcom、Octasic和Google联合开发。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/音频基础/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/音频/音频基础/" itemprop="url">音频基础</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="PCM"><a href="#PCM" class="headerlink" title="PCM"></a>PCM</h1><p>Pulse Code Modulation 脉冲编码调制</p>
-<p>PCM是把声音从模拟信号(人耳听到的)转化为数字信号的技术。原理是用一个固定的频率对模拟信号进行采样，采样后的信号在波形上看就像一串连续的幅值不一的脉冲</p>
-<p>把这些脉冲的幅值按一定精度进行量化和编码，这就组成了数字音频的产生三个过程：<strong>采样、量化、编码</strong></p>
-<p>采样就是在时间轴上对信号进行数字化</p>
-<p>量化是指在幅度轴上对信号进行数字化</p>
-<p>编码就是按照一定的格式记录采样和量化后的数字数据，比如顺序存储或压缩存储</p>
-<p>采样频率：每秒采集数据的次数</p>
-<p>采样精度：每次采集数据的位数</p>
-<p>声道数：存在几路音频</p>
-<p>比特率：针对编码格式，表示压缩编码后每秒的音频数据量大小</p>
-<h1 id="编码方式"><a href="#编码方式" class="headerlink" title="编码方式"></a>编码方式</h1><h2 id="WAV"><a href="#WAV" class="headerlink" title="WAV"></a>WAV</h2><p>Windows Media Audio</p>
-<p>微软公司开发的Windows平台数字音频编码</p>
-<p>录音质量高，但是压缩率小，文件大。每秒170k左右</p>
-<h2 id="AMR"><a href="#AMR" class="headerlink" title="AMR"></a>AMR</h2><p>Adaptive Multi-Rate 自适应多速率</p>
-<p>使用1-8个不同的位速编码，使语音编码最优化</p>
-<p>高压缩率，质量比较差，多用于人声，由欧洲通信标准化委员会提出，是在移动通信系统中使用最广泛的语音标准。每秒1K左右</p>
-<p>分为</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1.AMR-NB</span><br><span class="line">2.AMR-WB, Adaptive Multi-Rate - Wideband Speech Codec</span><br><span class="line">3.AMR-WB+, Extended Adaptive Multi-Rate - Wideband Speech Codec</span><br></pre></td></tr></table></figure>
-<h2 id="MP3"><a href="#MP3" class="headerlink" title="MP3"></a>MP3</h2><p>MPEG-1 or MPEG-2 Audio Layer III</p>
-<p>有损压缩，大幅度地降低音频数据量(压缩率 10-12)</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">就bit rates来说MP3可以分为2种：</span><br><span class="line">MP3-CBR：Constant Bit Rate 固定比特率</span><br><span class="line">MP3_VBR： Variable Bit Rate 可变比特率</span><br></pre></td></tr></table></figure>
-<h2 id="AAC"><a href="#AAC" class="headerlink" title="AAC"></a>AAC</h2><p>Advanced Audio Coding 高级音频编码</p>
-<p>高压缩比(18)</p>
-<p>音质方面，采用多声道，在同规格下比其他编码更胜一筹</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/音频增益/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2165,6 +1302,806 @@ sensorManager.registerListener(new SensorEventListener() {
 <li><a href="https://help.aliyun.com/knowledge_detail/36453.html" target="_blank" rel="noopener">使用chrome浏览器排查网页打开慢的方法</a></li>
 <li><a href="https://blog.csdn.net/shan1991fei/article/details/80690220" target="_blank" rel="noopener">Chrome Dev Tool 中时间线各阶段代表的意义</a></li>
 <li><a href="https://www.liulanqi.com/239.html" target="_blank" rel="noopener">了解资源耗时 | Chrome F12 network</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/16/编程思想/Android端架构_MVP-Clean架构/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/16/编程思想/Android端架构_MVP-Clean架构/" itemprop="url">Android端架构_MVP-Clean架构</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-16T11:46:01+08:00">
+                2019-08-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程思想/" itemprop="url" rel="index">
+                    <span itemprop="name">编程思想</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Activity跳转"><a href="#Activity跳转" class="headerlink" title="Activity跳转"></a>Activity跳转</h1><p>Activity跳转是如何实现的</p>
+<p><code>BaseActivity</code> 持有 <code>Navigator</code>，Activity A 调用 Navigator 相应的跳转方法。</p>
+<p>每个Activity 都需要提供启动自己的Intent，而不是由Navigator构造</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Navigator</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">navigateToUserList</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (context != <span class="keyword">null</span>) &#123;</span><br><span class="line">      Intent intentToLaunch = UserListActivity.getCallingIntent(context);</span><br><span class="line">      context.startActivity(intentToLaunch);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserListActivity</span> <span class="keyword">extends</span> <span class="title">BaseActivity</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Intent <span class="title">getCallingIntent</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Intent(context, UserListActivity.class);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">navigator.navigateToUserList(<span class="keyword">this</span>);<span class="comment">//跳转到UserListActivity</span></span><br></pre></td></tr></table></figure>
+<h1 id="完整的渲染数据过程"><a href="#完整的渲染数据过程" class="headerlink" title="完整的渲染数据过程"></a>完整的渲染数据过程</h1><p>以用户列表页为例</p>
+<h2 id="presentation-表现层"><a href="#presentation-表现层" class="headerlink" title="presentation 表现层"></a>presentation 表现层</h2><h3 id="model"><a href="#model" class="headerlink" title="model"></a>model</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserModel</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="view"><a href="#view" class="headerlink" title="view"></a>view</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">LoadDataView</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">showLoading</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">hideLoading</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">showRetry</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">hideRetry</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">showError</span><span class="params">(String message)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function">Context <span class="title">context</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserListView</span> <span class="keyword">extends</span> <span class="title">LoadDataView</span> </span>&#123;</span><br><span class="line">  <span class="comment">// Render a user list in the UI.</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">renderUserList</span><span class="params">(Collection&lt;UserModel&gt; userModelCollection)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//View a UserModel profile/details.</span></span><br><span class="line">  <span class="comment">//Presenter call this when click a UserModel</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">viewUser</span><span class="params">(UserModel userModel)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserListFragment</span> <span class="keyword">extends</span> <span class="title">BaseFragment</span> <span class="keyword">implements</span> <span class="title">UserListView</span> </span>&#123;</span><br><span class="line">  UserListPresenter userListPresenter;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onViewCreated</span><span class="params">(View view, Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onViewCreated(view, savedInstanceState);</span><br><span class="line">    <span class="keyword">this</span>.userListPresenter.setView(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">if</span> (savedInstanceState == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">this</span>.loadUserList();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">renderUserList</span><span class="params">(Collection&lt;UserModel&gt; userModelCollection)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (userModelCollection != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">this</span>.usersAdapter.setUsersCollection(userModelCollection);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">viewUser</span><span class="params">(UserModel userModel)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mActivity != <span class="keyword">null</span>) &#123;</span><br><span class="line">      mActivity.navigator.navigateToUserDetails(mActivity, userModel.getUserId());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">   <span class="comment">//Loads all users.</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">loadUserList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.userListPresenter.loadUserList();</span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="presenter"><a href="#presenter" class="headerlink" title="presenter"></a>presenter</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserListPresenter</span> <span class="keyword">implements</span> <span class="title">Presenter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> UserListView viewListView;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> GetUserList getUserListUseCase;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> UserModelDataMapper userModelDataMapper;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">UserListPresenter</span><span class="params">(GetUserList getUserListUserCase,</span></span></span><br><span class="line"><span class="function"><span class="params">      UserModelDataMapper userModelDataMapper)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.getUserListUseCase = getUserListUserCase;</span><br><span class="line">    <span class="keyword">this</span>.userModelDataMapper = userModelDataMapper;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setView</span><span class="params">(@NonNull UserListView view)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.viewListView = view;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">showUsersCollectionInView</span><span class="params">(Collection&lt;User&gt; usersCollection)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Collection&lt;UserModel&gt; userModelsCollection =</span><br><span class="line">        <span class="keyword">this</span>.userModelDataMapper.transform(usersCollection);</span><br><span class="line">    <span class="keyword">this</span>.viewListView.renderUserList(userModelsCollection);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">getUserList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.getUserListUseCase.execute(<span class="keyword">new</span> UserListObserver(), <span class="keyword">null</span>);</span><br><span class="line">  &#125; </span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">UserListObserver</span> <span class="keyword">extends</span> <span class="title">DefaultObserver</span>&lt;<span class="title">List</span>&lt;<span class="title">User</span>&gt;&gt; </span>&#123;<span class="comment">//DisposableObserver继承rxjava2的DisposableObserver</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onComplete</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      UserListPresenter.<span class="keyword">this</span>.hideViewLoading();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onError</span><span class="params">(Throwable e)</span> </span>&#123;</span><br><span class="line">      UserListPresenter.<span class="keyword">this</span>.hideViewLoading();</span><br><span class="line">      UserListPresenter.<span class="keyword">this</span>.showErrorMessage(<span class="keyword">new</span> DefaultErrorBundle((Exception) e));</span><br><span class="line">      UserListPresenter.<span class="keyword">this</span>.showViewRetry();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onNext</span><span class="params">(List&lt;User&gt; users)</span> </span>&#123;</span><br><span class="line">      UserListPresenter.<span class="keyword">this</span>.showUsersCollectionInView(users);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="domain-领域层"><a href="#domain-领域层" class="headerlink" title="domain 领域层"></a>domain 领域层</h2><h3 id="entity"><a href="#entity" class="headerlink" title="entity"></a>entity</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Class that represents a User in the domain layer.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="interactor-use-case"><a href="#interactor-use-case" class="headerlink" title="interactor(use case)"></a>interactor(use case)</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GetUserListUseCase</span> <span class="keyword">extends</span> <span class="title">UseCase</span>&lt;<span class="title">List</span>&lt;<span class="title">User</span>&gt;, <span class="title">Void</span>&gt; </span>&#123;</span><br><span class="line">	<span class="comment">//调用 data层的UserRepository</span></span><br><span class="line">	<span class="comment">//将可观察的用户列表，发射到上面presenter指定的观察者</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="data-数据层"><a href="#data-数据层" class="headerlink" title="data 数据层"></a>data 数据层</h2><h3 id="entity-1"><a href="#entity-1" class="headerlink" title="entity"></a>entity</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * User Entity used in the data layer.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserEntity</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="repository"><a href="#repository" class="headerlink" title="repository"></a>repository</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Interface that represents a Repository for getting &#123;<span class="doctag">@link</span> User&#125; related data.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserRepository</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="datasource"><a href="#datasource" class="headerlink" title="datasource"></a>datasource</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Interface that represents a data store from where data is retrieved.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserDataStore</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CloudUserDataStore</span> <span class="keyword">implements</span> <span class="title">UserDataStore</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DiskUserDataStore</span> <span class="keyword">implements</span> <span class="title">UserDataStore</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Factory that creates different implementations of &#123;<span class="doctag">@link</span> UserDataStore&#125;.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Singleton</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDataStoreFactory</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="cache"><a href="#cache" class="headerlink" title="cache"></a>cache</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * An interface representing a user Cache.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserCache</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="net"><a href="#net" class="headerlink" title="net"></a>net</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * RestApi for retrieving data from the network.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">RestApi</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="Dagger2"><a href="#Dagger2" class="headerlink" title="Dagger2"></a>Dagger2</h1><p>是否使用，这个具体问题具体分析。更多内容参考 Dagger2 文档</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/android10/Android-CleanArchitecture" target="_blank" rel="noopener">实例源码</a>by Fernando Cejas (Fernando 大神)</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/15/电脑使用/SimpleUML使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/15/电脑使用/SimpleUML使用/" itemprop="url">SimpleUML使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-15T14:19:13+08:00">
+                2019-08-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/UML/" itemprop="url" rel="index">
+                    <span itemprop="name">UML</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="SimpleUML-是什么"><a href="#SimpleUML-是什么" class="headerlink" title="SimpleUML 是什么"></a>SimpleUML 是什么</h1><p>可以按照包名等条件设置过滤条件，显示自己关心的部分。</p>
+<p>根据源码自动生成UML 类图 包图 序列图</p>
+<p>复杂结构生成后几乎不可用，全靠手动调整依赖</p>
+<h1 id="AndroidStudio-中使用-SimpleUML"><a href="#AndroidStudio-中使用-SimpleUML" class="headerlink" title="AndroidStudio 中使用 SimpleUML"></a>AndroidStudio 中使用 SimpleUML</h1><ul>
+<li>AndroidStudio 安装 SimpleUML 插件</li>
+<li>重启</li>
+<li>某个 <code>包/类</code> 上右击，选择 <code>Add to simpleUML Diagram</code></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/15/编程思想/UML/SimpleUML使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/15/编程思想/UML/SimpleUML使用/" itemprop="url">SimpleUML使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-15T14:19:13+08:00">
+                2019-08-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/UML/" itemprop="url" rel="index">
+                    <span itemprop="name">UML</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="SimpleUML-是什么"><a href="#SimpleUML-是什么" class="headerlink" title="SimpleUML 是什么"></a>SimpleUML 是什么</h1><p>根据源码自动生成UML类图</p>
+<h1 id="AndroidStudio-中使用-SimpleUML"><a href="#AndroidStudio-中使用-SimpleUML" class="headerlink" title="AndroidStudio 中使用 SimpleUML"></a>AndroidStudio 中使用 SimpleUML</h1><ul>
+<li>AndroidStudio 安装 SimpleUML 插件</li>
+<li>重启</li>
+<li>某个 <code>包/类</code> 上右击，选择 <code>Add to simpleUML Diagram</code></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/15/编程思想/UML/UML概述/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/15/编程思想/UML/UML概述/" itemprop="url">UML概述</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-15T14:19:13+08:00">
+                2019-08-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/UML/" itemprop="url" rel="index">
+                    <span itemprop="name">UML</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="UML"><a href="#UML" class="headerlink" title="UML"></a>UML</h1><p>UML（Unified Modeling Language）统一建模语言</p>
+<h1 id="为什么用UML"><a href="#为什么用UML" class="headerlink" title="为什么用UML"></a>为什么用UML</h1><p>文不如表，表不如图，图不如实（原型图）</p>
+<p>文字的缺陷：大耳朵，长鼻子，獠牙–野猪还是小象</p>
+<p>图表的缺陷：长方形–一块地还是一间房</p>
+<h1 id="如何学好UML"><a href="#如何学好UML" class="headerlink" title="如何学好UML"></a>如何学好UML</h1><p>和学看图说话道理一样，记住两个要素：<strong>节点和联系</strong></p>
+<h1 id="UML工具"><a href="#UML工具" class="headerlink" title="UML工具"></a>UML工具</h1><h2 id="图形化操作"><a href="#图形化操作" class="headerlink" title="图形化操作"></a>图形化操作</h2><h3 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h3><h4 id="starUML"><a href="#starUML" class="headerlink" title="starUML"></a>starUML</h4><p>免费开源、小巧</p>
+<h4 id="rose"><a href="#rose" class="headerlink" title="rose"></a>rose</h4><p>收费破解 庞大 功能强大 漂亮 好用</p>
+<h4 id="visio"><a href="#visio" class="headerlink" title="visio"></a>visio</h4><h3 id="web在线"><a href="#web在线" class="headerlink" title="web在线"></a>web在线</h3><h4 id="ProcessOn"><a href="#ProcessOn" class="headerlink" title="ProcessOn"></a>ProcessOn</h4><h2 id="专门语法"><a href="#专门语法" class="headerlink" title="专门语法"></a>专门语法</h2><h3 id="webChart"><a href="#webChart" class="headerlink" title="webChart"></a>webChart</h3><p>web在线</p>
+<h3 id="PlantUML"><a href="#PlantUML" class="headerlink" title="PlantUML"></a>PlantUML</h3><p>不仅可以嵌套到各种文本编辑器，IDE，也提供在线版。</p>
+<h1 id="UML的构造包含3种："><a href="#UML的构造包含3种：" class="headerlink" title="UML的构造包含3种："></a>UML的构造包含3种：</h1><ul>
+<li><strong>事物</strong>（4种）：事物是对模型中最具代表性的成分的抽象<ul>
+<li>结构事物</li>
+<li>行为事物</li>
+<li>分组事物</li>
+<li>注释事物</li>
+</ul>
+</li>
+<li><strong>关系</strong>（4种）：关系把事物结合在一起<ul>
+<li>泛化关系</li>
+<li>实现关系</li>
+<li>依赖关系</li>
+<li>关联关系</li>
+</ul>
+</li>
+<li><strong>图</strong>（10种）：图聚集了相关的事物<ul>
+<li>用例图(UseCase)。用户(管理员、版主)行为(用户管理、帖子置顶)</li>
+<li>类图(Class)。类(用例图抽象成类)的结构及类间的关系</li>
+<li>对象图(Object)。某一时刻的类实例对象</li>
+<li>状态图(Statechart)。类实例对象的状态及状态改变的条件</li>
+<li>序列图(Sequence)。时序图，循序图。类实例对象按时间顺序的交互</li>
+<li>协作图(Collaboration)。类实例对象的组织关系和相互作用</li>
+<li>活动图(Activity)。流程图。控制流；一个用例所要进行的活动及活动间关系(用户刷卡：用户刷卡-系统输入刷卡额度-数据库更新表-系统显示刷卡成功)</li>
+<li>包图(Package)。java 中的package；可以理解为文件夹</li>
+<li>组件图(Component)。系统的物理结构及相互关系</li>
+<li>部署图(Deployment)。系统的物理部署(刷卡机，客户端，数据库服务器）</li>
+</ul>
+</li>
+</ul>
+<h1 id="图（10种）"><a href="#图（10种）" class="headerlink" title="图（10种）"></a>图（10种）</h1><h2 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h2><table>
+<thead>
+<tr>
+<th>图</th>
+<th>结构/行为</th>
+<th>角度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>用例图</td>
+<td>行为(动态)</td>
+<td>用例视图</td>
+</tr>
+<tr>
+<td>类图</td>
+<td>结构(静态)</td>
+<td>设计视图</td>
+</tr>
+<tr>
+<td>对象图</td>
+<td>结构(静态)</td>
+<td>设计视图</td>
+</tr>
+<tr>
+<td>状态图</td>
+<td>行为(动态)</td>
+<td>进程视图</td>
+</tr>
+<tr>
+<td>序列图</td>
+<td>行为(动态)</td>
+<td>进程视图</td>
+</tr>
+<tr>
+<td>协作图</td>
+<td>行为(动态)</td>
+<td>进程视图</td>
+</tr>
+<tr>
+<td>活动图</td>
+<td>行为(动态)</td>
+<td>进程视图</td>
+</tr>
+<tr>
+<td>包图</td>
+<td>结构(静态)</td>
+<td>实现视图</td>
+</tr>
+<tr>
+<td>组件图</td>
+<td>结构(静态)</td>
+<td>实现视图</td>
+</tr>
+<tr>
+<td>部署图</td>
+<td>结构(静态)</td>
+<td>拓扑视图</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>结构图：描述系统结构，是静态图</li>
+<li>行为图：描述系统行为，是动态图</li>
+</ul>
+<h2 id="序列图"><a href="#序列图" class="headerlink" title="序列图"></a>序列图</h2><p>7种元素：角色(Actor)、对象(Object)、生命线(LifeLine)、控制焦点(Activation)、消息(Message)、自关联消息、组合片段</p>
+<img src="/2019/08/15/编程思想/UML/UML概述/时序图.png">
+<h3 id="角色-Actor"><a href="#角色-Actor" class="headerlink" title="角色(Actor)"></a>角色(Actor)</h3><p>系统角色，可以是人或者其他系统，子系统。以一个小人图标表示。</p>
+<h3 id="对象-Object"><a href="#对象-Object" class="headerlink" title="对象(Object)"></a>对象(Object)</h3><p>对象位于时序图的顶部,以一个矩形表示。对象的命名方式一般有三种：</p>
+<ol>
+<li>对象名和类名。例如：华为手机:手机、loginServiceObject:LoginService。</li>
+<li>只显示类名，不显示对象，即为一个匿名类。例如：:手机、:LoginSservice。</li>
+<li>只显示对象名，不显示类名。例如：华为手机:、loginServiceObject:。</li>
+</ol>
+<h3 id="生命线-LifeLine"><a href="#生命线-LifeLine" class="headerlink" title="生命线(LifeLine)"></a>生命线(LifeLine)</h3><p>时序图中每个对象和底部中心都有一条垂直的虚线，这就是对象的生命线(对象的时间线)。以一条垂直的虚线表。</p>
+<h3 id="控制焦点-Activation"><a href="#控制焦点-Activation" class="headerlink" title="控制焦点(Activation)"></a>控制焦点(Activation)</h3><p>控制焦点代表时序图中在对象时间线上某段时期执行的操作。以一个很窄的矩形表示。</p>
+<h3 id="消息-Message"><a href="#消息-Message" class="headerlink" title="消息(Message)"></a>消息(Message)</h3><p>表现代表对象之间发送的信息。消息分为三种类型。</p>
+<ul>
+<li><strong>同步消息</strong>(Synchronous Message)<br>消息的发送者把控制传递给消息的接收者，然后停止活动，等待消息的接收者放弃或者返回控制。用来表示同步的意义。以一条<strong>实线+实心箭头</strong>表示。</li>
+<li><strong>异步消息</strong>(Asynchronous Message)<br>消息发送者通过消息把信号传递给消息的接收者，然后继续自己的活动，不等待接受者返回消息或者控制。异步消息的接收者和发送者是并发工作的。以一条<strong>实线+大于号</strong>表示。</li>
+<li><strong>返回消息</strong>(Return Message)<br>返回消息表示从过程调用返回。以<strong>小于号+虚线</strong>表示。</li>
+</ul>
+<h3 id="自关联消息"><a href="#自关联消息" class="headerlink" title="自关联消息"></a>自关联消息</h3><p>表示方法的自身调用或者一个对象内的一个方法调用另外一个方法。以一个<strong>半闭合的长方形+下方实心剪头</strong>表示。</p>
+<h2 id="活动图"><a href="#活动图" class="headerlink" title="活动图"></a>活动图</h2><ul>
+<li>一般活动图</li>
+<li>带泳道的活动图</li>
+<li>带对象流的活动图<h1 id="关系（4种）"><a href="#关系（4种）" class="headerlink" title="关系（4种）"></a>关系（4种）</h1></li>
+</ul>
+<p>UML 中类与类, 类与接口, 接口与接口这间的关系有: </p>
+<ul>
+<li>泛化(generalization) 关系</li>
+<li>实现(realization)关系 </li>
+<li>依赖(dependency)关系</li>
+<li>关联(association)关系<ul>
+<li>关联</li>
+<li>聚合(aggregation)</li>
+<li>合成/组合(composition)</li>
+</ul>
+</li>
+</ul>
+<h2 id="泛化-generalization"><a href="#泛化-generalization" class="headerlink" title="泛化(generalization)"></a>泛化(generalization)</h2><p>在Java中此类关系通过关键字 <code>extends</code> 明确标识</p>
+<img src="/2019/08/15/编程思想/UML/UML概述/101.jpg">
+<h2 id="实现-realization"><a href="#实现-realization" class="headerlink" title="实现(realization)"></a>实现(realization)</h2><p>在Java中此类关系通过关键字 <code>implements</code> 明确标识</p>
+<img src="/2019/08/15/编程思想/UML/UML概述/102.jpg">
+<h1 id="依赖-dependency"><a href="#依赖-dependency" class="headerlink" title="依赖(dependency)"></a>依赖(dependency)</h1><p>类A使用到了类B</p>
+<p>在java中依赖关系体现为: <code>局部变量, 方法中的参数, 和对静态方法的调用</code></p>
+<ul>
+<li>依赖关系总是单向的 </li>
+<li>这种使用关系是具有偶然性的、、临时性的、非常弱的</li>
+</ul>
+<img src="/2019/08/15/编程思想/UML/UML概述/103.jpg">
+<h2 id="关联-association"><a href="#关联-association" class="headerlink" title="关联(association)"></a>关联(association)</h2><p>类A 有 成员变量类B</p>
+<p>在java中关联关系是使用 <code>实例变量</code> 实现的</p>
+<ul>
+<li>单箭头表示单向关联</li>
+<li>双箭头或不使用箭头表示双向关联<ul>
+<li>不建议使用双向关联</li>
+</ul>
+</li>
+<li>关联两个端点可以有一个基数, 表示这个关联的类可以有几个实例<ul>
+<li>常见的基数及含义: <ul>
+<li>0..1:0 或1 个实例. </li>
+<li>0..*: 对实例的数目没有限制. </li>
+<li>1: 只能有一个实例. </li>
+<li>1..*: 至少有一个实例.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>一种长期性的强依赖关系        </li>
+</ul>
+<img src="/2019/08/15/编程思想/UML/UML概述/104.jpg">
+<h2 id="聚合-aggregation"><a href="#聚合-aggregation" class="headerlink" title="聚合(aggregation)"></a>聚合(aggregation)</h2><p>整体和个体之间has-a的关系，整体与部分之间是可分离的</p>
+<ul>
+<li>他们可以具有各自的生命周期</li>
+<li>部分可以属于多个整体对象，也可以为多个整体对象共享</li>
+<li>比如计算机与CPU、公司与员工的关系等</li>
+</ul>
+<p>在java中关联关系是使用 <code>实例变量</code> 实现的</p>
+<ul>
+<li>语法上是分不出关联和聚合的，只能从语义级别来区分<ul>
+<li>关联关系中两个类是处于相同的层次</li>
+<li>聚合关系中两不类是处于不平等的层次, 一个表示整体, 一个表示部分.</li>
+</ul>
+</li>
+</ul>
+<img src="/2019/08/15/编程思想/UML/UML概述/105.jpg">
+<h2 id="组合-合成-composition"><a href="#组合-合成-composition" class="headerlink" title="组合(合成)(composition)"></a>组合(合成)(composition)</h2><p>整体和个体之间contains-a的关系，整体与部分是不可分的</p>
+<ul>
+<li>整体的生命周期结束也就意味着部分的生命周期结束</li>
+<li>比如你和你的大脑；合成关系不能共享. </li>
+</ul>
+<p>这种关系比聚合更强，也称为<strong>强聚合</strong></p>
+<img src="/2019/08/15/编程思想/UML/UML概述/106.jpg">
+<p>一张图快速学会UML（聚合、组合、依赖、继承、接口、类）</p>
+<img src="/2019/08/15/编程思想/UML/UML概述/uml.png">
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.jianshu.com/p/28200121a33d" target="_blank" rel="noopener">UML图总结</a></li>
+<li><a href="https://blog.csdn.net/qq_42758288/article/details/86620768" target="_blank" rel="noopener">UML9种图的分类及运用</a></li>
+<li><a href="http://justsee.iteye.com/blog/808799" target="_blank" rel="noopener">UML关系</a></li>
+<li><a href="https://blog.csdn.net/fly_zxy/article/details/80911942" target="_blank" rel="noopener">UML时序图(Sequence Diagram)学习笔记</a></li>
 </ul>
 
           

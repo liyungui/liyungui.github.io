@@ -262,734 +262,6 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/线程池/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/线程池/" itemprop="url">线程池</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T11:31:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="线程池"><a href="#线程池" class="headerlink" title="线程池"></a>线程池</h1><h2 id="线程池的优点"><a href="#线程池的优点" class="headerlink" title="线程池的优点"></a>线程池的优点</h2><ul>
-<li>重用线程池中的线程，避免频繁地创建和销毁线程带来的性能消耗；</li>
-<li>有效控制线程的最大并发数量，防止线程过大导致抢占资源造成系统阻塞；</li>
-<li>可以对线程进行一定地管理</li>
-<li>解耦作用；线程的创建和执行完全分开，方便维护。</li>
-</ul>
-<p>阿里巴巴Java开发手册关于线程和线程池有这么两段话</p>
-<img src="/2019/03/27/java基础/线程池/线程池.png">
-<ul>
-<li>不能显示创建线程(new Thread)，需要使用线程池对线程进行管理</li>
-<li>不允许使用官方提供的四种线程池，而是需要通过自行创建的方式去创建线程池，更加理解线程池的允许规则</li>
-</ul>
-<h1 id="线程池原理"><a href="#线程池原理" class="headerlink" title="线程池原理"></a>线程池原理</h1><h2 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                              <span class="keyword">int</span> maximumPoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                              <span class="keyword">long</span> keepAliveTime,</span></span></span><br><span class="line"><span class="function"><span class="params">                              TimeUnit unit,</span></span></span><br><span class="line"><span class="function"><span class="params">                              BlockingQueue&lt;Runnable&gt; workQueue,</span></span></span><br><span class="line"><span class="function"><span class="params">                              ThreadFactory threadFactory,</span></span></span><br><span class="line"><span class="function"><span class="params">                              RejectedExecutionHandler handler)</span></span></span><br></pre></td></tr></table></figure>
-<ul>
-<li><strong>corePoolSize</strong>：核心线程的数量<ul>
-<li>默认不会被回收掉</li>
-<li>设置了allowCoreTimeOut为true，核心线程闲置超时，也会被回收。</li>
-<li>核心线程和非核心线程本质上并没有什么区别</li>
-</ul>
-</li>
-<li><strong>maximumPoolSize</strong> ：最大线程数量<ul>
-<li>线程池能容纳的最大容量，上限被CAPACITY限制（2^29-1）（后续代码会看到）</li>
-</ul>
-</li>
-<li><strong>keepAliveTime</strong>：闲置线程被回收的时间限制，也就是闲置线程的存活时间</li>
-<li><strong>unit</strong> ：keepAliveTime的单位</li>
-<li><strong>workQueue</strong> ：用于存放任务的队列</li>
-<li><strong>threadFactory</strong> ：创建线程的工厂类</li>
-<li><strong>handler</strong> 当任务执行失败时，使用handler通知调用者，代表拒绝的策略。默认的实现是 抛出 RejectedExecutionException 异常</li>
-</ul>
-<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>一个公司，核心线程就是代表公司的内部核心员工，最大线程数量就是员工的最大数量，可能包含非正式员工，因为有一些试点或者简单的项目，需要一些外协人员来做，也就是非核心线程，那么当这些项目做完了或者失败了，公司为了节约用人成本，就遣散非核心员工，也就是闲置线程的存活时间。假如核心员工每个人都很忙，但是需求又一波接一波，那就任务排期，也就是任务队列(并不会直接创建非核心线程去执行任务，可以理解为需求任务首先是需要让内部核心员工去完成的，任务队列的优先级是高于非核心员工的，addWorker()，这里的传进去的boolean值，就代表着创建核心线程或者非核心线程)，当任务队列都满了时候，给非正式员工做，非正式员工也满负荷还要来需求？对不起，不接受，直接拒绝，这也就是handler对应的拒绝策略了</p>
-<h2 id="线程池状态"><a href="#线程池状态" class="headerlink" title="线程池状态"></a>线程池状态</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> AtomicInteger ctl = <span class="keyword">new</span> AtomicInteger(ctlOf(RUNNING, <span class="number">0</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> COUNT_BITS = Integer.SIZE - <span class="number">3</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> CAPACITY   = (<span class="number">1</span> &lt;&lt; COUNT_BITS) - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// runState is stored in the high-order bits</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> RUNNING    = -<span class="number">1</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SHUTDOWN   =  <span class="number">0</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> STOP       =  <span class="number">1</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> TIDYING    =  <span class="number">2</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> TERMINATED =  <span class="number">3</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Packing and unpacking ctl</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">runStateOf</span><span class="params">(<span class="keyword">int</span> c)</span>     </span>&#123; <span class="keyword">return</span> c &amp; ~CAPACITY; &#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">workerCountOf</span><span class="params">(<span class="keyword">int</span> c)</span>  </span>&#123; <span class="keyword">return</span> c &amp; CAPACITY; &#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">ctlOf</span><span class="params">(<span class="keyword">int</span> rs, <span class="keyword">int</span> wc)</span> </span>&#123; <span class="keyword">return</span> rs | wc; &#125;</span><br></pre></td></tr></table></figure>
-<p>AtomicInteger是一个原子操作类，保证线程安全</p>
-<p>高3位表示5种线程池状态,低29位表示线程的最大数量</p>
-<p>维护两个参数，workCount和runState。workCount表示有效的线程数量，runState表示线程池的运行状态。</p>
-<ul>
-<li><strong>RUNNING</strong>：运行状态，可以接受新任务并处理</li>
-<li><strong>SHUTDOWN</strong>：关闭状态，不会接受新的任务了，但是会处理<strong>队列</strong>中还存在的任务</li>
-<li><strong>STOP</strong>：停止状态，不会接受新的任务，也不处理队列任务，直接中断</li>
-<li><strong>TIDYING</strong>：表示所有任务已经终止了</li>
-<li><strong>TERMINATED</strong>：表示terminated()方法已经执行完成</li>
-</ul>
-<p>RUNNING：运行状态，可以接受新任务并处理<br>SHUTDOWN：关闭状态，不会接受新的任务了，但是会处理队列中还存在的任务<br>STOP：停止状态，不会接受新的任务，也不处理队列任务，直接中断<br><strong>TIDYING </strong>：表示所有任务已经终止了<br>TERMINATED：表示terminated()方法已经执行完成</p>
-<img src="/2019/03/27/java基础/线程池/线程池状态.png">
-<h2 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h2><h3 id="ThreadPoolExecutor执行任务的策略"><a href="#ThreadPoolExecutor执行任务的策略" class="headerlink" title="ThreadPoolExecutor执行任务的策略"></a>ThreadPoolExecutor执行任务的策略</h3><p>当一个任务被添加进线程池时：</p>
-<ul>
-<li>线程数量未达到corePoolSize，则新建一个线程(核心线程)执行任务</li>
-<li>线程数量达到了corePools，则将任务移入队列等待</li>
-<li>队列已满，新建线程(非核心线程)执行任务</li>
-<li>队列已满，总线程数又达到了maximumPoolSize，交给RejectedExecutionHandler处理（默认是抛出RejectedExecutionHandler 异常）</li>
-</ul>
-<h3 id="execute"><a href="#execute" class="headerlink" title="execute()"></a>execute()</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">(Runnable command)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (command == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Proceed in 3 steps:</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 1. If fewer than corePoolSize threads are running, try to</span></span><br><span class="line"><span class="comment">     * start a new thread with the given command as its first</span></span><br><span class="line"><span class="comment">     * task.  The call to addWorker atomically checks runState and</span></span><br><span class="line"><span class="comment">     * workerCount, and so prevents false alarms that would add</span></span><br><span class="line"><span class="comment">     * threads when it shouldn't, by returning false.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 2. If a task can be successfully queued, then we still need</span></span><br><span class="line"><span class="comment">     * to double-check whether we should have added a thread</span></span><br><span class="line"><span class="comment">     * (because existing ones died since last checking) or that</span></span><br><span class="line"><span class="comment">     * the pool shut down since entry into this method. So we</span></span><br><span class="line"><span class="comment">     * recheck state and if necessary roll back the enqueuing if</span></span><br><span class="line"><span class="comment">     * stopped, or start a new thread if there are none.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 3. If we cannot queue task, then we try to add a new</span></span><br><span class="line"><span class="comment">     * thread.  If it fails, we know we are shut down or saturated</span></span><br><span class="line"><span class="comment">     * and so reject the task.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">int</span> c = ctl.get();</span><br><span class="line">	<span class="comment">//如果当前线程数量小于核心线程数量，执行addWorker创建新线程执行command任务</span></span><br><span class="line">    <span class="keyword">if</span> (workerCountOf(c) &lt; corePoolSize) &#123;</span><br><span class="line">        <span class="keyword">if</span> (addWorker(command, <span class="keyword">true</span>))</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        c = ctl.get();</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">//如果当前是运行状态，将任务放入阻塞队列，double-check线程池状态</span></span><br><span class="line">    <span class="keyword">if</span> (isRunning(c) &amp;&amp; workQueue.offer(command)) &#123;</span><br><span class="line">        <span class="keyword">int</span> recheck = ctl.get();</span><br><span class="line">        <span class="comment">//如果再次check，发现线程池状态不是运行状态了，移除刚才添加进来的任务，并且拒绝改任务</span></span><br><span class="line">        <span class="keyword">if</span> (! isRunning(recheck) &amp;&amp; remove(command))</span><br><span class="line">            reject(command);</span><br><span class="line">        <span class="comment">//处于运行状态，但是没有线程，创建线程</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (workerCountOf(recheck) == <span class="number">0</span>)</span><br><span class="line">            addWorker(<span class="keyword">null</span>, <span class="keyword">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">//往线程池中创建新的线程失败，则reject任务</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!addWorker(command, <span class="keyword">false</span>))</span><br><span class="line">        reject(command);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>当前线程数量小于核心线程数量<ul>
-<li>addWorker创建新核心线程执行任务<ul>
-<li>成功，return</li>
-<li>失败，下一步</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>线程池是运行状态，且将任务放入队列成功<ul>
-<li>再次检查线程池状态<ul>
-<li>不是运行状态，且能够移除刚才添加的任务<ul>
-<li>拒绝该任务</li>
-</ul>
-</li>
-<li>线程数量为0<ul>
-<li>创建非核心线程</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>失败，下一步</li>
-</ul>
-</li>
-<li>addWorker创建新非核心线程执行任务<ul>
-<li>失败<ul>
-<li>拒绝该任务  </li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="double-check线程池状态"><a href="#double-check线程池状态" class="headerlink" title="double-check线程池状态"></a>double-check线程池状态</h4><p>在多线程的环境下，ctl.get()这个方法并不是一个原子操作，如果加入队列后，线程池状态改变了，不是RUNNING状态，那么这个任务将永远不会被执行，所以需要再次check，如果不是RUNNING状态，移除任务并拒绝任务</p>
-<h3 id="addWorker"><a href="#addWorker" class="headerlink" title="addWorker()"></a>addWorker()</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">addWorker</span><span class="params">(Runnable firstTask, <span class="keyword">boolean</span> core)</span> </span>&#123;</span><br><span class="line">    retry:</span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="keyword">int</span> c = ctl.get();</span><br><span class="line">        <span class="keyword">int</span> rs = runStateOf(c);</span><br><span class="line">        <span class="comment">// 这里return false的情况有以下几种</span></span><br><span class="line">       	<span class="comment">//1.当前状态是stop及以上 2.当前是SHUTDOWN状态，但是firstTask不为空</span></span><br><span class="line">        <span class="comment">//3.当前是SHUTDOWN状态，但是队列中为空</span></span><br><span class="line">        <span class="comment">//从第一节我们知道，SHUTDOWN状态是不执行进来的任务的，但是会继续执行队列中的任务</span></span><br><span class="line">        <span class="keyword">if</span> (rs &gt;= SHUTDOWN &amp;&amp;</span><br><span class="line">            ! (rs == SHUTDOWN &amp;&amp;</span><br><span class="line">               firstTask == <span class="keyword">null</span> &amp;&amp;</span><br><span class="line">               ! workQueue.isEmpty()))</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="keyword">int</span> wc = workerCountOf(c);</span><br><span class="line">            <span class="keyword">if</span> (wc &gt;= CAPACITY ||</span><br><span class="line">                wc &gt;= (core ? corePoolSize : maximumPoolSize))</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">if</span> (compareAndIncrementWorkerCount(c))</span><br><span class="line">                <span class="keyword">break</span> retry;</span><br><span class="line">            c = ctl.get();  <span class="comment">// Re-read ctl</span></span><br><span class="line">            <span class="keyword">if</span> (runStateOf(c) != rs)</span><br><span class="line">                <span class="keyword">continue</span> retry;</span><br><span class="line">            <span class="comment">// else CAS failed due to workerCount change; retry inner loop</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">boolean</span> workerStarted = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">boolean</span> workerAdded = <span class="keyword">false</span>;</span><br><span class="line">    Worker w = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        w = <span class="keyword">new</span> Worker(firstTask);</span><br><span class="line">        <span class="keyword">final</span> Thread t = w.thread;</span><br><span class="line">        <span class="keyword">if</span> (t != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">final</span> ReentrantLock mainLock = <span class="keyword">this</span>.mainLock;</span><br><span class="line">            mainLock.lock();</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">int</span> rs = runStateOf(ctl.get());</span><br><span class="line">                <span class="keyword">if</span> (rs &lt; SHUTDOWN ||</span><br><span class="line">                    (rs == SHUTDOWN &amp;&amp; firstTask == <span class="keyword">null</span>)) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (t.isAlive()) <span class="comment">// precheck that t is startable</span></span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalThreadStateException();</span><br><span class="line">                    workers.add(w);</span><br><span class="line">                    <span class="keyword">int</span> s = workers.size();</span><br><span class="line">                    <span class="keyword">if</span> (s &gt; largestPoolSize)</span><br><span class="line">                        largestPoolSize = s;</span><br><span class="line">                    workerAdded = <span class="keyword">true</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                mainLock.unlock();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (workerAdded) &#123;</span><br><span class="line">                t.start();</span><br><span class="line">                workerStarted = <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (! workerStarted)</span><br><span class="line">            addWorkerFailed(w);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> workerStarted;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>2层循环</p>
-<ul>
-<li>外部循环查询线程池状态<ul>
-<li>如果当前是stop及之上的状态，直接return false</li>
-<li>如果是SHUTDOWN状态，并且firstTask不为空或者队列中是空的，直接return false</li>
-</ul>
-</li>
-<li>内部循环查询线程数量<ul>
-<li>通过传递进来的boolean值，分别和核心线程以及最大线程数量进行对比，如果成立，worker数量+1，并且跳出循环。</li>
-<li>跳出循环就是实际执行任务了，Worker就将工作线程和任务封装到了自己内部，我们可以将Worker看成就是一个工作线程</li>
-</ul>
-</li>
-</ul>
-<h2 id="常用的workQueue类型："><a href="#常用的workQueue类型：" class="headerlink" title="常用的workQueue类型："></a>常用的workQueue类型：</h2><h3 id="SynchronousQueue："><a href="#SynchronousQueue：" class="headerlink" title="SynchronousQueue："></a>SynchronousQueue：</h3><p>这个队列接收到任务的时候，会直接提交给线程处理，而不保留它，如果所有线程都在工作怎么办？那就新建一个线程来处理这个任务！所以为了保证不出现&lt;线程数达到了maximumPoolSize而不能新建线程&gt;的错误，使用这个类型队列的时候，maximumPoolSize一般指定成Integer.MAX_VALUE，即无限大</p>
-<h3 id="LinkedBlockingQueue-和-ArrayBlockingQueue："><a href="#LinkedBlockingQueue-和-ArrayBlockingQueue：" class="headerlink" title="LinkedBlockingQueue 和 ArrayBlockingQueue："></a>LinkedBlockingQueue 和 ArrayBlockingQueue：</h3><p>可以限定队列的长度，接收到任务的时候，如果没有达到corePoolSize的值，则新建线程(核心线程)执行任务，如果达到了，则入队等候，如果队列已满，则新建线程(非核心线程)执行任务，又如果总线程数到了maximumPoolSize，并且队列也满了，则发生错误</p>
-<h3 id="DelayQueue："><a href="#DelayQueue：" class="headerlink" title="DelayQueue："></a>DelayQueue：</h3><p>队列内元素必须实现Delayed接口，这就意味着你传进去的任务必须先实现Delayed接口。这个队列接收到任务时，首先先入队，只有达到了指定的延时时间，才会执行任务</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>线程池中的细节比较多，大致做一下总结归纳</p>
-<ul>
-<li>线程池的构造参数决定了线程池的运行策略，需要理解每个参数的含义，因为每个参数的不同很大程度上决定了这个线程池的运行规则，这也是为什么阿里巴巴开发手册中提到通过自行创建的方式去创建线程池，而不是使用官方提供的4种线程池</li>
-<li>线程池涉及多线程问题，状态改变比较频繁，在进行任务执行时，需要多次check线程池的状态，保证任务被执行的准确性</li>
-<li>任务队列的优先级高于非核心线程，核心线程满的时候，会先把任务放进任务队列，其次开启非核心线程进行执行</li>
-<li>核心线程和非核心线程本质上并没有什么区别，在核心线程设置allowCoreThreadTimeOut 属性为true时，最终也会因为超时而被销毁</li>
-<li>线程池总览就是通过两个变量来整体控制整个流程，线程池的状态，线程池中线程数量，涉及的方法不是很多，但是循环比较多，需要理解每个循环的跳出条件以及对应的状态。</li>
-</ul>
-<h1 id="线程池使用"><a href="#线程池使用" class="headerlink" title="线程池使用"></a>线程池使用</h1><h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><ul>
-<li>shutDown()，关闭线程池，需要执行完已提交的任务；</li>
-<li>shutDownNow()，关闭线程池，并尝试结束已提交的任务；</li>
-<li>execute()，提交任务无返回值；</li>
-<li>submit()，提交任务有返回值；</li>
-<li>remove(); 移除任务有返回值；</li>
-<li>reject(); 拒绝任务；会回调RejectedExecutionHandler</li>
-<li>getQueue(); 获得任务队列；可以直接操作任务队列</li>
-</ul>
-<h2 id="监控线程池"><a href="#监控线程池" class="headerlink" title="监控线程池"></a>监控线程池</h2><p>ThreadPoolExecutor 提供不少 api 可以获取线程池状态</p>
-<p>也可以继承线程池扩展其中的几个函数来自定义监控逻辑(线程执行前、后、终止状态)</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">beforeExecute</span><span class="params">(Thread t, Runnable r)</span> </span>&#123; &#125;</span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">afterExecute</span><span class="params">(Runnable r, Throwable t)</span> </span>&#123; &#125;</span><br><span class="line"><span class="function">rotected <span class="keyword">void</span> <span class="title">terminated</span><span class="params">()</span> </span>&#123; &#125;</span><br></pre></td></tr></table></figure>
-<h2 id="线程池隔离"><a href="#线程池隔离" class="headerlink" title="线程池隔离"></a>线程池隔离</h2><p>业务都依赖于同一个线程池,当其中一个业务因为各种不可控的原因消耗了所有的线程，导致线程池全部占满。其他的业务也就不能正常运转了，这对系统的打击是巨大的</p>
-<p>通常的做法是按照<strong>业务</strong>进行划分</p>
-<h3 id="hystrix-隔离"><a href="#hystrix-隔离" class="headerlink" title="hystrix 隔离"></a>hystrix 隔离</h3><h4 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h4><p>利用一个 Map 来存放不同业务对应的线程池</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://juejin.im/post/5c99c29ee51d4559bb5c6541#heading-5" target="_blank" rel="noopener">线程池原理 ThreadPoolExecutor</a></li>
-<li><a href="https://juejin.im/post/5b5e5fa96fb9a04fb900e1ce#heading-5" target="_blank" rel="noopener">线程池使用</a></li>
-<li><a href="https://www.jianshu.com/p/210eab345423" target="_blank" rel="noopener">线程池，这一篇或许就够了</a> <strong>偏使用</strong></li>
-<li><a href="https://github.com/Netflix/Hystrix" target="_blank" rel="noopener">hystrix 隔离</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/26/Android/三方ROM/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/26/Android/三方ROM/" itemprop="url">三方ROM</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-26T14:29:33+08:00">
-                2019-03-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>第三方ROM，就是非手机原厂官方推出的ROM</p>
-<img src="/2019/03/26/Android/三方ROM/rom.png">
-<h1 id="魔趣Mokee"><a href="#魔趣Mokee" class="headerlink" title="魔趣Mokee"></a>魔趣Mokee</h1><p>国内最大的非营利性开源ROM。早期基于CM，现在基于AOSP</p>
-<p>原生体验，不是很适应</p>
-<h1 id="CyanogenMod-CM-amp-Lineage-OS"><a href="#CyanogenMod-CM-amp-Lineage-OS" class="headerlink" title="CyanogenMod (CM) &amp; Lineage OS"></a>CyanogenMod (CM) &amp; Lineage OS</h1><p>CyanogenMod (CM) 曾经是全球范围内最流行的第三方开源安卓 ROM 固件</p>
-<p>CM停止开发后，开源社区将会重组 CM 项目并改名为 LineageOS</p>
-<h1 id="Resurrection-Remix"><a href="#Resurrection-Remix" class="headerlink" title="Resurrection Remix"></a><a href="https://post.smzdm.com/p/751360/" target="_blank" rel="noopener">Resurrection Remix</a></h1><p>一个自由度非常高的ROM </p>
-<p>如果说安卓刷机都是瞎折腾，那么终结者就是Resurrection Remix，别无他途</p>
-<p><a href="https://www.resurrectionremix.com/" target="_blank" rel="noopener">官网</a></p>
-<h2 id="SlimRoms"><a href="#SlimRoms" class="headerlink" title="SlimRoms"></a>SlimRoms</h2><p>安卓4.x时代，<strong>自定义向的鼻祖</strong>，但在安卓5.x掉队。</p>
-<h2 id="Bliss-ROM"><a href="#Bliss-ROM" class="headerlink" title="Bliss ROM"></a>Bliss ROM</h2><p>安卓5.x时代，也叫BlissPop，Slim的接盘侠，蓝莲花标识深入人心，在安卓6.x被RR超车。</p>
-<h2 id="Resurrection-Remix-1"><a href="#Resurrection-Remix-1" class="headerlink" title="Resurrection Remix"></a>Resurrection Remix</h2><p>安卓6.x+时代，简称RR，在安卓5.x稍逊于BlissPop，但从安卓6.x开始成功超车，一骑红尘到今天（8.x）。</p>
-<p><strong>机型代号</strong>就是研发阶段厂家给产品起的昵称（Codename），由于RR与LineageOS（简称LOS）渊源颇深，这里直接参考<a href="https://wiki.lineageos.org/devices/" target="_blank" rel="noopener">LOS的设备支持列表</a>即可</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/26/电脑使用/linux/linux进程内存占用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/26/电脑使用/linux/linux进程内存占用/" itemprop="url">Linux进程内存占用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-26T10:43:53+08:00">
-                2019-03-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Linux进程占用的内存有 <code>VSS/RSS/PSS/USS</code> 四种形式</p>
-<p>这四种形式首字母分别是Virtual/Resident/Proportional(比例的)/Unique</p>
-<p>Virtual Set Size</p>
-<p>VSS是单个进程<strong>全部可访问</strong>的地址空间，其大小可能包括还尚未在内存中驻留的部分。对于确定单个进程实际内存使用大小，VSS用处不大。</p>
-<p>RSS是单个进程<strong>实际占用</strong>的内存大小，RSS不太准确的地方在于它包括该进程所使用共享库全部内存大小。对于一个共享库，可能被多个进程使用，实际该共享库只会被装入内存一次。</p>
-<p>进而引出了PSS，PSS相对于RSS计算共享库内存大小是按比例的。N个进程共享，该库对PSS大小的贡献只有1/N。</p>
-<p>USS是单个进程私有的内存大小，即该进程<strong>独占</strong>的内存部分。USS揭示了运行一个特定进程在的真实内存增量大小。如果进程终止，USS就是实际被返还给系统的内存大小。</p>
-<p>综上所属，VSS&gt;=RSS&gt;=PSS&gt;=USS</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/25/Android/Android异常捕获/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/25/Android/Android异常捕获/" itemprop="url">Android 异常捕获</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-25T17:15:53+08:00">
-                2019-03-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>参考</p>
-<ul>
-<li><a href="https://www.jianshu.com/p/bb658019f97b" target="_blank" rel="noopener">安卓捕获RuntimeException,ANR,Native信号异常</a></li>
-<li><a href="https://blog.csdn.net/yeyuwuhen1203/article/details/73556813" target="_blank" rel="noopener">Android端线上NativeCrash收集的两种方法(上)</a></li>
-</ul>
-<h1 id="Java-crash"><a href="#Java-crash" class="headerlink" title="Java crash"></a>Java crash</h1><p>Uncaught异常发生时会终止线程，调用 <code>UncaughtExceptionHandler.uncaughtException()</code></p>
-<p>如果该handler没有被显式设置，则会调用对应线程组的默认handler。</p>
-<p><code>Thread.setDefaultUncaughtExceptionHandler(myCrashHandler);</code></p>
-<h1 id="ANR"><a href="#ANR" class="headerlink" title="ANR"></a>ANR</h1><p>收听ANR的广播 <code>String ACTION_ANR = &quot;android.intent.action.ANR&quot;</code></p>
-<h1 id="NativeCrash"><a href="#NativeCrash" class="headerlink" title="NativeCrash"></a>NativeCrash</h1><p>Native崩溃日志存储在手机的 <code>/data/tombstones</code> 目录下，需要root权限</p>
-<h1 id="三方"><a href="#三方" class="headerlink" title="三方"></a>三方</h1><h2 id="buglyg"><a href="#buglyg" class="headerlink" title="buglyg"></a>buglyg</h2><p>Java crash 和 ANR</p>
-<h1 id="google-breakpad"><a href="#google-breakpad" class="headerlink" title="google-breakpad"></a>google-breakpad</h1><p>NativeCrash</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/08/RN/RN优化/RN稳定性优化-升级JavaScriptCore版本/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2610,6 +1882,1057 @@ https://developer.android.com/studio/profile/systrace-commandline.html?hl=fy
 <li><a href="https://blog.csdn.net/wanghao200906/article/details/79305126" target="_blank" rel="noopener">Android 性能优化 - 彻底解决内存泄漏</a></li>
 <li><a href="https://blog.csdn.net/lmj623565791/article/details/58626355" target="_blank" rel="noopener">Android UI性能优化 检测应用中的UI卡顿</a></li>
 </ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/性能优化/内存泄漏检测及解决办法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/01/Android/性能优化/内存泄漏检测及解决办法/" itemprop="url">内存泄漏检测及解决办法</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:12:53+08:00">
+                2019-03-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.cnblogs.com/whoislcj/p/6001422.html" target="_blank" rel="noopener">Android性能优化之利用LeakCanary检测内存泄漏及解决办法</a>    </p>
+<p><a href="http://blog.csdn.net/u013495603/article/details/50696170" target="_blank" rel="noopener">安卓内存泄露成因和解决办法</a></p>
+<h1 id="什么是内存泄漏？"><a href="#什么是内存泄漏？" class="headerlink" title="什么是内存泄漏？"></a>什么是内存泄漏？</h1><p>如果在对象的生命周期本该结束的时候，这个对象还被一系列的引用，这就会导致内存泄漏。随着泄漏的累积，app将消耗完内存。</p>
+<p>它是造成应用程序OOM的主要原因之一</p>
+<h1 id="什么是LeakCanary？"><a href="#什么是LeakCanary？" class="headerlink" title="什么是LeakCanary？"></a>什么是LeakCanary？</h1><p><code>Square开源框架</code> ，是一个Android和Java的内存泄露检测库. <code>https://github.com/square/leakcanary</code></p>
+<p>如果检测到某个 activity 有内存泄露，LeakCanary 就是自动地显示一个通知，所以可以把它理解为 <code>傻瓜式的内存泄露检测工具</code> 。</p>
+<p>通过它可以大幅度减少开发中遇到的oom问题，大大提高APP的质量。</p>
+<h1 id="LeakCanary使用"><a href="#LeakCanary使用" class="headerlink" title="LeakCanary使用"></a>LeakCanary使用</h1><h2 id="集成"><a href="#集成" class="headerlink" title="集成"></a>集成</h2><p><code>build.gradle</code></p>
+<pre><code>dependencies {
+    debugCompile &apos;com.squareup.leakcanary:leakcanary-android:1.5&apos;
+    releaseCompile &apos;com.squareup.leakcanary:leakcanary-android-no-op:1.5&apos;
+    testCompile &apos;com.squareup.leakcanary:leakcanary-android-no-op:1.5&apos;
+}
+</code></pre><p><code>Application</code> 的onCreate中</p>
+<pre><code>if (LeakCanary.isInAnalyzerProcess(this)) {
+    // This process is dedicated to LeakCanary for heap analysis.
+    // You should not init your app in this process.
+    return;
+}
+LeakCanary.install(this);
+</code></pre><p>LeakCanary.install() 会返回一个预定义的 RefWatcher，同时也会启用一个 ActivityRefWatcher，用于自动监控调用 Activity.onDestroy() 之后泄露的 activity。</p>
+<h2 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h2><p>使用 <code>RefWatcher</code> 监控那些本该被回收的对象。</p>
+<pre><code>refWatcher.watch(schrodingerCat);
+</code></pre><h2 id="工作机制"><a href="#工作机制" class="headerlink" title="工作机制"></a>工作机制</h2><ol>
+<li><p>RefWatcher.watch() 创建一个 KeyedWeakReference 到要被监控的对象。</p>
+</li>
+<li><p>然后在后台线程检查引用是否被清除，如果没有，调用GC。</p>
+</li>
+<li><p>如果引用还是未被清除，把 heap 内存 dump 到 APP 对应的文件系统中的一个 .hprof 文件中。</p>
+</li>
+<li><p>在另外一个进程中的 HeapAnalyzerService 有一个 HeapAnalyzer 使用HAHA 解析这个文件。</p>
+</li>
+<li><p>得益于唯一的 reference key, HeapAnalyzer 找到 KeyedWeakReference，定位内存泄露。</p>
+</li>
+<li><p>HeapAnalyzer 计算 到 GC roots 的最短强引用路径，并确定是否是泄露。如果是的话，建立导致泄露的引用链。</p>
+</li>
+<li><p>引用链传递到 APP 进程中的 DisplayLeakService， 并以通知的形式展示出来。</p>
+</li>
+</ol>
+<h2 id="高阶自定义"><a href="#高阶自定义" class="headerlink" title="高阶自定义"></a>高阶自定义</h2><p>leak trace 之外，可以自定义高阶功能：</p>
+<pre><code>UI 样式 
+保存 leak trace 
+上传 leak trace 到服务器
+</code></pre><h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>可以通过 LeakCanary tag 看logcat日志排查</p>
+<h3 id="dump失败"><a href="#dump失败" class="headerlink" title="dump失败"></a>dump失败</h3><p>存储到达上限</p>
+<p>默认存储路径 <code>SD卡/Download/</code></p>
+<p>删除，重启APP即可</p>
+<h3 id="dump后分析很久"><a href="#dump后分析很久" class="headerlink" title="dump后分析很久"></a>dump后分析很久</h3><p>有时候dump后分析很久（10多分钟）；</p>
+<p>hrof文件过大（20MB）</p>
+<h1 id="LeakCanary捕获常见内存泄漏以及解决办法"><a href="#LeakCanary捕获常见内存泄漏以及解决办法" class="headerlink" title="LeakCanary捕获常见内存泄漏以及解决办法"></a>LeakCanary捕获常见内存泄漏以及解决办法</h1><h2 id="1-单例（静态成员变量）"><a href="#1-单例（静态成员变量）" class="headerlink" title="1. 单例（静态成员变量）"></a>1. 单例（静态成员变量）</h2><pre><code>public class LoginManager {
+    private static LoginManager mInstance;
+    private Context mContext;
+
+    private LoginManager(Context context) {
+        this.mContext = context;
+    }
+
+    public static LoginManager getInstance(Context context) {
+        if (mInstance == null) {
+            synchronized (LoginManager.class) {
+                if (mInstance == null) {
+                    mInstance = new LoginManager(context);
+                }
+            }
+        }
+        return mInstance;
+    }
+
+    public void dealData() {
+    }
+}
+</code></pre><p><strong>泄露原因：</strong></p>
+<p>单例持有Context对象，持有的Context对象生命周期比单例生命周期更短，导致Context无法被释放回收，造成内存泄漏</p>
+<p>允许的话，尽量使用使用Application 的 Context</p>
+<p>Application，Service，Activity三者的Context的应用场景如下：<br><img src="http://img.blog.csdn.net/20160219105432193" alt=""></p>
+<p><strong>LeakCanary检测结果如下：</strong></p>
+<p><img src="http://images2015.cnblogs.com/blog/950883/201610/950883-20161029133437718-1566183114.jpg" alt=""></p>
+<p><strong>解决方案：</strong></p>
+<p>保证Context和AppLication的生命周期一样</p>
+<pre><code>private LoginManager(Context context) {
+    this.mContext = context.getApplicationContext();
+}
+</code></pre><h2 id="2-非静态内部类-创建-静态实例"><a href="#2-非静态内部类-创建-静态实例" class="headerlink" title="2. 非静态内部类 创建 静态实例"></a>2. 非静态内部类 创建 静态实例</h2><pre><code>public class MainActivity extends AppCompatActivity {
+    private static Config mConfig;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        //模拟内存泄露
+        if (mConfig == null) {
+            mConfig = new Config();
+            mConfig.setSize(18);
+            mConfig.setTitle(&quot;老九门&quot;);
+        }
+        finish();
+    }
+
+    class Config {
+        private int size;
+        private String title;
+
+        public int getSize() {
+            return size;
+        }
+
+        public void setSize(int size) {
+            this.size = size;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+    }
+}
+</code></pre><p><strong>泄露原因：</strong></p>
+<p><strong>非静态内部类都会持有一个外部类引用</strong>，这里这个外部类就是MainActivity，然而内部类实例又是static静态变量，其生命周期与Application生命周期一样，所以在MainActivity关闭的时候，内部类静态实例依然持有对MainActivity的引用，导致MainActivity无法被回收释放，引发内存泄漏。</p>
+<p><strong>LeakCanary检测结果如下：</strong></p>
+<p><img src="http://images2015.cnblogs.com/blog/950883/201610/950883-20161031105459768-259924645.jpg" alt=""></p>
+<p><strong>解决方案：</strong></p>
+<p>将内部类改成静态内部类，不再持有对MainActivity的引用</p>
+<pre><code>static class Config {...}
+</code></pre><h2 id="3-非静态内部类-实现-异步线程"><a href="#3-非静态内部类-实现-异步线程" class="headerlink" title="3. 非静态内部类 实现 异步线程"></a>3. 非静态内部类 实现 异步线程</h2><p>Adapter， AsyncTask，Handlers，Threads，Timer Tasks，Runnable</p>
+<h3 id="1-）实现AsyncTask"><a href="#1-）实现AsyncTask" class="headerlink" title="1.）实现AsyncTask"></a>1.）实现AsyncTask</h3><pre><code>public class MainActivity extends AppCompatActivity {
+    private AsyncTask&lt;Void, Void, Integer&gt; asyncTask;
+    private TextView mTextView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        mTextView = (TextView) findViewById(R.id.text);
+        testAsyncTask();
+        finish();
+    }
+
+    private void testAsyncTask() {
+        asyncTask = new AsyncTask&lt;Void, Void, Integer&gt;() {
+            @Override
+            protected Integer doInBackground(Void... params) {
+                int i = 0;
+                while (!isCancelled()) {//模拟耗时操作
+                    i++;
+                    if (i &gt; 1000000000) {
+                        break;
+                    }
+                    Log.e(&quot;LeakCanary&quot;, &quot;asyncTask----&gt;&quot; + i);
+                }
+                return i;
+            }
+
+            @Override
+            protected void onPostExecute(Integer integer) {
+                super.onPostExecute(integer);
+                mTextView.setText(String.valueOf(integer));
+            }
+        };
+        asyncTask.execute();
+    }
+}
+</code></pre><p><strong>泄露原因：</strong></p>
+<p>在处理一个比较耗时的操作，还没处理结束MainActivity就执行了退出操作，但是此时AsyncTask依然持有对MainActivity的引用，导致MainActivity无法释放回收引发内存泄漏。</p>
+<p><strong>LeakCanary检测结果如下：</strong></p>
+<p><img src="http://images2015.cnblogs.com/blog/950883/201610/950883-20161029150616562-244317247.jpg" alt=""></p>
+<p><strong>解决方案：</strong></p>
+<p>在使用AsyncTask时，在Activity销毁时候也应该取消相应的任务，避免任务在后台执行浪费资源，进而避免内存泄漏的发生。</p>
+<pre><code>@Override
+protected void onDestroy() {
+    super.onDestroy();
+    destroyAsyncTask();
+}
+
+
+private void destroyAsyncTask() {
+    if (asyncTask != null &amp;&amp; !asyncTask.isCancelled()) {
+        asyncTask.cancel(true);
+    }
+    asyncTask = null;
+}
+</code></pre><p><strong>通用解决方案：</strong></p>
+<p>有些非静态内部类是没有cancel，remove等操作的，如网络请求的callBack</p>
+<p><strong>通用的解决方案是：使用静态内部类，静态内部类使用弱引用持有外部类的成员变量（记得判断VIEW是否为空）</strong></p>
+<p>public class AsyncActivity extends Activity {</p>
+<pre><code>TextView textView;
+AsyncTask task;
+
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_async);
+    textView = (TextView) findViewById(R.id.textView);
+
+    task = new BackgroundTask(textView).execute();
+}
+
+@Override
+protected void onDestroy() {
+    task.cancel(true);
+    super.onDestroy();
+}
+
+private static class BackgroundTask extends AsyncTask&lt;Void, Void, String&gt; {
+
+    private final WeakReference&lt;TextView&gt; textViewReference;
+
+    public BackgroundTask(TextView resultTextView) {
+        this.textViewReference = new WeakReference&lt;&gt;(resultTextView);
+    }
+
+    @Override
+    protected void onCancelled() {
+        // Cancel task. Code omitted.
+    }
+
+    @Override
+    protected String doInBackground(Void... params) {
+        // Do background work. Code omitted.
+        return &quot;some string&quot;;
+    }
+
+    @Override
+    protected void onPostExecute(String result) {
+        TextView view = textViewReference.get();
+        if (view != null) {
+            view.setText(result);
+        }
+    }
+}
+</code></pre><p>}</p>
+<h3 id="2-）-Handler-Runnable"><a href="#2-）-Handler-Runnable" class="headerlink" title="2.） Handler + Runnable"></a>2.） Handler + Runnable</h3><pre><code>public class MainActivity extends AppCompatActivity {
+    private Handler mHandler = new Handler();
+    private TextView mTextView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        mTextView = (TextView) findViewById(R.id.text);
+        mHandler.postDelayed(new Runnable() {//模拟内存泄露
+            @Override
+            public void run() {
+                mTextView.setText(&quot;lcj&quot;);
+            }
+        }, 3 * 60 * 1000);
+        finish();
+    }
+}
+</code></pre><p><strong>泄露原因：</strong></p>
+<p>上述代码通过内部类的方式创建mHandler对象,此时mHandler会隐式地持有一个外部类对象引用这里就是MainActivity，当执行postDelayed方法时，该方法会将你的Handler装入一个Message，并把这条Message推到MessageQueue中，MessageQueue是在一个Looper线程中不断轮询处理消息，那么当这个Activity退出时消息队列中还有未处理的消息或者正在处理消息，而消息队列中的Message持有mHandler实例的引用，mHandler又持有Activity的引用，所以导致该Activity的内存资源无法及时回收，引发内存泄漏。</p>
+<p><strong>LeakCanary检测结果如下：</strong></p>
+<p><img src="http://images2015.cnblogs.com/blog/950883/201610/950883-20161029142349078-91844742.jpg" alt=""></p>
+<p><strong>解决方案：</strong></p>
+<p>在Activity关闭退出的时候的移除消息队列中所有消息和所有的Runnable。</p>
+<pre><code>上述代码只需在onDestroy()函数中调用mHandler.removeCallbacksAndMessages(null);就行了。
+</code></pre><h2 id="4-WebView"><a href="#4-WebView" class="headerlink" title="4. WebView"></a>4. WebView</h2><pre><code>public class MainActivity5 extends AppCompatActivity {
+    private WebView mWebView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_web);
+        mWebView = (WebView) findViewById(R.id.web);
+        mWebView.loadUrl(&quot;http://www.cnblogs.com/whoislcj/p/5720202.html&quot;);
+    }
+}
+
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;LinearLayout
+    xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    android:id=&quot;@+id/activity_main&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:orientation=&quot;vertical&quot;&gt;
+
+    &lt;WebView
+        android:id=&quot;@+id/web&quot;
+        android:layout_width=&quot;wrap_content&quot;
+        android:layout_height=&quot;wrap_content&quot;/&gt;
+&lt;/LinearLayout&gt;
+</code></pre><p><strong>泄露原因：</strong></p>
+<p>WebView解析网页时会申请Native堆内存用于保存页面元素，当页面较复杂时会有很大的内存占用。并且打开新页面时，为了能快速回退，之前页面占用的内存也不会释放。有时浏览十几个网页，都会占用几百兆的内存。这样加载网页较多时，会导致系统不堪重负，最终强制关闭应用，也就是出现应用闪退或重启。</p>
+<p>即使Activity关闭时在onDestroy中调用如下代码也是没有任何作用。</p>
+<pre><code>private void destroyWebView() {
+    if (mWebView != null) {
+        mLinearLayout.removeView(mWebView);
+        mWebView.pauseTimers();
+        mWebView.removeAllViews();
+        mWebView.destroy();
+        mWebView = null;
+    }
+}
+</code></pre><p><strong>LeakCanary检测到结果如下：</strong></p>
+<p><img src="http://images2015.cnblogs.com/blog/950883/201611/950883-20161101141536799-38733668.jpg" alt=""></p>
+<p><strong>解决方案：</strong></p>
+<ul>
+<li><strong>方案一（不完美）：使用getApplicationgContext</strong></li>
+</ul>
+<p>使用getApplicationgContext作为参数构建WebView，然后动态添加到一个ViewGroup中，最后退出的时候调用webView的销毁的函数。</p>
+<p>虽然也达到了防止内存溢出的效果，但是在有些网页弹出时候需要记住密码的对话框的时候，会出现Unable to add window – token null is not for an application 的错误，</p>
+<ul>
+<li><strong>方案二：独立进程</strong></li>
+</ul>
+<p>把使用了WebView的Activity(或者Service)放在单独的进程里。然后在检测到应用占用内存过大有可能被系统干掉或者它所在的Activity(或者Service)结束后，调用android.os.Process.killProcess(android.os.Process.myPid()); 主动Kill掉进程。由于系统的内存分配是以进程为准的，进程关闭后，系统会自动回收所有内存。</p>
+<pre><code>@Override
+protected void onDestroy() {
+    destroyWebView();
+    android.os.Process.killProcess(android.os.Process.myPid());
+    super.onDestroy();
+}
+
+private void destroyWebView() {
+    if (mWebView != null) {
+        mWebView.pauseTimers();
+        mWebView.removeAllViews();
+        mWebView.destroy();
+        mWebView = null;
+    }
+}
+</code></pre><p>manifest中对应的activity配置如下：</p>
+<pre><code>&lt;activity
+   android:name=&quot;.MainActivity5&quot;
+   android:process=&quot;com.whoislcj.webview&quot;/&gt;
+</code></pre><ul>
+<li><p><strong><a href="http://www.jianshu.com/p/79d79b8cbcfc" target="_blank" rel="noopener">完美解决方案</a></strong></p>
+<p>  <strong>在代码中动态添加</strong></p>
+<pre><code>WebView webView = new WebView(context);
+webViewLayout.addView(webView,layoutParams);//一定要指定布局参数，否则可能出现加载webview空白（其实是因为内容没加载出来，包裹内容默认的webview很小，看不到内容，以为是空白。滚动还是可以看到一丝丝内容的）
+</code></pre><p>  <strong>重点：</strong> 低于5.0版本的WebView中，先在parent中remove了WebView，WebView将无法进行destroy，就会造成内存的泄漏</p>
+<pre><code>@Override
+protected void onDestroy() {        
+    if (webView != null) {        
+        webView.clearCache(true); //清空缓存   
+        if (android.os.Build.VERSION.SDK_INT &gt;= android.os.Build.VERSION_CODES.LOLLIPOP) {            
+            if (webViewLayout != null) {                
+                webViewLayout.removeView(webView);            
+            }            
+        webView.removeAllViews();            
+        webView.destroy();        
+    }else {            
+        webView.removeAllViews();            
+        webView.destroy();            
+        if (webViewLayout != null) {                
+            webViewLayout.removeView(webView);           
+        }        
+     }  
+     webView = null;    
+  }   
+}
+</code></pre></li>
+</ul>
+<h2 id="5-资源未关闭造成的内存泄漏"><a href="#5-资源未关闭造成的内存泄漏" class="headerlink" title="5. 资源未关闭造成的内存泄漏"></a>5. 资源未关闭造成的内存泄漏</h2><p> 对于使用了 <code>BraodcastReceiver</code>，<code>ContentObserver</code>，<code>File</code>，<code>Cursor</code>，<code>Stream</code>，<code>Bitmap</code> <code>循环属性动画</code> 等资源的使用，应该在Activity销毁时及时关闭或者注销，否则这些资源将不会被回收，造成内存泄漏。</p>
+<h2 id="6-CookieSyncManager"><a href="#6-CookieSyncManager" class="headerlink" title="6. CookieSyncManager"></a>6. CookieSyncManager</h2><p>CookieSyncManager 是个全局静态单例，操作系统内部使用了 App 的 Activity 作为 Context 构造了它的实例。我们应该在 App 启动的时候，抢先帮系统创建这个单例，而且要用 applicationContext，让它不会引用到 Activity。</p>
+<h1 id="Leakcanary部分泄露警报无需修复"><a href="#Leakcanary部分泄露警报无需修复" class="headerlink" title="Leakcanary部分泄露警报无需修复"></a><a href="http://lynn8570.github.io/posts/some%20memory%20leaks%20that%20no%20need%20to%20be%20fixed/" target="_blank" rel="noopener">Leakcanary部分泄露警报无需修复</a></h1><p>leakcanary的工作原理，在上下文关闭之后，还未被释放的资源就会引爆内存泄露通知。但是不是所有的泄露都需要修复的。下面总结几个我的血泪史，希望以后不要重蹈覆辙。</p>
+<h2 id="1-InputMethodManager-sInstance泄露"><a href="#1-InputMethodManager-sInstance泄露" class="headerlink" title="1. InputMethodManager.sInstance泄露"></a>1. InputMethodManager.sInstance泄露</h2><p>InputMethodManager.sInstance静态引用泄露</p>
+<p>网上的方法都是通过反射，修复内存泄露。</p>
+<p>系统级别的泄露，你不泄露，别人也会泄露，而且整个android系统，只保留一个static instance的引用，所以这个修复，对整个系统的内存没有太大的改善。而且这个修复的隐患是，你有可能会在<strong>页面跳转遇到各种不可预测的编辑框无法获取焦点</strong>的问题</p>
+<h2 id="2-AsyncQueryHandler-没有quit"><a href="#2-AsyncQueryHandler-没有quit" class="headerlink" title="2. AsyncQueryHandler 没有quit"></a>2. AsyncQueryHandler 没有quit</h2><p>HandlerThread没有quit</p>
+<p>通过反射将这个sLooper强制退出</p>
+<p>修复的惨痛后果是，有些后台线程直接结束了</p>
+<h2 id="3-TextLine-sCached"><a href="#3-TextLine-sCached" class="headerlink" title="3. TextLine.sCached"></a>3. TextLine.sCached</h2><p>和inputManager一样，系统的静态引用而造成的泄露，但是这个泄露的修复，目前没有发现什么不良的影响</p>
+<h1 id="Native-内存泄漏检测"><a href="#Native-内存泄漏检测" class="headerlink" title="Native 内存泄漏检测"></a>Native 内存泄漏检测</h1><p>因为Android开发大部分都是应用层Java开发的缘故，Native内存分析没有太好的手段和工具。</p>
+<p>官方未提供直接可用的分析工具；第三方的一些LInux平台分析工具需要自己移植。</p>
+<p>关于这方面的文档比较少，可以参考下面两篇</p>
+<p><a href="https://wetest.qq.com/lab/view/359.html?from=adsout_qqtips_past2_359" target="_blank" rel="noopener">我这样减少了26.5M Java内存！</a> 腾讯WeTest上企鹅FM的内存优化，重点是Java内存泄漏</p>
+<p><a href="https://mp.weixin.qq.com/s/KtGfi5th-4YHOZsEmTOsjg" target="_blank" rel="noopener">微信 Android 终端内存优化实践</a> 提供了Native内存分析的思路</p>
+<h2 id="Android官方推荐的分析方法"><a href="#Android官方推荐的分析方法" class="headerlink" title="Android官方推荐的分析方法"></a>Android官方推荐的分析方法</h2><p>可以参考 Android官方文档 <a href="https://source.android.com/devices/tech/debug/native-memory" target="_blank" rel="noopener">调试本地内存使用</a>，手动分析Native内存使用。可能遇到的问题和挑战是：刷系统，分析效率低</p>
+<h2 id="自己开发自动化工具"><a href="#自己开发自动化工具" class="headerlink" title="自己开发自动化工具"></a>自己开发自动化工具</h2><h3 id="方案思路"><a href="#方案思路" class="headerlink" title="方案思路"></a>方案思路</h3><p>hook 拦截被测库的内存分配函数，记录分配的内存地址、大小、来源 so 库路径等信息，定期扫描分配与释放是否配对，输出不配对的记录信息</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/性能优化/interface定义源码时枚举代替 enum/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/01/Android/性能优化/interface定义源码时枚举代替 enum/" itemprop="url">interface定义源码时枚举代替 enum</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:10:53+08:00">
+                2019-03-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://caimuhao.com/2017/03/31/Avoid-Used-Enum/" target="_blank" rel="noopener">@interface定义源码时枚举代替 enum</a></p>
+<h1 id="使用-Enum-的缺点"><a href="#使用-Enum-的缺点" class="headerlink" title="使用 Enum 的缺点"></a>使用 Enum 的缺点</h1><p>每一个枚举值都是一个对象</p>
+<p>Enum 会增加 DEX 文件的大小,会造成运行时更多的开销（比常量多5到10倍的内存占用）</p>
+<p>一些旧设备(&lt;=2.2),一些性能问题就是由于 Enum 引起的</p>
+<pre><code>public enum Season {
+    WINTER, SPRING, SUMMER, FALL 
+}
+</code></pre><h1 id="TypeDef"><a href="#TypeDef" class="headerlink" title="TypeDef"></a>TypeDef</h1><p>Android 提供了 <strong>TypeDef</strong> 注解库,这个注解确保特定的参数,返回值,或者变量引用为一个指定的集合范围</p>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>依赖</p>
+<pre><code>dependencies { 
+    compile ‘com.android.support:support-annotations:24.2.0’ 
+}
+</code></pre><p>声明 <code>@IntDef</code> 常量</p>
+<pre><code>// Constants
+public static final int WINTER = 0;
+public static final int SPRING = 1;
+public static final int SUMMER = 2;
+public static final int FALL = 3;
+
+// Declare the @IntDef for these constants
+@IntDef({WINTER, SPRING, SUMMER, FALL})
+@Retention(RetentionPolicy.SOURCE)
+public @interface Season {
+}
+
+//使用定义的注解
+public AnnotationSeason(@Season int season) {
+    System.out.println(&quot;Season :&quot; + season);
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/30/Android/Android动态运行时权限/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/30/Android/Android动态运行时权限/" itemprop="url">Android动态运行时权限</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-30T10:53:53+08:00">
+                2019-01-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="运行时申请权限"><a href="#运行时申请权限" class="headerlink" title="运行时申请权限"></a>运行时申请权限</h1><h2 id="新权限模型"><a href="#新权限模型" class="headerlink" title="新权限模型"></a>新权限模型</h2><p>权限分为：</p>
+<ul>
+<li>普通权限 <code>AndroidManifest.xml</code>文件中直接添加权限即可</li>
+<li>危险权限 动态获取权限</li>
+</ul>
+<p><strong>危险权限分为9组24种</strong></p>
+<img src="/2019/01/30/Android/Android动态运行时权限/危险权限.png">
+<h2 id="两个条件"><a href="#两个条件" class="headerlink" title="两个条件"></a>两个条件</h2><ul>
+<li>项目TargetSDKVersion &gt;=23</li>
+<li>手机系统 Android 6.0 以上</li>
+</ul>
+<p>直接访问权接导致app崩溃</p>
+<h3 id="targetSdkVersion-说明"><a href="#targetSdkVersion-说明" class="headerlink" title="targetSdkVersion 说明"></a>targetSdkVersion 说明</h3><ol>
+<li>targetSdkVersion版本号&lt;= 22时，不需要动态处理权限 。但有时应用程序会打不开。</li>
+<li><p>如果是之前的老版本升级上来的，系统会默认开启之前所有的权限。</p>
+<p> 比如之前的targetSdkVersion是21，后来升级之后变成了25，这个时候系统会自动授权。</p>
+<p> 一定要是升级变成的25，否则还是需要授权。</p>
+</li>
+</ol>
+<h2 id="申请流程"><a href="#申请流程" class="headerlink" title="申请流程"></a>申请流程</h2><ul>
+<li>检测是否有权限 <code>ContextCompat.checkSelfPermission()</code></li>
+<li>有权限，直接使用</li>
+<li><p>无权限，请求权限 <code>ActivityCompat.requestPermissions()</code></p>
+<ul>
+<li><p>根据需要设置权限说明</p>
+<p>  <code>ActivityCompat.shouldShowRequestPermissionRationale()</code></p>
+</li>
+<li><p>Activity中获取回调结果 </p>
+<p>  重写 <code>onRequestPermissionsResult()</code> </p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><ol>
+<li>运行时申请</li>
+<li>支持单个权限、多个权限申请</li>
+<li>无侵入式申请，无需关注权限申请的逻辑</li>
+<li>除了Activity、Fragment之外，还需要支持Service中申请</li>
+<li>对国产手机做兼容处理</li>
+</ol>
+<p>1和2，Google都有对应的API</p>
+<p>3 可以通过自定义注解+AOP切面方式来解决</p>
+<p>4 通过一个透明的Activity去申请权限，并且把申请结果返回来。Google提供的API只支持在Activity和Fragment中去申请权限</p>
+<p>5 国产安卓手机碎片化比较严重，特殊处理</p>
+<h1 id="流行的三方库"><a href="#流行的三方库" class="headerlink" title="流行的三方库"></a>流行的三方库</h1><table>
+<thead>
+<tr>
+<th>权限库</th>
+<th>是否使用注解</th>
+<th>是否支持链式调用</th>
+<th>是否支持Service</th>
+<th>是否适配国产机</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RxPermissions</td>
+<td>No</td>
+<td>Yes 基于RX的思想</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td>PermissionsDispatcher</td>
+<td>Yes 编译时注解</td>
+<td>No</td>
+<td>No</td>
+<td>适配了小米</td>
+</tr>
+</tbody>
+</table>
+<h1 id="设计"><a href="#设计" class="headerlink" title="设计"></a>设计</h1><h2 id="概念定义"><a href="#概念定义" class="headerlink" title="概念定义"></a>概念定义</h2><ul>
+<li><strong>申请权限</strong>：弹出系统权限弹窗 <code>@NeedPermission</code></li>
+<li><strong>权限被拒绝</strong>：用户没有给权限，并且选中不再提示 <code>@PermissionCanceled</code></li>
+<li><strong>权限被取消</strong>：用户没有给权限，但是没有选中不再提示 <code>@PermissionDenied</code> </li>
+</ul>
+<p>注解都是声明在Method级别上的。</p>
+<h2 id="整体思路"><a href="#整体思路" class="headerlink" title="整体思路"></a>整体思路</h2><p>在我们的Activity、Fragment及Service中声明注解，然后在AOP中解析我们的注解，并把申请的权限传递给一个透明的Activity去处理，并把处理结果返回来。</p>
+<img src="/2019/01/30/Android/Android动态运行时权限/整体思路.png">
+<h2 id="可能会遇到的问题"><a href="#可能会遇到的问题" class="headerlink" title="可能会遇到的问题"></a>可能会遇到的问题</h2><ol>
+<li>不同型号的手机兼容问题（申请权限、跳设置界面）</li>
+<li>AOP解析注解以及传值问题</li>
+</ol>
+<h1 id="国产手机兼容"><a href="#国产手机兼容" class="headerlink" title="国产手机兼容"></a>国产手机兼容</h1><h2 id="兼容问题"><a href="#兼容问题" class="headerlink" title="兼容问题"></a>兼容问题</h2><ol>
+<li>无法弹出权限申请对话框 <code>ActivityCompat.shouldShowRequestPermissionRationale(Activity, String)</code> </li>
+<li>用户点击拒绝授权，却回调权限申请成功方法</li>
+<li>只能弹出一次权限申请，拒绝后就无法再弹出权限申请对话框</li>
+</ol>
+<h2 id="跳转到系统设置页面或者手机管家界面"><a href="#跳转到系统设置页面或者手机管家界面" class="headerlink" title="跳转到系统设置页面或者手机管家界面"></a>跳转到系统设置页面或者手机管家界面</h2><p>权限申请对话框不再弹出时，跳转到系统设置页面或者手机管家界面</p>
+<p>国产手机各个设置界面不一样，用通用的API跳转不到相应的APP设置界面，Aopermission采用了策略模式</p>
+<img src="/2019/01/30/Android/Android动态运行时权限/跳转到设置页.png">
+<p>如需做兼容，只需要在库里修改，调用方是不需要处理的。</p>
+<p>跳转到设置界面调用如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SettingUtil.go2Setting(<span class="keyword">this</span>);</span><br></pre></td></tr></table></figure>
+<p><a href="https://github.com/crazyqiang/Aopermission" target="_blank" rel="noopener">Aopermission</a> AOP方式封装的6.0运行时申请权限库</p>
+<p><a href="https://github.com/jokermonn/permissions4m" target="_blank" rel="noopener">permissions4m</a> 国产 Android 权限申请最佳适配方案。支持国产手机 5.0 权限申请。年久失修</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/23/Flutter/Flutter三方库/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/01/23/Flutter/Flutter三方库/" itemprop="url">Flutter三方库</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-23T10:47:29+08:00">
+                2019-01-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://github.com/flutter/plugins" target="_blank" rel="noopener">Flutter plugins汇总</a></p>
+<p><a href="https://pub.dartlang.org/packages/flutter_screenutil" target="_blank" rel="noopener">屏幕适配 flutter_screenutil</a></p>
+<p><a href="https://pub.dartlang.org/packages/url_launcher" target="_blank" rel="noopener">URL打开web 电话 短信 邮件 url_launcher</a></p>
+<p><a href="https://pub.dartlang.org/packages/flutter_refresh" target="_blank" rel="noopener">列表下拉刷新 加载更多 flutter_refresh</a></p>
+<p><a href="https://pub.dartlang.org/packages/flutter_spinkit" target="_blank" rel="noopener">加载动画 flutter_spinkit</a></p>
+<p><a href="https://pub.dartlang.org/packages/cupertino_icons" target="_blank" rel="noopener">iOS风格图标 cupertino_icons</a></p>
+<p><a href="https://pub.dartlang.org/flutter/packages?q=SharedPreferences" target="_blank" rel="noopener">存储 SharedPreferences</a></p>
+<p><a href="https://github.com/flutterchina/dio" target="_blank" rel="noopener">网络框架 dio</a></p>
+<p><a href="https://github.com/serenader2014/flutter_carousel_slider" target="_blank" rel="noopener">轮播图 carousel_slider</a></p>
+<p><a href="https://github.com/renefloor/flutter_cached_network_image" target="_blank" rel="noopener">图片加载 cached_network_image</a></p>
+<p><a href="https://github.com/flutter/plugins/tree/master/packages/share" target="_blank" rel="noopener">链接分享 share</a></p>
+<p><a href="https://github.com/flutter/plugins/tree/master/packages/webview_flutter" target="_blank" rel="noopener">WebView  <code>flutter_webview_plugin</code></a></p>
+<p><a href="https://github.com/crazecoder/flutter_bugly" target="_blank" rel="noopener">bugly flutter_bugly</a> </p>
 
           
         
