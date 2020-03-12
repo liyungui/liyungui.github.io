@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="NDK," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="现有的方案 其实3个方案在Android平台的实现原理都是基本一致的，综合考虑，可以基于coffeecatch改进。 信号机制在Unix-like系统中，异常发生时，CPU通过异常中断的方式，触发异常处理流程。不同的处理器，有不同的异常中断类型和中断处理方式。 linux把这些中断处理，统一为信号量，可以注册信号量向量进行处理。 信号机制是进程之间相互传递消息的一种方法，信号全称为软中断信号。 信">
+<meta name="keywords" content="NDK">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Native崩溃捕获">
+<meta property="og:url" content="http://yoursite.com/2019/09/05/NDK/Native崩溃捕获/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="现有的方案 其实3个方案在Android平台的实现原理都是基本一致的，综合考虑，可以基于coffeecatch改进。 信号机制在Unix-like系统中，异常发生时，CPU通过异常中断的方式，触发异常处理流程。不同的处理器，有不同的异常中断类型和中断处理方式。 linux把这些中断处理，统一为信号量，可以注册信号量向量进行处理。 信号机制是进程之间相互传递消息的一种方法，信号全称为软中断信号。 信">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/09/05/NDK/Native崩溃捕获/现有方案.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/05/NDK/Native崩溃捕获/用户态内核态切换.png">
+<meta property="og:image" content="http://yoursite.com/2019/09/05/NDK/Native崩溃捕获/常见信号量.png">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.231Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Native崩溃捕获">
+<meta name="twitter:description" content="现有的方案 其实3个方案在Android平台的实现原理都是基本一致的，综合考虑，可以基于coffeecatch改进。 信号机制在Unix-like系统中，异常发生时，CPU通过异常中断的方式，触发异常处理流程。不同的处理器，有不同的异常中断类型和中断处理方式。 linux把这些中断处理，统一为信号量，可以注册信号量向量进行处理。 信号机制是进程之间相互传递消息的一种方法，信号全称为软中断信号。 信">
+<meta name="twitter:image" content="http://yoursite.com/2019/09/05/NDK/Native崩溃捕获/现有方案.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/09/05/NDK/Native崩溃捕获/"/>
+
+
+
+
+
+  <title>Native崩溃捕获 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/05/NDK/Native崩溃捕获/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Native崩溃捕获</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-05T11:39:14+08:00">
+                2019-09-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="现有的方案"><a href="#现有的方案" class="headerlink" title="现有的方案"></a>现有的方案</h1><img src="/2019/09/05/NDK/Native崩溃捕获/现有方案.png">
+<p>其实3个方案在Android平台的实现原理都是基本一致的，综合考虑，可以基于coffeecatch改进。</p>
+<h1 id="信号机制"><a href="#信号机制" class="headerlink" title="信号机制"></a>信号机制</h1><p>在Unix-like系统中，异常发生时，CPU通过异常中断的方式，触发异常处理流程。不同的处理器，有不同的异常中断类型和中断处理方式。</p>
+<p>linux把这些中断处理，统一为信号量，可以注册信号量向量进行处理。</p>
+<p>信号机制是进程之间相互传递消息的一种方法，信号全称为软中断信号。</p>
+<p>信号机制是进程之间相互传递消息的一种方法，信号全称为软中断信号。</p>
+<img src="/2019/09/05/NDK/Native崩溃捕获/用户态内核态切换.png">
+<h2 id="接收信号"><a href="#接收信号" class="headerlink" title="接收信号"></a>接收信号</h2><p>接收信号的任务是由内核代理的，当内核接收到信号后，会将其放到对应进程的信号队列中，同时向进程发送一个中断，使其陷入内核态。</p>
+<p>注意，此时信号还只是在队列中，对进程来说暂时是不知道有信号到来的。</p>
+<h2 id="检测信号"><a href="#检测信号" class="headerlink" title="检测信号"></a>检测信号</h2><p>进程陷入内核态后，有两种场景会对信号进行检测：</p>
+<ul>
+<li><p>进程从内核态返回到用户态前进行信号检测</p>
+</li>
+<li><p>进程在内核态中，从睡眠状态被唤醒的时候进行信号检测</p>
+</li>
+</ul>
+<p>当发现有新信号时，便会进入下一步，处理信号。</p>
+<h2 id="处理信号"><a href="#处理信号" class="headerlink" title="处理信号"></a>处理信号</h2><p>信号处理函数是运行在用户态的</p>
+<p>调用处理函数前，内核会将当前内核栈的内容备份拷贝到用户栈上，并且修改指令寄存器（eip）将其指向信号处理函数。</p>
+<p>接下来进程返回到用户态中，执行相应的信号处理函数。</p>
+<p>信号处理函数执行完成后，还需要返回内核态，检查是否还有其它信号未处理。</p>
+<p>如果所有信号都处理完成，就会将内核栈恢复（从用户栈的备份拷贝回来），同时恢复指令寄存器（eip）将其指向中断前的运行位置，最后回到用户态继续执行进程。</p>
+<h1 id="信号量定义"><a href="#信号量定义" class="headerlink" title="信号量定义"></a>信号量定义</h1><p><code>kill -l</code> 可以查看所有的信号量</p>
+<p><code>signal.h</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">SIGHUP 1   挂起</span><br><span class="line">SIGINT 2   中断，比如命令行用户输入Ctrl+C时由终端驱动程序发送INT信号</span><br><span class="line">SIGQUIT 3  退出，默认处理是内存转储</span><br><span class="line">SIGILL 4   非法指令，损坏的可执行文件或代码区损坏</span><br><span class="line">SIGTRAP 5</span><br><span class="line">SIGABRT 6</span><br><span class="line">SIGIOT 6</span><br><span class="line">SIGBUS 7  总线错误，硬件或系统错误，如不存在的物理地址</span><br><span class="line">SIGFPE 8  浮点运算错误，如除0，余0，整形溢出</span><br><span class="line">SIGKILL 9 杀死进程</span><br><span class="line">SIGUSR1 10</span><br><span class="line">SIGSEGV 11 段错误，空指针，野指针，数组越界，栈溢出，访问不存在的地址，访问内核区，写只读空间</span><br><span class="line">SIGUSR2 12</span><br><span class="line">SIGPIPE 13 管道错误，如</span><br><span class="line">SIGALRM 14</span><br><span class="line">SIGTERM 15 终止，默认处理没有内存转储</span><br><span class="line">SIGSTKFLT 16</span><br><span class="line">SIGCHLD 17</span><br><span class="line">SIGCONT 18 继续执行，取消挂起</span><br><span class="line">SIGSTOP 19 挂起/暂停，直到收到CONT</span><br><span class="line">SIGTSTP 20 STOP信号的“软”版本，用户输入Ctrl+Z时由终端驱动程序发送的信号</span><br><span class="line">SIGTTIN 21</span><br></pre></td></tr></table></figure>
+<p>程序崩溃99%都是BUS与SEGV这两个错误导<br>致的。内核对二者的默认处理是内存转储(memory dump)。进程可以捕获和封锁这两类错误。</p>
+<h2 id="常见信号量"><a href="#常见信号量" class="headerlink" title="常见信号量"></a>常见信号量</h2><img src="/2019/09/05/NDK/Native崩溃捕获/常见信号量.png">
+<h1 id="捕捉"><a href="#捕捉" class="headerlink" title="捕捉"></a>捕捉</h1><h2 id="signal"><a href="#signal" class="headerlink" title="signal"></a>signal</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">legacy_signal_inlines.h</span><br><span class="line">sighandler_t signal(int s, sighandler_t f)</span><br><span class="line"></span><br><span class="line">系统也定义了一些宏 </span><br><span class="line">SIG_IGN 忽略信号</span><br><span class="line">SIG_DFL 使用默认的信号处理函数</span><br><span class="line"></span><br><span class="line">1. 进入信号处理函数之后 这个信号会被 阻塞（block）</span><br><span class="line">   直到信号处理函数 返回。</span><br><span class="line">2. 信号函数处理完之后，会将该信号处理函数恢复为默认处理函数，所以在下一次用到的时候要重新调用signal这个函数绑定</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;android/log.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, <span class="meta-string">"lyg"</span>, __VA_ARGS__)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">recvSignal</span><span class="params">(<span class="keyword">int</span> sig)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    LOGD(<span class="string">"received signal %d !!!\n"</span>,sig);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> JNIEXPORT jstring JNICALL</span><br><span class="line">Java_com_example_jni_MainActivity_stringFromJNI(</span><br><span class="line">        JNIEnv *env,</span><br><span class="line">        jobject <span class="comment">/* this */</span>) &#123;</span><br><span class="line">    signal(SIGTRAP,recvSignal);</span><br><span class="line">    <span class="keyword">char</span> *p = <span class="string">"123"</span>;</span><br><span class="line">    <span class="keyword">char</span> *p2;</span><br><span class="line">    <span class="built_in">strcpy</span>(p2,p);</span><br><span class="line">    <span class="keyword">return</span> env-&gt;NewStringUTF(p2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>日志</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br></pre></td></tr></table></figure>
+<p>错误发生后 ，系统 发送 SIGSEGV ，然后 中断了程序 跳到 recvSignal 处理函数中去 ，处理完成后 ，再跳回来错误发生的地方 ，然后继续产生错误 ，继续发送 SIGSEGV  信号</p>
+<h2 id="sigaction"><a href="#sigaction" class="headerlink" title="sigaction"></a>sigaction</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">struct sigaction &#123;</span><br><span class="line">    void     (*sa_handler)(int);</span><br><span class="line">    void     (*sa_sigaction)(int, siginfo_t *, void *);</span><br><span class="line">    sigset_t   sa_mask;</span><br><span class="line">    int        sa_flags;</span><br><span class="line">    void     (*sa_restorer)(void);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">sa_handler 信号处理函数，该函数只有一个参数</span><br><span class="line">sa_sigaction 信号处理函数，sa_flags中存在SA_SIGINFO标志时使用这个函数处理信号量</span><br><span class="line">sa_mask： 信号处理函数执行的过程中应被阻塞的信号</span><br><span class="line">sa_flags：信号处理过程行为的标志，由0个或多个标志通过or运算组合而成，比如SA_RESETHAND，SA_ONSTACK | SA_SIGINFO</span><br><span class="line">sa_restorer： 已废弃</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">int sigaction(int signum,const struct sigaction *act,struct sigaction *oldact));</span><br><span class="line"></span><br><span class="line">signum：代表信号编码</span><br><span class="line">	除SIGKILL及SIGSTOP外的任何一个特定有效的信号</span><br><span class="line">	如果为这两个信号定义自己的处理函数，将导致信号安装错误。</span><br><span class="line"></span><br><span class="line">act：指向结构体sigaction的一个实例的指针</span><br><span class="line">	该实例指定了对特定信号的处理</span><br><span class="line">	如果设置为空，进程会执行默认处理。</span><br><span class="line"></span><br><span class="line">oldact：和参数act类似，只不过保存的是原来对相应信号的处理</span><br><span class="line">	也可设置为NULL。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;jni.h&gt;</span><br><span class="line">#include &lt;string&gt;</span><br><span class="line">#include &lt;signal.h&gt;</span><br><span class="line">#include &lt;android/log.h&gt;</span><br><span class="line"></span><br><span class="line">#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, &quot;lyg&quot;, __VA_ARGS__)</span><br><span class="line"></span><br><span class="line">static void SignalHandler(int signo, siginfo_t *info, void *context) &#123;</span><br><span class="line">    LOGD(&quot;received signal %d !!!\n&quot;, signo);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">extern &quot;C&quot; JNIEXPORT jstring JNICALL</span><br><span class="line">Java_com_example_jni_MainActivity_stringFromJNI(</span><br><span class="line">        JNIEnv *env,</span><br><span class="line">        jobject /* this */) &#123;</span><br><span class="line">    struct sigaction sa_old;</span><br><span class="line">    struct sigaction sa;</span><br><span class="line">    memset(&amp;sa, 0, sizeof(sa));</span><br><span class="line">    sigemptyset(&amp;sa.sa_mask);</span><br><span class="line">    sa.sa_sigaction = SignalHandler;</span><br><span class="line">    sa.sa_flags = SA_SIGINFO;</span><br><span class="line">    sigaction(SIGTRAP, &amp;sa, &amp;sa_old);</span><br><span class="line"></span><br><span class="line">    char *p = &quot;123&quot;;</span><br><span class="line">    char *p2;</span><br><span class="line">    strcpy(p2, p);</span><br><span class="line">    return env-&gt;NewStringUTF(p2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>问题：跟signal一样，会重复打印捕获到的信号量，然后ANR；</p>
+<p>自定义信号处理函数，处理完之后，调用原来注册的处理函数，处理完退出应用</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://mp.weixin.qq.com/s/g-WzYF3wWAljok1XjPoo7w?" target="_blank" rel="noopener">Android 平台 Native 代码的崩溃捕获机制及实现</a> 腾讯Bugly分享</li>
+<li><a href="https://blog.csdn.net/ysdaniel/article/details/6819142" target="_blank" rel="noopener">linux的常用信号量和进程的四种状态</a></li>
+<li><a href="https://blog.csdn.net/work_msh/article/details/8470277" target="_blank" rel="noopener">linux SIGSEGV 信号捕捉，保证发生段错误后程序不崩溃</a></li>
+<li><a href="https://jekton.github.io/2019/04/06/native-crash-catching/" target="_blank" rel="noopener">Android native 崩溃信息捕获实践</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/NDK/" rel="tag"><i class="fa fa-tag"></i> NDK</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/09/05/NDK/使用JNI_OnLoad动态注册Native函数/" rel="next" title="使用JNI_OnLoad动态注册Native函数">
+                <i class="fa fa-chevron-left"></i> 使用JNI_OnLoad动态注册Native函数
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/09/16/电脑使用/linux/ssh使用/" rel="prev" title="ssh使用">
+                ssh使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#现有的方案"><span class="nav-number">1.</span> <span class="nav-text">现有的方案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#信号机制"><span class="nav-number">2.</span> <span class="nav-text">信号机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#接收信号"><span class="nav-number">2.1.</span> <span class="nav-text">接收信号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#检测信号"><span class="nav-number">2.2.</span> <span class="nav-text">检测信号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理信号"><span class="nav-number">2.3.</span> <span class="nav-text">处理信号</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#信号量定义"><span class="nav-number">3.</span> <span class="nav-text">信号量定义</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#常见信号量"><span class="nav-number">3.1.</span> <span class="nav-text">常见信号量</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#捕捉"><span class="nav-number">4.</span> <span class="nav-text">捕捉</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#signal"><span class="nav-number">4.1.</span> <span class="nav-text">signal</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sigaction"><span class="nav-number">4.2.</span> <span class="nav-text">sigaction</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">5.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

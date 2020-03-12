@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/30/web/web渲染/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症八-播放杂音、噪音、回声/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/07/30/web/web渲染/" itemprop="url">web渲染</a></h1>
+                <a class="post-title-link" href="/2019/09/03/直播/直播疑难杂症/直播疑难杂症八-播放杂音、噪音、回声/" itemprop="url">直播疑难杂症八-播放杂音、噪音、回声</a></h1>
         
 
         <div class="post-meta">
@@ -293,8 +293,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-30T15:28:14+08:00">
-                2019-07-30
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T15:10:14+08:00">
+                2019-09-03
               </time>
             
 
@@ -316,8 +316,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web/" itemprop="url" rel="index">
-                    <span itemprop="name">web</span>
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
                   </a>
                 </span>
 
@@ -355,132 +355,1164 @@
       
         
           
-            <h1 id="基础术语"><a href="#基础术语" class="headerlink" title="基础术语"></a>基础术语</h1><h2 id="Rendering"><a href="#Rendering" class="headerlink" title="Rendering"></a>Rendering</h2><ul>
-<li><strong>SSR 服务端渲染</strong>: Server-Side Rendering - 服务端渲染HTML.</li>
-<li><strong>CSR 客户端渲染</strong>: Client-Side Rendering - 客服端浏览器使用DOM渲染.<br><strong>Rehydration 同构</strong>: 服务端和客户端使用同一份DOM渲染<br><strong>Prerendering 预渲染</strong>: 编译时启动一个客户端渲染出初始化的静态HTML</li>
+            <p>相比于视频而言，音频要敏感得多，视频画面有噪点、马赛克都还是可以勉强被接受，而声音一旦有任何瑕疵，人耳都会特别容易感觉到，而且难以忍受。</p>
+<h1 id="表现"><a href="#表现" class="headerlink" title="表现"></a>表现</h1><ul>
+<li><p>电流音，爆音，滋滋声或者嘟嘟声</p>
+</li>
+<li><p>声音断断续续，听不清楚</p>
+</li>
+<li><p>回声，同一个声音能听到两遍</p>
+</li>
 </ul>
-<h2 id="Performance"><a href="#Performance" class="headerlink" title="Performance"></a>Performance</h2><ul>
-<li><strong>TTFB</strong>: Time to First Byte - seen as the time between clicking a link and the first bit of content coming in.</li>
-<li><strong>FP</strong>: First Paint - the first time any pixel gets becomes visible to the user.</li>
-<li><strong>FCP</strong>: First Contentful Paint - the time when requested content (article body, etc) becomes visible.</li>
-<li><strong>TTI</strong>: Time To Interactive - the time at which a page becomes interactive (events wired up, etc).</li>
+<h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><h2 id="参数配置问题"><a href="#参数配置问题" class="headerlink" title="参数配置问题"></a>参数配置问题</h2><p>音频是一个特别敏感的东西，涉及到许多参数配置，一旦配置不太匹配，就会导致声音听起来非常诡异（比如：采样率是 32000Hz 的音频，给播放器配置为 8000Hz 或者 44100Hz，就明显会出现音频慢放或者快放的效果）。</p>
+<p>我们只需要注意的是，无论是采集和播放，都要给系统的 API 以及第三方的库配置正确的参数，如：采样率、位宽、声道数等等。</p>
+<h2 id="代码层面"><a href="#代码层面" class="headerlink" title="代码层面"></a>代码层面</h2><h3 id="音频-buffer-大小不匹配"><a href="#音频-buffer-大小不匹配" class="headerlink" title="音频 buffer 大小不匹配"></a>音频 buffer 大小不匹配</h3><p>一段 1024 bytes 的音频，放到了 2048 bytes 的数组，导致尾部有随机数</p>
+<h3 id="重采样的算法问题"><a href="#重采样的算法问题" class="headerlink" title="重采样的算法问题"></a>重采样的算法问题</h3><p>音频 resample 重采样的算法问题，导致采样出来的数据出了问题</p>
+<h3 id="Android-的-ByteBuffer-取出数组"><a href="#Android-的-ByteBuffer-取出数组" class="headerlink" title="Android 的 ByteBuffer 取出数组"></a>Android 的 ByteBuffer 取出数组</h3><p>不能直接用 .array() 方法的，而需要用 .get() 方法</p>
+<h3 id="iOS-的-AudioSession采样率被更改"><a href="#iOS-的-AudioSession采样率被更改" class="headerlink" title="iOS 的 AudioSession采样率被更改"></a>iOS 的 AudioSession采样率被更改</h3><p>iOS 系统，其他 app 通过系统 API 更改了 AudioSession 采样率的配置</p>
+<h3 id="混音越界"><a href="#混音越界" class="headerlink" title="混音越界"></a>混音越界</h3><p>音频的 PCM 数据，通常用 short 数组来存放，当我们做一些多路音频的混音功能的时候，如果不注意处理 short 类型的大小越界，则往往带来爆音的问题。下面是一段参考 webrtc 的混音代码，专门针对混音越界做了简单处理，可以参考参考：</p>
+<img src="/2019/09/03/直播/直播疑难杂症/直播疑难杂症八-播放杂音、噪音、回声/webrtc混音防越界代码.png">
+<h2 id="网络宽带不足"><a href="#网络宽带不足" class="headerlink" title="网络宽带不足"></a>网络宽带不足</h2><p>视频是一帧一帧连续的图像构成的，在播放过程中，如果无法按时渲染，则会出现卡顿的效果；如果丢失几帧画面，则会出现快进效果。</p>
+<p>而音频是流式的，虽然也被切分为了一个个音频帧，但如果无法按时播放或者连续丢失较多的音频帧，则会明显听到断断续续的声音出现。特别是在弱网、丢包率高等不稳定网络环境下，很容易出现这种情况。</p>
+<p>表现为 帧缓冲区为空</p>
+<p>复现的网速阈值：差不多是最低网速需求的40%-50%；</p>
+<p>比如，当前直播的最低网速要求是112 kBps；将手机网络模拟为 500 kbps；</p>
+<h2 id="设备性能不足"><a href="#设备性能不足" class="headerlink" title="设备性能不足"></a>设备性能不足</h2><p>设备性能不足的情况下，容易出现虽然帧缓冲区数据充足，但是解码不及时，导致无法播放，也会听到断断续续的声音出现</p>
+<p>表现为 显示缓冲区为空</p>
+<p>复现的CPU阈值：CPU使用率80%</p>
+<h2 id="解码失败"><a href="#解码失败" class="headerlink" title="解码失败"></a>解码失败</h2><h2 id="音频丢帧"><a href="#音频丢帧" class="headerlink" title="音频丢帧"></a>音频丢帧</h2><h2 id="回声"><a href="#回声" class="headerlink" title="回声"></a>回声</h2><p>回声一般出现在同时有音频的采集和播放的场景，比如：连麦互动、混音返听等等，采集到的音频通过扬声器又播放出来了，同时又被采集了进去，从而产生了回声或者啸叫声。</p>
+<p>这样的场景下，一般需要通过系统的回声消除 API，或者第三方回声消除库（如：speexdsp，webrtc 等）进行处理。</p>
+<p>注意：很多 Android 机型硬件自带的回声消除效果并不是很好。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.qiniu.com/archives/8524" target="_blank" rel="noopener">《直播疑难杂症排查》系列之八：播放杂音、噪音、回声</a></li>
 </ul>
-<h2 id="SPA-和-MPA"><a href="#SPA-和-MPA" class="headerlink" title="SPA 和 MPA"></a>SPA 和 MPA</h2><p><strong>SPA 单页面应用</strong> Single-page Application </p>
-<img src="/2019/07/30/web/web渲染/spa.png">
-<p><strong>MPA 多页面应用多页面应用</strong> Multi-page Application </p>
-<img src="/2019/07/30/web/web渲染/mpa.png">
-<h3 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h3><table>
-<thead>
-<tr>
-<th></th>
-<th>单页面应用</th>
-<th>多页面应用</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>组成</td>
-<td>一个外壳页面和多个页面片段组成</td>
-<td>多个完整页面构成</td>
-</tr>
-<tr>
-<td>资源共用(css,js)</td>
-<td>共用，只需在外壳部分加载</td>
-<td>不共用，每个页面都需要加载</td>
-</tr>
-<tr>
-<td>刷新方式</td>
-<td>页面局部刷新或更改</td>
-<td>整页刷新</td>
-</tr>
-<tr>
-<td>url 模式</td>
-<td>a.com/#/pageone  a.com/#/pagetwo</td>
-<td>a.com/pageone.html  a.com/pagetwo.html</td>
-</tr>
-<tr>
-<td>用户体验</td>
-<td>用户体验良好。首屏时间慢，页面切换快</td>
-<td>用户体验比较差。首屏时间快，页面切换慢</td>
-</tr>
-<tr>
-<td>转场动画</td>
-<td>容易实现</td>
-<td>无法实现</td>
-</tr>
-<tr>
-<td>数据传递</td>
-<td>容易</td>
-<td>依赖 url传参、或者cookie 、localStorage等</td>
-</tr>
-<tr>
-<td>搜索引擎优化(SEO)</td>
-<td>SEO差。需要单独方案、实现较为困难、可利用服务器端渲染(SSR)优化</td>
-<td>SEO效果好。实现方法简易</td>
-</tr>
-<tr>
-<td>使用范围</td>
-<td>高要求的体验度、追求界面流畅的应用</td>
-<td>适用于追求高度支持搜索引擎的应用</td>
-</tr>
-<tr>
-<td>开发成本</td>
-<td>较高，常需借助专业的框架</td>
-<td>较低 ，但页面重复代码多</td>
-</tr>
-<tr>
-<td>维护成本</td>
-<td>相对容易</td>
-<td>相对复杂</td>
-</tr>
-</tbody>
-</table>
-<h1 id="历史"><a href="#历史" class="headerlink" title="历史"></a>历史</h1><p>后端渲染 – 前端渲染 – 后端渲染</p>
-<p>看一门技术的发展主要应该看背后的人是谁，应用场景是哪些，最后才是技术细节。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/" itemprop="url">直播疑难杂症二-卡顿</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T15:08:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="表现"><a href="#表现" class="headerlink" title="表现"></a>表现</h1><p>包括但不限于以下这些：</p>
+<ul>
+<li><p>频繁出现缓冲</p>
+</li>
+<li><p>播放不够流畅，画面声音一卡一卡的</p>
+</li>
+</ul>
+<p>从代码层面来说，<strong>帧率太低</strong></p>
+<h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><p>通常可能有如下几大类</p>
+<h2 id="网络带宽不足"><a href="#网络带宽不足" class="headerlink" title="网络带宽不足"></a>网络带宽不足</h2><p>一个完整的直播应用，简单来说数据流是这样的：<code>主播 -&gt; CDN -&gt; 观众</code></p>
+<p>因此，直播出现卡顿，三个端都可能是问题的源头：</p>
+<ul>
+<li>主播端的网络不好，导致推流上行不稳定</li>
+<li>服务端的线路质量不好，导致分发不稳定</li>
+<li>观众端的网络不好，导致拉流下行不稳定</li>
+</ul>
+<h3 id="如何判断网络不好"><a href="#如何判断网络不好" class="headerlink" title="如何判断网络不好"></a>如何判断网络不好</h3><ul>
+<li>宽度测速。是否低于推流码率所需宽带</li>
+<li>宽带稳定性。丢包率，延时</li>
+<li>SDK回调。推流/拉流 码率 帧率</li>
+</ul>
+<h2 id="播放设备性能不足"><a href="#播放设备性能不足" class="headerlink" title="播放设备性能不足"></a>播放设备性能不足</h2><p>设备性能不足，导致解码播放的帧率远小于视频码流的实际帧率，从而产生卡顿。</p>
+<p>解决方案：</p>
+<ul>
+<li>优先硬解，充分利用 GPU 加速</li>
+<li>低端机上优先选择非高清码流。越高清的码率，对解码的要求越高</li>
+<li>增大缓冲区，缓解卡顿</li>
+</ul>
+<h2 id="视频流时间戳问题"><a href="#视频流时间戳问题" class="headerlink" title="视频流时间戳问题"></a>视频流时间戳问题</h2><p>播放器一般是严格根据码流中的音视频的时间戳来做音画同步的，因此，如果码流中的音视频时间戳出现错误，肯定会影响到播放画面的渲染时机</p>
+<p>播放器一般 master 主时钟是单调递增的，当后来的视频帧小于了当前的主时钟，播放器就会做丢帧处理，从而导致播放的视频帧率远低于实际码流中的视频帧率，从而产生卡顿现象。</p>
+<img src="/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/stream_time.jpeg">
+<p>排查这个问题，可以把读取到的每一帧音频、视频的时间戳打印出来看看</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.qiniu.com/archives/8405" target="_blank" rel="noopener">《直播疑难杂症排查》之二：播放卡顿</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症-开篇/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/直播疑难杂症/直播疑难杂症-开篇/" itemprop="url">直播疑难杂症-开篇</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T15:02:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="直播疑难杂症大纲"><a href="#直播疑难杂症大纲" class="headerlink" title="直播疑难杂症大纲"></a>直播疑难杂症大纲</h1><p>（一）播放失败</p>
+<p>（二）直播卡顿</p>
+<p>（三）首开慢</p>
+<p>（四）延时高</p>
+<p>（五）音画不同步</p>
+<p>（六）马赛克严重</p>
+<p>（七）播放黑屏、花屏、绿屏</p>
+<p>（八）播放杂音、噪音、回声</p>
+<p>（九）点播拖动不准</p>
+<p>（十）直播发热问题</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/视频/Android视频录制app解决方案汇总/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/视频/Android视频录制app解决方案汇总/" itemprop="url">Android视频录制app解决方案汇总</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://www.zybuluo.com/lichangadd/note/148109" target="_blank" rel="noopener">Android视频录制app解决方案汇总</a></p>
+<p>现在视频App很多：蝌蚪音客、美拍、小影、还有最近火起来的小咖秀。</p>
+<p>这类App的技术难点基本都是在音视频处理这一块</p>
+<p>iOS对多媒体处理的支持还算比较丰富，Android差很多。</p>
+<p>这里总结蝌蚪音客在多媒体处理上遇到的问题，供大家参考下。</p>
+<h1 id="一、录制方视频-1：1"><a href="#一、录制方视频-1：1" class="headerlink" title="一、录制方视频(1：1)"></a>一、录制方视频(1：1)</h1><p>现在市面上的视频应用的视频尺基本全部都是1：1的，这对于Android开发者来说就是一个比较棘手的问题，Android原生Recorder类并不支持视频比例的设置。</p>
+<p>所以只能想其他办法，目前常用的办法大致可以分为2种：</p>
+<h2 id="a-摒弃原生接口，使用FFmpeg或OpenCV等方式进行录制"><a href="#a-摒弃原生接口，使用FFmpeg或OpenCV等方式进行录制" class="headerlink" title="a. 摒弃原生接口，使用FFmpeg或OpenCV等方式进行录制"></a>a. 摒弃原生接口，使用FFmpeg或OpenCV等方式进行录制</h2><ul>
+<li><p><strong>缺点</strong></p>
+<p>  对开发者技术要求较高，FFmpeg和OpenCV<strong>移植麻烦</strong>，<strong>多机型兼容复杂</strong> 并且要求开发者一定程度的<strong>C语言功底</strong></p>
+</li>
+<li><p><strong>最难解决的问题是性能问题</strong></p>
+<p>  FFmeg和OpenCV都是开源方案，如果要真正达实用级别往往还<strong>需要优化定制</strong>，这对于熟练于做Android展现的开发者来说完全就是一个新的领域。蝌蚪音客就尝试过这种方案，结果视频的码率只能做到15fps左右，这明显是不够的。</p>
+</li>
+</ul>
+<h2 id="b-使用原生API录制，遮罩1：1视觉效果"><a href="#b-使用原生API录制，遮罩1：1视觉效果" class="headerlink" title="b. 使用原生API录制，遮罩1：1视觉效果"></a>b. 使用原生API录制，遮罩1：1视觉效果</h2><ul>
+<li><p>在录制界面使用遮罩的方式给用户一种1：1的错觉。</p>
+</li>
+<li><p>在预览视频时，使用FFmpeg进行视频裁剪。</p>
+</li>
+</ul>
+<p><strong>如果团队没有驾驭FFmpeg的能力，个人建议使用这种方式。</strong></p>
+<p>视频录制功能来说相对简单，而且裁剪命令优化后基本可以可以做到视频预览一遍也就基本裁剪完毕(<strong>耗时&gt;=视频时长</strong>，真心伤)。</p>
+<h1 id="二、本地视频压缩"><a href="#二、本地视频压缩" class="headerlink" title="二、本地视频压缩"></a>二、本地视频压缩</h1><p><strong>本地视频压缩除了FFmpeg之外目前还没有了解到有其他方案</strong></p>
+<p>但是压缩命令的优化可是一门学问，使用 <code>x264</code> 还是 <code>mpeg4</code>，<code>码率</code>，<code>分辨率</code>，<code>帧频</code>，<code>文件大小</code> 等都会影响到 <code>压缩速度</code> 而且差别相当大。</p>
+<p>在android平台运行效率实在蛋疼，测试压缩一个mp4，<strong>耗时&gt;=视频时长x6</strong>。网络说在CentOS服务器上跑都是 耗时=视频时长</p>
+<h1 id="三、m3u8解决方案"><a href="#三、m3u8解决方案" class="headerlink" title="三、m3u8解决方案"></a>三、m3u8解决方案</h1><p>绝对不建议创业公司<strong>自己编写播放器，绝对无底洞</strong>，还不如直接使用MP4文件格式。</p>
+<p>m3u8国内比较出名的是 <strong>vitamio</strong>，还有一些韩国人的技术方案。但是vitamio的<strong>开源版本感觉很久没有更新</strong>，而且商业版本的授权动则几十万</p>
+<p><strong>推荐使用百度媒体云的m3u8的解决方案</strong>，代码家的AnimeTaste使用的就是这个，完全免费，项目质量还算稳定。但是<strong>只能做成单例</strong>，如果想集成到listview中，需要费点事。</p>
+<h1 id="四、视频滤镜、水印"><a href="#四、视频滤镜、水印" class="headerlink" title="四、视频滤镜、水印"></a>四、视频滤镜、水印</h1><ul>
+<li><p>水印 </p>
+<p>  <strong>FFmpeg</strong> 在视频处理的过程中可以并行处理水印。</p>
+</li>
+<li><p>视频滤镜</p>
+<p>  赶紧花钱招大牛吧。</p>
+<p>  据说小影的开发Leader在视频处理领域里沉浸了20多年。</p>
+<p>  目前这部分笔者还是在了解阶段，目前看到的方案有使用GPUImage进行处理的，但是无奈对图像处理的知识掌握的太少，迟迟没有动手。</p>
+</li>
+</ul>
+<h1 id="五、趣拍云"><a href="#五、趣拍云" class="headerlink" title="五、趣拍云"></a>五、<a href="https://www.qupaicloud.com/" target="_blank" rel="noopener">趣拍云</a></h1><p>阿里百川和趣拍合作推出，包括 短视频sdk 和 直播sdk。收费不便宜</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/视频/视频播放/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/视频/视频播放/" itemprop="url">视频播放</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Android视频播放器的选择"><a href="#Android视频播放器的选择" class="headerlink" title="Android视频播放器的选择"></a><a href="https://appkfz.com/2017/08/27/ijkplayer-sutdy-1/" target="_blank" rel="noopener">Android视频播放器的选择</a></h1><ul>
+<li><p><strong>MediaPlayer</strong></p>
+<ul>
+<li>原生实现</li>
+<li>只使用硬解播放，基只支持本地和HTTP协议的视频播放，扩展性很差，只适合最简单的视频播放需求</li>
+</ul>
+</li>
+<li><p><strong>VideoView</strong></p>
+<p>  将MediaPlayer，SurfaceView封装</p>
+</li>
+<li><p><strong><a href="https://github.com/google/ExoPlayer" target="_blank" rel="noopener">ExoPlayer</a></strong></p>
+<ul>
+<li>提供了更好的扩展性和定制能力</li>
+<li>加入了对DASH和HLS等直播协议的支持</li>
+<li>但也只支持硬码<ul>
+<li>如果项目中只需要支持对H264格式的视频播放，以及流媒体协议比较常规（比如HTTP，HLS），基于ExoPlayer定制也是不错的选择。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>ijkplayer</p>
+<ul>
+<li>Bilibili公司开源的播放器实现</li>
+<li>整合了FFMpeg, ExoPlayer, MediaPlayer，EXOPlayer等多种实现</li>
+<li>提供了类似于MediaPlayer的API</li>
+<li>实现软硬解码自由切换</li>
+<li>自定义TextureView实现</li>
+<li>得益于FFMpeg的能力，也能支持多种流媒体协议（RTSP，RTMP，HLS等），多种视频编码格式（h264, mpeg4, mjpeg)，具有很高的灵活性，可以定制实现自己特色的播放器（比如支持视频缩放，视频翻转等）。</li>
+</ul>
+</li>
+</ul>
+<h1 id="视频旋转角度问题"><a href="#视频旋转角度问题" class="headerlink" title="视频旋转角度问题"></a>视频旋转角度问题</h1><p>视频是带有旋转角度信息的。</p>
+<p>播放时，需要获取角度并相应设置播放角度，才能正常播放视频</p>
+<p>获取视频元信息的开源库 - <a href="https://github.com/wseemann/FFmpegMediaMetadataRetriever" target="_blank" rel="noopener">FFmpegMediaMetadataRetriever</a></p>
+<p><strong>MediaPlaer已经处理好旋转角度问题</strong></p>
+<p><a href="http://blog.csdn.net/jdsjlzx/article/details/51884784" target="_blank" rel="noopener">ijkplayer没有处理，需要开发者自行处理</a> 或 <a href="https://github.com/pili-engineering/PLDroidPlayer/issues/444" target="_blank" rel="noopener">参考PLDroidPlayer issues</a></p>
+<p>实际测试中（MP4格式）发现没有回调MEDIA_INFO_VIDEO_ROTATION_CHANGED</p>
+<pre><code>private PLMediaPlayer.OnInfoListener mOnInfoListener = new PLMediaPlayer.OnInfoListener() {
+        @Override
+        public boolean onInfo(PLMediaPlayer plMediaPlayer, int what, int extra) {
+            Log.d(TAG, &quot;onInfo: &quot; + what + &quot;, &quot; + extra);
+            switch (what) {
+                case PLMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED:
+                    Log.d(TAG, &quot;MEDIA_INFO_VIDEO_ROTATION_CHANGED: &quot; + extra);
+                    if(extra==90) {
+                       //设置播放视频角度
+                    mVideoView.setDisplayOrientation(270);
+                    }
+                    break;
+            }
+            return false;
+        }
+    };
+</code></pre><h1 id="VideoView视频播放等比缩放"><a href="#VideoView视频播放等比缩放" class="headerlink" title="VideoView视频播放等比缩放"></a><a href="http://jingyan.baidu.com/article/9f7e7ec080ecb36f2815541d.html" target="_blank" rel="noopener">VideoView视频播放等比缩放</a></h1><p>不同分辨率下不同size的视频资源会被拉伸变形</p>
+<p>解决方案：</p>
+<ul>
+<li><p>setOnPreparedListener获取视频宽高，根据屏幕宽高进行等比缩放</p>
+<pre><code>videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+    @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+        videoWidth = mediaPlayer.getVideoWidth();
+        videoHeight = mediaPlayer.getVideoHeight();
+        //根据屏幕宽高进行等比缩放
+        viv.setLayoutParams(calculateVideoViewParam());
+        viv.start();
+    }
+});
+</code></pre></li>
+<li><p>onConfigurationChanged监听横竖屏切换，视频进行等比缩放</p>
+<pre><code>public void onConfigurationChanged(Configuration newConfig) {
+    if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        Log.e(&quot;info&quot;, &quot;横屏&quot;);
+        isLandScape = true;
+    } else {
+        Log.e(&quot;info&quot;, &quot;竖屏&quot;);
+        isLandScape = false;
+    }
+    RelativeLayout.LayoutParams params = calculateVideoViewParam();
+    videoView.setMeasure(params.width, params.height);
+    videoView.getHolder().setFixedSize(params.width, params.height);
+    videoView.requestLayout();
+    videoView.refreshDrawableState();
+    videoView.setLayoutParams(params);
+    super.onConfigurationChanged(newConfig);
+}
+</code></pre></li>
+<li><p>自定义videoView，实现根据视频宽高等比缩放</p>
+<pre><code>public void setMeasure(int width, int height) {
+    this.width = width;  
+    this.height = height;    
+} 
+
+protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){        
+    super.onMeasure(widthMeasureSpec, heightMeasureSpec); 
+    // 默认高度，为了自动获取到focus
+    int width = MeasureSpec.getSize(widthMeasureSpec);   
+    int height = width;
+    // 这个之前是默认的拉伸图像      
+      if (this.width &gt; 0 &amp;&amp; this.height &gt; 0){          
+          width = this.width;          
+          height = this.height;      
+      }     
+       setMeasuredDimension(width, height);   
+}  
+</code></pre></li>
+<li><p>改变videoView大小的方法不是太清楚。</p>
+<pre><code>//方法一
+videoView.setMeasure(params.width, params.height);
+videoView.getHolder().setFixedSize(params.width, params.height);
+videoView.requestLayout();
+
+//方法二
+videoView.setLayoutParams(params);
+</code></pre></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/视频/跨平台视频编码参数推荐/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/视频/跨平台视频编码参数推荐/" itemprop="url">跨平台视频编码参数推荐</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.joyinpower.com/blog/?p=142" target="_blank" rel="noopener">清晰、小容量、跨平台视频 编码参数 推荐</a></p>
+<p>假定优酷的“高清”视频的清晰度是做了详尽的用户调研的结果</p>
+<p>根据开发指南提供的数据，Android和iOS同时支持并推荐使用的视频格式为 H.264 Baseline Profile。</p>
+<p>Android的开发指南，提供了SD Low、SD High、HD 720p三种推荐参数</p>
+<p>用QQ播放器中的转码功能，将源视频进行了转码，并在smartisan T1手机上进行了测试，结果如下：</p>
+<p>源视频格式为wmv，10分55秒，495M</p>
+<p>HD：265M<br>SD High Quality：63.2M<br>SD Low Quality：15.9M  太模糊</p>
+<p>优酷上面，同样是10分50秒的视频，“高清”的版本只有42M</p>
+<p>分析了一下优酷的视频</p>
+<p>我们最终选择的是：H.264 Baseline Profile格式，码率384k，帧率15fps，分辨率480×272(16:9)，音频码率32k。这样10分钟的视频大概在35M左右。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/Android声音采集降噪增益回声消除/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音频/Android声音采集降噪增益回声消除/" itemprop="url">Android声音采集降噪增益回声消除</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.jianshu.com/p/2cb75a71009f" target="_blank" rel="noopener">Android手机直播（三）声音采集</a></p>
+<p><a href="https://github.com/LaiFeng-Android/SopCastComponent" target="_blank" rel="noopener">项目github</a></p>
+<h1 id="一、基础知识"><a href="#一、基础知识" class="headerlink" title="一、基础知识"></a>一、基础知识</h1><h2 id="麦克风降噪"><a href="#麦克风降噪" class="headerlink" title="麦克风降噪"></a>麦克风降噪</h2><p><img src="http://upload-images.jianshu.io/upload_images/924057-0c83cc87d86f846f.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>底部的麦是用来提供清晰通话，而顶部的麦是用来消除噪音</p>
+<p>两个麦克风所拾取的背景噪声音量是基本相同的，而记录的人声会有6dB左右的音量差。顶端麦收集噪声后，通过解码生成补偿信号后就可以用来消除噪音了</p>
+<h2 id="回声消除"><a href="#回声消除" class="headerlink" title="回声消除"></a>回声消除</h2><p>回声消除就是在麦克风录制外音的时候去除掉手机自身播放出来的声音，这样就将对方的声音从采集的声音中过滤出去，从而就避免了回声的产生<br><img src="http://upload-images.jianshu.io/upload_images/924057-395c4cb4f1deb4ff.png?imageMogr2/auto-orient/strip" alt=""></p>
+<h1 id="二、声音采集"><a href="#二、声音采集" class="headerlink" title="二、声音采集"></a>二、声音采集</h1><p>想要将声音用计算机语言表述，则必须将声音进行数字化。</p>
+<p>将声音数字化，最常见的方式是通过脉冲编码调制PCM(Pulse Code Modulation) 。</p>
+<p>抽样、量化、编码三个过程中三个参数：<strong>采样频率、采样位数和声道数</strong></p>
+<h1 id="三、Android声音录制"><a href="#三、Android声音录制" class="headerlink" title="三、Android声音录制"></a>三、Android声音录制</h1><h2 id="音频源"><a href="#音频源" class="headerlink" title="音频源"></a>音频源</h2><pre><code>/** 默认声音 **/
+public static final int DEFAULT = 0;
+
+/** 麦克风声音 */
+public static final int MIC = 1;
+
+/** 通话上行声音 */
+public static final int VOICE_UPLINK = 2;
+
+/** 通话下行声音 */
+public static final int VOICE_DOWNLINK = 3;
+
+/** 通话上下行声音 */
+public static final int VOICE_CALL = 4;
+
+/** 根据摄像头转向选择麦克风*/
+public static final int CAMCORDER = 5;
+
+/** 对麦克风声音进行声音识别，然后进行录制 */
+public static final int VOICE_RECOGNITION = 6;
+
+/** 对麦克风中类似ip通话的交流声音进行识别，默认会开启回声消除和自动增益 */
+public static final int VOICE_COMMUNICATION = 7;
+
+/** 录制系统内置声音 */
+public static final int REMOTE_SUBMIX = 8;
+</code></pre><h2 id="采样率"><a href="#采样率" class="headerlink" title="采样率"></a>采样率</h2><p>几种常见的采样率：</p>
+<pre><code>8000, 11025, 16000, 22050, 44100, 48000
+</code></pre><p>Android官方文档要求所有的手机需要对44100Hz的采样率进行支持，可是国内极其少数的手机依然不支持44100Hz的采样率</p>
+<p>在设置采样率之前需要对手机对设置的采样率是否支持进行<strong>检测</strong></p>
+<pre><code>for (int rate : new int[] {8000, 11025, 16000, 22050, 44100}) {  // add the rates you wish to check against
+    int bufferSize = AudioRecord.getMinBufferSize(rate, AudioFormat.CHANNEL_CONFIGURATION_DEFAULT, AudioFormat.ENCODING_PCM_16BIT);
+    if (bufferSize &gt; 0) {
+        // buffer size is valid, Sample rate supported
+    }
+}
+</code></pre><h2 id="采样位数"><a href="#采样位数" class="headerlink" title="采样位数"></a>采样位数</h2><p><strong>ENCODING_PCM_16BIT</strong> 可以保证兼容所有Android手机。</p>
+<h2 id="声道"><a href="#声道" class="headerlink" title="声道"></a>声道</h2><p><strong>AudioFormat.CHANNEL_CONFIGURATION_MONO（单声道）</strong> 可以保证兼容所有Android手机。</p>
+<h1 id="四、Android回声消除"><a href="#四、Android回声消除" class="headerlink" title="四、Android回声消除"></a>四、Android回声消除</h1><p>三种方式进行处理：</p>
 <ol>
-<li><p>后端发现页面中的 JS 很麻烦（虽然简单，但是坑多），于是让公司招聘专门写 JS 的人，也就是前端</p>
+<li><p>通过<strong>VOICE_COMMUNICATION</strong>模式进行录音，自动实现回声消除；<strong>效果最好，兼容性也较好</strong></p>
+<ul>
+<li>将AudioManager设置模式为MODE_IN_COMMUNICATION</li>
+<li><p>将麦克风打开。</p>
+<pre><code>AudioManager audioManager = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+audioManager.setSpeakerphoneOn(true);
+</code></pre></li>
+<li><p>音频采样率必须设置8000或者16000</p>
 </li>
-<li><p>前端名义上是程序员，实际上就是在写样式（CSS）和做特效(JS)，所以所有程序员中前端工资最低，职位也最低。所以前后端的鄙视链就出现了。</p>
+<li>通道数必须设为1个</li>
+</ul>
 </li>
-<li>nodejs 和前端 mvc 的兴起让前端变得复杂起来，前端发现翻身的机会，于是全力支持这两种技术，造成本不该做成 SPA 的网站也成了 spa。慢慢地前后端分离运动从大公司开始兴起，目的就是前端脱离后端的指指点点，独立发展。（表面上是为了「代码分离」，实际上是为了「人员分离」，也就是「前后端分家」，前端不再附属于后端团队）</li>
-<li>spa 之后发现 <strong>seo</strong> 问题很大，而且<strong>首屏渲染速度</strong>很慢，但是自己选的路再难走也要走下去，于是用 nodejs 在服务端渲染这一条路被看成是一条出路</li>
-<li>其实这是第二个翻身的机会，如果 nodejs 服务器渲染成为主流，其实就相当于前端把后端的大部分工作给抢了，工资压过普通后端指日可待</li>
-<li>然而结果是 nodejs 服务端渲染始终是小众，因为后端也没那么脆弱，java php rails 十多年沉淀的技术岂是你说推翻就推翻的，已经运行多年的项目又岂是容你随便用 nodejs 重写的，另一方面 golang 等技术的兴起也给 nodejs 不少压力。最终只有少部分前端特别强势的团队成功用上了 Node.js 做渲染（比如阿里的一些团队），大部分公司依然是用 PHP 渲染 HTML。</li>
-<li>于是 nodejs 退一步说好好好我不抢你们的工作，我只做中间层（大部分工作就是渲染页面和调用后台接口），绝不越雷池。后端说算你识相。现在 nodejs 主要搞什么微服务，也是为了抢后端还没注意的市场。</li>
+<li><p>利用Android自身带的<strong>AcousticEchoCanceler</strong>进行回声消除处理；<strong>很少手机支持</strong></p>
+<ul>
+<li>录制声音的时候可以通过AudioRecord得到AudioSessionId，</li>
+<li>创建AudioTrack的时候也可以传入一个AudioSessionId，</li>
+<li>将这个统一的AudioSessionId传入AcousticEchoCanceler，AcousticEchoCanceler进行回声消除</li>
+</ul>
+</li>
+<li><p>使用第<strong>三方库</strong>（Speex、Webrtc）进行回声消除处理；<strong>理论上兼容性最好，但是设置合适的延时间隔很难</strong></p>
+</li>
 </ol>
-<h2 id="前端的矛盾"><a href="#前端的矛盾" class="headerlink" title="前端的矛盾"></a>前端的矛盾</h2><p>前后端代码可以分离，但是人员绝对不应该分离。前后端撕逼的事情在大公司天天都在发生，全都是因为前后是两个团队，利益不同。实际上前端推 nodejs 渲染就是在试图重新让前后端合成一体。</p>
-<p>但是前端不能明说这件事，因为如果要把前后端部门合并，拆掉的肯定是前端部门。</p>
-<p>合，则相当于自断前程。<br>不合，则永远没法解决seo和首屏加载慢的问题。<br>所以前端真的挺矛盾的。</p>
-<h2 id="JS的矛盾"><a href="#JS的矛盾" class="headerlink" title="JS的矛盾"></a>JS的矛盾</h2><p>凡是浏览器上的框架（Vue React）都说自己能适应「复杂」场景，凡是 Node.js 上的框架（express fastify koa）都说自己是「轻量级」框架。</p>
-<p>为啥？因为浏览器是 JS 的主战场，而且无敌手。而服务器上，JS 的经验积累还是太少了，搞企业级服务，Node.js 是敌不过 Java、PHP 的，没办法，发展得太晚了。所以目前只能搞「轻量级」咯。<code>egg.js</code> 号称是企业级 Node.js 框架，用过的人来评我就不评了。</p>
-<h2 id="大前端"><a href="#大前端" class="headerlink" title="大前端"></a>大前端</h2><p>有些大佬提出「大前端」的概念，意思是前端也要会后端，但是我们心还是前端的。</p>
-<p>这不就是把以前的『前后端一个人做』换了个说法嘛。以前是后端一个人做，现在前端一个做。</p>
-<p>反正你现在让后端去学前端，后端肯定是不愿意躺这浑水的。只能前端自己想办法咯。</p>
-<p>想来想去就只有 Node.js 中间层做 HTML 渲染了。</p>
-<p>由于阿里 nodejs 用得还算多，却招不到人，所以从功利的角度出发，也许你学 nodejs 比学 java 更容易进阿里，毕竟阿里的 java 大神多如云，nodejs 大神却不多。</p>
-<h2 id="开历史倒车？"><a href="#开历史倒车？" class="headerlink" title="开历史倒车？"></a>开历史倒车？</h2><p>其实并<strong>不是</strong>。以前是 Back-end（或者说 Full-stack）工程师负责 SSR，但是现在是 Front-end 工程师负责 SSR 了啊。在目前这个知识爆炸的年代，前后端的职能目前已经被分割得很开，大家都不愿意去淌对方那摊混水，而 Rendering 这事从语义上出发就属于 Front-end 的范畴，让 Back-end 去做这事，其实很多人是不愿意的。</p>
-<p>回到问题本身，SSR 的「又流行」其实是 Front-end 社区<strong>工具栈不断进化</strong>的体现，也是历史的必然啊。几年前，SPA/CSR 概念的大热，让很多 Front-end 把他们当做万金油了。其实大家都知道 CSR 有着 SEO 和 页面渲染速度的问题，但苦于社区中没有解决这个问题的工具栈，所以大家都对这个问题<strong>视而不见</strong>了。</p>
-<p>而随着 Front-end 社区造轮子大潮的兴起，出现了一个很关键的历史转折点 —— Node.js 的出现。Node.js 赋予了 Front-end 在服务端执行 Js 的能力，有了这个环境和土壤，Front-end 工程师们终于可以考虑如何用 Js 来实现 SSR 了，于是 React 和 Vue 等主流框架后面开始支持 SSR 也就成了必然。</p>
-<p>所以之前并不是不流行，而是因为前后端职能的分离，Back-end 不愿意做这事了，Front-end 没有条件去做。现在有条件了，自然又开始流行了。</p>
-<h1 id="利弊"><a href="#利弊" class="headerlink" title="利弊"></a>利弊</h1><img src="/2019/07/30/web/web渲染/vs.png">
-<h1 id="同构"><a href="#同构" class="headerlink" title="同构"></a>同构</h1><p>为了解决客户端渲染首屏慢与 SEO 问题，同构开始出现。</p>
-<p>同构：前后端共用 JS，首次渲染时使用 Node.js 来直出 HTML。一般来说同构渲染是介于前后端中的共有部分。</p>
-<p>简单说下在使用 Vue SSR（nuxt）的一些坑：</p>
-<p>服务端必须是 node.js 或者专门跑个 node.js 来支持；</p>
-<p>document 对象找不到，由于前端使用的 window，在 node 环境不存在；</p>
-<p>数据预获取时，组件尚未实例化（无法使用 this ），于是在 created 生命钩子调用 method 里的方法行不通，数据请求及格式化等操作都应该放置在专门的数据预取存储容器（data store）或”状态容器（state container）”中处理；</p>
-<p>string-based 模板性能肯定要比 virtual-dom-based 模板的性能好。string-base 模板只要填数据即可，virtual-dom-based 模板需要经历 Vue 模板语法 —&gt; Vnode —&gt; 拼接字符串 html 的过程。 有关性能的消耗对比，可以参考这篇文章<a href="https://mp.weixin.qq.com/s?__biz=MzUxMzcxMzE5Ng==&amp;mid=2247485601&amp;idx=1&amp;sn=97a45254a771d13789faed81316b465a&amp;source=41#wechat_redirect" target="_blank" rel="noopener">实测Vue SSR的渲染性能：避开20倍耗时</a>；</p>
-<p>缓存方面，只能做到页面级的缓存。如果用户特定（user-specific），即对于不同用户需要渲染不同内容，缓存是不可用的。</p>
-<p>是否有其他解决客户端渲染不足之处的方法？</p>
-<p>答案肯定是有的：</p>
-<p>处理 SEO 问题时，使用 prerender… 、升级搜索引擎，以及其他。</p>
-<p>白屏可以加 loading、Skeleton Screen 效果、以及其他。</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://developers.google.com/web/updates/2019/02/rendering-on-the-web" target="_blank" rel="noopener">Google开发者：SSR、CSR、预渲染、伪同构等渲染架构</a></li>
-<li><a href="https://blog.csdn.net/B9Q8e64lO6mm/article/details/79418969" target="_blank" rel="noopener">知乎问答：为什么现在又流行服务器端渲染html？</a></li>
-<li><a href="https://juejin.im/entry/5a111eb7f265da431c6fe51c" target="_blank" rel="noopener">服务端渲染 vs 客户端渲染</a></li>
-<li><a href="https://juejin.im/post/5a0ea4ec6fb9a0450407725c" target="_blank" rel="noopener">前端：你要懂的单页面应用和多页面应用</a></li>
-</ul>
 
           
         
@@ -529,7 +1561,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/26/java基础/异常/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/Media Playback/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -548,7 +1580,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/07/26/java基础/异常/" itemprop="url">异常</a></h1>
+                <a class="post-title-link" href="/2019/09/03/直播/音频/Media Playback/" itemprop="url">Media Playback</a></h1>
         
 
         <div class="post-meta">
@@ -560,8 +1592,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-26T15:55:53+08:00">
-                2019-07-26
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
               </time>
             
 
@@ -583,8 +1615,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
                   </a>
                 </span>
 
@@ -622,52 +1654,220 @@
       
         
           
-            <h1 id="异常声明"><a href="#异常声明" class="headerlink" title="异常声明"></a>异常声明</h1><p>属于方法说明的一部分，紧跟在参数列表之后</p>
-<p><code>void method() throws IOException {}</code></p>
-<p>子类在覆盖方法时，不能添加父类方法没有的异常声明（只能保持或者减少）。</p>
-<h1 id="Throwable-方法汇总"><a href="#Throwable-方法汇总" class="headerlink" title="Throwable 方法汇总"></a>Throwable 方法汇总</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">getMessage()</span><br><span class="line">getLocalizedMessage()</span><br><span class="line">toString()</span><br><span class="line"></span><br><span class="line">getCause()</span><br><span class="line">initCause(Throwable cause)</span><br><span class="line"></span><br><span class="line">printStackTrace()</span><br><span class="line">getStackTrace()</span><br><span class="line">fillInStackTrace()</span><br><span class="line">setStackTrace(StackTraceElement[] stackTrace)</span><br><span class="line"></span><br><span class="line">addSuppressed(Throwable exception)</span><br><span class="line">getSuppressed()</span><br></pre></td></tr></table></figure>
-<h2 id="实例1"><a href="#实例1" class="headerlink" title="实例1"></a>实例1</h2><p><code>throw new RuntimeException(&quot;My Exception&quot;);</code></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">getMessage(): My Exception</span><br><span class="line">getLocalizedMessage(): My Exception</span><br><span class="line">toString(): java.lang. RuntimeException: My Exception</span><br><span class="line"></span><br><span class="line">printStackTrace(): </span><br><span class="line">	java.lang. RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:<span class="number">9</span>)</span><br></pre></td></tr></table></figure>
-<ul>
-<li><code>getLocalizedMessage()</code>和 <code>getMessage()</code> 返回构造方法传入的参数信息</li>
-<li>toString() 返回异常完整类名和 <code>getMessage()</code>的信息</li>
-<li>printStackTrace() 打印 <code>toString()</code>信息和异常堆栈</li>
+            <h1 id="Handling-audio-focus"><a href="#Handling-audio-focus" class="headerlink" title="Handling audio focus"></a>Handling audio focus</h1><p>android 2.2(API 8) 开始引入 <code>audio focus</code>协作机制 来管理音频播放</p>
+<h2 id="audio-focus协作机制"><a href="#audio-focus协作机制" class="headerlink" title="audio focus协作机制"></a><code>audio focus</code>协作机制</h2><ul>
+<li>获得焦点，播放</li>
+<li>失去焦点，停止/暂停播放</li>
+<li>仅是建议协作，以获得更好用户体验；但非强制，有的APP可能不遵守</li>
 </ul>
-<h1 id="printStackTrace"><a href="#printStackTrace" class="headerlink" title="printStackTrace()"></a>printStackTrace()</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">printStackTrace</span><span class="params">(PrintStreamOrWriter s)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Guard against malicious overrides of Throwable.equals by</span></span><br><span class="line">    <span class="comment">// using a Set with identity equality semantics.</span></span><br><span class="line">    Set&lt;Throwable&gt; dejaVu =</span><br><span class="line">        Collections.newSetFromMap(<span class="keyword">new</span> IdentityHashMap&lt;Throwable, Boolean&gt;());</span><br><span class="line">    dejaVu.add(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">synchronized</span> (s.lock()) &#123;</span><br><span class="line">        <span class="comment">// Print our stack trace</span></span><br><span class="line">        s.println(<span class="keyword">this</span>);</span><br><span class="line">        StackTraceElement[] trace = getOurStackTrace();</span><br><span class="line">        <span class="keyword">for</span> (StackTraceElement traceElement : trace)</span><br><span class="line">            s.println(<span class="string">"\tat "</span> + traceElement);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Print suppressed exceptions, if any</span></span><br><span class="line">        <span class="keyword">for</span> (Throwable se : getSuppressed())</span><br><span class="line">            se.printEnclosedStackTrace(s, trace, SUPPRESSED_CAPTION, <span class="string">"\t"</span>, dejaVu);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Print cause, if any</span></span><br><span class="line">        Throwable ourCause = getCause();</span><br><span class="line">        <span class="keyword">if</span> (ourCause != <span class="keyword">null</span>)</span><br><span class="line">            ourCause.printEnclosedStackTrace(s, trace, CAUSE_CAPTION, <span class="string">""</span>, dejaVu);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><pre><code>public int AudioManager.requestAudioFocus(OnAudioFocusChangeListener listener, int streamType, int durationHint)
+
+public interface OnAudioFocusChangeListener {
+    public void onAudioFocusChange(int focusChange);
+}
+</code></pre><p><strong>the type of focus change</strong>, one of </p>
 <ul>
-<li>打印 自身 堆栈</li>
-<li><strong>递归</strong> 打印 <strong>抑制(suppressed)异常链</strong> 堆栈<ul>
-<li>第一行前缀 <code>Suppressed by:</code>在异常完整类名和构造参数之前 </li>
+<li>AUDIOFOCUS_GAIN  </li>
+<li>AUDIOFOCUS_LOSS</li>
+<li>AUDIOFOCUS_LOSS_TRANSIENT   短暂丢失</li>
+<li>AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK  短暂丢失，你可以不停止播放，而是降低音量就可以</li>
+</ul>
+<h1 id="Handle-Changes-in-the-Audio-Output-Hardware"><a href="#Handle-Changes-in-the-Audio-Output-Hardware" class="headerlink" title="Handle Changes in the Audio Output Hardware"></a>Handle Changes in the Audio Output Hardware</h1><h1 id="Handling-the-AUDIO-BECOMING-NOISY-Intent"><a href="#Handling-the-AUDIO-BECOMING-NOISY-Intent" class="headerlink" title="Handling the AUDIO_BECOMING_NOISY Intent"></a>Handling the AUDIO_BECOMING_NOISY Intent</h1><p>当蓝牙断开或耳机拔出，系统会自动使用扬声器播放，这在某些场景会造成噪音惊喜。万幸系统会发出 <code>ACTION_AUDIO_BECOMING_NOISY</code> 广播</p>
+<pre><code>private class NoisyAudioStreamReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+            // Pause the playback
+        }
+    }
+}
+
+private IntentFilter intentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+
+private void startPlayback() {
+    registerReceiver(myNoisyAudioStreamReceiver(), intentFilter);
+}
+
+private void stopPlayback() {
+    unregisterReceiver(myNoisyAudioStreamReceiver);
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/PCM音频降噪/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音频/PCM音频降噪/" itemprop="url">PCM音频降噪</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.jianshu.com/p/77a363960711" target="_blank" rel="noopener">PCM音频处理</a></p>
+<p>对于降噪前后的对比，从三个方面进行评价：<strong>时域，频域，个人听觉感受</strong>。</p>
+<p>音频处理软件：<strong>Audacity</strong>（简单分析降噪效果）</p>
+<h1 id="Speex音频降噪模块"><a href="#Speex音频降噪模块" class="headerlink" title="Speex音频降噪模块"></a>Speex音频降噪模块</h1><p>Speex是很强大的开源编解码库，也包含一些降噪，自动增益，回音消除等模块功能</p>
+<p>Opus是Speex的更优替代方案，但是Opus没有降噪去噪模块</p>
+<p>支持的采样率有3种：<strong>8K，16K，44K</strong></p>
+<p>采样送进去降噪的数据需要控制在<strong>20ms</strong>，也就是（20*采样率/1000）个采样点。</p>
+<p>Speex的降噪原理：设置音频数据的阀值，过滤掉低于阀值分贝的声音</p>
+<ul>
+<li>优点：简单，使用Speex编解码库时可以直接使用</li>
+<li>缺点：会把声音细节抹掉</li>
+<li>效果：<ul>
+<li>时域，效果不明显</li>
+<li>频域，效果不明显</li>
+<li>实际听的效果，降噪后，背景的沙沙声有所减弱，但是总体效果还是不佳</li>
 </ul>
 </li>
-<li><strong>递归</strong> 打印 <strong>cause</strong> 堆栈<ul>
-<li>第一行前缀 <code>Caused by:</code>在异常完整类名和构造参数之前     </li>
+</ul>
+<h1 id="WebRTC音频降噪模块"><a href="#WebRTC音频降噪模块" class="headerlink" title="WebRTC音频降噪模块"></a>WebRTC音频降噪模块</h1><p>谷歌出品，必属精品</p>
+<p>webrtc的音频处理模块分为降噪ns和nsx，回音消除aec，回声控制acem，音频增益agc，静音检测部分</p>
+<p>支持三种采样率，<strong>8K，16K和32K</strong>，如果超过32K，则需要重采样成符合要求的采样率</p>
+<p>采样送进去降噪的数据需要控制在<strong>10ms</strong>，也就是（10*采样率/1000）个采样点。</p>
+<pre><code>根据前辈的说法
+    32K数据需要使用滤波函数将音频数据分为高频和低频两个部分进行降噪，降噪后再合并为降噪后数据
+    8K和16K数据，不需要分为高频低频这个步骤，作为低频数据输入，输出也是通过低频数据返回
+</code></pre><ul>
+<li>效果：<ul>
+<li>时域，音量较低的数据基本被抹平，但是不影响波形清晰</li>
+<li>频域，频率峰值明显加强，1500Hz到3500Hz区域，能量普遍下降</li>
+<li>实际听的效果的，降噪后，背景的沙沙声基本没有，但是音量也有所下降，直观感觉上比Speex好一些</li>
 </ul>
 </li>
 </ul>
-<p>printEnclosedStackTrace() 是 <strong>递归方法</strong></p>
-<h1 id="getOurStackTrace"><a href="#getOurStackTrace" class="headerlink" title="getOurStackTrace()"></a>getOurStackTrace()</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">synchronized</span> StackTraceElement[] getOurStackTrace() &#123;</span><br><span class="line">    <span class="keyword">return</span> stackTrace;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>倒序</strong>记录着方法调用帧：后调用的在最前面/最顶上</p>
-<ul>
-<li>栈顶元素（元素0），是方法调用序列中最后一个方法调用</li>
-<li>栈底元素（最后一个元素）是调用序列中的第一个方法调用</li>
-</ul>
-<h1 id="getStackTrace"><a href="#getStackTrace" class="headerlink" title="getStackTrace()"></a>getStackTrace()</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> StackTraceElement[] getStackTrace() &#123;</span><br><span class="line">    <span class="keyword">return</span> getOurStackTrace().clone();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="StackTraceElement"><a href="#StackTraceElement" class="headerlink" title="StackTraceElement"></a>StackTraceElement</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">StackTraceElement</span> <span class="keyword">implements</span> <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Normally initialized by VM (public constructor added in 1.5)</span></span><br><span class="line">    <span class="keyword">private</span> String declaringClass; <span class="comment">//完整类名</span></span><br><span class="line">    <span class="keyword">private</span> String methodName; <span class="comment">//方法名。不带签名(参数和返回值)</span></span><br><span class="line">    <span class="keyword">private</span> String fileName; <span class="comment">//类文件名</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>    lineNumber; <span class="comment">//行号；-2表示该方法是Native方法</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="重新抛出异常和异常链"><a href="#重新抛出异常和异常链" class="headerlink" title="重新抛出异常和异常链"></a>重新抛出异常和异常链</h1><h2 id="抛出原异常对象"><a href="#抛出原异常对象" class="headerlink" title="抛出原异常对象"></a>抛出原异常对象</h2><p>有时我们在捕获到异常后，可能在捕获的地方不适合处理该异常，我们需要将它重新抛出</p>
-<p>这样就会存在一个问题，抛出的的异常携带的信息，是原来异常抛出点的调用栈信息，而非新抛出点的信息（新抛出点的调用信息就被掩盖了）。</p>
-<p>可以使用 <code>fillInStackTrace()</code> 更新新抛出点信息到这个异常调用栈中</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">java.lang.RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:9)</span><br><span class="line">	</span><br><span class="line">使用 fillInStackTrace() 后：</span><br><span class="line">java.lang.RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:11)</span><br></pre></td></tr></table></figure>
-<p>单纯的更新了抛出异常的所在函数</p>
-<p><strong>不推荐使用</strong></p>
-<h2 id="抛出新异常对象"><a href="#抛出新异常对象" class="headerlink" title="抛出新异常对象"></a>抛出新异常对象</h2><p>新建异常对象时传入原来的异常对象，或者调用 <code>initCause(Throwable cause)</code>传入原异常对象。</p>
-<p>这样原来的异常对象作为 <code>cause</code> 保持</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java.lang.RuntimeException: java.lang.RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:14) //新异常抛出处</span><br><span class="line">Caused by: java.lang.RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:12) //老异常抛出处</span><br></pre></td></tr></table></figure>
-<h2 id="异常抑制"><a href="#异常抑制" class="headerlink" title="异常抑制"></a>异常抑制</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"try"</span>);</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">// throw new RuntimeException("finally");</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">java.lang.RuntimeException: try</span><br><span class="line">	at Test.main(Test.java:10)</span><br><span class="line">	</span><br><span class="line">finally 也抛出异常：</span><br><span class="line">java.lang.RuntimeException: finally</span><br><span class="line">	at Test.main(Test.java:12)</span><br></pre></td></tr></table></figure>
-<p>finally 抑制了上一个异常</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Exception exception = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"try"</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span>(Exception e)&#123;</span><br><span class="line">    exception = e;</span><br><span class="line">&#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">    RuntimeException e = <span class="keyword">new</span> RuntimeException(<span class="string">"finally"</span>);</span><br><span class="line">    <span class="keyword">if</span>(exception!=<span class="keyword">null</span>)&#123;</span><br><span class="line">        e.addSuppressed(exception);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">throw</span> e;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java.lang.RuntimeException: finally</span><br><span class="line">	at Test.main(Test.java:15)</span><br><span class="line">	Suppressed: java.lang.RuntimeException: try</span><br><span class="line">		at Test.main(Test.java:11)</span><br></pre></td></tr></table></figure>
+<h1 id="根据PCM文件的音量进行阀值限制"><a href="#根据PCM文件的音量进行阀值限制" class="headerlink" title="根据PCM文件的音量进行阀值限制"></a>根据PCM文件的音量进行阀值限制</h1><p>以二进制方式打开，PCM数据其实就是音量数据</p>
+<p>如果把音量小的声音默认为噪声，则可以通过把音量小的数值替换为0，来实现降噪。但是这个方法的缺点也是明显的，会把很多的比较小的细节声音直接去掉了。</p>
+<p><strong>音量计算公式dB = 20×log(data)</strong></p>
 
           
         
@@ -716,7 +1916,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/24/CocosCreator/CocosCreator新手上路/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/android录音和播放/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -735,7 +1935,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/07/24/CocosCreator/CocosCreator新手上路/" itemprop="url">CocosCreator新手上路</a></h1>
+                <a class="post-title-link" href="/2019/09/03/直播/音频/android录音和播放/" itemprop="url">android录音和播放</a></h1>
         
 
         <div class="post-meta">
@@ -747,8 +1947,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-24T18:30:53+08:00">
-                2019-07-24
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
               </time>
             
 
@@ -770,8 +1970,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/游戏/" itemprop="url" rel="index">
-                    <span itemprop="name">游戏</span>
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
                   </a>
                 </span>
 
@@ -809,1300 +2009,258 @@
       
         
           
-            <h1 id="关于-Cocos-Creator"><a href="#关于-Cocos-Creator" class="headerlink" title="关于 Cocos Creator"></a>关于 Cocos Creator</h1><p>是一个完整的游戏开发解决方案</p>
-<p>包括了</p>
+            <h1 id="录音"><a href="#录音" class="headerlink" title="录音"></a>录音</h1><p> 必须在AndroidManifest中设置相应的权限：android:name=”android.permission.RECORD_AUDIO” </p>
+<p> Android提供了两个API用于实现录音功能</p>
+<h2 id="AudioRecord"><a href="#AudioRecord" class="headerlink" title="AudioRecord"></a>AudioRecord</h2><pre><code>主要是实现边录边播（AudioRecord+AudioTrack）以及对音频的实时处理（如会说话的汤姆猫、语音）
+优点：语音的实时处理，可以用代码实现各种音频的封装
+缺点：输出是PCM语音数据，如果保存成音频文件，是不能够被播放器播放的，所以必须先写代码实现数据编码以及压缩
+示例：使用AudioRecord类录音，并实现WAV格式封装。录音20s，输出的音频文件大概为3.5M左右（已写测试代码）
+    主要api：audioRecord.startRecording()，audioRecord.read，audioRecord.stop()，audioRecord.release()
+    开始录制
+    int sampleRateInHz= 44100;  //44.1KHz,普遍使用的频率   
+    int channelConfig = AudioFormat.CHANNEL_IN_STEREO;
+    int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+     // 获得缓冲区字节大小  
+    int bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
+    int audioSource = MediaRecorder.AudioSource.MIC;
+    // 创建AudioRecord对象  
+    audioRecord = new AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes);
+    audioRecord.startRecording();
+    // 开启线程将音频流写入文件  
+    new Thread(new AudioRecordThread()).start();  
+
+    class AudioRecordThread implements Runnable {  
+        @Override 
+        public void run() {  
+            writeDateTOFile();//往文件中写入裸数据  
+            copyWaveFile(AudioName, NewAudioName);//给裸数据加上头文件  
+        }  
+    } 
+    private void writeDateTOFile() {  
+        // new一个byte数组用来存一些字节数据，大小为前面获得的缓冲区大小  
+        byte[] audiodata = new byte[bufferSizeInBytes];  
+        FileOutputStream fos = null;  
+        int readsize = 0;  
+        try {  
+            File file = new File(AudioName);  //AudioName为sd卡根目录下test.raw
+            if (file.exists()) {  
+                file.delete();  
+            }  
+            fos = new FileOutputStream(file);// 建立一个可存取字节的文件  
+        } catch (Exception e) {  
+            e.printStackTrace();  
+        }  
+        while (isRecord == true) {  
+            readsize = audioRecord.read(audiodata, 0, bufferSizeInBytes);  
+            if (AudioRecord.ERROR_INVALID_OPERATION != readsize &amp;&amp; fos != null) {  
+                try {  
+                    fos.write(audiodata);  
+                } catch (IOException e) {  
+                    e.printStackTrace();  
+                }  
+            }  
+        }  
+        try {
+            if(fos != null)
+                fos.close();// 关闭写入流  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
+    } 
+    private void copyWaveFile(String inFilename, String outFilename) {  
+        FileInputStream in = null;  
+        FileOutputStream out = null;  
+        long totalAudioLen = 0;  
+        long totalDataLen = totalAudioLen + 36;  //wave头44字节，36实在不懂
+        long longSampleRate = sampleRateInHz;  //上面的44100
+        int channels = 2;  
+        long byteRate = 16 * sampleRateInHz * channels / 8;  
+        byte[] data = new byte[bufferSizeInBytes];  
+        try {  
+            in = new FileInputStream(inFilename);  
+            out = new FileOutputStream(outFilename);  
+            totalAudioLen = in.getChannel().size();  
+            totalDataLen = totalAudioLen + 36;  
+            WriteWaveFileHeader(out, totalAudioLen, totalDataLen,  
+                    longSampleRate, channels, byteRate);  
+            while (in.read(data) != -1) {  
+                out.write(data);  
+            }  
+            in.close();  
+            out.close();  
+        } catch (FileNotFoundException e) {  
+            e.printStackTrace();  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
+    }  
+    private void WriteWaveFileHeader(FileOutputStream out, long totalAudioLen,  
+        long totalDataLen, long longSampleRate, int channels, long byteRate)  
+        throws IOException {  
+        byte[] header = new byte[44];  //wave文件头44字节
+        header[0] = &apos;R&apos;; // RIFF/WAVE header  
+        header[1] = &apos;I&apos;;  
+        header[2] = &apos;F&apos;;  
+        header[3] = &apos;F&apos;;  
+        header[4] = (byte) (totalDataLen &amp; 0xff);  
+        header[5] = (byte) ((totalDataLen &gt;&gt; 8) &amp; 0xff);  
+        header[6] = (byte) ((totalDataLen &gt;&gt; 16) &amp; 0xff);  
+        header[7] = (byte) ((totalDataLen &gt;&gt; 24) &amp; 0xff);  
+        header[8] = &apos;W&apos;;  
+        header[9] = &apos;A&apos;;  
+        header[10] = &apos;V&apos;;  
+        header[11] = &apos;E&apos;;  
+        header[12] = &apos;f&apos;; // &apos;fmt &apos; chunk  
+        header[13] = &apos;m&apos;;  
+        header[14] = &apos;t&apos;;  
+        header[15] = &apos; &apos;;  
+        header[16] = 16; // 4 bytes: size of &apos;fmt &apos; chunk  
+        header[17] = 0;  
+        header[18] = 0;  
+        header[19] = 0;  
+        header[20] = 1; // format = 1  
+        header[21] = 0;  
+        header[22] = (byte) channels;  
+        header[23] = 0;  
+        header[24] = (byte) (longSampleRate &amp; 0xff);  
+        header[25] = (byte) ((longSampleRate &gt;&gt; 8) &amp; 0xff);  
+        header[26] = (byte) ((longSampleRate &gt;&gt; 16) &amp; 0xff);  
+        header[27] = (byte) ((longSampleRate &gt;&gt; 24) &amp; 0xff);  
+        header[28] = (byte) (byteRate &amp; 0xff);  
+        header[29] = (byte) ((byteRate &gt;&gt; 8) &amp; 0xff);  
+        header[30] = (byte) ((byteRate &gt;&gt; 16) &amp; 0xff);  
+        header[31] = (byte) ((byteRate &gt;&gt; 24) &amp; 0xff);  
+        header[32] = (byte) (2 * 16 / 8); // block align  
+        header[33] = 0;  
+        header[34] = 16; // bits per sample  
+        header[35] = 0;  
+        header[36] = &apos;d&apos;;  
+        header[37] = &apos;a&apos;;  
+        header[38] = &apos;t&apos;;  
+        header[39] = &apos;a&apos;;  
+        header[40] = (byte) (totalAudioLen &amp; 0xff);  
+        header[41] = (byte) ((totalAudioLen &gt;&gt; 8) &amp; 0xff);  
+        header[42] = (byte) ((totalAudioLen &gt;&gt; 16) &amp; 0xff);  
+        header[43] = (byte) ((totalAudioLen &gt;&gt; 24) &amp; 0xff);  
+        out.write(header, 0, 44);  
+    } 
+    停止录制
+    audioRecord.stop();  
+    audioRecord.release();//释放资源  
+    audioRecord = null;  
+</code></pre><h2 id="MediaRecorder"><a href="#MediaRecorder" class="headerlink" title="MediaRecorder"></a>MediaRecorder</h2><pre><code>已经集成了录音、录像、编码、压缩等，支持少量的录音音频格式，大概有.aac（API = 16以上） .amr .3gp
+优点：大部分已经集成，直接调用相关接口即可，代码量小
+缺点：无法实时处理音频；输出的音频格式不是很多，例如没有输出mp3格式文件
+示例：使用MediaRecorder类录音，输出amr格式文件。录音20s，输出的音频文件大概为33K（已写测试代码）
+    开始录制
+    mRecorder = new MediaRecorder();
+    mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+    mRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);//Android默认就是amr
+    mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+    mRecorder.setOutputFile(outputFilePath);
+    try {
+        mRecorder.prepare();
+    } catch (Exception e) {
+        e.printStackTrace();
+    } 
+    mRecorder.start();
+    停止录制
+    mRecorder.stop();
+    mRecorder.release();
+    mRecorder = null;
+
+    开始播放
+    mPlayer = new MediaPlayer();
+    try {
+        mPlayer.setDataSource(fileName);
+        mPlayer.prepare();
+        mPlayer.start();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    停止播放
+    mPlayer.stop();
+    mPlayer.release();
+    mPlayer = null;
+</code></pre><h1 id="播放"><a href="#播放" class="headerlink" title="播放"></a>播放</h1><h2 id="MediaPlayer音频视频播放"><a href="#MediaPlayer音频视频播放" class="headerlink" title="MediaPlayer音频视频播放"></a>MediaPlayer音频视频播放</h2><p>MediaPlayer支持：AAC、AMR、FLAC、MP3、MIDI、OGG、PCM、WAV等格式 </p>
+<p>资源占用量较高、延迟时间较长、不支持多个音频同时播放等</p>
+<h3 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h3><pre><code>public void startPlay(String fileName) {
+    mPlayer = new MediaPlayer();
+    try {
+        mPlayer.setDataSource(fileName);
+        mPlayer.prepare();
+        mPlayer.start();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+public void stopPlay() {
+    mPlayer.stop();
+    mPlayer.release();
+    mPlayer = null;
+}
+</code></pre><h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><pre><code>MediaPlayer 的使用介绍（翻译官方文档，详细） http://blog.csdn.net/songshizhuyuan/article/details/32900965
+</code></pre><h4 id="MediaPlayer"><a href="#MediaPlayer" class="headerlink" title="MediaPlayer"></a>MediaPlayer</h4><pre><code>这个类包含用于播放声音和视频的主要API
+</code></pre><p>Raw下的元数据</p>
+<pre><code>//直接创建，不需要设置setDataSource
+mMediaPlayer=MediaPlayer.create(this, R.raw.audio);
+mMediaPlayer.start();
+</code></pre><h4 id="AudioManager"><a href="#AudioManager" class="headerlink" title="AudioManager"></a>AudioManager</h4><pre><code>这个类用于管理音源，并在设备上的音频输出。
+</code></pre><h4 id="处理音频焦点"><a href="#处理音频焦点" class="headerlink" title="处理音频焦点"></a>处理音频焦点</h4><p>音频焦点是合作性。也就是说，应用程序应该尽量配合，以符合音频焦点的指引，但规则不是由系统执行。如果应用程序失去音讯焦点后，大声播放音乐，系统也不会阻止。</p>
+<pre><code>http://blog.csdn.net/dadoneo/article/details/8252933
+</code></pre><p>AudioFocus的申请与释放</p>
+<p>安卓2.2(api8)开始 新增 <code>AudioManager.requestAudioFocus（）</code></p>
+<p>AudioFocus被抢占与重新获得</p>
+<pre><code>http://www.android100.org/html/201510/08/188724.html
+</code></pre><h4 id="外放、听筒、耳机-模式切换"><a href="#外放、听筒、耳机-模式切换" class="headerlink" title="外放、听筒、耳机 模式切换"></a>外放、听筒、耳机 模式切换</h4><pre><code>AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+audioManager.setMicrophoneMute(false);
+audioManager.setSpeakerphoneOn(true);//使用扬声器外放，即使已经插入耳机
+audioManager.setMode(AudioManager.STREAM_MUSIC);
+</code></pre><h2 id="SoundPool"><a href="#SoundPool" class="headerlink" title="SoundPool"></a>SoundPool</h2><p>支持多个音频文件同时播放(组合音频也是有上限的)，延时短，比较适合短促、密集的场景，是游戏开发中音效播放的福音。</p>
+<p><code>SoundPool(int maxStreams, int streamType, int srcQuality)</code></p>
+<p>区分2个概念</p>
+<ol>
+<li>soundID：加载音乐资源时的返回值，int load(String path, int priority),这个int返回值就是soundID </li>
+<li>streamID：播放时返回的值，即play()方法的返回值</li>
+</ol>
+<p>这两个值都很重要，需要缓存下来</p>
+<p>某些采样频率会导致播放错误(不能播放，只能播放部分)</p>
+<h2 id="AsyncPlayer"><a href="#AsyncPlayer" class="headerlink" title="AsyncPlayer"></a>AsyncPlayer</h2><p>AsyncPlayer就是对MediaPlayer的一次简单的封装，对MediaPlaer所有的操作都在新开线程中执行。不影响调用线程任何操作。</p>
+<p>AsyncPlayer只适合简单的异步播放，不能控制进度，只能开始或停止播放。如果再次调用play()方法，AsyncPlayer会停止当前播放，开始新的播放。</p>
+<h2 id="AudioTrack播放音频"><a href="#AudioTrack播放音频" class="headerlink" title="AudioTrack播放音频"></a>AudioTrack播放音频</h2><p>AudioTrack属于更偏底层的音频播放，MediaPlayerService的内部就是使用了AudioTrack。</p>
+<p>AudioTrack用于单个音频播放和管理，相比于MediaPlayer具有：精炼、高效的优点。</p>
+<p>更适合实时产生播放数据的情况，如加密的音频，<br>MediaPlayer是束手无策的，AudioTrack却可以。</p>
+<p>AudioTrack用于播放PCM(PCM无压缩的音频格式)音乐流的回放，<br>如果需要播放其它格式音频，需要响应的解码器，<br>这也是AudioTrack用的比较少的原因，需要自己解码音频。</p>
+<h3 id="AudioTreack的2种播放模式"><a href="#AudioTreack的2种播放模式" class="headerlink" title="AudioTreack的2种播放模式"></a>AudioTreack的2种播放模式</h3><h4 id="静态模式—static"><a href="#静态模式—static" class="headerlink" title="静态模式—static"></a>静态模式—static</h4><p>数据一次性交付给接收方。好处是简单高效，只需要进行一次操作就完成了数据的传递;缺点当然也很明显，对于数据量较大的音频回放，显然它是无法胜任的，因而通常只用于播放铃声、系统提醒等对内存小的操作</p>
+<h4 id="流模式streaming"><a href="#流模式streaming" class="headerlink" title="流模式streaming"></a>流模式streaming</h4><p>流模式和网络上播放视频是类似的，即数据是按照一定规律不断地传递给接收方的。理论上它可用于任何音频播放的场景，不过我们一般在以下情况下采用：</p>
 <ul>
-<li>cocos2d-x 引擎的 JavaScript 实现（不需要学习一个新的引擎）</li>
-<li>快速开发游戏所需要的各种图形界面工具</li>
-</ul>
-<h1 id="安装-Cocos-Creator"><a href="#安装-Cocos-Creator" class="headerlink" title="安装 Cocos Creator"></a>安装 Cocos Creator</h1><h2 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h2><p>访问 <a href="https://www.cocos.com/creator/" target="_blank" rel="noopener">Cocos Creator 产品首页,详细发版记录</a> 上的下载链接获得 Cocos Creator 的安装包</p>
-<p>兼容已有旧项目，选择 <a href="http://cocos2d-x.org/filedown/CocosCreator_v2.1.0_mac" target="_blank" rel="noopener">2.1.0版本</a></p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="Mac安装"><a href="#Mac安装" class="headerlink" title="Mac安装"></a>Mac安装</h3><p>操作系统要求：最低版本是 OS X 10.9</p>
-<p>双击 DMG 文件，然后将 <code>CocosCreator.app</code> 拖拽到 <code>应用程序</code> 文件夹快捷方式</p>
-<h1 id="安装配置原生开发环境"><a href="#安装配置原生开发环境" class="headerlink" title="安装配置原生开发环境"></a>安装配置原生开发环境</h1><p>如果只想开发 Web 平台的游戏，完成上面的步骤就足够了。</p>
-<p>如果希望发布游戏到原生平台，就需要安装配置原生开发环境。</p>
-<p>Cocos Creator 使用基于 cocos2d-x 引擎的 JSB 技术实现跨平台发布原生应用。</p>
-<p>在使用 Cocos Creator 打包发布到原生平台之前，我们需要先配置好 cocos2d-x 相关的开发环境</p>
-<h2 id="Android-平台相关依赖"><a href="#Android-平台相关依赖" class="headerlink" title="Android 平台相关依赖"></a>Android 平台相关依赖</h2><h3 id="JDK"><a href="#JDK" class="headerlink" title="JDK"></a>JDK</h3><h3 id="Android-Studio"><a href="#Android-Studio" class="headerlink" title="Android Studio"></a>Android Studio</h3><h3 id="SDK"><a href="#SDK" class="headerlink" title="SDK"></a>SDK</h3><h3 id="NDK"><a href="#NDK" class="headerlink" title="NDK"></a>NDK</h3><h2 id="C-编译环境"><a href="#C-编译环境" class="headerlink" title="C++ 编译环境"></a>C++ 编译环境</h2><p>Cocos2d-x 自带的编译工具 Cocos Console 需要以下运行环境：</p>
-<ul>
-<li><p>Python 2.7.5+，<a href="https://www.python.org/downloads/" target="_blank" rel="noopener">下载页</a>，注意不要下载 Python 3.x 版本。</p>
+<li><p>音频文件过大</p>
 </li>
-<li><p>Windows 下需要安装 Visual Studio 2015 或 2017 社区版，<a href="https://www.visualstudio.com/downloads/download-visual-studio-vs" target="_blank" rel="noopener">下载页</a></p>
+<li><p>音频属性要求高，比如采样率高、深度大的数据</p>
 </li>
-<li>Mac 下需要安装 Xcode 和命令行工具，<a href="https://developer.apple.com/xcode/download/" target="_blank" rel="noopener">下载页</a></li>
-</ul>
-<h2 id="配置原生发布环境路径"><a href="#配置原生发布环境路径" class="headerlink" title="配置原生发布环境路径"></a>配置原生发布环境路径</h2><p>CocosCreator -&gt; <code>设置</code>，打开设置窗口</p>
-<p>我们在这里需要配置以下两个路径：</p>
-<p><code>NDK</code> 路径，选择 Android SDK Location 路径下的 ndk-bundle 文件夹（NDK 是其根目录），不需要编译 Android 平台的话这里可以跳过。</p>
-<p><code>Android SDK</code> 路径，选择刚才在 SDK Manager 中记下的 Android SDK Location 路径（Android SDK 的目录下应该包含 build-tools、platforms 等文件夹），不需要编译 Android 平台的话这里可以跳过。<br>配置完成后点击 保存 按钮，保存并关闭窗口。</p>
-<p>注意：这里的配置会在编译 原生工程 的时候生效。如果没有生效（一些 Mac 机器有可能出现这个情况），可能需要您尝试到 系统环境变量 设置这些值：COCOS_CONSOLE_ROOT, NDK_ROOT, ANDROID_SDK_ROOT。</p>
-<h1 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello World"></a>Hello World</h1><h2 id="创建项目"><a href="#创建项目" class="headerlink" title="创建项目"></a>创建项目</h2><p>在 <code>Dashboard</code> 中，打开 <code>新建项目</code> 选项卡，选中 <code>Hello World</code> 项目模板。</p>
-<h2 id="打开场景，开始工作"><a href="#打开场景，开始工作" class="headerlink" title="打开场景，开始工作"></a>打开场景，开始工作</h2><p>Cocos Creator 的工作流程是以数据驱动和场景为核心的，初次打开一个项目时，默认不会打开任何场景，要看到 Hello World 模板中的内容，我们需要先打开场景资源文件。</p>
-<img src="/2019/07/24/CocosCreator/CocosCreator新手上路/open_scene.png">
-<p>在 <code>资源管理器</code> 中双击箭头所指的 <code>helloworld</code> 场景文件</p>
-<h2 id="预览场景"><a href="#预览场景" class="headerlink" title="预览场景"></a>预览场景</h2><p>点击编辑器窗口正上方的 <code>预览游戏</code> 按钮。</p>
-<img src="/2019/07/24/CocosCreator/CocosCreator新手上路/preview_button.png">
-<p>Cocos Creator 会使用您的默认浏览器运行当前游戏场景。点击预览窗口左上角的下拉菜单，可以选择不同设备屏幕的预览效果。</p>
-<img src="/2019/07/24/CocosCreator/CocosCreator新手上路/preview.png">
-<h2 id="修改欢迎文字"><a href="#修改欢迎文字" class="headerlink" title="修改欢迎文字"></a>修改欢迎文字</h2><p>首先在 <code>层级管理器</code> 中选中 <code>Canvas</code> 节点，我们的 HelloWorld 组件脚本就挂在这个节点上。</p>
-<p>接下来在 <code>属性检查器</code> 面板下方找到 <code>HelloWorld</code>组件属性，然后将 <code>Text</code> 属性里的文本改成 你好，世界！</p>
-<img src="/2019/07/24/CocosCreator/CocosCreator新手上路/change_text.png">
-<p>再次运行预览，可以看到欢迎文字已经更新了</p>
-<h1 id="项目结构"><a href="#项目结构" class="headerlink" title="项目结构"></a>项目结构</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ProjectName（项目文件夹）</span><br><span class="line">	├──assets </span><br><span class="line">		├──Scene		├──Scene.meta		├──Script		├──Script.meta		├──Texture		├──Texture.meta</span><br><span class="line">	├──build</span><br><span class="line">	├──library</span><br><span class="line">	├──local</span><br><span class="line">	├──settings</span><br><span class="line">	├──temp</span><br><span class="line">	└──project.json</span><br></pre></td></tr></table></figure>
-<h2 id="assets-资源文件夹"><a href="#assets-资源文件夹" class="headerlink" title="assets 资源文件夹"></a>assets 资源文件夹</h2><p>游戏中所有本地资源、脚本和第三方库文件 </p>
-<p>显示在 <strong>资源管理器</strong> 中</p>
-<p>每个文件在导入后都会生成一个同名 <code>.meta</code> 文件，用于存储该文件作为资源导入后的信息和与其他资源的<strong>关联</strong>。</p>
-<h2 id="library-资源库"><a href="#library-资源库" class="headerlink" title="library 资源库"></a>library 资源库</h2><p><code>assets</code> 中的资源导入后<strong>自动生成</strong>的。将文件结构和资源格式处理成最终游戏发布时需要的形式。</p>
-<p>不需要进入版本控制的</p>
-<p>丢失或损坏的时候，删除整个 <code>library</code> 文件夹再打开项目，就会重新生成资源库</p>
-<h2 id="local-本地设置"><a href="#local-本地设置" class="headerlink" title="local 本地设置"></a>local 本地设置</h2><p>该项目的本地设置：包括编辑器面板布局，窗口大小，位置等信息。</p>
-<p>按照您的习惯设置编辑器布局，这些就会自动保存在这个文件夹</p>
-<p>不需要进入版本控制</p>
-<h2 id="settings-项目设置"><a href="#settings-项目设置" class="headerlink" title="settings 项目设置"></a>settings 项目设置</h2><p>项目相关的设置：<code>构建发布</code> 菜单里的包名、场景和平台选择等。</p>
-<p>需要进行版本控制</p>
-<h2 id="project-json"><a href="#project-json" class="headerlink" title="project.json"></a>project.json</h2><p><code>project.json</code> 文件和 <code>assets</code> 文件夹一起，作为验证 Cocos Creator 项目合法性的标志。只有包括了这两个内容的文件夹才能作为 Cocos Creator 项目打开。</p>
-<p>目前只用来规定当前使用的引擎类型和插件存储位置，不需要用户关心其内容。</p>
-<p>需要进行版本控制</p>
-<h2 id="build-构建目标"><a href="#build-构建目标" class="headerlink" title="build 构建目标"></a>build 构建目标</h2><p>在使用主菜单中的 <code>项目</code> -&gt; <code>构建发布...</code> 使用<strong>默认发布路径</strong>发布项目后，编辑器会在项目路径下创建 build 目录，并存放所有目标平台的构建工程。</p>
-<p>不进入版本控制</p>
-<ul>
-<li>每次构建项目后资源 id 可能会变化</li>
-<li>体积很大</li>
-</ul>
-<h1 id="打包发布原生平台"><a href="#打包发布原生平台" class="headerlink" title="打包发布原生平台"></a>打包发布原生平台</h1><p>点击菜单栏的 <code>项目</code> -&gt; <code>构建发布</code>，打开构建发布面板。</p>
-<h2 id="构建原生工程"><a href="#构建原生工程" class="headerlink" title="构建原生工程"></a>构建原生工程</h2><p>选择发布平台，设置初始场景，点击右下角的 <code>构建</code> 按钮，开始构建流程。</p>
-<img src="/2019/07/24/CocosCreator/CocosCreator新手上路/build.png">
-<p>进度条到达 100% 后请继续等待 <strong>控制台</strong> 面板(在主面板底部)中的工程构建结束</p>
-<p>编译成功</p>
-<p>控制台面板日志：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Building /Users/liyungui/StudioProjects/cocos_helloworld</span><br><span class="line">Destination /Users/liyungui/StudioProjects/cocos_helloworld/build/jsb-link</span><br><span class="line">Delete /Users/liyungui/StudioProjects/cocos_helloworld/build/jsb-link/res/**/*,/Users/liyungui/StudioProjects/cocos_helloworld/build/jsb-link/src/*/</span><br><span class="line">Checked Python Version [2.7.10]</span><br><span class="line">Creating native cocos project to /Users/liyungui/StudioProjects/cocos_helloworld/build/jsb-link</span><br><span class="line">Start building assets</span><br><span class="line">Finish building assets</span><br><span class="line">Start building plugin scripts</span><br><span class="line">Checked Python Version [2.7.10]</span><br><span class="line">Built to &quot;/Users/liyungui/StudioProjects/cocos_helloworld/build/jsb-link&quot; successfully</span><br></pre></td></tr></table></figure>
-<p>构建结束后，我们得到的是一个标准的 cocos2d-x 工程</p>
-<p>接下来我们可以选择通过 Cocos Creator 编辑器的进程进行编译，以及运行桌面预览，或手动在相应平台的 IDE 中打开构建好的原生工程，进行进一步的预览、调试和发布。</p>
-<h2 id="编译原生工程"><a href="#编译原生工程" class="headerlink" title="编译原生工程"></a>编译原生工程</h2><h3 id="通过编辑器编译"><a href="#通过编辑器编译" class="headerlink" title="通过编辑器编译"></a>通过编辑器编译</h3><p>点击下方的 <code>编译</code> 按钮，进入编译流程，如果模板选择了 default 的源码版引擎，这个编译的过程将会花费比较久的时间。</p>
-<p>编译成功</p>
-<p>控制台面板日志：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Checked Python Version [2.7.10]</span><br><span class="line">Start to compile native project. Please wait...</span><br><span class="line">The log file path [ /Users/liyungui/.CocosCreator/logs/native.log ]</span><br><span class="line">Compile native project successfully.</span><br></pre></td></tr></table></figure>
-<p>注意：首次编译 Android 平台，建议通过 Android Studio 打开工程，根据提示下载缺失的工具，再进行编译运行。</p>
-<h2 id="运行预览原生工程"><a href="#运行预览原生工程" class="headerlink" title="运行预览原生工程"></a>运行预览原生工程</h2><h3 id="通过编辑器运行预览"><a href="#通过编辑器运行预览" class="headerlink" title="通过编辑器运行预览"></a>通过编辑器运行预览</h3><p>点击右下角的 <code>运行</code> 按钮，通过默认方式预览原生平台的游戏。</p>
-<p>点击运行后，视平台不同可能还会继续进行一部分编译工作，请耐心等待或通过日志文件查看进展。</p>
-<p>其中 Mac/Windows 平台直接在桌面运行预览，iOS 平台会调用模拟器运行预览，Android 平台必须通过 USB 连接真机，并且在真机上开启 USB 调试后才可以运行预览。</p>
-<p>运行成功后，logcat日志 过滤 tag: jswrapper</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">2019-07-24 19:02:18.986 6156-6195/? D/jswrapper: Initializing V8, version: 6.0.286.52</span><br><span class="line">2019-07-24 19:02:20.081 6156-6195/? D/jswrapper: JS: Enable batch GL commands optimization!</span><br><span class="line">2019-07-24 19:02:20.960 6156-6195/? D/jswrapper: glGetIntegerv: pname: 0x8b4c</span><br><span class="line">2019-07-24 19:02:21.004 6156-6195/? D/jswrapper: JS: Cocos Creator v2.1.0</span><br><span class="line">2019-07-24 19:02:21.078 6156-6195/? D/jswrapper: JS: LoadScene 2dL3kvpAxJu6GJ7RdqJG5J: 70.58299999999986ms</span><br><span class="line">2019-07-24 19:02:21.082 6156-6195/? D/jswrapper: JS: Success to load scene: db://assets/Scene/helloworld.fire</span><br></pre></td></tr></table></figure>
-<h2 id="使用原生工程"><a href="#使用原生工程" class="headerlink" title="使用原生工程"></a>使用原生工程</h2><p>点击发布路径旁边的 <code>打开</code>按钮，就会在操作系统的文件管理器中打开构建发布路径。</p>
-<img src="/2019/07/24/CocosCreator/CocosCreator新手上路/open_project.png">
-<p>这个路径中的 <code>jsb-default</code> 或 <code>jsb-link</code> （根据选择模板不同）里就包含了所有原生构建工程。</p>
-<img src="/2019/07/24/CocosCreator/CocosCreator新手上路/native_projects.jpg">
-<p>接下来您只要使用原生平台对应的 IDE （如 Xcode、Android Studio、Visual Studio）打开这些工程，就可以进行进一步的编译、预览、发布操作了。</p>
-<p>注意：在 MIUI 10 系统上运行 debug 模式构建的工程可能会弹出 “Detected problems with API compatibility” 的提示框，这是 MIUI 10 系统自身引入的问题，使用 release 模式构建即可。<br>s</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.cocos.com/creator/" target="_blank" rel="noopener">Cocos Creator 产品首页,详细发版记录</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/19/Android/UI性能优化/卡顿分析-正确评测流畅度/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/19/Android/UI性能优化/卡顿分析-正确评测流畅度/" itemprop="url">卡顿分析-正确评测流畅度</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-19T18:05:53+08:00">
-                2019-07-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="使用FPS评测应用流畅度不科学"><a href="#使用FPS评测应用流畅度不科学" class="headerlink" title="使用FPS评测应用流畅度不科学"></a>使用FPS评测应用流畅度不科学</h1><p>说到应用的流畅度，都会想到FPS</p>
-<p>FPS(Frames Per Second) 每秒帧数</p>
-<p>Android系统获取FPS的原理是：SurfaceFLinger类把系统所有进程当前需要显示的信息合成一帧，提交到屏幕上进行显示。FPS就是1秒内SurfaceFLinger提交到屏幕的帧数。</p>
-<p>用FPS评测应用是否卡顿存在两个问题。</p>
-<ul>
-<li>有的时候FPS很低，APP看起来却很流畅；<ul>
-<li>当前界面在1秒内只需要10帧的显示需求，FPS只要高于10就可以了，如果屏幕根本没有绘制需求，那FPS的值就是0</li>
-</ul>
-</li>
-<li>APP停止操作之后，FPS还是在一直变化</li>
-</ul>
-<h1 id="VSYNC信号"><a href="#VSYNC信号" class="headerlink" title="VSYNC信号"></a>VSYNC信号</h1><p>Android渲染机制是每隔16ms发出VSYNC信号，触发对UI的渲染，16ms没完成绘制就会卡顿。</p>
-<p>VSync机制就像是一台固定转速的发动机(60转/s)。每一转会带动着去做一些UI相关的事情，但不是每一转都会有工作去做。有时候某一转因为工作量比较重超过了16.6ms，那么这台发动机这秒内就不是60转了，转速降低。我们把这个转速叫做流畅度。流畅度越小说明当前程序越卡顿。</p>
-<h1 id="Choreographer帧率检测原理"><a href="#Choreographer帧率检测原理" class="headerlink" title="Choreographer帧率检测原理"></a>Choreographer帧率检测原理</h1><p>Choreographer中（英[ˌkɒrɪ’ɒɡrəfə(r)] 美[ˌkɒrɪ’ɒɡrəfə(r)]）编舞者</p>
-<p>我们有时候会看到这样的log，系统帮助我们打印出了跳帧数。这个日志来自于<code>Choreographer.doFrame</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">02-07 19:47:04.337 17601-17601/zhangwan.wj.com.choreographertest I/Choreographer: Skipped 60 frames!  The application may be doing too much work on its main thread.</span><br><span class="line">02-07 19:47:11.685 17601-17601/zhangwan.wj.com.choreographertest I/Choreographer: Skipped 85 frames!  The application may be doing too much work on its main thread.</span><br><span class="line">02-07 19:47:12.545 17601-17601/zhangwan.wj.com.choreographertest I/Choreographer: Skipped 37 frames!  The application may be doing too much work on its main thread.</span><br><span class="line">02-07 19:47:14.893 17601-17601/zhangwan.wj.com.choreographertest I/Choreographer: Skipped 37 frames!  The application may be doing too much work on its main thread.</span><br><span class="line">02-07 19:47:23.049 17601-17601/zhangwan.wj.com.choreographertest I/Choreographer: Skipped 36 frames!  The application may be doing too much work on its main thread.</span><br><span class="line">02-07 19:47:23.929 17601-17601/zhangwan.wj.com.choreographertest I/Choreographer: Skipped 37 frames!  The application may be doing too much work on its main thread.</span><br><span class="line">02-07 19:47:24.961 17601-17601/zhangwan.wj.com.choreographertest I/Choreographer: Skipped 61 frames!  The application may be doing too much work on its main thread.</span><br><span class="line">02-07 19:47:25.817 17601-17601/zhangwan.wj.com.choreographertest I/Choreographer: Skipped 36 frames!  The application may be doing too much work on its main thread.</span><br><span class="line">02-07 19:47:26.433 17601-17601/zhangwan.wj.com.choreographertest I/Choreographer: Skipped 36 frames!  The application may be doing too much work on its main thread.</span><br></pre></td></tr></table></figure>
-<p>阈值默认是30，跳帧超过30帧则打印警告日志，所以上面的log并不是经常看到</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SKIPPED_FRAME_WARNING_LIMIT =SystemProperties.getInt( <span class="string">"debug.choreographer.skipwarning"</span>, <span class="number">30</span>);</span><br></pre></td></tr></table></figure>
-<p>如果我们用反射的方法把SKIPPED_FRAME_WARNING_LIMIT的值设置成1，这样只要有丢帧，就会有上面的log输出。我们只要捕获这个log提取出skippedFrames 就可以知道界面是否卡顿</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    Field field = Choreographer.class.getDeclaredField(<span class="string">"SKIPPED_FRAME_WARNING_LIMIT"</span>);</span><br><span class="line">    field.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">    field.set(Choreographer.class,<span class="number">1</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="检测帧率"><a href="#检测帧率" class="headerlink" title="检测帧率"></a>检测帧率</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">FrameCallback</span> </span>&#123;  </span><br><span class="line">  <span class="comment">//当新的一帧被绘制的时候被调用。  </span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doFrame</span><span class="params">(<span class="keyword">long</span> frameTimeNanos)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>自定义FrameCallback。记录下每一帧开始渲染的时间，在下一帧被处理时，判断上一帧在渲染过程中是否出现掉帧。</p>
-<p>在需要检测的Activity中调用 SMFrameCallback.getInstance().start()即可</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SMFrameCallback</span> <span class="keyword">implements</span> <span class="title">Choreographer</span>.<span class="title">FrameCallback</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span>  SMFrameCallback sInstance;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String TAG=<span class="string">"SMFrameCallback"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">float</span> deviceRefreshRateMs=<span class="number">16.6f</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span>  <span class="keyword">long</span> lastFrameTimeNanos=<span class="number">0</span>;<span class="comment">//纳秒为单位</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span>  <span class="keyword">long</span> currentFrameTimeNanos=<span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Choreographer.getInstance().postFrameCallback(SMFrameCallback.getInstance());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> SMFrameCallback <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (sInstance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            sInstance = <span class="keyword">new</span> SMFrameCallback();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sInstance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doFrame</span><span class="params">(<span class="keyword">long</span> frameTimeNanos)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(lastFrameTimeNanos==<span class="number">0</span>)&#123;</span><br><span class="line">            lastFrameTimeNanos=frameTimeNanos;</span><br><span class="line">            Choreographer.getInstance().postFrameCallback(<span class="keyword">this</span>);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        currentFrameTimeNanos=frameTimeNanos;</span><br><span class="line">        <span class="keyword">float</span> value=(currentFrameTimeNanos-lastFrameTimeNanos)/<span class="number">1000000.0f</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> <span class="keyword">int</span> skipFrameCount = skipFrameCount(lastFrameTimeNanos, currentFrameTimeNanos, deviceRefreshRateMs);</span><br><span class="line">        Log.e(TAG,<span class="string">"两次绘制时间间隔value="</span>+value+<span class="string">"  frameTimeNanos="</span>+frameTimeNanos+<span class="string">"  currentFrameTimeNanos="</span>+currentFrameTimeNanos+<span class="string">"  skipFrameCount="</span>+skipFrameCount+<span class="string">""</span>);</span><br><span class="line">        lastFrameTimeNanos=currentFrameTimeNanos;</span><br><span class="line">        Choreographer.getInstance().postFrameCallback(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     *计算跳过多少帧</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> start</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> end</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> devicefreshRate</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span>  <span class="keyword">int</span> <span class="title">skipFrameCount</span><span class="params">(<span class="keyword">long</span> start,<span class="keyword">long</span> end,<span class="keyword">float</span> devicefreshRate)</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> count =<span class="number">0</span>;</span><br><span class="line">        <span class="keyword">long</span> diffNs=end-start;</span><br><span class="line">        <span class="keyword">long</span> diffMs = Math.round(diffNs / <span class="number">1000000.0f</span>);</span><br><span class="line">        <span class="keyword">long</span> dev=Math.round(devicefreshRate);</span><br><span class="line">        <span class="keyword">if</span>(diffMs&gt;dev)&#123;</span><br><span class="line">            <span class="keyword">long</span> skipCount=diffMs/dev;</span><br><span class="line">            count=(<span class="keyword">int</span>)skipCount;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span>  count;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>有跳帧的时候输出的日志是</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">02-07 20:21:53.909 9530-9530/zhangwan.wj.com.choreographertest E/SMFrameCallback: 两次绘制时间间隔value=16.666666  frameTimeNanos=7177466379568  currentFrameTimeNanos=7177466379568  skipFrameCount=0</span><br><span class="line">02-07 20:21:53.925 9530-9530/zhangwan.wj.com.choreographertest E/SMFrameCallback: 两次绘制时间间隔value=16.666666  frameTimeNanos=7177483046234  currentFrameTimeNanos=7177483046234  skipFrameCount=0</span><br><span class="line">02-07 20:21:54.133 9530-9530/zhangwan.wj.com.choreographertest E/SMFrameCallback: 两次绘制时间间隔value=200.0  frameTimeNanos=7177683046226  currentFrameTimeNanos=7177683046226  skipFrameCount=11</span><br><span class="line">02-07 20:21:54.745 9530-9530/zhangwan.wj.com.choreographertest E/SMFrameCallback: 两次绘制时间间隔value=616.6666  frameTimeNanos=7178299712868  currentFrameTimeNanos=7178299712868  skipFrameCount=36</span><br><span class="line">02-07 20:21:54.757 9530-9530/zhangwan.wj.com.choreographertest E/SMFrameCallback: 两次绘制时间间隔value=16.666666  frameTimeNanos=7178316379534  currentFrameTimeNanos=7178316379534  skipFrameCount=0</span><br><span class="line">02-07 20:21:54.773 9530-9530/zhangwan.wj.com.choreographertest E/SMFrameCallback: 两次绘制时间间隔value=16.666666  frameTimeNanos=7178333046200  currentFrameTimeNanos=7178333046200  skipFrameCount=0</span><br><span class="line">02-07 20:21:54.789 9530-9530/zhangwan.wj.com.choreographertest E/SMFrameCallback: 两次绘制时间间隔value=16.666666  frameTimeNanos=7178349712866  currentFrameTimeNanos=7178349712866  skipFrameCount=0</span><br></pre></td></tr></table></figure>
-<p>看到两次绘制的时间间隔相差616.6666毫秒，跳过了36帧，这个卡顿用户是能够明显感知的。</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.jianshu.com/p/d126640eccb1" target="_blank" rel="noopener">Android性能优化第（十 一）篇—卡顿分析，正确评测流畅度</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/17/java基础/Timer设计缺陷分析/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/17/java基础/Timer设计缺陷分析/" itemprop="url">Timer设计缺陷分析</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-17T14:41:53+08:00">
-                2019-07-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>APP模块中使用Timer需要实现一个10秒一次的心跳</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">mHeartBeatTimer = <span class="keyword">new</span> Timer();</span><br><span class="line">mHeartBeatTimerTask = <span class="keyword">new</span> TimerTask() &#123;</span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">try</span> &#123;</span><br><span class="line">			<span class="comment">//直接在Timer线程进行API请求，未开启线程</span></span><br><span class="line"> 		&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">			ExceptionUtil.handle(e);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br><span class="line">mHeartBeatTimer.schedule(mHeartBeatTimerTask, <span class="number">0</span>, <span class="number">10</span> * <span class="number">1000</span>);</span><br></pre></td></tr></table></figure>
-<p>上线后发现存在心跳丢失问题。</p>
-<p>排查bugly发现没有任何异常和崩溃，初步怀疑是Timer的问题。</p>
-<h1 id="Timer缺陷"><a href="#Timer缺陷" class="headerlink" title="Timer缺陷"></a>Timer缺陷</h1><p>下面来自《Java并发编程实战》：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1.Timer在执行所有定时任务时只会创建一个线程。</span><br><span class="line">	如果某个任务的执行时间长度大于其周期时间长度，那么就会导致这一次的任务还在执行，而下一个周期的任务已经需要开始执行了，</span><br><span class="line">	当然在一个线程内这两个任务只能顺序执行，有两种情况：对于之前需要执行但还没有执行的任务，</span><br><span class="line">		scheduleAtFixedRate，任务快速调用。当前任务执行完马上执行那些任务（按顺序来），</span><br><span class="line">		schedule，任务丢失。干脆把那些任务丢掉，不去执行它们。</span><br><span class="line">2.如果TimerTask抛出了一个未检出的异常，那么Timer线程就会被终止掉，</span><br><span class="line">之前已经被调度但尚未执行的TimerTask就不会再执行了，新的任务也不能被调度了。</span><br></pre></td></tr></table></figure>
-<h1 id="Timer源码分析"><a href="#Timer源码分析" class="headerlink" title="Timer源码分析"></a>Timer源码分析</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Timer</span> </span>&#123;</span><br><span class="line">	<span class="comment">//任务队列。</span></span><br><span class="line">	<span class="comment">//内部是一个数组，按任务执行时间排序</span></span><br><span class="line">	<span class="comment">//存放Timer的TimerTask；Timer生产，TimerThread消费</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> TaskQueue queue = <span class="keyword">new</span> TaskQueue();</span><br><span class="line">	<span class="comment">//Thread子类。run()中死循环 检查和执行 任务队列的任务</span></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> TimerThread thread = <span class="keyword">new</span> TimerThread(queue);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//构造方法。设置线程名称和Daemon，开启线程</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">Timer</span><span class="params">(String name, <span class="keyword">boolean</span> isDaemon)</span> </span>&#123;</span><br><span class="line">        thread.setName(name);</span><br><span class="line">        thread.setDaemon(isDaemon);</span><br><span class="line">        thread.start();<span class="comment">//开启</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">schedule</span><span class="params">(TimerTask task, Date firstTime, <span class="keyword">long</span> period)</span> </span>&#123;</span><br><span class="line">    	<span class="comment">//period设置为负值</span></span><br><span class="line">        sched(task, firstTime.getTime(), -period);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">scheduleAtFixedRate</span><span class="params">(TimerTask task, Date firstTime,</span></span></span><br><span class="line"><span class="function"><span class="params">                                    <span class="keyword">long</span> period)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (period &lt;= <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Non-positive period."</span>);</span><br><span class="line">        sched(task, firstTime.getTime(), period);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">sched</span><span class="params">(TimerTask task, <span class="keyword">long</span> time, <span class="keyword">long</span> period)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (time &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"Illegal execution time."</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 限制period最大值</span></span><br><span class="line">        <span class="keyword">if</span> (Math.abs(period) &gt; (Long.MAX_VALUE &gt;&gt; <span class="number">1</span>))</span><br><span class="line">            period &gt;&gt;= <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">synchronized</span>(queue) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!thread.newTasksMayBeScheduled)</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Timer already cancelled."</span>);</span><br><span class="line"></span><br><span class="line">			<span class="comment">//设置task属性</span></span><br><span class="line">            <span class="keyword">synchronized</span>(task.lock) &#123;</span><br><span class="line">                <span class="keyword">if</span> (task.state != TimerTask.VIRGIN)</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(</span><br><span class="line">                        <span class="string">"Task already scheduled or cancelled"</span>);</span><br><span class="line">                task.nextExecutionTime = time;</span><br><span class="line">                task.period = period;</span><br><span class="line">                task.state = TimerTask.SCHEDULED;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">			<span class="comment">//将task加入队列</span></span><br><span class="line">            queue.add(task);</span><br><span class="line">            <span class="keyword">if</span> (queue.getMin() == task)</span><br><span class="line">                queue.notify();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TimerThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">	<span class="comment">//用来标识是否可以添加新任务</span></span><br><span class="line">    <span class="keyword">boolean</span> newTasksMayBeScheduled = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">private</span> TaskQueue queue;</span><br><span class="line"></span><br><span class="line">    TimerThread(TaskQueue queue) &#123;</span><br><span class="line">        <span class="keyword">this</span>.queue = queue;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            mainLoop();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="comment">// Someone killed this Thread, behave as if Timer cancelled</span></span><br><span class="line">            <span class="keyword">synchronized</span>(queue) &#123;</span><br><span class="line">                newTasksMayBeScheduled = <span class="keyword">false</span>;</span><br><span class="line">                queue.clear();  <span class="comment">// Eliminate obsolete references</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">mainLoop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                TimerTask task;</span><br><span class="line">                <span class="keyword">boolean</span> taskFired;<span class="comment">//任务是否过期(执行时间&lt;=现在时间)</span></span><br><span class="line">                <span class="keyword">synchronized</span>(queue) &#123;</span><br><span class="line">                    <span class="comment">// 死循环，等待任务队列非空</span></span><br><span class="line">                    <span class="keyword">while</span> (queue.isEmpty() &amp;&amp; newTasksMayBeScheduled)</span><br><span class="line">                        queue.wait();</span><br><span class="line">                    <span class="keyword">if</span> (queue.isEmpty())</span><br><span class="line">                        <span class="keyword">break</span>; <span class="comment">// 任务队列为空，且不可添加新任务，结束TimerThread线程</span></span><br><span class="line">                    <span class="comment">// 任务队列非空，检查和执行第一个任务</span></span><br><span class="line">                    <span class="keyword">long</span> currentTime, executionTime;</span><br><span class="line">                    task = queue.getMin();</span><br><span class="line">                    <span class="keyword">synchronized</span>(task.lock) &#123;</span><br><span class="line">                        <span class="keyword">if</span> (task.state == TimerTask.CANCELLED) &#123;</span><br><span class="line">                            queue.removeMin();</span><br><span class="line">                            <span class="keyword">continue</span>;  <span class="comment">// 该任务已取消，直接从队列中移除，等待下一任务</span></span><br><span class="line">                        &#125;</span><br><span class="line">                        currentTime = System.currentTimeMillis();</span><br><span class="line">                        executionTime = task.nextExecutionTime;</span><br><span class="line">                        <span class="comment">//任务已过期</span></span><br><span class="line">                        <span class="keyword">if</span> (taskFired = (executionTime&lt;=currentTime)) &#123;</span><br><span class="line">                            <span class="keyword">if</span> (task.period == <span class="number">0</span>) &#123; <span class="comment">// 不需要重复执行，直接移除</span></span><br><span class="line">                                queue.removeMin();</span><br><span class="line">                                task.state = TimerTask.EXECUTED;</span><br><span class="line">                            &#125; <span class="keyword">else</span> &#123; <span class="comment">// 需要重复执行，修改task下一次执行时间，并刷新任务队列排序</span></span><br><span class="line">                                queue.rescheduleMin(</span><br><span class="line">                                  task.period&lt;<span class="number">0</span> ? currentTime - task.period</span><br><span class="line">                                                : executionTime + task.period);</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">if</span> (!taskFired) <span class="comment">// Task hasn't yet fired; wait</span></span><br><span class="line">                        queue.wait(executionTime - currentTime);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (taskFired)  <span class="comment">// 任务已过期，立即执行</span></span><br><span class="line">                    task.run();</span><br><span class="line">            &#125; <span class="keyword">catch</span>(InterruptedException e) &#123;<span class="comment">//捕获异常</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>Timer在执行定时任务时只创建一个线程，如果任务耗时超过了两个任务的间隔时间，会发生一些缺陷<ul>
-<li>schedule <strong>Timer任务丢失</strong>    <ul>
-<li>period&lt;0，下一次执行时间 = currentTime - task.period；</li>
-<li>任务被重置。从现在开始，period周期间隔后执行一次任务。</li>
-<li>那么之前预想在period这个间隔内存在的任务执行就没了，也就是 <strong>任务丢失</strong> 问题</li>
-</ul>
-</li>
-<li>scheduleAtFixedRate <strong>Timer任务快速调用</strong><ul>
-<li>period&gt;0，下一次执行时间 = executionTime + task.period；</li>
-<li>下一次任务还是按原来的算。从原来应该的执行时间开始，period周期间隔后执行一次任务。</li>
-<li>如果这时executionTime + task.period还先于currentTime，那么下一个任务就会马上执行，也就是 <strong>任务快速调用</strong> 问题。</li>
-</ul>
+<li><p>音频数据是实时产生的，这种情况就只能用流模式了</p>
 </li>
 </ul>
-</li>
-<li><p>TimerTask异常导致 <strong>Timer线程异常结束</strong></p>
-<ul>
-<li>TimerThread run方法的死循环只捕获了 <strong>InterruptedException</strong>  异常<ul>
-<li>当前线程可以被中断，被操作系统挂到一边休息，然后又回来继续执行</li>
-<li>其它异常，那么整个循环就挂掉，导致线程结束</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>Timer执行周期任务时 <strong>依赖系统时间</strong> ,修改系统时间容易导致任务被挂起（如果当前时间小于执行时间）</p>
-</li>
-</ul>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>使用Timer实现定时发心跳包可能会有问题</p>
-<p>如果Timer线程在执行过程中被中断了，那么调用schedule的就很有可能导致心跳包没有发出去，而调用scheduleAtFixedRate的又可能会导致Timer线程没有占用CPU时心跳包没发出去，某一时刻又快速地发送好几个心跳包。</p>
-<p>因此在Android中如果需要一个严格准时的定时操作，一般使用 <strong>AlarmManager</strong> 实现。</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.csdn.net/u012619640/article/details/50749715" target="_blank" rel="noopener">Java中的Timer源码分析及缺陷</a></li>
-</ul>
+<p>通过write(byte[], int, int), write(short[], int, int)<br>write(float[], int, int, int)等方法推送解码数据到AudioTrack</p>
+<h2 id="Ringtone和RingtoneManager"><a href="#Ringtone和RingtoneManager" class="headerlink" title="Ringtone和RingtoneManager"></a>Ringtone和RingtoneManager</h2><p>Ringtone为铃声、通知和其他类似声音提供快速播放的方法</p>
+<p>RingtoneManager提供系统铃声列表检索方法，Ringtone实例需要从RingtoneManager获取</p>
+<h3 id="RingtoneManager"><a href="#RingtoneManager" class="headerlink" title="RingtoneManager"></a>RingtoneManager</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>. <span class="comment">// 两个构造方法</span></span><br><span class="line">RingtoneManager(Activity activity)</span><br><span class="line">RingtoneManager(Context context)</span><br><span class="line"></span><br><span class="line"><span class="number">2</span>. <span class="comment">// 获取指定声音类型(铃声、通知、闹铃等)的默认声音的Uri</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> Uri <span class="title">getDefaultUri</span><span class="params">(<span class="keyword">int</span> type)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">3. <span class="comment">// 获取系统所有Ringtone的cursor</span></span></span><br><span class="line"><span class="function">Cursor <span class="title">getCursor</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">4. <span class="comment">// 获取cursor指定位置的Ringtone uri</span></span></span><br><span class="line"><span class="function">Uri <span class="title">getRingtoneUri</span><span class="params">(<span class="keyword">int</span> position)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">5. <span class="comment">// 判断指定Uri是否为默认铃声</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isDefault</span><span class="params">(Uri ringtoneUri)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">6. <span class="comment">//获取指定uri的所属类型</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">getDefaultType</span><span class="params">(Uri defaultRingtoneUri)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">7. <span class="comment">//将指定Uri设置为指定声音类型的默认声音</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">setActualDefaultRingtoneUri</span><span class="params">(Context context, <span class="keyword">int</span> type, Uri ringtoneUri)</span></span></span><br></pre></td></tr></table></figure>
+<h2 id="JetPlayer播放音频"><a href="#JetPlayer播放音频" class="headerlink" title="JetPlayer播放音频"></a>JetPlayer播放音频</h2><p>用于播放 ”.jet”文件</p>
+<p>JET常用于控制游戏的声音特效，采用MIDI（Musical Instrument Digital Interface）格式。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><pre><code>对于延迟度要求不高，并且希望能够更全面的控制音乐的播放，MediaPlayer比较适合
 
-          
-        
-      
-    </div>
-    
-    
-    
+声音短小，延迟度小，并且需要几种声音同时播放的场景，适合使用SoundPool
 
-    
+对于简单的播放，不需要复杂控制的播放，可以给使用AsyncPlayer，所有操作均在子线程不阻塞UI
 
-    
+播放大文件音乐，如WAV无损音频和PCM无压缩音频，可使用更底层的播放方式AudioTrack。它支持流式播放，可以读取(可来自本地和网络)音频流，却播放延迟较小。 
+ps：据我测试AudioTrack直接支持WAV和PCM，其他音频需要解码成PCM格式才能播放。(其他无损格式没有尝试，有兴趣可以使本文提供的例子测试一下)
 
-    
+.jet的音频比较少见(有的游戏中在使用)，可使用专门的播放器JetPlayer播放
 
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/10/Android/View.post不靠谱/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/10/Android/View.post不靠谱/" itemprop="url">View.post不靠谱</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-10T18:36:53+08:00">
-                2019-07-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>有时候，我们会用 View.post() 方法，来将一个 Runnable 发送到主线程去执行。这一切，看似很美好，它最终会通过一个 Handler.post() 方法去执行，又避免我们重新定义一个 Handler 对象。</p>
-<p>但是，在 Android 7.0（Api level 24） 上，View.post() 将不再那么靠谱了，你post() 出去的 Runnable ，可能永远也不会有机会得到执行。</p>
-<h1 id="post-在-7-0-的差异"><a href="#post-在-7-0-的差异" class="headerlink" title="post 在 7.0 的差异"></a>post 在 7.0 的差异</h1><p>在 Api23 及以下，<code>executeAction()</code> 是会被<strong>循环调用</strong>（一个 VSync 的间隔），基本上其内的 mActions 中，只要有未执行的 Runnable 立刻就会被消费掉</p>
-<p>在 Api24 及以上，<code>executeActions()</code> 只在 <code>dispatchAttachedToWindow()</code> 中才有机会被<strong>调用一次</strong>，而 <code>View.dispatchAttachedToWindow()</code> 只有在这个 View 通过 addView() 方法，或者原本写在页面布局的 xml 中（实际上也是调用的 addView()），加入到一个 ViewGroup 的时候，才会被调用到</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>View.post() 方法，在不同版本的差异，根本原因还是在于 Api23 和 Api24 中，<code>executeActions()</code> 方法的调用时机不同，导致 View 在没有 mAttachInfo 对象的时候，表现不一样了。</p>
-<p>所以我们在使用的过程中需要慎用，区分出实际使用的场景，一般规范自己的代码即可：</p>
-<ul>
-<li>动态创建的 View ，如果视条件去决定是否加入到根布局中，则不要使用它来调用 post() 方法。</li>
-<li>尽量避免使用 View.post() 方法，可以直接使用 Handler.post() 方法来替代。</li>
-</ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.cnblogs.com/plokmju/p/7481727.html" target="_blank" rel="noopener">View.post() 不靠谱的地方你知道吗？</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/10/Android/View 的可见性检查/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/10/Android/View 的可见性检查/" itemprop="url">View 的可见性检查</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-10T18:24:53+08:00">
-                2019-07-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <img src="/2019/07/10/Android/View%20的可见性检查/visibility.png">
-<p>四种方法获取的结果如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">View5.getVisibility() = View.VISIBLE;</span><br><span class="line">View5.isShown() = <span class="keyword">true</span>; </span><br><span class="line">View5.getGlobalVisibleRect() = <span class="keyword">false</span>;</span><br><span class="line">View5.getLocalVisibleRect() =  <span class="keyword">false</span>;</span><br></pre></td></tr></table></figure>
-<h1 id="View-getVisibility"><a href="#View-getVisibility" class="headerlink" title="View.getVisibility()"></a>View.getVisibility()</h1><p>最基本的检查View可见性的方法</p>
-<p>如果这个方法返回的是View.INVISIBLE或者View.GONE，那么这个View肯定是对用户不可见的。</p>
-<h1 id="View-isShown"><a href="#View-isShown" class="headerlink" title="View.isShown()"></a>View.isShown()</h1><ul>
-<li>递归</li>
-<li>检查View以及它的parentView的Visibility == View.VISIBLE，</li>
-<li>检查parentView == null<ul>
-<li>也就是说所有的parentView都不能为null。否则就说明这个View根本没有被addView过</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns the visibility of this view and all of its ancestors</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> True if this view and all of its ancestors are &#123;<span class="doctag">@link</span> #VISIBLE&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isShown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    View current = <span class="keyword">this</span>;</span><br><span class="line">    <span class="comment">//noinspection ConstantConditions</span></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> ((current.mViewFlags &amp; VISIBILITY_MASK) != VISIBLE) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        ViewParent parent = current.mParent;</span><br><span class="line">        <span class="keyword">if</span> (parent == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>; <span class="comment">// We are not attached to the view root</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!(parent <span class="keyword">instanceof</span> View)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        current = (View) parent;</span><br><span class="line">    &#125; <span class="keyword">while</span> (current != <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="View-getGlobalVisibleRect"><a href="#View-getGlobalVisibleRect" class="headerlink" title="View.getGlobalVisibleRect()"></a>View.getGlobalVisibleRect()</h1><p>返回一个View是否可见的boolean值，同时还会将该View的可见区域left，top，right，bottom值保存在一个rect对象中</p>
-<p>获得的rect坐标系的原点是屏幕的左上角</p>
-<p>调用的是<code>getGlobalVisibleRect(Rect r, Point globalOffset)</code></p>
-<h1 id="View-getLocalVisibleRect"><a href="#View-getLocalVisibleRect" class="headerlink" title="View.getLocalVisibleRect()"></a>View.getLocalVisibleRect()</h1><p>获得的rect坐标系的原点是View自己的左上角</p>
-<p>其也会调用<code>getGlobalVisibleRect()</code></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">getLocalVisibleRect</span><span class="params">(Rect r)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Point offset = mAttachInfo != <span class="keyword">null</span> ? mAttachInfo.mPoint : <span class="keyword">new</span> Point();</span><br><span class="line">    <span class="keyword">if</span> (getGlobalVisibleRect(r, offset)) &#123;</span><br><span class="line">        r.offset(-offset.x, -offset.y); <span class="comment">// make r local</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>先获取View的offset point（相对屏幕或者ParentView的偏移坐标），</li>
-<li>再调用getGlobalVisibleRect(Rect r, Point globalOffset)方法来获取可见区域</li>
-<li>最后再把得到的GlobalVisibleRect和Offset坐标做一个加减法，转换坐标系原点</li>
-</ul>
-<p>View在屏幕中全部不可见时(图中view5)，两者的visibility都为false，且两者获取的rect值相同。由源码可以知道，getLocalVisibleRect()最终调用的是getGlobalVisibleRect()方法，并会减去View自身的便偏移坐标offset point，但只有当View可见时才会减去这个偏移坐标，要是不可见就直接返回了，所以此时两者获取出的rect值是相同的</p>
-<h1 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h1><ul>
-<li><code>getGlobalVisibleRect()</code> <code>getLocalVisibleRect()</code>判断View的可见性时，一定要等View绘制完成后，再去调用这两个方法，否则无法得到对的结果，返回值的rect值都是0，visibility为false。这和获取View的宽高原理是一样的，如果View没有被绘制完成，那么View.getWidth和View.getHeight一定是等于0的</li>
-<li><code>getGlobalVisibleRect()</code>只能检查出这个View在手机屏幕（或者说是相对它的父View）的位置，而不能检查出与其他兄弟View的相对位置:<br>比如有一个ViewGroup，下面有View1、View2这两个子View，View1和View2是平级关系。此时如果View2盖住了View1，那么用getGlobalVisibleRect方法检查View1的可见性，得到的返回值依然是true，得到的可见矩形区域rect也是没有任何变化的。</li>
-</ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.jianshu.com/p/30b0ae304518" target="_blank" rel="noopener">View 的可见性检查还可以这样</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/04/Android/setVisibility不起作用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/04/Android/setVisibility不起作用/" itemprop="url">setVisibility不起作用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-04T17:40:53+08:00">
-                2019-07-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="控件本身正在执行动画"><a href="#控件本身正在执行动画" class="headerlink" title="控件本身正在执行动画"></a>控件本身正在执行动画</h1><p>解决方案：view.clearAnimation()</p>
-<h1 id="控件还在使用当中"><a href="#控件还在使用当中" class="headerlink" title="控件还在使用当中"></a>控件还在使用当中</h1><p>比如设置点击某个ViewGroup的子View后，让改ViewGroup 消失。就极有可能导致setVisibility 无效</p>
-<p>解决方案：利用Handler.post()发送 setVisibility任务</p>
-<h1 id="设备性能问题"><a href="#设备性能问题" class="headerlink" title="设备性能问题"></a>设备性能问题</h1><p>方案一：</p>
-<p>利用Handler.post()发送 setVisibility任务</p>
-<p>这个方法同样适用于<strong>动画不生效等其他UI异常</strong></p>
-<p>方案二：重新加载，即重新构造。</p>
-<p>setVisibility 后 调用view.invalidate()或者view.postinvalidate()；</p>
-<p>如果也不行，直接调用自身的requestLayout或者其父容器的requestLayout()进行强制的界面即时刷新重构;</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/24/java基础/线程/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/06/24/java基础/线程/" itemprop="url">线程</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-24T16:31:53+08:00">
-                2019-06-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="进程内某个线程OOM，其他线程还能运行吗"><a href="#进程内某个线程OOM，其他线程还能运行吗" class="headerlink" title="进程内某个线程OOM，其他线程还能运行吗"></a>进程内某个线程OOM，其他线程还能运行吗</h1><p><strong>能</strong></p>
-<p><strong>堆进程内共享</strong></p>
-<p>在多线程环境下，每个线程拥有一个栈和一个程序计数器。栈和程序计数器用来保存线程的执行历史和线程的执行状态，是线程私有的资源。其他的资源（比如堆、地址空间、全局变量）是由同一个进程内的多个线程共享。</p>
-<p>一个线程抛出OOM异常后，它所占据的内存资源会全部被释放掉，从而不会影响其他线程的运行！</p>
-<h1 id="主线程异常退出，子线程还能运行么？"><a href="#主线程异常退出，子线程还能运行么？" class="headerlink" title="主线程异常退出，子线程还能运行么？"></a>主线程异常退出，子线程还能运行么？</h1><p><strong>能</strong></p>
-<p>线程不像进程，一个进程中的线程之间是没有父子之分的，都是平级关系。即线程都是一样的, 退出了一个不会影响另外一个。</p>
-<p>只有一个例外情况，如果这些子线程都是<strong>守护线程</strong>，那么子线程会随着主线程结束而结束。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/22/Android/Crash防护/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/06/22/Android/Crash防护/" itemprop="url">Crash防护</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-22T11:26:53+08:00">
-                2019-06-22
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="捕获所有异常"><a href="#捕获所有异常" class="headerlink" title="捕获所有异常"></a>捕获所有异常</h1><p>虽然强行捕获所有运行时异常，会导致各种UI上的奇葩问题发生，但可以最大程度的保证APP正常运行，很多时候我们希望即使主线程抛出异常也不影响app的正常使用</p>
-<p><strong>核心：保证主线程Looper继续Loop</strong></p>
-<h2 id="try-catch机制的性能损耗"><a href="#try-catch机制的性能损耗" class="headerlink" title="try-catch机制的性能损耗"></a>try-catch机制的性能损耗</h2><p>研究方式：</p>
-<h3 id="函数耗时"><a href="#函数耗时" class="headerlink" title="函数耗时"></a>函数耗时</h3><p>写两个一样逻辑的函数，一个包含try-catch代码块，一个不包含，分别循环调用百万次，通过System.nanoTime()来比较两个函数百万次调用的耗时；</p>
-<p>测试发现基本无区别</p>
-<h3 id="反编译字节码"><a href="#反编译字节码" class="headerlink" title="反编译字节码"></a>反编译字节码</h3><p>反编译出指令发现加了try-catch块的代码跟没有加的代码运行时的指令是完全一致的</p>
-<p>如果程序运行过程中不产生异常的话，try catch 几乎是不会对运行产生任何影响的。只是在产生异常的时候jvm会追溯异常栈。这部分耗时就相对较高了。</p>
-<h2 id="异常类型"><a href="#异常类型" class="headerlink" title="异常类型"></a>异常类型</h2><p>Android的View绘制，事件分发，Activity启动，Activity的生命周期回调等等都是一个个的Message，系统会把这些Message插入到主线程中唯一的queue中，所有的消息都排队等待Looper将其取出，并在主线程执行</p>
-<ul>
-<li>一般线程异常。</li>
-<li>UI主线程异常。<ul>
-<li>View导致Choreographer异常。<ul>
-<li>可能黑白屏。关闭当前异常的界面</li>
-</ul>
-</li>
-<li>Activity异常。<ul>
-<li>生命周期异常。可能黑白屏。关闭当前异常的界面</li>
-</ul>
-</li>
-<li>四大组件生命周期异常。</li>
-</ul>
-</li>
-</ul>
-<h2 id="一般线程-默认的线程未捕获异常Handler"><a href="#一般线程-默认的线程未捕获异常Handler" class="headerlink" title="一般线程-默认的线程未捕获异常Handler"></a>一般线程-默认的线程未捕获异常Handler</h2><p><strong>Thread.UncaughtExceptionHandler</strong> 接口，处理 未捕获的异常</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">interface</span> <span class="title">UncaughtExceptionHandler</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">uncaughtException</span><span class="params">(Thread thread, Throwable ex)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>Android中，应用进程fork出来后会为虚拟机中的每个线程设置一个默认的 UncaughtExceptionHandler – <strong>UncaughtHandler</strong></p>
-<p><strong>Thread.setDefaultUncaughtExceptionHandler(new UncaughtHandler());</strong></p>
-<p><strong>UncaughtHandler</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//RuntimeInit.java中的zygoteInit函数</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">zygoteInit</span><span class="params">(<span class="keyword">int</span> targetSdkVersion, String[] argv, ClassLoader classLoader)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> ZygoteInit.MethodAndArgsCaller </span>&#123;</span><br><span class="line">    ............</span><br><span class="line">    commonInit();</span><br><span class="line">    ............</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">commonInit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ...........</span><br><span class="line">    <span class="comment">/* set default handler; this applies to all threads in the VM */</span></span><br><span class="line">    Thread.setDefaultUncaughtExceptionHandler(<span class="keyword">new</span> UncaughtHandler());</span><br><span class="line">    ...........</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="思路：自定义UncaughtExceptionHandler"><a href="#思路：自定义UncaughtExceptionHandler" class="headerlink" title="思路：自定义UncaughtExceptionHandler"></a>思路：自定义UncaughtExceptionHandler</h3><p>我们可以给应用设置我们自定义的UncaughtExceptionHandler</p>
-<p>如果自定义UncaughtExceptionHandler捕获异常后不做任何处理：</p>
-<ul>
-<li>子线程发生未捕获异常，不会Crash。子线程被终止，主线程还在运行</li>
-<li><strong>主线程</strong>发生未捕获异常，会<strong>ANR</strong>。主线程被终止</li>
-</ul>
-<h2 id="UI主线程-消息循环机制"><a href="#UI主线程-消息循环机制" class="headerlink" title="UI主线程-消息循环机制"></a>UI主线程-消息循环机制</h2><p><strong>Android 消息循环机制：Handler和Looper</strong></p>
-<p>Android应用启动流程可知，进程创建完成之后，Android应用程序框架层就会在这个进程中 执行 主线程的入口方法 <strong>ActivityThread.main()</strong></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//ActivityThread .java</span></span><br><span class="line"><span class="comment">//主线程的入口方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">     ......</span><br><span class="line"></span><br><span class="line">     <span class="comment">//创建主线程的Looper和MessageQueue</span></span><br><span class="line">     Looper.prepareMainLooper();</span><br><span class="line"></span><br><span class="line">    <span class="comment">//创建一个ActivityThread实例，然后调用它的attach函数，</span></span><br><span class="line">    <span class="comment">//ActivityManagerService通过Binder进程间通信机制通知ActivityThread，启动应用首页</span></span><br><span class="line">     ActivityThread thread = <span class="keyword">new</span> ActivityThread();</span><br><span class="line">     thread.attach(<span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">     <span class="keyword">if</span> (sMainThreadHandler == <span class="keyword">null</span>) &#123;</span><br><span class="line">         sMainThreadHandler = thread.getHandler();</span><br><span class="line">     &#125;</span><br><span class="line">    .......</span><br><span class="line">   <span class="comment">//开启主线程的消息循环。</span></span><br><span class="line">     Looper.loop();</span><br><span class="line"></span><br><span class="line">     <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"Main thread loop unexpectedly exited"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="思路：捕获每个消息循环的异常"><a href="#思路：捕获每个消息循环的异常" class="headerlink" title="思路：捕获每个消息循环的异常"></a>思路：捕获每个消息循环的异常</h3><ul>
-<li>通过Handler往主线程的queue中添加一个Runnable </li>
-<li>该Runnable是while死循环</li>
-<li>while死循环中调用Looper.loop()<ul>
-<li>使主线程又开始不断的读取queue中的Message并执行，也就是<strong>主线程并不会被阻塞</strong>。</li>
-<li>又可以保证<strong>以后</strong>主线程的<strong>所有异常</strong>都会从我们手动调用的Looper.loop()处抛出</li>
-</ul>
-</li>
-</ul>
-<p>Android应用的主线程是阻塞在ActivityThread.main()中的Looper.loop()的for(;;)循环里，后来for循环取到我们的runnable之后，程序的流程就阻塞在了我们的runnable里面了。</p>
-<p>必须通过Handler往主线程的queue中添加一个Runnable，而不能在主线程中直接开启while循环，原因还是会阻塞主线程</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">new</span> Handler(Looper.getMainLooper()).post(</span><br><span class="line">	<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">           <span class="comment">//主线程异常拦截</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Looper.loop();<span class="comment">//主线程的异常会从这里抛出</span></span><br><span class="line">                &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">                                            </span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">   </span><br><span class="line">sUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();</span><br><span class="line"> <span class="comment">//所有线程异常拦截，由于主线程的异常都被我们catch住了，所以下面的代码拦截到的都是子线程的异常</span></span><br><span class="line">Thread.setDefaultUncaughtExceptionHandler(<span class="keyword">new</span> Thread.UncaughtExceptionHandler() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">uncaughtException</span><span class="params">(Thread t, Throwable e)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-<h2 id="View导致Choreographer异常-关闭页面"><a href="#View导致Choreographer异常-关闭页面" class="headerlink" title="View导致Choreographer异常-关闭页面"></a>View导致Choreographer异常-关闭页面</h2><p>可能会黑白屏</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//DefenseCore.java</span></span><br><span class="line"><span class="comment">//遍历错误堆栈，如果是Choreographer.doFrame()，可能会黑白屏</span></span><br><span class="line">StackTraceElement[] elements = error.getStackTrace();</span><br><span class="line"><span class="keyword">if</span> (elements == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = elements.length - <span class="number">1</span>; i &gt; -<span class="number">1</span>; i--) &#123;</span><br><span class="line">    <span class="keyword">if</span> (elements.length - i &gt; <span class="number">20</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    StackTraceElement element = elements[i];</span><br><span class="line">    <span class="keyword">if</span> (<span class="string">"android.view.Choreographer"</span>.equals(element.getClassName())</span><br><span class="line">            &amp;&amp; <span class="string">"Choreographer.java"</span>.equals(element.getFileName())</span><br><span class="line">            &amp;&amp; <span class="string">"doFrame"</span>.equals(element.getMethodName())) &#123;</span><br><span class="line">        dispatcher.mayBeBlackScreen(e);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="Activity异常"><a href="#Activity异常" class="headerlink" title="Activity异常"></a>Activity异常</h2><h3 id="反射替换ActivityThread的Instrumentation"><a href="#反射替换ActivityThread的Instrumentation" class="headerlink" title="反射替换ActivityThread的Instrumentation"></a>反射替换ActivityThread的Instrumentation</h3><p>Android framework 通过<strong>Instrumentation</strong>来调用Activity的所有生命周期方法，通过反射替换ActivityThread的成员变量<strong>mInstrumentation</strong>来尝试修复Activity生命周期回调中的崩溃。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//HookInstrumentation.java</span></span><br><span class="line"><span class="comment">// 先获取到当前的ActivityThread对象</span></span><br><span class="line">Class&lt;?&gt; activityThreadClass = Class.forName(<span class="string">"android.app.ActivityThread"</span>);</span><br><span class="line">Method currentActivityThreadMethod = activityThreadClass.getDeclaredMethod(<span class="string">"currentActivityThread"</span>);</span><br><span class="line">currentActivityThreadMethod.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">Object currentActivityThread = currentActivityThreadMethod.invoke(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拿到原始的 mInstrumentation字段</span></span><br><span class="line">Field mInstrumentationField = activityThreadClass.getDeclaredField(<span class="string">"mInstrumentation"</span>);</span><br><span class="line">mInstrumentationField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">mOriginInstrumentation = (Instrumentation) mInstrumentationField.get(currentActivityThread);</span><br><span class="line">mCustomInstrumentation = <span class="keyword">new</span> DefenseInstrumentation(mOriginInstrumentation);</span><br><span class="line">mCustomInstrumentation.setExceptionDispatcher(mExceptionDispatcher);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建代理Instrumentation对象</span></span><br><span class="line">Instrumentation evilInstrumentation = mCustomInstrumentation;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 偷梁换柱</span></span><br><span class="line">mInstrumentationField.set(currentActivityThread, evilInstrumentation);</span><br></pre></td></tr></table></figure>
-<h3 id="反射为ActivityThread的Handler增加callback"><a href="#反射为ActivityThread的Handler增加callback" class="headerlink" title="反射为ActivityThread的Handler增加callback"></a>反射为ActivityThread的Handler增加callback</h3><p>反射ActivityThread的<strong>mH</strong>，给该<strong>Handler</strong>添加回调方法，因为在ActivityThread中该handler未实现callback</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//HookH.java</span></span><br><span class="line"><span class="comment">// 先获取到当前的ActivityThread对象</span></span><br><span class="line">Class activityThreadClass = Class.forName(<span class="string">"android.app.ActivityThread"</span>);</span><br><span class="line">Object activityThread = activityThreadClass.getDeclaredMethod(<span class="string">"currentActivityThread"</span>).invoke(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 拿到原始的 mH字段</span></span><br><span class="line">Field mhField = activityThreadClass.getDeclaredField(<span class="string">"mH"</span>);</span><br><span class="line">mhField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">mHHandler = (Handler) mhField.get(activityThread);</span><br><span class="line">Field callbackField = Handler.class.getDeclaredField(<span class="string">"mCallback"</span>);</span><br><span class="line">callbackField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"><span class="comment">//设置mCallback</span></span><br><span class="line">callbackField.set(mHHandler, mCallback);</span><br></pre></td></tr></table></figure>
-<h2 id="Service和BroadcastReceiver异常"><a href="#Service和BroadcastReceiver异常" class="headerlink" title="Service和BroadcastReceiver异常"></a>Service和BroadcastReceiver异常</h2><p>Android framework 在调用四大组件生命周期的时候，如果出现了异常，会回调<strong>Instrumentation.onException()</strong>方法</p>
-<p>通过Instrumentation的方法onException返回true来尝试修复Service和BroadcastReceiver生命周期回调中的崩溃。同时手动执行framework未完成的代码，防止生命周期不完整引起的ANR</p>
-<h1 id="重启恢复"><a href="#重启恢复" class="headerlink" title="重启恢复"></a>重启恢复</h1><p>不对未捕获异常进行try-catch的话，那就只能让程序按照系统默认的处理杀掉进程。然后重启进程 恢复crash之前的Activity栈，达到比直接退出应用程序稍微好点的体验。实际使用时屏幕还是会有一个白屏闪烁，用户还是能够感知到APP崩溃了。有点鸡肋。</p>
-<p>在启动每个Activity都记录起Activity的class对象以及所需要的Intent对象，应用崩溃后重启进程再通过这些缓存起来的Intent对象一次性把所有的Activity都启动起来。</p>
-<p>但如果是启动过程中必现的BUG，这种方式会导致无限循环重启进程、恢复Activity。所以在一分钟内闪退两次就杀掉进程不再重启。</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.jianshu.com/p/01b69d91a3a8" target="_blank" rel="noopener">Android开发之打造永不崩溃的APP——Crash防护</a></li>
-<li><a href="https://www.jianshu.com/p/76bff59b5418?utm_source=oschina-app" target="_blank" rel="noopener">如何优雅的避免android(安卓)运行时崩溃</a></li>
-<li><a href="https://blog.csdn.net/luoshengyang/article/details/6747696" target="_blank" rel="noopener">Android应用程序进程启动过程的源代码分析</a></li>
-<li><a href="https://blog.csdn.net/singwhatiwanna/article/details/50775201" target="_blank" rel="noopener">Android中MotionEvent的来源和ViewRootImpl</a></li>
-<li><a href="https://github.com/android-notes/Cockroach" target="_blank" rel="noopener">GitHub Cockroach</a></li>
-<li><a href="https://www.jianshu.com/p/76bff59b5418?utm_source=oschina-app" target="_blank" rel="noopener">DefenseCrash</a>  <strong>比较全面，View，Activity</strong><ul>
-<li><a href="https://github.com/xuuhaoo/DefenseCrash" target="_blank" rel="noopener">DefenseCrash GitHub</a></li>
-</ul>
-</li>
-<li><a href="https://blog.csdn.net/luweicheng24/article/details/88831327" target="_blank" rel="noopener">CrashDefend</a><ul>
-<li><a href="https://github.com/luweicheng24/CrashDefend" target="_blank" rel="noopener">CrashDefend GitHub</a></li>
-</ul>
-</li>
-<li><a href="https://juejin.im/post/5a38e9da51882506a463beb9" target="_blank" rel="noopener">GodBlessYou</a> <strong>koltin，修复Service和BroadcastReceiver中的Crash</strong><ul>
-<li><a href="https://github.com/ximsfei/GodBlessYou" target="_blank" rel="noopener">GodBlessYou GitHub</a></li>
-</ul>
-</li>
-<li><a href="https://www.javaworld.com/article/2076868/how-the-java-virtual-machine-handles-exceptions.html" target="_blank" rel="noopener">How the Java virtual machine handles exceptions</a></li>
-<li><a href="https://github.com/Sunzxyong/Recovery" target="_blank" rel="noopener">Recovery GitHub</a></li>
-<li><a href="https://blog.csdn.net/u010412719/article/details/50043865" target="_blank" rel="noopener">从字节码的角度来看try-catch-finally和return的执行顺序</a></li>
-<li><a href="https://www.jianshu.com/p/0a12a85809df" target="_blank" rel="noopener">浅谈Android的编舞者Choreographer</a></li>
-</ul>
-
+对于系统类声音的播放和操作，Ringtone更适合(RingtoneManager)
+</code></pre>
           
         
       
@@ -2141,7 +2299,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/7/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/9/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/7/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="extend next" rel="next" href="/page/9/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2191,7 +2349,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">266</span>
+                  <span class="site-state-item-count">308</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2202,7 +2360,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">19</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2213,7 +2371,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">71</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2250,7 +2408,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

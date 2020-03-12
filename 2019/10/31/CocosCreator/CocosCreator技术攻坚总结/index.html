@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CocosCreator," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="背景cocos Creator 游戏打包成H5，用webview 加载； 问题：  性能。低端机帧率低 兼容性。部分老机型，不支持x5内核  于是决定把游戏编译成原生 挑战平台兼容性部分特性只支持H5；比如 window.location、axios(基于 promise 的 HTTP 库)只支持浏览器环境 这部分需要改造，为了跨端，使用c++ HttpClient 以View的形式渲染游戏项目中">
+<meta name="keywords" content="CocosCreator">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CocosCreator技术攻坚总结">
+<meta property="og:url" content="http://yoursite.com/2019/10/31/CocosCreator/CocosCreator技术攻坚总结/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="背景cocos Creator 游戏打包成H5，用webview 加载； 问题：  性能。低端机帧率低 兼容性。部分老机型，不支持x5内核  于是决定把游戏编译成原生 挑战平台兼容性部分特性只支持H5；比如 window.location、axios(基于 promise 的 HTTP 库)只支持浏览器环境 这部分需要改造，为了跨端，使用c++ HttpClient 以View的形式渲染游戏项目中">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.211Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CocosCreator技术攻坚总结">
+<meta name="twitter:description" content="背景cocos Creator 游戏打包成H5，用webview 加载； 问题：  性能。低端机帧率低 兼容性。部分老机型，不支持x5内核  于是决定把游戏编译成原生 挑战平台兼容性部分特性只支持H5；比如 window.location、axios(基于 promise 的 HTTP 库)只支持浏览器环境 这部分需要改造，为了跨端，使用c++ HttpClient 以View的形式渲染游戏项目中">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/10/31/CocosCreator/CocosCreator技术攻坚总结/"/>
+
+
+
+
+
+  <title>CocosCreator技术攻坚总结 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/31/CocosCreator/CocosCreator技术攻坚总结/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CocosCreator技术攻坚总结</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-31T14:30:53+08:00">
+                2019-10-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/游戏/" itemprop="url" rel="index">
+                    <span itemprop="name">游戏</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>cocos Creator 游戏打包成H5，用webview 加载；</p>
+<p>问题：</p>
+<ul>
+<li>性能。低端机帧率低</li>
+<li>兼容性。部分老机型，不支持x5内核</li>
+</ul>
+<p>于是决定把游戏编译成原生</p>
+<h1 id="挑战"><a href="#挑战" class="headerlink" title="挑战"></a>挑战</h1><h2 id="平台兼容性"><a href="#平台兼容性" class="headerlink" title="平台兼容性"></a>平台兼容性</h2><p>部分特性只支持H5；比如 <code>window.location</code>、<code>axios</code>(基于 promise 的 HTTP 库)只支持浏览器环境</p>
+<p>这部分需要改造，为了跨端，使用c++ HttpClient</p>
+<h2 id="以View的形式渲染游戏"><a href="#以View的形式渲染游戏" class="headerlink" title="以View的形式渲染游戏"></a>以View的形式渲染游戏</h2><p>项目中游戏只是直播间的一部分；玩游戏时还需要直播和互动</p>
+<p>官方demo是Activity形式</p>
+<p>分析源码，发现是用动态创建GlSurfaceView添加到Activity来展示游戏。</p>
+<p>封装成view即可满足项目需求</p>
+<h2 id="结束游戏"><a href="#结束游戏" class="headerlink" title="结束游戏"></a>结束游戏</h2><p>官方demo直接杀死进程，退出游戏。好暴力</p>
+<p>项目中不能杀死进程，游戏结束需要维持直播和互动</p>
+<p>官方文档提供了js方法结束游戏，分析源码发现最终调用的c++代码</p>
+<p>封装并使用jni技术提供方法给java层使用即可</p>
+<h2 id="多次运行游戏"><a href="#多次运行游戏" class="headerlink" title="多次运行游戏"></a>多次运行游戏</h2><p>因为结束游戏没有退出进程，游戏引擎官方架构是不支持重入的；</p>
+<p>由易到难的方案。团队信心，时间因素</p>
+<h3 id="热更新方案"><a href="#热更新方案" class="headerlink" title="热更新方案"></a>热更新方案</h3><p>官方提供了一个热更新重新开始游戏的方案，可以支持多次运行</p>
+<p>卡点：官方demo是大厅+子游戏模式；只有一个入口。项目是通过不同路径进入独立的子游戏模式，重新开始游戏永远是上一次运行的游戏</p>
+<p>应该是加载资源有问题；跟踪发现是搜索文件成功后回缓存文件完整路径。不同游戏的入口文件名一致。添加新搜索路径时，清空缓存即可</p>
+<h3 id="完全回收引擎方案"><a href="#完全回收引擎方案" class="headerlink" title="完全回收引擎方案"></a>完全回收引擎方案</h3><p>分析游戏启动流程，渲染原理，jsb原理。解决野指针，状态异常等问题</p>
+<h2 id="启动黑屏优化"><a href="#启动黑屏优化" class="headerlink" title="启动黑屏优化"></a>启动黑屏优化</h2><h1 id="沉淀"><a href="#沉淀" class="headerlink" title="沉淀"></a>沉淀</h1><h2 id="使用git记录引擎修改记录"><a href="#使用git记录引擎修改记录" class="headerlink" title="使用git记录引擎修改记录"></a>使用git记录引擎修改记录</h2><h2 id="原理分析，总结文档"><a href="#原理分析，总结文档" class="headerlink" title="原理分析，总结文档"></a>原理分析，总结文档</h2><h2 id="团队分享，侧重解决问题的方法论"><a href="#团队分享，侧重解决问题的方法论" class="headerlink" title="团队分享，侧重解决问题的方法论"></a>团队分享，侧重解决问题的方法论</h2>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CocosCreator/" rel="tag"><i class="fa fa-tag"></i> CocosCreator</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/10/30/c++/C++之IDE/" rel="next" title="C++之IDE">
+                <i class="fa fa-chevron-left"></i> C++之IDE
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/01/CocosCreator/CocosCreator优化/Android原生启动黑屏优化/" rel="prev" title="Android原生启动黑屏优化">
+                Android原生启动黑屏优化 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#挑战"><span class="nav-number">2.</span> <span class="nav-text">挑战</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#平台兼容性"><span class="nav-number">2.1.</span> <span class="nav-text">平台兼容性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#以View的形式渲染游戏"><span class="nav-number">2.2.</span> <span class="nav-text">以View的形式渲染游戏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结束游戏"><span class="nav-number">2.3.</span> <span class="nav-text">结束游戏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多次运行游戏"><span class="nav-number">2.4.</span> <span class="nav-text">多次运行游戏</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#热更新方案"><span class="nav-number">2.4.1.</span> <span class="nav-text">热更新方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#完全回收引擎方案"><span class="nav-number">2.4.2.</span> <span class="nav-text">完全回收引擎方案</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动黑屏优化"><span class="nav-number">2.5.</span> <span class="nav-text">启动黑屏优化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#沉淀"><span class="nav-number">3.</span> <span class="nav-text">沉淀</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用git记录引擎修改记录"><span class="nav-number">3.1.</span> <span class="nav-text">使用git记录引擎修改记录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#原理分析，总结文档"><span class="nav-number">3.2.</span> <span class="nav-text">原理分析，总结文档</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#团队分享，侧重解决问题的方法论"><span class="nav-number">3.3.</span> <span class="nav-text">团队分享，侧重解决问题的方法论</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

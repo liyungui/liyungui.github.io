@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="直播," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="使用ffmpeg将aac解码成pcm 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889909192939495">
+<meta name="keywords" content="直播">
+<meta property="og:type" content="article">
+<meta property="og:title" content="aac解码">
+<meta property="og:url" content="http://yoursite.com/2019/12/11/直播/音频/aac解码/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="使用ffmpeg将aac解码成pcm 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889909192939495">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/12/11/直播/音频/aac解码/ffmpeg解码aac.jpg">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.323Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="aac解码">
+<meta name="twitter:description" content="使用ffmpeg将aac解码成pcm 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889909192939495">
+<meta name="twitter:image" content="http://yoursite.com/2019/12/11/直播/音频/aac解码/ffmpeg解码aac.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/12/11/直播/音频/aac解码/"/>
+
+
+
+
+
+  <title>aac解码 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/11/直播/音频/aac解码/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">aac解码</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-11T10:32:14+08:00">
+                2019-12-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="使用ffmpeg"><a href="#使用ffmpeg" class="headerlink" title="使用ffmpeg"></a>使用ffmpeg</h1><p>将aac解码成pcm</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">char</span> *in_file = <span class="string">"./hefang.aac"</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">char</span> *out_file = <span class="string">"./hefang.pcm"</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//注册所有的工具</span></span><br><span class="line">    av_register_all();</span><br><span class="line"> </span><br><span class="line">    AVFormatContext *fmt_ctx = <span class="literal">NULL</span>;</span><br><span class="line">    AVCodecContext  *cod_ctx = <span class="literal">NULL</span>;</span><br><span class="line">    AVCodec         *cod   = <span class="literal">NULL</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//分配一个AVFormatContext</span></span><br><span class="line">    fmt_ctx = avformat_alloc_context();</span><br><span class="line">    <span class="keyword">if</span> (fmt_ctx == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"alloc fail"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//打开文件，解封装</span></span><br><span class="line">    <span class="keyword">if</span> (avformat_open_input(&amp;fmt_ctx, in_file, <span class="literal">NULL</span>, <span class="literal">NULL</span>) != <span class="number">0</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"open fail"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//查找文件的相关流信息</span></span><br><span class="line">    <span class="keyword">if</span> (avformat_find_stream_info(fmt_ctx, <span class="literal">NULL</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"find stream fail"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//输出格式信息</span></span><br><span class="line">    av_dump_format(fmt_ctx, <span class="number">0</span>, in_file, <span class="number">0</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//查找解码信息</span></span><br><span class="line">    <span class="keyword">int</span> stream_index = <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; fmt_ctx-&gt;nb_streams; i++)</span><br><span class="line">        <span class="keyword">if</span> (fmt_ctx-&gt;streams[i]-&gt;codec-&gt;codec_type == AVMEDIA_TYPE_AUDIO) &#123;</span><br><span class="line">            stream_index = i;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (stream_index == <span class="number">-1</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"find stream fail"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//保存解码器</span></span><br><span class="line">    cod_ctx = fmt_ctx-&gt;streams[stream_index]-&gt;codec;</span><br><span class="line">    cod = avcodec_find_decoder(cod_ctx-&gt;codec_id);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (cod == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"find codec fail"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (avcodec_open2(cod_ctx, cod, <span class="literal">NULL</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"can't open codec"</span>);</span><br><span class="line"> </span><br><span class="line">    FILE *out_fb = <span class="literal">NULL</span>;</span><br><span class="line">    out_fb = fopen(out_file, <span class="string">"wb"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//创建AVPacket,用于存储解码前的数据</span></span><br><span class="line">    AVPacket *packet = (AVPacket *)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(AVPacket));</span><br><span class="line">    av_init_packet(packet);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//设置转码后输出相关参数</span></span><br><span class="line">    <span class="comment">//采样的布局方式</span></span><br><span class="line">    <span class="keyword">uint64_t</span> out_channel_layout = AV_CH_LAYOUT_MONO;</span><br><span class="line">    <span class="comment">//采样个数</span></span><br><span class="line">    <span class="keyword">int</span> out_nb_samples = <span class="number">1024</span>;</span><br><span class="line">    <span class="comment">//采样格式</span></span><br><span class="line">    <span class="keyword">enum</span> AVSampleFormat  sample_fmt = AV_SAMPLE_FMT_S16;</span><br><span class="line">    <span class="comment">//采样率</span></span><br><span class="line">    <span class="keyword">int</span> out_sample_rate = <span class="number">44100</span>;</span><br><span class="line">    <span class="comment">//通道数</span></span><br><span class="line">    <span class="keyword">int</span> out_channels = av_get_channel_layout_nb_channels(out_channel_layout);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%d\n"</span>,out_channels);</span><br><span class="line">    <span class="comment">//创建buffer</span></span><br><span class="line">    <span class="keyword">int</span> buffer_size = av_samples_get_buffer_size(<span class="literal">NULL</span>, out_channels, out_nb_samples, sample_fmt, <span class="number">1</span>);</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">    <span class="comment">//注意要用av_malloc</span></span><br><span class="line">    <span class="keyword">uint8_t</span> *buffer = (<span class="keyword">uint8_t</span> *)av_malloc(MAX_AUDIO_FRAME_SIZE * <span class="number">2</span>);</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">    <span class="comment">//创建Frame，用于存储解码后的数据</span></span><br><span class="line">    AVFrame *frame = av_frame_alloc();</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">int</span> got_picture;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">int64_t</span> in_channel_layout = av_get_default_channel_layout(cod_ctx-&gt;channels);</span><br><span class="line">    <span class="comment">//打开转码器</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">SwrContext</span> *<span class="title">convert_ctx</span> = <span class="title">swr_alloc</span>();</span></span><br><span class="line">    <span class="comment">//设置转码参数</span></span><br><span class="line">    convert_ctx = swr_alloc_set_opts(convert_ctx, out_channel_layout, sample_fmt, out_sample_rate, \</span><br><span class="line">            in_channel_layout, cod_ctx-&gt;sample_fmt, cod_ctx-&gt;sample_rate, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="comment">//初始化转码器</span></span><br><span class="line">    swr_init(convert_ctx);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//while循环，每次读取一帧，并转码</span></span><br><span class="line"> </span><br><span class="line">    <span class="keyword">while</span> (av_read_frame(fmt_ctx, packet) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line"> </span><br><span class="line">        <span class="keyword">if</span> (packet-&gt;stream_index == stream_index) &#123;</span><br><span class="line"> </span><br><span class="line">            <span class="comment">//解码声音</span></span><br><span class="line">            <span class="keyword">if</span> (avcodec_decode_audio4(cod_ctx, frame, &amp;got_picture, packet) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"decode error"</span>);</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            &#125;</span><br><span class="line"> </span><br><span class="line">            <span class="keyword">if</span> (got_picture &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">//转码</span></span><br><span class="line">                swr_convert(convert_ctx, &amp;buffer, MAX_AUDIO_FRAME_SIZE, (<span class="keyword">const</span> <span class="keyword">uint8_t</span> **)frame-&gt;data, frame-&gt;nb_samples);</span><br><span class="line"> </span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"pts:%10lld\t packet size:%d\n"</span>, packet-&gt;pts, packet-&gt;size);</span><br><span class="line"> </span><br><span class="line">                fwrite(buffer, <span class="number">1</span>, buffer_size, out_fb);</span><br><span class="line">            &#125;</span><br><span class="line">            got_picture=<span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        av_free_packet(packet);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    swr_free(&amp;convert_ctx);</span><br><span class="line"> </span><br><span class="line">    fclose(out_fb);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="时序图"><a href="#时序图" class="headerlink" title="时序图"></a>时序图</h2><img src="/2019/12/11/直播/音频/aac解码/ffmpeg解码aac.jpg">
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.csdn.net/yinsui1839/article/details/80433677" target="_blank" rel="noopener">ffmpeg aac解码pcm</a></li>
+<li><a href="https://www.jianshu.com/p/6f69e4d1f874" target="_blank" rel="noopener">FFmpeg入门系列教程（三）</a> 视频解码，保存为yuv</li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/直播/" rel="tag"><i class="fa fa-tag"></i> 直播</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/06/逆向/Android/动态调试/ida/ida动态调试/" rel="next" title="ida动态调试">
+                <i class="fa fa-chevron-left"></i> ida动态调试
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/12/Android/图片加载/" rel="prev" title="图片加载">
+                图片加载 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#使用ffmpeg"><span class="nav-number">1.</span> <span class="nav-text">使用ffmpeg</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#时序图"><span class="nav-number">1.1.</span> <span class="nav-text">时序图</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">2.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

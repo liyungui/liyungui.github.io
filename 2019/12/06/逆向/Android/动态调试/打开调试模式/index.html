@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="逆向," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="背景根据android的官方文档，如果要调试一个apk里面的dex代码，只要满足以下两个条件中的一个就行：  APP debuggable。apk中的AndroidManifest.xml文件中的Application标签属性android:debuggable=”true”（release包默认false） 系统debuggable /default.prop中ro.debuggable的值为1">
+<meta name="keywords" content="逆向">
+<meta property="og:type" content="article">
+<meta property="og:title" content="打开调试模式">
+<meta property="og:url" content="http://yoursite.com/2019/12/06/逆向/Android/动态调试/打开调试模式/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="背景根据android的官方文档，如果要调试一个apk里面的dex代码，只要满足以下两个条件中的一个就行：  APP debuggable。apk中的AndroidManifest.xml文件中的Application标签属性android:debuggable=”true”（release包默认false） 系统debuggable /default.prop中ro.debuggable的值为1">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.387Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="打开调试模式">
+<meta name="twitter:description" content="背景根据android的官方文档，如果要调试一个apk里面的dex代码，只要满足以下两个条件中的一个就行：  APP debuggable。apk中的AndroidManifest.xml文件中的Application标签属性android:debuggable=”true”（release包默认false） 系统debuggable /default.prop中ro.debuggable的值为1">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/打开调试模式/"/>
+
+
+
+
+
+  <title>打开调试模式 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/打开调试模式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">打开调试模式</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T13:41:53+08:00">
+                2019-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>根据android的官方文档，如果要调试一个apk里面的dex代码，只要满足以下两个条件中的一个就行：</p>
+<ol>
+<li><strong>APP debuggable</strong>。apk中的AndroidManifest.xml文件中的Application标签属性android:debuggable=”true”（release包默认false）</li>
+<li><strong>系统debuggable</strong> <code>/default.prop</code>中ro.debuggable的值为1（默认为0）</li>
+</ol>
+<h1 id="APP-debuggable"><a href="#APP-debuggable" class="headerlink" title="APP debuggable"></a>APP debuggable</h1><h2 id="重打包apk"><a href="#重打包apk" class="headerlink" title="重打包apk"></a>重打包apk</h2><ul>
+<li>反编译apk</li>
+<li>修改 android:debuggable</li>
+<li>编译、签名、安装</li>
+<li>动态调试</li>
+</ul>
+<h3 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h3><ul>
+<li>重打包流程繁琐</li>
+<li>部分apk加壳</li>
+<li>部分apk自校验检测</li>
+</ul>
+<h2 id="hook"><a href="#hook" class="headerlink" title="hook"></a>hook</h2><p>加载apk时的时候hook PackageManagerService.getPackageInfo()，使得该方法返回的包信息中都带有调试模式选项</p>
+<p>推荐使用</p>
+<h3 id="现成工具-BDOpener"><a href="#现成工具-BDOpener" class="headerlink" title="现成工具 BDOpener"></a>现成工具 BDOpener</h3><h3 id="Android应用的调试模式判断逻辑"><a href="#Android应用的调试模式判断逻辑" class="headerlink" title="Android应用的调试模式判断逻辑"></a>Android应用的调试模式判断逻辑</h3><p>Android应用的调试模式运行判断逻辑是在<code>ActivityThread.handleBindApplication()</code>中进行的。</p>
+<p>该函数 在Application的attach函数和onCreate函数之前执行，因此Apk程序会暂停等待调试器连接上，然后才执行Application的代码和Activity显示。</p>
+<p><a href="http://androidxref.com/4.4.4_r1/xref/frameworks/base/core/java/android/app/ActivityThread.java" target="_blank" rel="noopener">/frameworks/base/core/java/android/app/ActivityThread.java</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">handleBindApplication</span><span class="params">(AppBindData data)</span> </span>&#123;</span><br><span class="line">	...</span><br><span class="line">	<span class="comment">// LoadedApk info;	</span></span><br><span class="line">	data.info = getPackageInfoNoCheck(data.appInfo, data.compatInfo);</span><br><span class="line">    <span class="comment">// 判断Android应用是否打开调试模式</span></span><br><span class="line">    <span class="keyword">if</span> (data.debugMode != IApplicationThread.DEBUG_OFF) &#123;</span><br><span class="line">        <span class="keyword">if</span> (data.debugMode == IApplicationThread.DEBUG_WAIT) &#123;</span><br><span class="line">            <span class="comment">// 调试模式运行app并调试等待</span></span><br><span class="line">            Debug.waitForDebugger(); </span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//logcat 调试模式失败        </span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line">	<span class="comment">// 创建Android应用的Application类对象的实例并调用其attach方法；间接通过调用attach方法调用Android应用的attachBaseContext方法</span></span><br><span class="line">    Application app = data.info.makeApplication(data.restrictedBackupMode, <span class="keyword">null</span>);</span><br><span class="line">	</span><br><span class="line">	...</span><br><span class="line">	<span class="comment">// 调用Application的OnCreate方法</span></span><br><span class="line">	mInstrumentation.callApplicationOnCreate(app);</span><br></pre></td></tr></table></figure>
+<p><a href="http://androidxref.com/4.4.4_r1/xref/frameworks/base/core/java/android/content/pm/ApplicationInfo.java" target="_blank" rel="noopener">/frameworks/base/core/java/android/content/pm/ApplicationInfo.java</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Value for &#123;<span class="doctag">@link</span> #flags&#125;: if set, this application is installed in the</span></span><br><span class="line"><span class="comment">* device's system image.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> FLAG_SYSTEM = <span class="number">1</span>&lt;&lt;<span class="number">0</span>;</span><br><span class="line">   </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> FLAG_DEBUGGABLE = <span class="number">1</span>&lt;&lt;<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="hook原理"><a href="#hook原理" class="headerlink" title="hook原理"></a>hook原理</h3><p>java Hook “com.android.server.pm.PackageManagerService.getPackageInfo()”，为该函数返回值PackageInfo对象中的实例成员变量flags增加调试模式。这用每次调用该方法返回的包信息中都带有调试模式选项</p>
+<p>Xposed Hook的插件代码：</p>
+<pre><code class="java"><span class="meta">@Override</span>
+<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleLoadPackage</span><span class="params">(<span class="keyword">final</span> LoadPackageParam lpparam)</span> <span class="keyword">throws</span> Throwable </span>{
+    <span class="keyword">final</span> <span class="keyword">int</span> FLAG_DEBUGGABLE = <span class="number">1</span>&lt;&lt;<span class="number">1</span>;<span class="comment">//调试标识</span>
+
+    Class&lt;?&gt; packageManagerService = 
+        XposedHelpers.findClass(<span class="string">"com.android.server.pm.PackageManagerService"</span>, lpparam.classLoader);
+    XC_MethodHook callback = <span class="keyword">new</span> XC_MethodHook() {
+        <span class="meta">@Override</span>
+        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">beforeHookedMethod</span><span class="params">(MethodHookParam param)</span></span>
+<span class="function">                <span class="keyword">throws</span> Throwable </span>{
+        }
+
+        <span class="meta">@Override</span>
+        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">afterHookedMethod</span><span class="params">(MethodHookParam param)</span></span>
+<span class="function">                <span class="keyword">throws</span> Throwable </span>{
+            PackageInfo packageInfo = (PackageInfo) param.getResult();
+            <span class="keyword">if</span> (packageInfo != <span class="keyword">null</span>) {
+                ApplicationInfo applicationInfo = packageInfo.applicationInfo;
+                <span class="comment">// 没有开启调试模式选项</span>
+                <span class="keyword">if</span> ((nFlags &amp; FLAG_DEBUGGABLE) == <span class="number">0</span>) {
+                    nFlags |= FLAG_DEBUGGABLE;<span class="comment">//增加调试模式选项</span>
+                }
+                applicationInfo.flags = nFlags;
+                param.setResult(packageInfo);<span class="comment">//修改函数的返回值</span>
+            }
+        }
+    };
+    <span class="comment">// 执行java Hook操作</span>
+    XposedBridge.hookAllMethods(packageManagerService, <span class="string">"getPackageInfo"</span>, callback);
+</code></pre>
+<h1 id="系统-sdebuggable"><a href="#系统-sdebuggable" class="headerlink" title="系统 sdebuggable"></a>系统 sdebuggable</h1><p><code>/default.prop</code>是系统文件，只读</p>
+<h2 id="重编译系统"><a href="#重编译系统" class="headerlink" title="重编译系统"></a>重编译系统</h2><ul>
+<li>下载适配的源码</li>
+<li>编译</li>
+<li>刷手机系统</li>
+</ul>
+<h3 id="存在的问题-1"><a href="#存在的问题-1" class="headerlink" title="存在的问题"></a>存在的问题</h3><ul>
+<li>商业系统不开源，难找到适配源码</li>
+<li>编译和刷机过程坑很多，需要对系统有一定深入</li>
+</ul>
+<h2 id="重打包系统"><a href="#重打包系统" class="headerlink" title="重打包系统"></a>重打包系统</h2><ul>
+<li>获取适配的boot.img</li>
+<li>解压。使用工具（abootimg，gunzip, cpio）</li>
+<li>修改 <code>default.prop</code></li>
+<li>重打包</li>
+<li>刷手机系统</li>
+</ul>
+<h3 id="存在的问题-2"><a href="#存在的问题-2" class="headerlink" title="存在的问题"></a>存在的问题</h3><ul>
+<li>流程繁琐</li>
+</ul>
+<h2 id="注入init进程"><a href="#注入init进程" class="headerlink" title="注入init进程"></a>注入init进程</h2><p>Android系统初始化时，init进程会解析系统属性文件，然后将其保存到内存中去，以便给所有应用提供服务，所以在init进程的内存块中是存在这些属性的；</p>
+<ul>
+<li>注入</li>
+<li>修改</li>
+<li>重启adbd</li>
+</ul>
+<p>需要注意，虽然已经修改了内存中的值，但需要重启adbd进程才能重新加载所有应用的连接信息，因为它是adb的守护进程；</p>
+<p>重启adbd进程，直接stop;start即可；</p>
+<h3 id="现成工具-mprop"><a href="#现成工具-mprop" class="headerlink" title="现成工具 mprop"></a>现成工具 mprop</h3><p>运行 <code>./mprop setprop ro.debuggable 1</code>命令即可</p>
+<h3 id="存在的问题-3"><a href="#存在的问题-3" class="headerlink" title="存在的问题"></a>存在的问题</h3><ul>
+<li>系统重启，需要重新注入init进程修改；手机重启频率不高，可以接受</li>
+</ul>
+<h1 id="参考-amp-链接"><a href="#参考-amp-链接" class="headerlink" title="参考&amp;链接"></a>参考&amp;链接</h1><ul>
+<li><a href="https://github.com/wpvsyou/mprop" target="_blank" rel="noopener">mprop</a></li>
+<li><a href="https://security.tencent.com/index.php/opensource/detail/17" target="_blank" rel="noopener">BDOpener——开启APK调试与备份选项的Xposed模块</a></li>
+<li><a href="https://blog.csdn.net/qq1084283172/article/details/80963610" target="_blank" rel="noopener">开启Android Apk调试与备份选项的Xposed模块的编写</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/逆向/" rel="tag"><i class="fa fa-tag"></i> 逆向</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/06/逆向/Android/动态调试/无源码调试Android dex/" rel="next" title="无源码调试Android dex">
+                <i class="fa fa-chevron-left"></i> 无源码调试Android dex
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/06/逆向/Android/动态调试/gikdbg动态调试dex和so工具使用/" rel="prev" title="gikdbg动态调试dex和so工具使用">
+                gikdbg动态调试dex和so工具使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#APP-debuggable"><span class="nav-number">2.</span> <span class="nav-text">APP debuggable</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#重打包apk"><span class="nav-number">2.1.</span> <span class="nav-text">重打包apk</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#存在的问题"><span class="nav-number">2.1.1.</span> <span class="nav-text">存在的问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hook"><span class="nav-number">2.2.</span> <span class="nav-text">hook</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#现成工具-BDOpener"><span class="nav-number">2.2.1.</span> <span class="nav-text">现成工具 BDOpener</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Android应用的调试模式判断逻辑"><span class="nav-number">2.2.2.</span> <span class="nav-text">Android应用的调试模式判断逻辑</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#hook原理"><span class="nav-number">2.2.3.</span> <span class="nav-text">hook原理</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#系统-sdebuggable"><span class="nav-number">3.</span> <span class="nav-text">系统 sdebuggable</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#重编译系统"><span class="nav-number">3.1.</span> <span class="nav-text">重编译系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#存在的问题-1"><span class="nav-number">3.1.1.</span> <span class="nav-text">存在的问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重打包系统"><span class="nav-number">3.2.</span> <span class="nav-text">重打包系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#存在的问题-2"><span class="nav-number">3.2.1.</span> <span class="nav-text">存在的问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注入init进程"><span class="nav-number">3.3.</span> <span class="nav-text">注入init进程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#现成工具-mprop"><span class="nav-number">3.3.1.</span> <span class="nav-text">现成工具 mprop</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#存在的问题-3"><span class="nav-number">3.3.2.</span> <span class="nav-text">存在的问题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-链接"><span class="nav-number">4.</span> <span class="nav-text">参考&amp;链接</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CocosCreator," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="背景游戏发布后，由于运行环境不同，可能出现在浏览器浏览时无法重现的bug，特别是原生平台，这时我们就必须直接在相应平台下进行调试。 CocosCreator 从1.7版本开始引入JSB 2.0，可以很方便的对原生平台中的JavaScript进行远程调试 远程调试默认远程调试和 Profile 是在 debug 模式中生效的，如果需要在 release 模式下也启用，需要手动修改 cocos/scr">
+<meta name="keywords" content="CocosCreator">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CocosCreator调试">
+<meta property="og:url" content="http://yoursite.com/2019/11/21/CocosCreator/CocosCreator调试/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="背景游戏发布后，由于运行环境不同，可能出现在浏览器浏览时无法重现的bug，特别是原生平台，这时我们就必须直接在相应平台下进行调试。 CocosCreator 从1.7版本开始引入JSB 2.0，可以很方便的对原生平台中的JavaScript进行远程调试 远程调试默认远程调试和 Profile 是在 debug 模式中生效的，如果需要在 release 模式下也启用，需要手动修改 cocos/scr">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/11/21/CocosCreator/CocosCreator调试/模拟器.png">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.215Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CocosCreator调试">
+<meta name="twitter:description" content="背景游戏发布后，由于运行环境不同，可能出现在浏览器浏览时无法重现的bug，特别是原生平台，这时我们就必须直接在相应平台下进行调试。 CocosCreator 从1.7版本开始引入JSB 2.0，可以很方便的对原生平台中的JavaScript进行远程调试 远程调试默认远程调试和 Profile 是在 debug 模式中生效的，如果需要在 release 模式下也启用，需要手动修改 cocos/scr">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/21/CocosCreator/CocosCreator调试/模拟器.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/11/21/CocosCreator/CocosCreator调试/"/>
+
+
+
+
+
+  <title>CocosCreator调试 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/21/CocosCreator/CocosCreator调试/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">CocosCreator调试</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-21T14:00:53+08:00">
+                2019-11-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/游戏/" itemprop="url" rel="index">
+                    <span itemprop="name">游戏</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>游戏发布后，由于运行环境不同，可能出现在浏览器浏览时无法重现的bug，特别是原生平台，这时我们就必须直接在相应平台下进行调试。</p>
+<p>CocosCreator 从1.7版本开始引入JSB 2.0，可以很方便的对原生平台中的JavaScript进行远程调试</p>
+<h1 id="远程调试"><a href="#远程调试" class="headerlink" title="远程调试"></a>远程调试</h1><p>默认远程调试和 Profile 是在 debug 模式中生效的，如果需要在 release 模式下也启用，需要手动修改 <code>cocos/scripting/js-bindings/jswrapper/config.hpp</code> 中的宏开关。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#if defined(COCOS2D_DEBUG) &amp;&amp; COCOS2D_DEBUG &gt; 0 // 这里改为 1，强制启用调试</span><br><span class="line">#define SE_ENABLE_INSPECTOR 1</span><br><span class="line">#define SE_DEBUG 2</span><br><span class="line">#else</span><br><span class="line">#define SE_ENABLE_INSPECTOR 0</span><br><span class="line">#define SE_DEBUG 0</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+<h1 id="模拟器调试和真机调试"><a href="#模拟器调试和真机调试" class="headerlink" title="模拟器调试和真机调试"></a>模拟器调试和真机调试</h1><h2 id="模拟器调试"><a href="#模拟器调试" class="headerlink" title="模拟器调试"></a>模拟器调试</h2><p>一般来说，原生平台的大部分问题都能在模拟器中重现，可以先在模拟器中测试，复现问题的话直接在模拟器中调试即可。</p>
+<h3 id="选择模拟器预览运行游戏"><a href="#选择模拟器预览运行游戏" class="headerlink" title="选择模拟器预览运行游戏"></a>选择模拟器预览运行游戏</h3><img src="/2019/11/21/CocosCreator/CocosCreator调试/模拟器.png">
+<p>在编辑器工具栏上方，选择<code>模拟器</code>作为预览平台（默认是浏览器），然后点击编辑器的<code>运行预览</code>在模拟器中运行游戏</p>
+<h2 id="真机调试"><a href="#真机调试" class="headerlink" title="真机调试"></a>真机调试</h2><p>构建 – 编译 相应平台的工程项目（编译可以选择Cocos Creator或者相应平台IDE），安装运行</p>
+<h1 id="Chrome-远程调试-V8"><a href="#Chrome-远程调试-V8" class="headerlink" title="Chrome 远程调试 V8"></a>Chrome 远程调试 V8</h1><h2 id="模拟器"><a href="#模拟器" class="headerlink" title="模拟器"></a>模拟器</h2><p>选择模拟器预览运行游戏</p>
+<p>用 Chrome 浏览器打开 <a href="chrome-devtools://devtools/bundled/inspector.html?v8only=true&amp;ws=127.0.0.1:5086/00010002-0003-4004-8005-000600070008" target="_blank" rel="noopener">chrome-devtools://devtools/bundled/inspector.html?v8only=true&amp;ws=127.0.0.1:5086/00010002-0003-4004-8005-000600070008</a></p>
+<h2 id="安卓真机"><a href="#安卓真机" class="headerlink" title="安卓真机"></a>安卓真机</h2><p>编译，运行游戏</p>
+<p>保证 Android 设备与 PC 或者 Mac 在同一个局域网中</p>
+<p>用 Chrome 浏览器打开 <a href="chrome-devtools://devtools/bundled/inspector.html?v8only=true&amp;ws=xxx.xxx.xxx.xxx: 6086/00010002-0003-4004-8005-000600070008" target="_blank" rel="noopener">chrome-devtools://devtools/bundled/inspector.html?v8only=true&amp;ws=xxx.xxx.xxx.xxx: 6086/00010002-0003-4004-8005-000600070008</a>, 其中 xxx.xxx.xxx.xxx 为局域网中 Android 设备的 IP 地址。（从 v2.0.7 开始，端口由5086 改为 6086）</p>
+<h1 id="调试技巧"><a href="#调试技巧" class="headerlink" title="调试技巧"></a>调试技巧</h1><h2 id="启动即等待调试器连接"><a href="#启动即等待调试器连接" class="headerlink" title="启动即等待调试器连接"></a>启动即等待调试器连接</h2><p>有时候我们需要调试游戏的初始化逻辑，是需要游戏启动后等待调试器连接，然后继续执行</p>
+<p>只需要在打开调试开关时 <code>jsb_enable_debugger</code> 第三个参数 <code>isWaitForConnect</code> 设置为true</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//AppDelegate.cpp</span></span><br><span class="line"><span class="keyword">bool</span> AppDelegate::applicationDidFinishLaunching()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// Enable debugger here</span></span><br><span class="line">    jsb_enable_debugger(<span class="string">"0.0.0.0"</span>, <span class="number">6086</span>, <span class="literal">true</span>);</span><br><span class="line">    </span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">jsb_enable_debugger</span><span class="params">(<span class="keyword">const</span> <span class="built_in">std</span>::<span class="built_in">string</span>&amp; debuggerServerAddr, <span class="keyword">uint32_t</span> port, <span class="keyword">bool</span> isWaitForConnect)</span></span></span><br></pre></td></tr></table></figure>
+<h2 id="快速修改调试js"><a href="#快速修改调试js" class="headerlink" title="快速修改调试js"></a>快速修改调试js</h2><p>正常的IDE调试流程：修改js逻辑，构建，拷贝构建生成的资源到工程项目，编译，运行，调试。</p>
+<p>即使只是修改一行代码，上面的流程下来也要两分钟，严重降低生产效率</p>
+<p>其实我们可以直接修改构建后的js文件。即直接修改生成的工程项目 <code>assets\src</code>  目录下的相关js文件，然后运行项目即可调试，非常的方便。</p>
+<p>这个方法仅限未加密js的情况下（一般只有构建release的时候我们才会选择加密js选项）</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://docs.cocos2d-x.org/creator/manual/zh/advanced-topics/jsb/JSB2.0-learning.html#chrome-%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95-v8" target="_blank" rel="noopener">Chrome 远程调试 V8</a></li>
+<li><a href="https://docs.cocos2d-x.org/creator/manual/zh/advanced-topics/jsb/JSB2.0-learning.html#%E8%BF%9C%E7%A8%8B%E8%B0%83%E8%AF%95%E4%B8%8E-profile" target="_blank" rel="noopener">远程调试与 Profile</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CocosCreator/" rel="tag"><i class="fa fa-tag"></i> CocosCreator</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/19/Android/插件化/" rel="next" title="插件化">
+                <i class="fa fa-chevron-left"></i> 插件化
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/23/逆向/IDA使用/" rel="prev" title="IDA使用">
+                IDA使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#远程调试"><span class="nav-number">2.</span> <span class="nav-text">远程调试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#模拟器调试和真机调试"><span class="nav-number">3.</span> <span class="nav-text">模拟器调试和真机调试</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#模拟器调试"><span class="nav-number">3.1.</span> <span class="nav-text">模拟器调试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#选择模拟器预览运行游戏"><span class="nav-number">3.1.1.</span> <span class="nav-text">选择模拟器预览运行游戏</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#真机调试"><span class="nav-number">3.2.</span> <span class="nav-text">真机调试</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Chrome-远程调试-V8"><span class="nav-number">4.</span> <span class="nav-text">Chrome 远程调试 V8</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#模拟器"><span class="nav-number">4.1.</span> <span class="nav-text">模拟器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安卓真机"><span class="nav-number">4.2.</span> <span class="nav-text">安卓真机</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#调试技巧"><span class="nav-number">5.</span> <span class="nav-text">调试技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#启动即等待调试器连接"><span class="nav-number">5.1.</span> <span class="nav-text">启动即等待调试器连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#快速修改调试js"><span class="nav-number">5.2.</span> <span class="nav-text">快速修改调试js</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">6.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

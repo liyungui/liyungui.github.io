@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="全屏设置在setContentView()方法之前 1234//无title    requestWindowFeature(Window.FEATURE_NO_TITLE);    //全屏    getWindow().setFlags(WindowManager.LayoutParams. FLAG_FULLSCREEN , WindowManager.LayoutParams. FLAG_">
+<meta name="description" content="四种启动模式1. standard 标准默认      默认启动模式，每次激活Activity都创建Activity，并放入任务栈中。  2. singleTop 栈顶复用      如果在任务的栈顶正好存在该Activity的实例， 就重用该实例，否者就会创建新的实例并放入栈顶(即使栈中已经存在该Activity实例，只要不在栈顶，都会创建实例)。  3. singleTask 栈内复用">
 <meta name="keywords" content="Android">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Activity">
 <meta property="og:url" content="http://yoursite.com/2019/10/16/Android/Activity/index.html">
 <meta property="og:site_name" content="风">
-<meta property="og:description" content="全屏设置在setContentView()方法之前 1234//无title    requestWindowFeature(Window.FEATURE_NO_TITLE);    //全屏    getWindow().setFlags(WindowManager.LayoutParams. FLAG_FULLSCREEN , WindowManager.LayoutParams. FLAG_">
+<meta property="og:description" content="四种启动模式1. standard 标准默认      默认启动模式，每次激活Activity都创建Activity，并放入任务栈中。  2. singleTop 栈顶复用      如果在任务的栈顶正好存在该Activity的实例， 就重用该实例，否者就会创建新的实例并放入栈顶(即使栈中已经存在该Activity实例，只要不在栈顶，都会创建实例)。  3. singleTask 栈内复用">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-10-30T07:30:53.451Z">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.159Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Activity">
-<meta name="twitter:description" content="全屏设置在setContentView()方法之前 1234//无title    requestWindowFeature(Window.FEATURE_NO_TITLE);    //全屏    getWindow().setFlags(WindowManager.LayoutParams. FLAG_FULLSCREEN , WindowManager.LayoutParams. FLAG_">
+<meta name="twitter:description" content="四种启动模式1. standard 标准默认      默认启动模式，每次激活Activity都创建Activity，并放入任务栈中。  2. singleTop 栈顶复用      如果在任务的栈顶正好存在该Activity的实例， 就重用该实例，否者就会创建新的实例并放入栈顶(即使栈中已经存在该Activity实例，只要不在栈顶，都会创建实例)。  3. singleTask 栈内复用">
 
 
 
@@ -352,7 +352,53 @@
       
 
       
-        <h1 id="全屏"><a href="#全屏" class="headerlink" title="全屏"></a>全屏</h1><p>设置在setContentView()方法之前</p>
+        <h1 id="四种启动模式"><a href="#四种启动模式" class="headerlink" title="四种启动模式"></a>四种启动模式</h1><pre><code>1. standard 标准默认
+
+    默认启动模式，每次激活Activity都创建Activity，并放入任务栈中。
+
+2. singleTop 栈顶复用
+
+    如果在任务的栈顶正好存在该Activity的实例， 就重用该实例，否者就会创建新的实例并放入栈顶(即使栈中已经存在该Activity实例，只要不在栈顶，都会创建实例)。
+
+3. singleTask 栈内复用
+
+    如果在栈中已经有该Activity的实例，就重用该实例(会调用实例的onNewIntent())。重用时，会让该实例回到栈顶，因此在它上面的实例将会被移除栈。如果栈中不存在该实例，将会创建新的实例放入栈中。 
+
+    如果是另外一个apk启动该Activity，则会创建新实例并放入全新的栈底
+
+4. singleInstance  实例复用（栈内复用加强版）
+
+    在一个新栈中创建该Activity实例，并让多个应用共享改栈中的该Activity实例。一旦改模式的Activity的实例存在于某个栈中，任何应用再激活改Activity时都会重用该栈中的实例，其效果相当于多个应用程序共享一个应用，不管谁激活该Activity都会进入同一个应用中。
+</code></pre><h1 id="Activity复用–onNewIntent"><a href="#Activity复用–onNewIntent" class="headerlink" title="Activity复用–onNewIntent"></a>Activity复用–onNewIntent</h1><pre><code>1. anifest中对Activity设置lanuchMode=“singleTask”
+2. Activity中复写onNewIntent(intent)
+    在onNewIntent() 中使用setIntent(intent)给Activity赋值新得到的Intent.否则，getIntent()都是得到老的Intent（没有附加数据或附加数据不对）。
+</code></pre><p><code>创建 Activity</code>执行onCreate()—-&gt;onStart()—-&gt;onResume()等后续生命周期函数，也就是说第一次启动Activity并不会执行到onNewIntent(). </p>
+<p><code>复用 Activity</code>执行onNewIntent()—-&gt;onResart()——&gt;onStart()—–&gt;onResume(). 注意onResart()和onStart()不一定会回调</p>
+<p> 如果android系统由于内存不足把已存在Activity释放掉了，那么再次调用的时候会重新 <code>创建 Activity</code> 即执行onCreate()—-&gt;onStart()—-&gt;onResume()等。</p>
+<h1 id="startActivityForResult"><a href="#startActivityForResult" class="headerlink" title="startActivityForResult"></a>startActivityForResult</h1><h2 id="resultCode和requestCode作用"><a href="#resultCode和requestCode作用" class="headerlink" title="resultCode和requestCode作用"></a>resultCode和requestCode作用</h2><p>resultCode：解决「区分多个异步任务」的问题</p>
+<p>requestCode:异步调用结果码，告诉调用者成功/失败/其它信息</p>
+<h3 id="requestCode必须大于等于0"><a href="#requestCode必须大于等于0" class="headerlink" title="requestCode必须大于等于0"></a>requestCode必须大于等于0</h3><p><a href="http://androidxref.com/7.0.0_r1/xref/frameworks/base/services/core/java/com/android/server/am/ActivityStarter.java#266" target="_blank" rel="noopener">ActivityStarter.startActivityLocked()</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">259</span>        ActivityRecord sourceRecord = <span class="keyword">null</span>;</span><br><span class="line"><span class="number">260</span>        ActivityRecord resultRecord = <span class="keyword">null</span>;</span><br><span class="line"><span class="number">261</span>        <span class="keyword">if</span> (resultTo != <span class="keyword">null</span>) &#123;</span><br><span class="line"><span class="number">262</span>            sourceRecord = mSupervisor.isInAnyStackLocked(resultTo);</span><br><span class="line"><span class="number">263</span>            <span class="keyword">if</span> (DEBUG_RESULTS) Slog.v(TAG_RESULTS,</span><br><span class="line"><span class="number">264</span>                    <span class="string">"Will send result to "</span> + resultTo + <span class="string">" "</span> + sourceRecord);</span><br><span class="line"><span class="number">265</span>            <span class="keyword">if</span> (sourceRecord != <span class="keyword">null</span>) &#123;</span><br><span class="line"><span class="number">266</span>                <span class="keyword">if</span> (requestCode &gt;= <span class="number">0</span> &amp;&amp; !sourceRecord.finishing) &#123;</span><br><span class="line"><span class="number">267</span>                    resultRecord = sourceRecord;</span><br><span class="line"><span class="number">268</span>                &#125;</span><br><span class="line"><span class="number">269</span>            &#125;</span><br><span class="line"><span class="number">270</span>        &#125;</span><br></pre></td></tr></table></figure>
+<p>只有requestCode大于等于0，且sourceRecord没有结束，resultRecord才会指向sourceRecord</p>
+<h2 id="setResult和finish"><a href="#setResult和finish" class="headerlink" title="setResult和finish"></a>setResult和finish</h2><p>setResult和finish类似生产者/消费者模型，setResult 负责写入数据，finish 负责读取数据。</p>
+<p>setResult把数据记录在 Activity.mResultCode 和 Activity.mResultData 变量中。两个变量由 Activity 对象锁保证线程安全，支持后台线程和 UI 线程分别进行 setResult 和 finish</p>
+<p>所以 setResult 一定要在 finish 之前执行。</p>
+<h2 id="API-内部原理-数据处理流程"><a href="#API-内部原理-数据处理流程" class="headerlink" title="API 内部原理/数据处理流程"></a>API 内部原理/数据处理流程</h2><p>AMS: ActivityManagerService<br>AMN: ActivityManagerNative<br>AMP: ActivityManagerProxy</p>
+<ul>
+<li>Client 端通过 AMP 把数据发送给 Server 端 AMS Binder 实体</li>
+<li>AMS 把数据包装成 ActivityResult 并保存在源 ActivityRecord 的 results 变量中</li>
+<li>AMS 通过 ApplicationThreadProxy 向 Client 端发送 pause 信息让栈顶 Activity 进入 paused 状态，并等待 Client 端回复或超时</li>
+<li>AMS 接收 Client 端已 paused 信息，恢复下一个获取焦点的 Activity ，读取之前保存在 ActivityRecord.results 变量的数据派发给 Client 端对应的 Activity</li>
+<li>Client 端数据经过 ApplicationThread 对象、ActivityThread 对象的分发最后到达 Activity</li>
+</ul>
+<h2 id="singleTask和singleInstance造成onActivityResult错误"><a href="#singleTask和singleInstance造成onActivityResult错误" class="headerlink" title="singleTask和singleInstance造成onActivityResult错误"></a>singleTask和singleInstance造成onActivityResult错误</h2><p>基本原则:源 Activity 和目标 Activity 无法在跨 Task 情况下通过 onActivityResult 传递数据</p>
+<p>Android 5.0 以上 AMS 在处理 manifest.xml 文件中的 singleTask 和 singleInstance 信息「不会」创建新的 Task，因此可以收到正常回调</p>
+<p><a href="http://androidxref.com/7.0.0_r1/xref/frameworks/base/services/core/java/com/android/server/am/ActivityStarter.java#1196" target="_blank" rel="noopener">链接：Cross Reference</a></p>
+<p>Android 4.4.4 以下 AMS 在处理 manifest.xml 文件中的 singleTask(仅目标Activity) 和 singleInstance 信息「会」创建新的 Task，因此在 startActivity 之后立即收到取消的回调</p>
+<p><a href="http://androidxref.com/4.4.4_r1/xref/frameworks/base/services/java/com/android/server/am/ActivityStackSupervisor.java#1399" target="_blank" rel="noopener">链接：Cross Reference</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1345</span>    <span class="function"><span class="keyword">final</span> <span class="keyword">int</span> <span class="title">startActivityUncheckedLocked</span><span class="params">(ActivityRecord r,</span></span></span><br><span class="line"><span class="function"><span class="params"><span class="number">1346</span>            ActivityRecord sourceRecord, <span class="keyword">int</span> startFlags, <span class="keyword">boolean</span> doResume,</span></span></span><br><span class="line"><span class="function"><span class="params"><span class="number">1347</span>            Bundle options)</span> </span>&#123;</span><br><span class="line">...</span><br><span class="line"><span class="number">1382</span>        <span class="keyword">if</span> (sourceRecord == <span class="keyword">null</span>) &#123;</span><br><span class="line"><span class="number">1383</span>            <span class="comment">// This activity is not being started from another...  in this</span></span><br><span class="line"><span class="number">1384</span>            <span class="comment">// case we -always- start a new task.</span></span><br><span class="line"><span class="number">1385</span>            <span class="keyword">if</span> ((launchFlags&amp;Intent.FLAG_ACTIVITY_NEW_TASK) == <span class="number">0</span>) &#123;</span><br><span class="line"><span class="number">1386</span>                Slog.w(TAG, <span class="string">"startActivity called from non-Activity context; forcing "</span> +</span><br><span class="line"><span class="number">1387</span>                        <span class="string">"Intent.FLAG_ACTIVITY_NEW_TASK for: "</span> + intent);</span><br><span class="line"><span class="number">1388</span>                launchFlags |= Intent.FLAG_ACTIVITY_NEW_TASK;</span><br><span class="line"><span class="number">1389</span>            &#125;</span><br><span class="line"><span class="number">1390</span>        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (sourceRecord.launchMode == ActivityInfo.LAUNCH_SINGLE_INSTANCE) &#123;</span><br><span class="line"><span class="number">1391</span>            <span class="comment">// The original activity who is starting us is running as a single</span></span><br><span class="line"><span class="number">1392</span>            <span class="comment">// instance...  this new activity it is starting must go on its</span></span><br><span class="line"><span class="number">1393</span>            <span class="comment">// own task.</span></span><br><span class="line"><span class="number">1394</span>            launchFlags |= Intent.FLAG_ACTIVITY_NEW_TASK;</span><br><span class="line"><span class="number">1395</span>        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (r.launchMode == ActivityInfo.LAUNCH_SINGLE_INSTANCE</span><br><span class="line"><span class="number">1396</span>                || r.launchMode == ActivityInfo.LAUNCH_SINGLE_TASK) &#123;</span><br><span class="line"><span class="number">1397</span>            <span class="comment">// The activity being started is a single instance...  it always</span></span><br><span class="line"><span class="number">1398</span>            <span class="comment">// gets launched into its own task.</span></span><br><span class="line"><span class="number">1399</span>            launchFlags |= Intent.FLAG_ACTIVITY_NEW_TASK;</span><br><span class="line"><span class="number">1400</span>        &#125;</span><br></pre></td></tr></table></figure>
+<p>通过 dumpsys activity activities 命令查看 AMS 状态，验证两个 Activity 是否属于不同的 Task</p>
+<h1 id="全屏"><a href="#全屏" class="headerlink" title="全屏"></a>全屏</h1><p>设置在setContentView()方法之前</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//无title    </span></span><br><span class="line">requestWindowFeature(Window.FEATURE_NO_TITLE);    </span><br><span class="line"><span class="comment">//全屏    </span></span><br><span class="line">getWindow().setFlags(WindowManager.LayoutParams. FLAG_FULLSCREEN , WindowManager.LayoutParams. FLAG_FULLSCREEN);</span><br></pre></td></tr></table></figure>
 <h1 id="背景透明"><a href="#背景透明" class="headerlink" title="背景透明"></a>背景透明</h1><ul>
 <li>Activity使用自定义透明背景style</li>
@@ -484,7 +530,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">266</span>
+                  <span class="site-state-item-count">308</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -495,7 +541,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">19</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -506,7 +552,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">71</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -539,7 +585,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#全屏"><span class="nav-number">1.</span> <span class="nav-text">全屏</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#背景透明"><span class="nav-number">2.</span> <span class="nav-text">背景透明</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#四种启动模式"><span class="nav-number">1.</span> <span class="nav-text">四种启动模式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Activity复用–onNewIntent"><span class="nav-number">2.</span> <span class="nav-text">Activity复用–onNewIntent</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#startActivityForResult"><span class="nav-number">3.</span> <span class="nav-text">startActivityForResult</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#resultCode和requestCode作用"><span class="nav-number">3.1.</span> <span class="nav-text">resultCode和requestCode作用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#requestCode必须大于等于0"><span class="nav-number">3.1.1.</span> <span class="nav-text">requestCode必须大于等于0</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#setResult和finish"><span class="nav-number">3.2.</span> <span class="nav-text">setResult和finish</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#API-内部原理-数据处理流程"><span class="nav-number">3.3.</span> <span class="nav-text">API 内部原理/数据处理流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#singleTask和singleInstance造成onActivityResult错误"><span class="nav-number">3.4.</span> <span class="nav-text">singleTask和singleInstance造成onActivityResult错误</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#全屏"><span class="nav-number">4.</span> <span class="nav-text">全屏</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#背景透明"><span class="nav-number">5.</span> <span class="nav-text">背景透明</span></a></li></ol></div>
             
 
           </div>
@@ -559,7 +605,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

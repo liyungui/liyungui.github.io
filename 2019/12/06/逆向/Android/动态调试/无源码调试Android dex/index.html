@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="逆向," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="标 题: 【原创】阿里聚安全技术分享之APK无源码调试作 者: alimobsec时 间: 2014-12-18,14:42:14链 接: http://bbs.pediy.com/showthread.php?t=195660这年头，apk全都是加密啊，加壳啊，反调试啊，小伙伴们表示已经不能愉快的玩耍了。静态分析越来越不靠谱了我们的目标是——“debug apk step by step”。 那">
+<meta name="keywords" content="逆向">
+<meta property="og:type" content="article">
+<meta property="og:title" content="无源码调试Android dex">
+<meta property="og:url" content="http://yoursite.com/2019/12/06/逆向/Android/动态调试/无源码调试Android dex/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="标 题: 【原创】阿里聚安全技术分享之APK无源码调试作 者: alimobsec时 间: 2014-12-18,14:42:14链 接: http://bbs.pediy.com/showthread.php?t=195660这年头，apk全都是加密啊，加壳啊，反调试啊，小伙伴们表示已经不能愉快的玩耍了。静态分析越来越不靠谱了我们的目标是——“debug apk step by step”。 那">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.387Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="无源码调试Android dex">
+<meta name="twitter:description" content="标 题: 【原创】阿里聚安全技术分享之APK无源码调试作 者: alimobsec时 间: 2014-12-18,14:42:14链 接: http://bbs.pediy.com/showthread.php?t=195660这年头，apk全都是加密啊，加壳啊，反调试啊，小伙伴们表示已经不能愉快的玩耍了。静态分析越来越不靠谱了我们的目标是——“debug apk step by step”。 那">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/无源码调试Android dex/"/>
+
+
+
+
+
+  <title>无源码调试Android dex | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/无源码调试Android dex/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">无源码调试Android dex</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T13:41:53+08:00">
+                2019-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>标 题: 【原创】阿里聚安全技术分享之APK无源码调试<br>作 者: alimobsec<br>时 间: 2014-12-18,14:42:14<br>链 接: <a href="http://bbs.pediy.com/showthread.php?t=195660" target="_blank" rel="noopener">http://bbs.pediy.com/showthread.php?t=195660</a><br>这年头，apk全都是加密啊，加壳啊，反调试啊，小伙伴们表示已经不能愉快的玩耍了。静态分析越来越不靠谱了<br>我们的目标是——“debug apk step by step”。</p>
+<p>那些不靠谱的工具<br>    IDA pro<br>    触发断点，在watch view和Locals窗口都能看到内存变量的值<br>    仔细观察下，就算你勾选了“Hex display”，你还是无法看到变量的值<br>    WTF！我特么忙活了半天居然还不如直接logcat来得痛快！</p>
+<pre><code>apktool+eclipse
+debug窗口表示命中第30行的断点
+variables窗口没有任何本地变量的值，寄存器的值也没有
+单步步入、单步步过等调试按钮都是灰色的，快捷键F5678都没反应
+测试失败
+
+apktool+android studio
+可以看到现在程序停在哪一行，虽然不明显
+本地变量能看到，但是寄存器还是木有啊
+单步按钮还有单步快捷键都能用了，看起来好多了啊
+我还是想说，问题是寄存器的值还是没法直观的看到啊
+测试失败
+</code></pre><p>apktool+idea 正菜来了<br>    下断点<br>    新建远程调试：依次点击run-&gt; edit configuration-&gt;“＋”号-&gt;Remote，命名为mytest<br>    run-&gt;debug-&gt;mytest<br>    断下，按两次resume，apk才能跑起来<br>    测试成功</p>
+<p>另外，阿呆曾经提到一篇文章用jdb远程调试android程序的文章，<br>链接为：<a href="http://resources.infosecinstitute.com/android-hacking-security-part-6-exploiting-debuggable-android-applications/" target="_blank" rel="noopener">http://resources.infosecinstitute.com/android-hacking-security-part-6-exploiting-debuggable-android-applications/</a></p>
+<p><a href="http://www.kanxue.com/bbs/showthread.php?p=1338639" target="_blank" rel="noopener">http://www.kanxue.com/bbs/showthread.php?p=1338639</a></p>
+<hr>
+<p>下载<a href="http://ibotpeaches.github.io/Apktool/install/" target="_blank" rel="noopener">最新版Apktool</a>，按照教程操作</p>
+<pre><code>个人推荐下载bat。把apktool.jar和apktool.bat放到同一目录即可。
+    一是不用每次都敲 java -jar apktool.jar apktool
+    二是在编译回apk时，cmd会把 b 参数解析成文件名（一直报找不到文件错误）
+</code></pre><p>apktool 加-d参数反编译成java文件，全部拷贝到一个空java工程src目录下<br>    其实是伪java。每一行都是a=0;然后smali作为行注释<br>    -d的作用就是编译成 debug模式（.java，不加的话是.smali）<br>    apktool d -d test.apk -o test</p>
+<p>manifest 加入debuggable属性，重打包，安装<br>    android:debuggable=”true”</p>
+<p>使用-d选项重打包apk，签名(其他签名工具)，安装<br>    加-d才可以调试，否则断点无效<br>    apktool b -d test -o debug.apk</p>
+<p>am命令启动apk，停留在等待调试器界面<br>    adb shell am start -D -W -n com.snda.wifilocating/com.lantern.launcher.ui.MainActivity<br>        出现ddms自动附加调试的话，尝试先让app进入等待调试模式，再开idea</p>
+<p>eclipse调试按钮更多，远程调试，地址local，端口调试端口，附加上就可以断点调试了。<br>    一直没成功。<br>    附加不上，<br>    附加上是把原来的等待调试的杀死，启动了新进程<br>    附加上了，断不下来</p>
+<p>有文章说在入口类入口方法第一行加 等待调试器代码（有api可调），可以远程附加调试<br>    onCreate第一行（.prologue后面）<br>    invoke-static {}, Landroid/os/Debug;-&gt;waitForDebugger()V<br>    的确会等待调试器附加，但是附加上去还是无法断点调试（断不下）</p>
+<p>有文章甚至说反编译为jar包，加入一个空java工程中，就可以实现远程附加断点调试<br>    尝试失败</p>
+<p>后来尝试用idea，成功！！</p>
+<p>必须用另一个idea打开一个Android工程（上面我们是java工程），才能在tools–Android–Android device monitor 打开ddms，查看目标程序的调试端口（8700），同时防止adb掉线</p>
+<p>新建远程调试：依次点击run-&gt; edit configuration-&gt;“＋”号-&gt;Remote，host写localhost，端口写上面查到的</p>
+<p>点击run-&gt;debug-&gt;unnamed，其中unnamed是第9步中新建的远程调试的名字<br>    如果adb掉线，会出现连接拒绝，重连adb即可解决。 Unable to open debugger port (localhost:8700): java.net.ConnectException “Connection refused: connect”</p>
+<h1 id="Smalidea-IntelliJ-IDEA-Android-Studio无源码调试"><a href="#Smalidea-IntelliJ-IDEA-Android-Studio无源码调试" class="headerlink" title="Smalidea+IntelliJ IDEA/Android Studio无源码调试"></a><a href="https://bbs.pediy.com/thread-220743.htm" target="_blank" rel="noopener">Smalidea+IntelliJ IDEA/Android Studio无源码调试</a></h1><p><a href="https://github.com/JesusFreke/smali/wiki/smalidea" target="_blank" rel="noopener">smalidea</a>是一个IntelliJ IDEA/Android Studio smali语言插件，可实现动态调试smali代码。支持14.1或以上版本的IDEA</p>
+<h2 id="一、反编译apk为smali"><a href="#一、反编译apk为smali" class="headerlink" title="一、反编译apk为smali"></a>一、反编译apk为smali</h2><ul>
+<li><p>baksmail:</p>
+<pre><code>java -jar baksmali-2.2.1.jar  d myapp.apk -o ~/projects/myapp/src
+</code></pre></li>
+<li><p>apktool:</p>
+<pre><code>java -jar apktool.jar d myapp.apk -o ~/projects/myapp/src
+</code></pre></li>
+</ul>
+<h2 id="使apk可调试"><a href="#使apk可调试" class="headerlink" title="使apk可调试"></a>使apk可调试</h2><ul>
+<li>使用模拟器</li>
+<li>重打包apk。修改Manifest application 属性 android:debuggable=”true”</li>
+<li>编译一个debug版 的rom</li>
+<li>修改测试机的 /default.prop 文件的ro.debuggable=1。需root</li>
+</ul>
+<h2 id="开始调试"><a href="#开始调试" class="headerlink" title="开始调试"></a>开始调试</h2><hr>
+<p>来自 看雪 古河 使用AndBug调试Android Java Bytecode<br>    <a href="http://bbs.pediy.com/showthread.php?t=141995" target="_blank" rel="noopener">http://bbs.pediy.com/showthread.php?t=141995</a></p>
+<pre><code>附参考：看雪 anbn Android动态逆向分析工具（一）——Andbug之基本操作 系列。更加详细
+    http://bbs.pediy.com/showthread.php?t=183412
+</code></pre><p>AndBug的主页是：<a href="https://github.com/swdunlop/AndBug" target="_blank" rel="noopener">https://github.com/swdunlop/AndBug</a></p>
+<p>必须Linux环境（我是Ubuntu 14）。Python开发，需要python-dev，bottle库（Python Web Framework）</p>
+<p>github下载后解压，进入根目录，开启终端，make<br>    make 报错就是没有python-dev（Ubuntu自带Python，但没有python-dev）<br>        sudo apt-get install python-dev</p>
+<p>在模拟器中启动apk，在命令行下输入 adb shell ps，找到相应的进程pid，在这个例子中pid是243<br>    apk 必须debuggable，否则附加调试会出现 Connection reset by peer 错误</p>
+<pre><code>Ubuntu adb 问题。
+    sudo add-apt-repository ppa:nilarimogard/webupd8
+    sudo apt-get update
+    sudo apt-get install android-tools-adb
+
+安卓设备连接 adb 问题
+    lsusb 配合插拔usb设备，确定 USB设备。
+    发现usb口是当前使用的端口：Bus 002 Devices 004：ID 230b:0100        
+    ID 230b 就是idVendor ，0100就是 idProduct
+
+    新建并编辑一个文件
+    sudo vi /etc/udev/rules.d/70-android.rules
+    在里面写入：
+    SUBSYSTEM==&quot;usb&quot;, ATTRS{idVendor}==&quot;230b&quot;, ATTRS{idProduct}==&quot;0100&quot;,MODE=&quot;0666&quot;
+        ID 230b 就是idVendor ，0100就是 idProduct
+        其实还应该写一个OWNER项，用来指定是哪个用户有权限操作
+        如果不写则是root（不是所有用户都可以访问）
+
+    保存退出，再设置一下权限
+    sudo chmod a+rx /etc/udev/rules.d/70-android.rules
+
+    向adb_usb.ini文件写入厂商id（注意加 0x前缀）
+    echo 0x230b &gt; ~/.android/adb_usb.ini
+        用户根目录下，ls -a 可以发现
+
+    重启USB服务
+    sudo service udev restart
+</code></pre><p>进入AndBug根目录，输入PYTHONPATH=lib ./andbug shell -p 8723，命令attach上目标进程<br>    andbug是Python脚本，andbug shell 附加调试命令<br>    adb shell ps | grep “com.yuki” 可以找到对应名字的pid</p>
+<pre><code>[Errno 104] Connection reset by peer 问题
+搜索了好久，包括原贴和官网上都没有解决。
+我尝试去attach其它进程，发现其它进程是可以成功的，
+继而我想到可能是debuggable的问题，逆向AndroidManifest添加 android:debuggable=true 成功。
+</code></pre><p>classes 命令，查看apk调用了哪些类<br>    classes java.net 查看调用的包含java.net的类</p>
+<p>methods 命令，查看apk调用了哪些类方法</p>
+<p>break java.net.URL 断点类调用。<br>    也可断点方法调用 break 类名 方法名（类名和方法名间空格）<br>    Android4.4.2上实际操作发现断java.net.URL会在触摸屏幕触发断点<br>         com.android.okhttp.Connection.connect 这个断点效果好<br>         break com.android.okhttp.Connection connect</p>
+<p>break-list命令查看断点设置情况<br>break-remove 536870916    删除已设置断点</p>
+<p>操作apk，触发断点</p>
+<p>navi命令，提示 server地址<a href="http://localhost:8080" target="_blank" rel="noopener">http://localhost:8080</a> 查看线程状态<br>    !! command not supported: “navi.”  问题<br>    这是需要 bottle库（Python Web Framework）<br>        apt-get install python-bottle</p>
+<pre><code>Error: 500 Internal Server Error 问题
+访问http://localhost:8080 错误。
+解释说是地址，或资源问题。没有搞定（rooted红米note1 Android4.4.2）
+后来过了很长一段时间，用华为 g521-L076 测试成功（rooted，Android4.3）
+</code></pre><p>resume 恢复运行</p>
+<p>suspend 进程暂停命令</p>
+<p>help 帮助命令</p>
+<p>class-trace 类跟踪命令<br>取消跟踪也可以使用break-remove命令实现。</p>
+<p>method-trace 方法跟踪命令</p>
+<p>列举当前线程信息<br>命令：threads 会列出函数调用的情况，参数，以及堆栈情况。</p>
+<p>示指定类中的静态变量的信息<br>命令：statics com.android.internal.view.menu.MenuBuilder</p>
+<p>查看对象信息<br>通过class-trace命令可以跟踪到目标函数中对象的Id信息，</p>
+<p>通过对象的Id使用inspect命令，可以查处该队形的详细信息。<br>由于在break命令设置断点后，触发断点时反馈的信息，没有包含Object Id的信息，导致inspect命令用起来不是很方便。</p>
+<p>19、源码关联命令<br>命令：source 与源代码关联起来，可以是smali代码。<br>命令：dump 展示指定方法的代码。</p>
+<p>20、Web输出命令<br>命令：navi<br>注：为了支持navi命令，需要安**ottle库。</p>
+<p>退出命令<br>命令：exit     </p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/逆向/" rel="tag"><i class="fa fa-tag"></i> 逆向</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/06/逆向/Android/动态调试/jswat 无源码动态调试/" rel="next" title="jswat无源码动态调试">
+                <i class="fa fa-chevron-left"></i> jswat无源码动态调试
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/06/逆向/Android/动态调试/打开调试模式/" rel="prev" title="打开调试模式">
+                打开调试模式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Smalidea-IntelliJ-IDEA-Android-Studio无源码调试"><span class="nav-number">1.</span> <span class="nav-text">Smalidea+IntelliJ IDEA/Android Studio无源码调试</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#一、反编译apk为smali"><span class="nav-number">1.1.</span> <span class="nav-text">一、反编译apk为smali</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使apk可调试"><span class="nav-number">1.2.</span> <span class="nav-text">使apk可调试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开始调试"><span class="nav-number">1.3.</span> <span class="nav-text">开始调试</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

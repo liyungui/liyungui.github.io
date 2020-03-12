@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="直播," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="SDK版本移动直播（Mobile Live Video Broadcasting，MLVB）SDK  LiteAVSDK_Professional_6.6.7458  类图 下载123456789101112131415161718192021//音视频数据处理接口 com.tencent.liteav.network.hpublic interface IDownloaderCallback &amp;">
+<meta name="keywords" content="直播">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SDK逆向">
+<meta property="og:url" content="http://yoursite.com/2019/11/25/直播/腾讯直播/SDK逆向/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="SDK版本移动直播（Mobile Live Video Broadcasting，MLVB）SDK  LiteAVSDK_Professional_6.6.7458  类图 下载123456789101112131415161718192021//音视频数据处理接口 com.tencent.liteav.network.hpublic interface IDownloaderCallback &amp;">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/11/25/直播/腾讯直播/SDK逆向/类图.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/25/直播/腾讯直播/SDK逆向/时序图.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/25/直播/腾讯直播/SDK逆向/FLVDownloader.png">
+<meta property="og:image" content="http://yoursite.com/2019/11/25/直播/腾讯直播/SDK逆向/FLV解析.jpg">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.311Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SDK逆向">
+<meta name="twitter:description" content="SDK版本移动直播（Mobile Live Video Broadcasting，MLVB）SDK  LiteAVSDK_Professional_6.6.7458  类图 下载123456789101112131415161718192021//音视频数据处理接口 com.tencent.liteav.network.hpublic interface IDownloaderCallback &amp;">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/25/直播/腾讯直播/SDK逆向/类图.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/11/25/直播/腾讯直播/SDK逆向/"/>
+
+
+
+
+
+  <title>SDK逆向 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/25/直播/腾讯直播/SDK逆向/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">SDK逆向</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-25T14:52:14+08:00">
+                2019-11-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="SDK版本"><a href="#SDK版本" class="headerlink" title="SDK版本"></a>SDK版本</h1><p>移动直播（Mobile Live Video Broadcasting，MLVB）SDK </p>
+<p>LiteAVSDK_Professional_6.6.7458 </p>
+<h1 id="类图"><a href="#类图" class="headerlink" title="类图"></a>类图</h1><img src="/2019/11/25/直播/腾讯直播/SDK逆向/类图.png">
+<h2 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//音视频数据处理接口 com.tencent.liteav.network.h</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IDownloaderCallback</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">onPullAudio</span><span class="params">(a var1)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">onPullNAL</span><span class="params">(TXSNALPacket var1)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line">```	</span><br><span class="line"></span><br><span class="line">```java</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">TXIStreamDownloader</span> </span>&#123;</span><br><span class="line">	startDownload()</span><br><span class="line">	stopDownload()</span><br><span class="line">	onRecvVideoData()</span><br><span class="line">	onRecvAudioData()</span><br><span class="line">	onRecvSEIData()</span><br><span class="line">	onRecvMetaData()</span><br><span class="line">	PushVideoFrame()</span><br><span class="line">	PushAudioFrame()</span><br><span class="line">	getCurrentTS()</span><br><span class="line">	getLastIFrameTS()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TXCFLVDownloader</span> <span class="keyword">extends</span> <span class="title">TXIStreamDownloader</span> </span>&#123; </span><br><span class="line">	<span class="comment">//线程名 FlvThread</span></span><br><span class="line">	nativeInitFlvHander() 创建flvOriginThread线程</span><br><span class="line">	nativeParseData()</span><br><span class="line">	nativeCleanData()</span><br><span class="line">	nativeGetAudioBytes()</span><br><span class="line">	nativeGetVideoBytes()</span><br><span class="line">	nativeGetVideoGop()</span><br><span class="line">	nativePushAudioFrame()</span><br><span class="line">	nativePushVideoFrame()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TXCRTMPDownloader</span> <span class="keyword">extends</span> <span class="title">TXIStreamDownloader</span> </span>&#123;</span><br><span class="line">	<span class="comment">//线程名 RTMPDownLoad</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//StreamRecvThread.cpp</span><br><span class="line"></span><br><span class="line">init</span><br><span class="line">writeData</span><br><span class="line">clear</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//FlvContainer.cpp</span><br><span class="line"></span><br><span class="line">threadLoop</span><br><span class="line">readTagHeader</span><br><span class="line">parseMetaData</span><br><span class="line">findIFrameOffset</span><br><span class="line">parseVideoData</span><br><span class="line">checkState</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//FlvParserInternal.cpp</span><br><span class="line"></span><br><span class="line">reallocBuffer</span><br><span class="line">copyDataTo26xCache</span><br><span class="line">parseData</span><br></pre></td></tr></table></figure>
+<h2 id="解码-amp-渲染"><a href="#解码-amp-渲染" class="headerlink" title="解码&amp;渲染"></a>解码&amp;渲染</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//视频解码器接口 com.tencent.liteav.videodecoder.a</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IVideoDecoder</span></span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">//视频解码回调接口 com.tencent.liteav.videodecoder.c</span><br><span class="line">public interface VideoDecodeListener &#123;</span><br><span class="line">    void onDecodeFrame(TXSVideoFrame var1, int var2, int var3, long var4, long var6, int var8);</span><br><span class="line"></span><br><span class="line">    void onDecodeFailed(int var1);</span><br><span class="line"></span><br><span class="line">    void onVideoSizeChange(int var1, int var2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Ffmpeg解码器</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TXCVideoFfmpegDecoder</span> <span class="keyword">implements</span> <span class="title">IDecoder</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//MediaCodecDecoder解码器 com.tencent.liteav.videodecoder.b;</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MediaCodecDecoder</span> <span class="keyword">implements</span> <span class="title">IDecoder</span> </span>&#123;</span><br><span class="line"> </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//TXCVideoDecoder解码器</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TXCVideoDecoder</span> <span class="keyword">implements</span> <span class="title">DecodeListener</span> </span>&#123;</span><br><span class="line"> </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TXCRenderAndDec</span> <span class="keyword">implements</span> <span class="title">DecodeListener</span></span>&#123;</span><br><span class="line">	setVideoRender(com.tencent.liteav.renderer.f var1)<span class="comment">//设置Render，开始渲染</span></span><br><span class="line">	setRenderAndDecDelegate()</span><br><span class="line">	setVideoFrameListener(com.tencent.liteav.s var1) 设置渲染TXSVideoFrame的监听</span><br><span class="line">	setConfig()</span><br><span class="line">	setDecListener()</span><br><span class="line">	enableDecoderChange()</span><br><span class="line">	start()</span><br><span class="line">	startVideo()</span><br><span class="line">	isRendering()</span><br><span class="line">	decVideo(TXSNALPacket var1)</span><br><span class="line">	startDecode()</span><br><span class="line">	switchToSoftDecoder()</span><br><span class="line">	requestKeyFrame()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">//TXCVideoJitterBuffer.cpp</span><br><span class="line"></span><br><span class="line">Start</span><br><span class="line">Stop</span><br><span class="line">PushFrame</span><br><span class="line">PullFrame</span><br><span class="line">DropFrame</span><br><span class="line">getVideoDecoderSink</span><br><span class="line">OnNotifyLoadingEvent</span><br><span class="line">SetHWCacheFrameCount</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// TXCVideoDecoder.cpp</span><br><span class="line"></span><br><span class="line">Start</span><br><span class="line">Stop</span><br><span class="line">EnableDecodeChange</span><br><span class="line">OnReceiveVideoFrame</span><br><span class="line">SetStreamType</span><br><span class="line">SetID</span><br><span class="line">onDecodeDone</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//TXCAudioJitterBuffer.cpp</span><br><span class="line"></span><br><span class="line">adjustThreshold</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//TXCFFmpegAACDecoder.cpp</span><br><span class="line"></span><br><span class="line">Init</span><br><span class="line">DoDecode</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">//TXCTraeAudioEngine.cpp</span><br><span class="line"></span><br><span class="line">ThreadLoop100ms</span><br><span class="line">OnQueryPcmToPlay</span><br></pre></td></tr></table></figure>
+<h2 id="播放器"><a href="#播放器" class="headerlink" title="播放器"></a>播放器</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">com.tencent.liteav.r 基类TXIPlayer</span><br><span class="line"></span><br><span class="line">TXLivePlayer</span><br><span class="line">com.tencent.rtmp.a <span class="comment">//TXLivePlayer的实现类的代理类</span></span><br><span class="line">com.tencent.liteav.g <span class="comment">//TXLivePlayer的实现类</span></span><br><span class="line"></span><br><span class="line">TXVodPlayer</span><br><span class="line">com.tencent.liteav.n <span class="comment">//TXVodPlayer的实现类</span></span><br><span class="line"></span><br><span class="line">TXCloudVideoView</span><br><span class="line">TXCVodVideoView</span><br></pre></td></tr></table></figure>
+<h2 id="数据日志"><a href="#数据日志" class="headerlink" title="数据日志"></a>数据日志</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">TXCEventRecorderProxy</span><br><span class="line">TXCKeyPointReportProxy</span><br><span class="line">TXCLog</span><br></pre></td></tr></table></figure>
+<h1 id="时序图"><a href="#时序图" class="headerlink" title="时序图"></a>时序图</h1><img src="/2019/11/25/直播/腾讯直播/SDK逆向/时序图.png">
+<p>StreamRecvThread.cpp writeData</p>
+<h2 id="API调用过程"><a href="#API调用过程" class="headerlink" title="API调用过程"></a>API调用过程</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">TXLivePlayer startPlay</span><br><span class="line"></span><br><span class="line">TXLivePlayerImpDelegate a</span><br><span class="line"></span><br><span class="line">AudioEngImplTRAE a</span><br><span class="line"></span><br><span class="line">TXCTraeAudioEngine.cpp a</span><br><span class="line"></span><br><span class="line">liteav.renderer.f b(TextureView paramTextureView)</span><br><span class="line"></span><br><span class="line">TXCRenderAndDec setVideoRender((f paramf))</span><br><span class="line"></span><br><span class="line">TXCRenderAndDec start(boolean paramBoolean)</span><br><span class="line"></span><br><span class="line">TXCVideoDecoder.cpp Start</span><br><span class="line"></span><br><span class="line">TXCAudioJitterBuffer.cpp </span><br><span class="line"></span><br><span class="line">TXCFLVDownloader startDownload</span><br><span class="line"></span><br><span class="line">liteav.renderer.f b(Surface paramSurface)</span><br><span class="line"></span><br><span class="line">liteav.basic.datareport.TXCDRApi</span><br><span class="line"></span><br><span class="line">tx_dr_base.cpp RecvResponse</span><br><span class="line"></span><br><span class="line">tx_dr_base.cpp txReportDAU</span><br><span class="line"></span><br><span class="line">jni_audio_play.cpp Java_com_tencent_liteav_audio_impl_TXCJitter_nativeSetJitterListener</span><br><span class="line"></span><br><span class="line">TXCRenderAndDec setVideoFrameListener</span><br><span class="line"></span><br><span class="line">TXCVideoJitterBuffer.cpp Start</span><br><span class="line"></span><br><span class="line">TXCVideoJitterBuffer.cpp getVideoDecoderSink</span><br><span class="line"></span><br><span class="line">StreamRecvThread.cpp threadLoop flv play parse the flv tag head at 0</span><br><span class="line"></span><br><span class="line">TXCFFmpegAACDecoder.cpp Init</span><br><span class="line">TXCFFmpegAACDecoder.cpp DoDecode init soft aac decoder success sr[44100|48000] , ch[2|2]!</span><br><span class="line"></span><br><span class="line">FlvContainer.cpp parseVideoData flv parse the I Frame</span><br><span class="line"></span><br><span class="line">TXCFFmpegAACDecoder.cpp DoDecode aac soft dec first frame success with audio info : samplerate[44100|48000] , channel [2|2]</span><br><span class="line"></span><br><span class="line">TXCVideoJitterBuffer.cpp OnNotifyLoadingEvent recv loading event 0</span><br><span class="line"></span><br><span class="line">TXCVideoDecoder.cpp OnReceiveVideoFrame trtc_play:decode: push first i frame</span><br><span class="line"></span><br><span class="line">TXCVideoDecoder.cpp onDecodeDone trtc_play:decode: decode first frame success</span><br><span class="line"></span><br><span class="line">TXCTextureViewWrapper vrender: set video size:1280,720</span><br><span class="line"></span><br><span class="line">TXCVideoRender trtc_render render first frame</span><br><span class="line">TXCVideoRender play:vrender: texture available</span><br><span class="line"></span><br><span class="line">TXCTextureViewWrapper vrender: set view size:2061,1080</span><br><span class="line"></span><br><span class="line">TXCVideoRender play:vrender: start render thread</span><br><span class="line"></span><br><span class="line">TXCVideoRenderThread vrender: init egl</span><br><span class="line"></span><br><span class="line">TXCTextureViewWrapper vrender: set view size:2061,1080</span><br><span class="line">TXCTextureViewWrapper vrender: set video size:1280,720</span><br><span class="line"></span><br><span class="line">TXCYuvTextureRender frame type 0 matrix_test videoRange</span><br></pre></td></tr></table></figure>
+<h1 id="线程"><a href="#线程" class="headerlink" title="线程"></a>线程</h1><table>
+<thead>
+<tr>
+<th>线程名</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FlvThread</code>  音视频数据接收线程java</td>
+<td>网络下载</td>
+</tr>
+<tr>
+<td><code>FlvOriginThread</code> 音视频数据接收线程c</td>
+<td>接收java层数据</td>
+</tr>
+<tr>
+<td><code>video_jitter_buffer</code> 视频解码线程</td>
+<td>解码和缓冲视频帧</td>
+</tr>
+<tr>
+<td><code>TXCLogUploader</code> 日志上传线程</td>
+<td>上传日志</td>
+</tr>
+</tbody>
+</table>
+<h1 id="FLV下载"><a href="#FLV下载" class="headerlink" title="FLV下载"></a>FLV下载</h1><img src="/2019/11/25/直播/腾讯直播/SDK逆向/FLVDownloader.png">
+<h1 id="FLV解析"><a href="#FLV解析" class="headerlink" title="FLV解析"></a>FLV解析</h1><img src="/2019/11/25/直播/腾讯直播/SDK逆向/FLV解析.jpg">
+<h1 id="音频播放"><a href="#音频播放" class="headerlink" title="音频播放"></a>音频播放</h1><p>使用ffmpeg解码aac为pcm</p>
+<p>使用audiotrack播放</p>
+<h1 id="ITXLivePlayListener-onNetStatus"><a href="#ITXLivePlayListener-onNetStatus" class="headerlink" title="ITXLivePlayListener.onNetStatus"></a>ITXLivePlayListener.onNetStatus</h1><p>网络状态、帧率等的通知，通知的内容（key，value）格式</p>
+<p>开始播放回调一次，然后每两秒回调一次</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// com.tencent.liteav.g TXLivePlayer的实现类 TXLivePlayerImp</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">a</span><span class="params">(String var1, <span class="keyword">int</span> var2)</span> </span>&#123;</span><br><span class="line">	<span class="comment">//开始播放</span></span><br><span class="line">	<span class="keyword">this</span>.u();<span class="comment">//首次调用onNetStatus</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">u</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.L = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.h != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">this</span>.h.postDelayed(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (g.<span class="keyword">this</span>.L) &#123;</span><br><span class="line">                    g.<span class="keyword">this</span>.w();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="number">2000L</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">w</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	<span class="comment">//构建通知的内容（key，value）格式</span></span><br><span class="line">	<span class="comment">//通过onNotifyEvent回调到onNetStatus</span></span><br><span class="line">	com.tencent.liteav.basic.util.b.a(<span class="keyword">this</span>.e, <span class="number">15001</span>, var9);</span><br><span class="line">	<span class="comment">//循环调用自身</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.h != <span class="keyword">null</span> &amp;&amp; <span class="keyword">this</span>.L) &#123;</span><br><span class="line">        <span class="keyword">this</span>.h.postDelayed(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                <span class="keyword">if</span> (g.<span class="keyword">this</span>.L) &#123;</span><br><span class="line">                    g.<span class="keyword">this</span>.w();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="number">2000L</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">a</span><span class="params">(WeakReference&lt;a&gt; var0, String var1, <span class="keyword">int</span> var2, Bundle var3)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (var0 != <span class="keyword">null</span>) &#123;</span><br><span class="line">        a var4 = (a)var0.get();</span><br><span class="line">        <span class="keyword">if</span> (var4 != <span class="keyword">null</span>) &#123;</span><br><span class="line">            var3.putString(<span class="string">"EVT_USERID"</span>, var1);</span><br><span class="line">            var4.onNotifyEvent(var2, var3);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onNotifyEvent</span><span class="params">(<span class="keyword">int</span> var1, Bundle var2)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (var1 == <span class="number">15001</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.a != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">this</span>.a.setLogText(var2, (Bundle)<span class="keyword">null</span>, <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.e != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">this</span>.e.onNetStatus(var2);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/直播/" rel="tag"><i class="fa fa-tag"></i> 直播</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/11/23/逆向/IDA使用/" rel="next" title="IDA使用">
+                <i class="fa fa-chevron-left"></i> IDA使用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/27/逆向/Android/重打包/修改第三方aar重打包/" rel="prev" title="修改第三方aar重打包">
+                修改第三方aar重打包 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SDK版本"><span class="nav-number">1.</span> <span class="nav-text">SDK版本</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#类图"><span class="nav-number">2.</span> <span class="nav-text">类图</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#下载"><span class="nav-number">2.1.</span> <span class="nav-text">下载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解码-amp-渲染"><span class="nav-number">2.2.</span> <span class="nav-text">解码&amp;渲染</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#播放器"><span class="nav-number">2.3.</span> <span class="nav-text">播放器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据日志"><span class="nav-number">2.4.</span> <span class="nav-text">数据日志</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#时序图"><span class="nav-number">3.</span> <span class="nav-text">时序图</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#API调用过程"><span class="nav-number">3.1.</span> <span class="nav-text">API调用过程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#线程"><span class="nav-number">4.</span> <span class="nav-text">线程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FLV下载"><span class="nav-number">5.</span> <span class="nav-text">FLV下载</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#FLV解析"><span class="nav-number">6.</span> <span class="nav-text">FLV解析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#音频播放"><span class="nav-number">7.</span> <span class="nav-text">音频播放</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ITXLivePlayListener-onNetStatus"><span class="nav-number">8.</span> <span class="nav-text">ITXLivePlayListener.onNetStatus</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

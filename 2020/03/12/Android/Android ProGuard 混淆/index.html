@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="title: Android ProGuard 混淆date: 2019-07-10 18:36:53categories:  - Android tags:  - Android  ProGuard作用压缩（Shrinking）：默认开启，用以减小应用体积，移除未被使用的类和成员，并且会在优化动作执行之后再次执行（因为优化后可能会再次暴露一些未被使用的类和成员）。 -dontshrink 关闭">
+<meta property="og:type" content="article">
+<meta property="og:title" content="风">
+<meta property="og:url" content="http://yoursite.com/2020/03/12/Android/Android ProGuard 混淆/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="title: Android ProGuard 混淆date: 2019-07-10 18:36:53categories:  - Android tags:  - Android  ProGuard作用压缩（Shrinking）：默认开启，用以减小应用体积，移除未被使用的类和成员，并且会在优化动作执行之后再次执行（因为优化后可能会再次暴露一些未被使用的类和成员）。 -dontshrink 关闭">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.159Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="风">
+<meta name="twitter:description" content="title: Android ProGuard 混淆date: 2019-07-10 18:36:53categories:  - Android tags:  - Android  ProGuard作用压缩（Shrinking）：默认开启，用以减小应用体积，移除未被使用的类和成员，并且会在优化动作执行之后再次执行（因为优化后可能会再次暴露一些未被使用的类和成员）。 -dontshrink 关闭">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/03/12/Android/Android ProGuard 混淆/"/>
+
+
+
+
+
+  <title> | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/12/Android/Android ProGuard 混淆/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline"></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-12T12:25:00+08:00">
+                2020-03-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <hr>
+<p>title: Android ProGuard 混淆<br>date: 2019-07-10 18:36:53<br>categories: </p>
+<pre><code>- Android
+</code></pre><p>tags: </p>
+<pre><code>- Android
+</code></pre><hr>
+<h1 id="ProGuard作用"><a href="#ProGuard作用" class="headerlink" title="ProGuard作用"></a>ProGuard作用</h1><p><strong>压缩</strong>（Shrinking）：默认开启，用以减小应用体积，移除未被使用的类和成员，并且会在优化动作执行之后再次执行（因为优化后可能会再次暴露一些未被使用的类和成员）。</p>
+<pre><code>-dontshrink 关闭压缩
+</code></pre><p><strong>优化</strong>（Optimization）：默认开启，在字节码级别执行优化，让应用运行的更快。</p>
+<pre><code>-dontoptimize  关闭优化
+-optimizationpasses n 表示proguard对代码进行迭代优化的次数，Android一般为5
+</code></pre><p><strong>混淆</strong>（Obfuscation）：默认开启，增大反编译难度，类和类成员会被随机命名，除非用keep保护。</p>
+<pre><code>-dontobfuscate 关闭混淆
+</code></pre><h1 id="开启混淆"><a href="#开启混淆" class="headerlink" title="开启混淆"></a>开启混淆</h1><p>app module 的 build.gradle中minifyEnabled设置为true</p>
+<h1 id="混淆规则文件"><a href="#混淆规则文件" class="headerlink" title="混淆规则文件"></a>混淆规则文件</h1><p>app module</p>
+<p><code>proguardFiles getDefaultProguardFile(&#39;proguard-android.txt&#39;), &#39;proguard-rules.pro&#39;</code></p>
+<p>lib module</p>
+<p><code>consumerProguardFiles getDefaultProguardFile(&#39;proguard-android.txt&#39;), &#39;proguard-rules.pro&#39;</code></p>
+<p>特别注意：lib module 一定要使用 consumerProguardFiles；否则混淆规则是不生效的</p>
+<p>以<code>consumerProguardFiles</code>方式加入的混淆具有以下特性：</p>
+<ul>
+<li>*.pro文件会包含在aar文件中（aar混淆规则，对应用程序无效）</li>
+<li>这些pro配置会在应用程序开启混淆的时候被使用</li>
+<li>混淆配置对使用者透明，特别方便</li>
+</ul>
+<h1 id="stacktrace的恢复"><a href="#stacktrace的恢复" class="headerlink" title="stacktrace的恢复"></a>stacktrace的恢复</h1><p>retrace脚本 <code>./tools/proguard/bin/retrace.sh</code></p>
+<p>mapping映射表 <code>./app/build/outputs/mapping/release/mapping.txt</code></p>
+<h1 id="哪些不应该混淆"><a href="#哪些不应该混淆" class="headerlink" title="哪些不应该混淆"></a>哪些不应该混淆</h1><h2 id="反射中使用的元素"><a href="#反射中使用的元素" class="headerlink" title="反射中使用的元素"></a>反射中使用的元素</h2><p>属性,方法,类,包名等</p>
+<h2 id="序列化与反序列化"><a href="#序列化与反序列化" class="headerlink" title="序列化与反序列化"></a>序列化与反序列化</h2><p>解决方案：</p>
+<pre><code>1. 将序列化和反序列化的类排除混淆
+2. 使用@SerializedName注解字段
+</code></pre><h2 id="枚举"><a href="#枚举" class="headerlink" title="枚举"></a>枚举</h2><h2 id="泛型"><a href="#泛型" class="headerlink" title="泛型"></a>泛型</h2><h2 id="注解"><a href="#注解" class="headerlink" title="注解"></a>注解</h2><h2 id="四大组件"><a href="#四大组件" class="headerlink" title="四大组件"></a>四大组件</h2><h2 id="jni调用的java方法"><a href="#jni调用的java方法" class="headerlink" title="jni调用的java方法"></a>jni调用的java方法</h2><h2 id="java的native方法"><a href="#java的native方法" class="headerlink" title="java的native方法"></a>java的native方法</h2><h2 id="js调用java的方法"><a href="#js调用java的方法" class="headerlink" title="js调用java的方法"></a>js调用java的方法</h2><h2 id="第三方库不建议混淆"><a href="#第三方库不建议混淆" class="headerlink" title="第三方库不建议混淆"></a>第三方库不建议混淆</h2><h1 id="dontwarn指令"><a href="#dontwarn指令" class="headerlink" title="dontwarn指令"></a>dontwarn指令</h1><p>关闭警告。</p>
+<p>引入的library可能存在一些无法找到的引用和其他问题,在build时可能会发出警告,如果我们不进行处理,通常会导致build中止.因此为了保证build继续,我们需要使用dontwarn处理这些我们无法解决的library的警告.</p>
+<p><code>-dontwarn com.twitter.sdk.** # 关闭Twitter sdk的警告</code></p>
+<h1 id="keep指令"><a href="#keep指令" class="headerlink" title="keep指令"></a>keep指令</h1><table>
+<thead>
+<tr>
+<th>保留内容/作用域</th>
+<th>防止被移除或者被重命名</th>
+<th>防止被重命名(后缀names)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>类和类成员</td>
+<td>-keep</td>
+<td>-keepnames</td>
+</tr>
+<tr>
+<td>仅类成员</td>
+<td>-keepclassmembers</td>
+<td>-keepclassmembernames</td>
+</tr>
+<tr>
+<td>如果拥有某成员，保留类和类成员</td>
+<td>-keepclasseswithmembers</td>
+<td>-keepclasseswithmembernames</td>
+</tr>
+</tbody>
+</table>
+<p>移除是指在压缩(Shrinking)时是否会被删除。</p>
+<h1 id="指令对象"><a href="#指令对象" class="headerlink" title="指令对象"></a>指令对象</h1><h2 id="class"><a href="#class" class="headerlink" title="class"></a><code>class</code></h2><h1 id="指令对象属性"><a href="#指令对象属性" class="headerlink" title="指令对象属性"></a>指令对象属性</h1><h2 id="包名"><a href="#包名" class="headerlink" title="包名.*"></a><code>包名.*</code></h2><p>本包下的，不包括子包下</p>
+<p><code>-keep class cn.hadcn.test.*</code></p>
+<h2 id="包名-1"><a href="#包名-1" class="headerlink" title="包名.**"></a><code>包名.**</code></h2><p>本包和所含子包下的</p>
+<p><code>-keep class cn.hadcn.test.**</code></p>
+<h2 id="extend-implement"><a href="#extend-implement" class="headerlink" title="* extend * implement"></a><code>* extend</code> <code>* implement</code></h2><p>子类/实现类</p>
+<p><code>-keep public class * extends android.app.Activity</code></p>
+<h2 id=""><a href="#" class="headerlink" title="{*;}"></a><code>{*;}</code></h2><p>类的所有内容</p>
+<p><code>-keep class cn.hadcn.test.* {*;}</code></p>
+<h2 id="类的部分内容"><a href="#类的部分内容" class="headerlink" title="类的部分内容"></a>类的部分内容</h2><p>保护类的特定内容不被混淆</p>
+<pre><code>&lt;init&gt;;     //匹配所有构造器
+&lt;fields&gt;;   //匹配所有域
+&lt;methods&gt;;  //匹配所有方法方法
+
+还可以在&lt;fields&gt;或&lt;methods&gt;前面加上private 、public、native、注解 等来进一步指定不被混淆的内容
+
+-keep class cn.hadcn.test.One {
+    public &lt;methods&gt;;
+} One类下的所有public方法都不会被混淆
+
+-keep class cn.hadcn.test.One {
+   public &lt;init&gt;(org.json.JSONObject);
+} 参数为JSONObject的构造函数不会被混淆
+
+-keepclasseswithmembernames class * { # 保持native方法不被混淆    
+    native &lt;methods&gt;;
+}
+
+-keep class * implements Android.os.Parcelable { # Parcelable的子类和Creator静态成员变量不混淆       
+    public static final Android.os.Parcelable$Creator *;
+}
+
+-keepclassmembers enum * {  # 以下两个方法会被反射调用
+    public static **[] values();  
+    public static ** valueOf(java.lang.String);  
+}
+
+-keepclassmembers class cc.ninty.chat.ui.fragment.ScriptFragment$JavaScriptInterface {
+    public *;
+}  # 保持ScriptFragment内部类JavaScriptInterface中的所有public内容不被混淆
+
+-keepclassmembers class ** {
+    @com.squareup.otto.Subscribe public *;
+    @com.squareup.otto.Produce public *;
+} # 保留使用了注解的成员
+</code></pre><h1 id="混淆配置模板"><a href="#混淆配置模板" class="headerlink" title="混淆配置模板"></a>混淆配置模板</h1><p>混淆分为2个主要部分</p>
+<p><strong>定制化区域</strong>。这里边的内容是我们主要需要补充的部分，大致分为4个小部分，主要是补充这4个部分的东西。</p>
+<p><strong>基本不用动区域</strong>。顾名思义，除非有特殊的需求，基本不用改动。</p>
+<pre><code>#-------------------------------------------定制化区域----------------------------------------------
+#---------------------------------1.实体类---------------------------------
+
+
+
+#-------------------------------------------------------------------------
+
+#---------------------------------2.第三方包-------------------------------
+
+
+
+#-------------------------------------------------------------------------
+
+#---------------------------------3.与js互相调用的类------------------------
+
+
+
+#-------------------------------------------------------------------------
+
+#---------------------------------4.反射相关的类和方法-----------------------
+
+
+
+#----------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
+
+#-------------------------------------------基本不用动区域--------------------------------------------
+#---------------------------------基本指令区----------------------------------
+-optimizationpasses 5 # 代码混淆的压缩比例，值在0-7之间
+-dontusemixedcaseclassnames # 混淆后类名不区分大小写（即只用小写）
+-dontskipnonpubliclibraryclassmembers # 不忽略非公共的库的类
+-dontskipnonpubliclibraryclassmembers # 不忽略非公共的库的类的成员
+-dontpreverify # 不做预校验的操作
+-printmapping proguardMapping.txt # 生成映射文件
+-optimizations !code/simplification/cast,!field/*,!class/merging/* # 指定混淆是采用的算法
+-keepattributes *Annotation*,InnerClasses # 不混淆Annotation
+-keepattributes Signature # 不混淆泛型
+-keepattributes SourceFile,LineNumberTable # 保留代码文件名和行号
+#----------------------------------------------------------------------------
+
+#---------------------------------默认保留区---------------------------------
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
+-keep public class * extends android.app.backup.BackupAgentHelper
+-keep public class * extends android.preference.Preference
+-keep public class * extends android.view.View
+-keep public class com.android.vending.licensing.ILicensingService
+-keep class android.support.** {*;}
+
+-keep public class * extends android.view.View{
+    *** get*();
+    void set*(***);
+    public &lt;init&gt;(android.content.Context);
+    public &lt;init&gt;(android.content.Context, android.util.AttributeSet);
+    public &lt;init&gt;(android.content.Context, android.util.AttributeSet, int);
+}
+-keepclasseswithmembers class * {
+    public &lt;init&gt;(android.content.Context, android.util.AttributeSet);
+    public &lt;init&gt;(android.content.Context, android.util.AttributeSet, int);
+}
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
+-keep class **.R$* {
+ *;
+}
+-keepclassmembers class * {
+    void *(**On*Event);
+}
+#----------------------------------------------------------------------------
+
+#---------------------------------webview------------------------------------
+-keepclassmembers class fqcn.of.javascript.interface.for.Webview {
+   public *;
+}
+-keepclassmembers class * extends android.webkit.WebViewClient {
+    public void *(android.webkit.WebView, java.lang.String, android.graphics.Bitmap);
+    public boolean *(android.webkit.WebView, java.lang.String);
+}
+-keepclassmembers class * extends android.webkit.WebViewClient {
+    public void *(android.webkit.WebView, jav.lang.String);
+}
+#----------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/06/Android/latex公式/" rel="next" title="latex公式">
+                <i class="fa fa-chevron-left"></i> latex公式
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/03/12/java基础/java虚拟机/深入理解java虚拟机面试精华总结/" rel="prev" title="">
+                 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ProGuard作用"><span class="nav-number">1.</span> <span class="nav-text">ProGuard作用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#开启混淆"><span class="nav-number">2.</span> <span class="nav-text">开启混淆</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#混淆规则文件"><span class="nav-number">3.</span> <span class="nav-text">混淆规则文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#stacktrace的恢复"><span class="nav-number">4.</span> <span class="nav-text">stacktrace的恢复</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#哪些不应该混淆"><span class="nav-number">5.</span> <span class="nav-text">哪些不应该混淆</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#反射中使用的元素"><span class="nav-number">5.1.</span> <span class="nav-text">反射中使用的元素</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#序列化与反序列化"><span class="nav-number">5.2.</span> <span class="nav-text">序列化与反序列化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#枚举"><span class="nav-number">5.3.</span> <span class="nav-text">枚举</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#泛型"><span class="nav-number">5.4.</span> <span class="nav-text">泛型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注解"><span class="nav-number">5.5.</span> <span class="nav-text">注解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四大组件"><span class="nav-number">5.6.</span> <span class="nav-text">四大组件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jni调用的java方法"><span class="nav-number">5.7.</span> <span class="nav-text">jni调用的java方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#java的native方法"><span class="nav-number">5.8.</span> <span class="nav-text">java的native方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#js调用java的方法"><span class="nav-number">5.9.</span> <span class="nav-text">js调用java的方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第三方库不建议混淆"><span class="nav-number">5.10.</span> <span class="nav-text">第三方库不建议混淆</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#dontwarn指令"><span class="nav-number">6.</span> <span class="nav-text">dontwarn指令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#keep指令"><span class="nav-number">7.</span> <span class="nav-text">keep指令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#指令对象"><span class="nav-number">8.</span> <span class="nav-text">指令对象</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#class"><span class="nav-number">8.1.</span> <span class="nav-text">class</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#指令对象属性"><span class="nav-number">9.</span> <span class="nav-text">指令对象属性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#包名"><span class="nav-number">9.1.</span> <span class="nav-text">包名.*</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#包名-1"><span class="nav-number">9.2.</span> <span class="nav-text">包名.**</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#extend-implement"><span class="nav-number">9.3.</span> <span class="nav-text">* extend * implement</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#"><span class="nav-number">9.4.</span> <span class="nav-text">{*;}</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类的部分内容"><span class="nav-number">9.5.</span> <span class="nav-text">类的部分内容</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#混淆配置模板"><span class="nav-number">10.</span> <span class="nav-text">混淆配置模板</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

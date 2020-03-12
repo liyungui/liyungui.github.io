@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/web/php/CodeIgniter框架使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/线程池/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/web/php/CodeIgniter框架使用/" itemprop="url">CodeIgniter框架使用</a></h1>
+                <a class="post-title-link" href="/2019/03/27/java基础/线程池/" itemprop="url">线程池</a></h1>
         
 
         <div class="post-meta">
@@ -293,8 +293,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T16:08:25+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T11:31:53+08:00">
+                2019-03-27
               </time>
             
 
@@ -316,8 +316,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Web/" itemprop="url" rel="index">
-                    <span itemprop="name">Web</span>
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
                   </a>
                 </span>
 
@@ -355,43 +355,137 @@
       
         
           
-            <p>小巧简单，上手容易，适用于小项目敏捷开发</p>
-<p>MVC架构</p>
-<h1 id="快速上手"><a href="#快速上手" class="headerlink" title="快速上手"></a>快速上手</h1><h2 id="安装配置"><a href="#安装配置" class="headerlink" title="安装配置"></a>安装配置</h2><ol>
-<li><a href="https://codeigniter.org.cn/" target="_blank" rel="noopener">下载解压</a></li>
-<li>配置。<ul>
-<li>全局配置 <code>application/config/config.php</code> </li>
-<li>数据库配置 <code>application/config/database.php</code></li>
+            <h1 id="线程池"><a href="#线程池" class="headerlink" title="线程池"></a>线程池</h1><h2 id="线程池的优点"><a href="#线程池的优点" class="headerlink" title="线程池的优点"></a>线程池的优点</h2><ul>
+<li>重用线程池中的线程，避免频繁地创建和销毁线程带来的性能消耗；</li>
+<li>有效控制线程的最大并发数量，防止线程过大导致抢占资源造成系统阻塞；</li>
+<li>可以对线程进行一定地管理</li>
+<li>解耦作用；线程的创建和执行完全分开，方便维护。</li>
+</ul>
+<p>阿里巴巴Java开发手册关于线程和线程池有这么两段话</p>
+<img src="/2019/03/27/java基础/线程池/线程池.png">
+<ul>
+<li>不能显示创建线程(new Thread)，需要使用线程池对线程进行管理</li>
+<li>不允许使用官方提供的四种线程池，而是需要通过自行创建的方式去创建线程池，更加理解线程池的允许规则</li>
+</ul>
+<h1 id="线程池原理"><a href="#线程池原理" class="headerlink" title="线程池原理"></a>线程池原理</h1><h2 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                              <span class="keyword">int</span> maximumPoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                              <span class="keyword">long</span> keepAliveTime,</span></span></span><br><span class="line"><span class="function"><span class="params">                              TimeUnit unit,</span></span></span><br><span class="line"><span class="function"><span class="params">                              BlockingQueue&lt;Runnable&gt; workQueue,</span></span></span><br><span class="line"><span class="function"><span class="params">                              ThreadFactory threadFactory,</span></span></span><br><span class="line"><span class="function"><span class="params">                              RejectedExecutionHandler handler)</span></span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>corePoolSize</strong>：核心线程的数量<ul>
+<li>默认不会被回收掉</li>
+<li>设置了allowCoreTimeOut为true，核心线程闲置超时，也会被回收。</li>
+<li>核心线程和非核心线程本质上并没有什么区别</li>
 </ul>
 </li>
-</ol>
-<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p><img src="https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=206154531,2389930621&amp;fm=173&amp;s=00B0EC339E80BE01958CE540030070B2&amp;w=639&amp;h=188&amp;img.JPEG" alt=""></p>
+<li><strong>maximumPoolSize</strong> ：最大线程数量<ul>
+<li>线程池能容纳的最大容量，上限被CAPACITY限制（2^29-1）（后续代码会看到）</li>
+</ul>
+</li>
+<li><strong>keepAliveTime</strong>：闲置线程被回收的时间限制，也就是闲置线程的存活时间</li>
+<li><strong>unit</strong> ：keepAliveTime的单位</li>
+<li><strong>workQueue</strong> ：用于存放任务的队列</li>
+<li><strong>threadFactory</strong> ：创建线程的工厂类</li>
+<li><strong>handler</strong> 当任务执行失败时，使用handler通知调用者，代表拒绝的策略。默认的实现是 抛出 RejectedExecutionException 异常</li>
+</ul>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>一个公司，核心线程就是代表公司的内部核心员工，最大线程数量就是员工的最大数量，可能包含非正式员工，因为有一些试点或者简单的项目，需要一些外协人员来做，也就是非核心线程，那么当这些项目做完了或者失败了，公司为了节约用人成本，就遣散非核心员工，也就是闲置线程的存活时间。假如核心员工每个人都很忙，但是需求又一波接一波，那就任务排期，也就是任务队列(并不会直接创建非核心线程去执行任务，可以理解为需求任务首先是需要让内部核心员工去完成的，任务队列的优先级是高于非核心员工的，addWorker()，这里的传进去的boolean值，就代表着创建核心线程或者非核心线程)，当任务队列都满了时候，给非正式员工做，非正式员工也满负荷还要来需求？对不起，不接受，直接拒绝，这也就是handler对应的拒绝策略了</p>
+<h2 id="线程池状态"><a href="#线程池状态" class="headerlink" title="线程池状态"></a>线程池状态</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> AtomicInteger ctl = <span class="keyword">new</span> AtomicInteger(ctlOf(RUNNING, <span class="number">0</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> COUNT_BITS = Integer.SIZE - <span class="number">3</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> CAPACITY   = (<span class="number">1</span> &lt;&lt; COUNT_BITS) - <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// runState is stored in the high-order bits</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> RUNNING    = -<span class="number">1</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SHUTDOWN   =  <span class="number">0</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> STOP       =  <span class="number">1</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> TIDYING    =  <span class="number">2</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> TERMINATED =  <span class="number">3</span> &lt;&lt; COUNT_BITS;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Packing and unpacking ctl</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">runStateOf</span><span class="params">(<span class="keyword">int</span> c)</span>     </span>&#123; <span class="keyword">return</span> c &amp; ~CAPACITY; &#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">workerCountOf</span><span class="params">(<span class="keyword">int</span> c)</span>  </span>&#123; <span class="keyword">return</span> c &amp; CAPACITY; &#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">ctlOf</span><span class="params">(<span class="keyword">int</span> rs, <span class="keyword">int</span> wc)</span> </span>&#123; <span class="keyword">return</span> rs | wc; &#125;</span><br></pre></td></tr></table></figure>
+<p>AtomicInteger是一个原子操作类，保证线程安全</p>
+<p>高3位表示5种线程池状态,低29位表示线程的最大数量</p>
+<p>维护两个参数，workCount和runState。workCount表示有效的线程数量，runState表示线程池的运行状态。</p>
 <ul>
-<li>index.php 文件作为前端控制器，初始化运行 CodeIgniter 所需的基本资源； </li>
-<li>Router 检查 HTTP 请求，以确定如何处理该请求； 如果存在缓存文件，将直接输出到浏览器，不用走下面正常的系统流程； 在加载应用程序控制器之前，对 HTTP 请求以及任何用户提交的数据进行安全检查； 控制器加载模型、核心类库、辅助函数以及其他所有处理请求所需的资源； 最后一步，渲染视图并发送至浏览器，如果开启了缓存，视图被会先缓存起来用于 后续的请求。</li>
+<li><strong>RUNNING</strong>：运行状态，可以接受新任务并处理</li>
+<li><strong>SHUTDOWN</strong>：关闭状态，不会接受新的任务了，但是会处理<strong>队列</strong>中还存在的任务</li>
+<li><strong>STOP</strong>：停止状态，不会接受新的任务，也不处理队列任务，直接中断</li>
+<li><strong>TIDYING</strong>：表示所有任务已经终止了</li>
+<li><strong>TERMINATED</strong>：表示terminated()方法已经执行完成</li>
 </ul>
-<h2 id="两个主要目录"><a href="#两个主要目录" class="headerlink" title="两个主要目录"></a>两个主要目录</h2><ul>
-<li>application目录：用于开发者编写相应的配置以及逻辑处理，开发者只需在这个目录下添加自己需要的开发文件。 </li>
-<li>system目录：框架的系统库，里面包括核心库，类库，辅助类库，数据库等，这些文件，开发者最好不要擅自修改。</li>
+<p>RUNNING：运行状态，可以接受新任务并处理<br>SHUTDOWN：关闭状态，不会接受新的任务了，但是会处理队列中还存在的任务<br>STOP：停止状态，不会接受新的任务，也不处理队列任务，直接中断<br><strong>TIDYING </strong>：表示所有任务已经终止了<br>TERMINATED：表示terminated()方法已经执行完成</p>
+<img src="/2019/03/27/java基础/线程池/线程池状态.png">
+<h2 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h2><h3 id="ThreadPoolExecutor执行任务的策略"><a href="#ThreadPoolExecutor执行任务的策略" class="headerlink" title="ThreadPoolExecutor执行任务的策略"></a>ThreadPoolExecutor执行任务的策略</h3><p>当一个任务被添加进线程池时：</p>
+<ul>
+<li>线程数量未达到corePoolSize，则新建一个线程(核心线程)执行任务</li>
+<li>线程数量达到了corePools，则将任务移入队列等待</li>
+<li>队列已满，新建线程(非核心线程)执行任务</li>
+<li>队列已满，总线程数又达到了maximumPoolSize，交给RejectedExecutionHandler处理（默认是抛出RejectedExecutionHandler 异常）</li>
 </ul>
-<h2 id="CI框架的MVC和数据库辅助类"><a href="#CI框架的MVC和数据库辅助类" class="headerlink" title="CI框架的MVC和数据库辅助类"></a>CI框架的MVC和数据库辅助类</h2><h3 id="控制器"><a href="#控制器" class="headerlink" title="控制器"></a>控制器</h3><p>application/controller 目录</p>
-<p>开发者添加自己的controller 控制器控制器都要继承核心库里的基类 CI_Controller，它已获取到整个框架的核心类库对象，通过它基本可以调用CI框架下的核心方法。 </p>
-<h3 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h3><p>application/models 目录</p>
-<p>专门用来和数据库打交道的 PHP 类，开发者定义自己的模型类都要继承 模型基类 CI_Mode。当你在控制下调用模型，只需要下面一行代码就实例化了：$this-&gt;load-&gt;model(‘model_name’); </p>
-<h3 id="视图"><a href="#视图" class="headerlink" title="视图"></a>视图</h3><p>application/controller 目录</p>
-<p>视图用于显示在浏览器中</p>
-<h3 id="辅助函数"><a href="#辅助函数" class="headerlink" title="辅助函数"></a>辅助函数</h3><p>application/helpers 目录</p>
-<p>开发者可以创建自己的辅助类，调用的方式与系统的辅助类一致。</p>
-<h3 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h3><p>CI框架封装了多种数据库驱动与连接方法，让你轻松配置就能连接上，且封装了一些查询构造器与生成查询结果，让代码看起来方便简洁</p>
-<h2 id="API快速冒烟"><a href="#API快速冒烟" class="headerlink" title="API快速冒烟"></a>API快速冒烟</h2><p>分页获取用户列表，包含id，username,password</p>
-<h3 id="创建数据库和表"><a href="#创建数据库和表" class="headerlink" title="创建数据库和表"></a>创建数据库和表</h3><p>创建test库user表</p>
-<p>create table user(<br>    id int primary key auto_increment,<br>    username varchar(20),<br>    password varchar(20)<br>);</p>
-<h3 id="创建控制类"><a href="#创建控制类" class="headerlink" title="创建控制类"></a>创建控制类</h3><p>创建文件 <code>application/controllers/Test.php</code></p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span></span>&#123;</span><br><span class="line">	<span class="keyword">public</span> $id;</span><br><span class="line">	<span class="keyword">public</span> $username;</span><br><span class="line">	<span class="keyword">public</span> $password;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">CI_Controller</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getUsers</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">'page_size'</span>]))&#123;</span><br><span class="line">			$pageSize = $_GET[<span class="string">'page_size'</span>];</span><br><span class="line">		&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">			$pageSize = <span class="number">10</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">'page'</span>]))&#123;</span><br><span class="line">			$page = $_GET[<span class="string">'page'</span>];</span><br><span class="line">		&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">			$page = <span class="number">0</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		$startIndex = $page*$pageSize;</span><br><span class="line">		<span class="keyword">$this</span>-&gt;load-&gt;database(); <span class="comment">//加载数据库类</span></span><br><span class="line">		$sql = <span class="string">"SELECT * FROM user limit $startIndex, $pageSize"</span>;</span><br><span class="line">		$query = <span class="keyword">$this</span>-&gt;db-&gt;query($sql); <span class="comment">//执行sql语句</span></span><br><span class="line">		$rows = $query-&gt;custom_result_object(<span class="string">'User'</span>); <span class="comment">//转换成数组</span></span><br><span class="line">		$viewArray = <span class="keyword">array</span>(<span class="string">"jsonArray"</span> =&gt; $rows);</span><br><span class="line">		ob_start(); <span class="comment">//开启缓存</span></span><br><span class="line">		<span class="keyword">$this</span>-&gt;load-&gt;view(<span class="string">'json'</span>, $viewArray); <span class="comment">//输出信息到json.php视图</span></span><br><span class="line">		ob_end_flush(); <span class="comment">//关闭缓存</span></span><br><span class="line">		<span class="keyword">exit</span>(); <span class="comment">//退出</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
-<h3 id="创建View视图"><a href="#创建View视图" class="headerlink" title="创建View视图"></a>创建View视图</h3><p>创建文件 <code>application/views/json.php</code></p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">header(<span class="string">'Content-type: application/json'</span>);<span class="comment">//通信头设置</span></span><br><span class="line">$outputarray = <span class="keyword">array</span>(<span class="string">'status'</span> =&gt; <span class="string">'OK'</span>, <span class="string">'data'</span> =&gt; $jsonArray);</span><br><span class="line"><span class="keyword">echo</span> json_encode($outputarray);<span class="comment">//数组转json，然后echo输出</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
-<h3 id="URL访问接口"><a href="#URL访问接口" class="headerlink" title="URL访问接口"></a>URL访问接口</h3><p>CodeIgniter框架URL规则，上面接口的访问方法为<br><code>http://localhost:8888/index.php/test/getusers?page=1</code></p>
-<p>规则 <code>host/index.php/controller/method?param</code></p>
+<h3 id="execute"><a href="#execute" class="headerlink" title="execute()"></a>execute()</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">(Runnable command)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (command == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Proceed in 3 steps:</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 1. If fewer than corePoolSize threads are running, try to</span></span><br><span class="line"><span class="comment">     * start a new thread with the given command as its first</span></span><br><span class="line"><span class="comment">     * task.  The call to addWorker atomically checks runState and</span></span><br><span class="line"><span class="comment">     * workerCount, and so prevents false alarms that would add</span></span><br><span class="line"><span class="comment">     * threads when it shouldn't, by returning false.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 2. If a task can be successfully queued, then we still need</span></span><br><span class="line"><span class="comment">     * to double-check whether we should have added a thread</span></span><br><span class="line"><span class="comment">     * (because existing ones died since last checking) or that</span></span><br><span class="line"><span class="comment">     * the pool shut down since entry into this method. So we</span></span><br><span class="line"><span class="comment">     * recheck state and if necessary roll back the enqueuing if</span></span><br><span class="line"><span class="comment">     * stopped, or start a new thread if there are none.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * 3. If we cannot queue task, then we try to add a new</span></span><br><span class="line"><span class="comment">     * thread.  If it fails, we know we are shut down or saturated</span></span><br><span class="line"><span class="comment">     * and so reject the task.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">int</span> c = ctl.get();</span><br><span class="line">	<span class="comment">//如果当前线程数量小于核心线程数量，执行addWorker创建新线程执行command任务</span></span><br><span class="line">    <span class="keyword">if</span> (workerCountOf(c) &lt; corePoolSize) &#123;</span><br><span class="line">        <span class="keyword">if</span> (addWorker(command, <span class="keyword">true</span>))</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        c = ctl.get();</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">//如果当前是运行状态，将任务放入阻塞队列，double-check线程池状态</span></span><br><span class="line">    <span class="keyword">if</span> (isRunning(c) &amp;&amp; workQueue.offer(command)) &#123;</span><br><span class="line">        <span class="keyword">int</span> recheck = ctl.get();</span><br><span class="line">        <span class="comment">//如果再次check，发现线程池状态不是运行状态了，移除刚才添加进来的任务，并且拒绝改任务</span></span><br><span class="line">        <span class="keyword">if</span> (! isRunning(recheck) &amp;&amp; remove(command))</span><br><span class="line">            reject(command);</span><br><span class="line">        <span class="comment">//处于运行状态，但是没有线程，创建线程</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (workerCountOf(recheck) == <span class="number">0</span>)</span><br><span class="line">            addWorker(<span class="keyword">null</span>, <span class="keyword">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">//往线程池中创建新的线程失败，则reject任务</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (!addWorker(command, <span class="keyword">false</span>))</span><br><span class="line">        reject(command);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>当前线程数量小于核心线程数量<ul>
+<li>addWorker创建新核心线程执行任务<ul>
+<li>成功，return</li>
+<li>失败，下一步</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>线程池是运行状态，且将任务放入队列成功<ul>
+<li>再次检查线程池状态<ul>
+<li>不是运行状态，且能够移除刚才添加的任务<ul>
+<li>拒绝该任务</li>
+</ul>
+</li>
+<li>线程数量为0<ul>
+<li>创建非核心线程</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>失败，下一步</li>
+</ul>
+</li>
+<li>addWorker创建新非核心线程执行任务<ul>
+<li>失败<ul>
+<li>拒绝该任务  </li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="double-check线程池状态"><a href="#double-check线程池状态" class="headerlink" title="double-check线程池状态"></a>double-check线程池状态</h4><p>在多线程的环境下，ctl.get()这个方法并不是一个原子操作，如果加入队列后，线程池状态改变了，不是RUNNING状态，那么这个任务将永远不会被执行，所以需要再次check，如果不是RUNNING状态，移除任务并拒绝任务</p>
+<h3 id="addWorker"><a href="#addWorker" class="headerlink" title="addWorker()"></a>addWorker()</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">addWorker</span><span class="params">(Runnable firstTask, <span class="keyword">boolean</span> core)</span> </span>&#123;</span><br><span class="line">    retry:</span><br><span class="line">    <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="keyword">int</span> c = ctl.get();</span><br><span class="line">        <span class="keyword">int</span> rs = runStateOf(c);</span><br><span class="line">        <span class="comment">// 这里return false的情况有以下几种</span></span><br><span class="line">       	<span class="comment">//1.当前状态是stop及以上 2.当前是SHUTDOWN状态，但是firstTask不为空</span></span><br><span class="line">        <span class="comment">//3.当前是SHUTDOWN状态，但是队列中为空</span></span><br><span class="line">        <span class="comment">//从第一节我们知道，SHUTDOWN状态是不执行进来的任务的，但是会继续执行队列中的任务</span></span><br><span class="line">        <span class="keyword">if</span> (rs &gt;= SHUTDOWN &amp;&amp;</span><br><span class="line">            ! (rs == SHUTDOWN &amp;&amp;</span><br><span class="line">               firstTask == <span class="keyword">null</span> &amp;&amp;</span><br><span class="line">               ! workQueue.isEmpty()))</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="keyword">int</span> wc = workerCountOf(c);</span><br><span class="line">            <span class="keyword">if</span> (wc &gt;= CAPACITY ||</span><br><span class="line">                wc &gt;= (core ? corePoolSize : maximumPoolSize))</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">if</span> (compareAndIncrementWorkerCount(c))</span><br><span class="line">                <span class="keyword">break</span> retry;</span><br><span class="line">            c = ctl.get();  <span class="comment">// Re-read ctl</span></span><br><span class="line">            <span class="keyword">if</span> (runStateOf(c) != rs)</span><br><span class="line">                <span class="keyword">continue</span> retry;</span><br><span class="line">            <span class="comment">// else CAS failed due to workerCount change; retry inner loop</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">boolean</span> workerStarted = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">boolean</span> workerAdded = <span class="keyword">false</span>;</span><br><span class="line">    Worker w = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        w = <span class="keyword">new</span> Worker(firstTask);</span><br><span class="line">        <span class="keyword">final</span> Thread t = w.thread;</span><br><span class="line">        <span class="keyword">if</span> (t != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">final</span> ReentrantLock mainLock = <span class="keyword">this</span>.mainLock;</span><br><span class="line">            mainLock.lock();</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">int</span> rs = runStateOf(ctl.get());</span><br><span class="line">                <span class="keyword">if</span> (rs &lt; SHUTDOWN ||</span><br><span class="line">                    (rs == SHUTDOWN &amp;&amp; firstTask == <span class="keyword">null</span>)) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (t.isAlive()) <span class="comment">// precheck that t is startable</span></span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalThreadStateException();</span><br><span class="line">                    workers.add(w);</span><br><span class="line">                    <span class="keyword">int</span> s = workers.size();</span><br><span class="line">                    <span class="keyword">if</span> (s &gt; largestPoolSize)</span><br><span class="line">                        largestPoolSize = s;</span><br><span class="line">                    workerAdded = <span class="keyword">true</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                mainLock.unlock();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (workerAdded) &#123;</span><br><span class="line">                t.start();</span><br><span class="line">                workerStarted = <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (! workerStarted)</span><br><span class="line">            addWorkerFailed(w);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> workerStarted;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>2层循环</p>
+<ul>
+<li>外部循环查询线程池状态<ul>
+<li>如果当前是stop及之上的状态，直接return false</li>
+<li>如果是SHUTDOWN状态，并且firstTask不为空或者队列中是空的，直接return false</li>
+</ul>
+</li>
+<li>内部循环查询线程数量<ul>
+<li>通过传递进来的boolean值，分别和核心线程以及最大线程数量进行对比，如果成立，worker数量+1，并且跳出循环。</li>
+<li>跳出循环就是实际执行任务了，Worker就将工作线程和任务封装到了自己内部，我们可以将Worker看成就是一个工作线程</li>
+</ul>
+</li>
+</ul>
+<h2 id="常用的workQueue类型："><a href="#常用的workQueue类型：" class="headerlink" title="常用的workQueue类型："></a>常用的workQueue类型：</h2><h3 id="SynchronousQueue："><a href="#SynchronousQueue：" class="headerlink" title="SynchronousQueue："></a>SynchronousQueue：</h3><p>这个队列接收到任务的时候，会直接提交给线程处理，而不保留它，如果所有线程都在工作怎么办？那就新建一个线程来处理这个任务！所以为了保证不出现&lt;线程数达到了maximumPoolSize而不能新建线程&gt;的错误，使用这个类型队列的时候，maximumPoolSize一般指定成Integer.MAX_VALUE，即无限大</p>
+<h3 id="LinkedBlockingQueue-和-ArrayBlockingQueue："><a href="#LinkedBlockingQueue-和-ArrayBlockingQueue：" class="headerlink" title="LinkedBlockingQueue 和 ArrayBlockingQueue："></a>LinkedBlockingQueue 和 ArrayBlockingQueue：</h3><p>可以限定队列的长度，接收到任务的时候，如果没有达到corePoolSize的值，则新建线程(核心线程)执行任务，如果达到了，则入队等候，如果队列已满，则新建线程(非核心线程)执行任务，又如果总线程数到了maximumPoolSize，并且队列也满了，则发生错误</p>
+<h3 id="DelayQueue："><a href="#DelayQueue：" class="headerlink" title="DelayQueue："></a>DelayQueue：</h3><p>队列内元素必须实现Delayed接口，这就意味着你传进去的任务必须先实现Delayed接口。这个队列接收到任务时，首先先入队，只有达到了指定的延时时间，才会执行任务</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>线程池中的细节比较多，大致做一下总结归纳</p>
+<ul>
+<li>线程池的构造参数决定了线程池的运行策略，需要理解每个参数的含义，因为每个参数的不同很大程度上决定了这个线程池的运行规则，这也是为什么阿里巴巴开发手册中提到通过自行创建的方式去创建线程池，而不是使用官方提供的4种线程池</li>
+<li>线程池涉及多线程问题，状态改变比较频繁，在进行任务执行时，需要多次check线程池的状态，保证任务被执行的准确性</li>
+<li>任务队列的优先级高于非核心线程，核心线程满的时候，会先把任务放进任务队列，其次开启非核心线程进行执行</li>
+<li>核心线程和非核心线程本质上并没有什么区别，在核心线程设置allowCoreThreadTimeOut 属性为true时，最终也会因为超时而被销毁</li>
+<li>线程池总览就是通过两个变量来整体控制整个流程，线程池的状态，线程池中线程数量，涉及的方法不是很多，但是循环比较多，需要理解每个循环的跳出条件以及对应的状态。</li>
+</ul>
+<h1 id="线程池使用"><a href="#线程池使用" class="headerlink" title="线程池使用"></a>线程池使用</h1><h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><ul>
+<li>shutDown()，关闭线程池，需要执行完已提交的任务；</li>
+<li>shutDownNow()，关闭线程池，并尝试结束已提交的任务；</li>
+<li>execute()，提交任务无返回值；</li>
+<li>submit()，提交任务有返回值；</li>
+<li>remove(); 移除任务有返回值；</li>
+<li>reject(); 拒绝任务；会回调RejectedExecutionHandler</li>
+<li>getQueue(); 获得任务队列；可以直接操作任务队列</li>
+</ul>
+<h2 id="监控线程池"><a href="#监控线程池" class="headerlink" title="监控线程池"></a>监控线程池</h2><p>ThreadPoolExecutor 提供不少 api 可以获取线程池状态</p>
+<p>也可以继承线程池扩展其中的几个函数来自定义监控逻辑(线程执行前、后、终止状态)</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">beforeExecute</span><span class="params">(Thread t, Runnable r)</span> </span>&#123; &#125;</span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">afterExecute</span><span class="params">(Runnable r, Throwable t)</span> </span>&#123; &#125;</span><br><span class="line"><span class="function">rotected <span class="keyword">void</span> <span class="title">terminated</span><span class="params">()</span> </span>&#123; &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="线程池隔离"><a href="#线程池隔离" class="headerlink" title="线程池隔离"></a>线程池隔离</h2><p>业务都依赖于同一个线程池,当其中一个业务因为各种不可控的原因消耗了所有的线程，导致线程池全部占满。其他的业务也就不能正常运转了，这对系统的打击是巨大的</p>
+<p>通常的做法是按照<strong>业务</strong>进行划分</p>
+<h3 id="hystrix-隔离"><a href="#hystrix-隔离" class="headerlink" title="hystrix 隔离"></a>hystrix 隔离</h3><h4 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h4><p>利用一个 Map 来存放不同业务对应的线程池</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://juejin.im/post/5c99c29ee51d4559bb5c6541#heading-5" target="_blank" rel="noopener">线程池原理 ThreadPoolExecutor</a></li>
+<li><a href="https://juejin.im/post/5b5e5fa96fb9a04fb900e1ce#heading-5" target="_blank" rel="noopener">线程池使用</a></li>
+<li><a href="https://www.jianshu.com/p/210eab345423" target="_blank" rel="noopener">线程池，这一篇或许就够了</a> <strong>偏使用</strong></li>
+<li><a href="https://github.com/Netflix/Hystrix" target="_blank" rel="noopener">hystrix 隔离</a></li>
+</ul>
 
           
         
@@ -440,7 +534,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/Android/retrofit使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/26/Android/三方ROM/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -459,7 +553,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/Android/retrofit使用/" itemprop="url">retrofit使用</a></h1>
+                <a class="post-title-link" href="/2019/03/26/Android/三方ROM/" itemprop="url">三方ROM</a></h1>
         
 
         <div class="post-meta">
@@ -471,8 +565,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T15:47:53+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-26T14:29:33+08:00">
+                2019-03-26
               </time>
             
 
@@ -533,351 +627,1026 @@
       
         
           
-            <h1 id="OkHttp"><a href="#OkHttp" class="headerlink" title="OkHttp"></a>OkHttp</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p><strong>OkHttp</strong> 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟<strong>HttpClient</strong>, <strong>HttpUrlConnection</strong>的职责是一样的</p>
-<p>Android 4.4后，HttpURLConnection底层实现已被OkHttp替换。可见OkHttp的性能已经被Google认同</p>
-<p>volley, retrofit, android-async-http 帮你封装了具体的请求，线程切换以及数据转换</p>
-<p>android-async-http内部实现是基于HttpClient, 6.0之后系统不再自带HttpClient，在最近的更新中将HttpClient的所有代码copy了一份进来，所以还能使用</p>
-<p>Volley是官方出的，可以支持HttpUrlConnection, HttpClient, OkHttp，如果习惯使用Volley，直接写个OkHttp扩展就行了。</p>
-<h2 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h2><ul>
-<li>支持HTTP2.0/SPDY</li>
-<li>socket自动选择最好路线，并支持自动重连</li>
-<li>拥有自动维护的socket连接池，减少握手次数</li>
-<li>拥有队列线程池，轻松写并发</li>
-<li>拥有Interceptors轻松处理请求与响应（比如GZIP压缩,LOG打印请求日志等）</li>
-<li>实现基于Headers的缓存策略</li>
+            <p>第三方ROM，就是非手机原厂官方推出的ROM</p>
+<img src="/2019/03/26/Android/三方ROM/rom.png">
+<h1 id="魔趣Mokee"><a href="#魔趣Mokee" class="headerlink" title="魔趣Mokee"></a>魔趣Mokee</h1><p>国内最大的非营利性开源ROM。早期基于CM，现在基于AOSP</p>
+<p>原生体验，不是很适应</p>
+<h1 id="CyanogenMod-CM-amp-Lineage-OS"><a href="#CyanogenMod-CM-amp-Lineage-OS" class="headerlink" title="CyanogenMod (CM) &amp; Lineage OS"></a>CyanogenMod (CM) &amp; Lineage OS</h1><p>CyanogenMod (CM) 曾经是全球范围内最流行的第三方开源安卓 ROM 固件</p>
+<p>CM停止开发后，开源社区将会重组 CM 项目并改名为 LineageOS</p>
+<h1 id="Resurrection-Remix"><a href="#Resurrection-Remix" class="headerlink" title="Resurrection Remix"></a><a href="https://post.smzdm.com/p/751360/" target="_blank" rel="noopener">Resurrection Remix</a></h1><p>一个自由度非常高的ROM </p>
+<p>如果说安卓刷机都是瞎折腾，那么终结者就是Resurrection Remix，别无他途</p>
+<p><a href="https://www.resurrectionremix.com/" target="_blank" rel="noopener">官网</a></p>
+<h2 id="SlimRoms"><a href="#SlimRoms" class="headerlink" title="SlimRoms"></a>SlimRoms</h2><p>安卓4.x时代，<strong>自定义向的鼻祖</strong>，但在安卓5.x掉队。</p>
+<h2 id="Bliss-ROM"><a href="#Bliss-ROM" class="headerlink" title="Bliss ROM"></a>Bliss ROM</h2><p>安卓5.x时代，也叫BlissPop，Slim的接盘侠，蓝莲花标识深入人心，在安卓6.x被RR超车。</p>
+<h2 id="Resurrection-Remix-1"><a href="#Resurrection-Remix-1" class="headerlink" title="Resurrection Remix"></a>Resurrection Remix</h2><p>安卓6.x+时代，简称RR，在安卓5.x稍逊于BlissPop，但从安卓6.x开始成功超车，一骑红尘到今天（8.x）。</p>
+<p><strong>机型代号</strong>就是研发阶段厂家给产品起的昵称（Codename），由于RR与LineageOS（简称LOS）渊源颇深，这里直接参考<a href="https://wiki.lineageos.org/devices/" target="_blank" rel="noopener">LOS的设备支持列表</a>即可</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/26/电脑使用/linux/linux进程内存占用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/26/电脑使用/linux/linux进程内存占用/" itemprop="url">Linux进程内存占用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-26T10:43:53+08:00">
+                2019-03-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>Linux进程占用的内存有 <code>VSS/RSS/PSS/USS</code> 四种形式</p>
+<p>这四种形式首字母分别是Virtual/Resident/Proportional(比例的)/Unique</p>
+<p>Virtual Set Size</p>
+<p>VSS是单个进程<strong>全部可访问</strong>的地址空间，其大小可能包括还尚未在内存中驻留的部分。对于确定单个进程实际内存使用大小，VSS用处不大。</p>
+<p>RSS是单个进程<strong>实际占用</strong>的内存大小，RSS不太准确的地方在于它包括该进程所使用共享库全部内存大小。对于一个共享库，可能被多个进程使用，实际该共享库只会被装入内存一次。</p>
+<p>进而引出了PSS，PSS相对于RSS计算共享库内存大小是按比例的。N个进程共享，该库对PSS大小的贡献只有1/N。</p>
+<p>USS是单个进程私有的内存大小，即该进程<strong>独占</strong>的内存部分。USS揭示了运行一个特定进程在的真实内存增量大小。如果进程终止，USS就是实际被返还给系统的内存大小。</p>
+<p>综上所属，VSS&gt;=RSS&gt;=PSS&gt;=USS</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/25/Android/Android异常捕获/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/25/Android/Android异常捕获/" itemprop="url">Android 异常捕获</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-25T17:15:53+08:00">
+                2019-03-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>参考</p>
+<ul>
+<li><a href="https://www.jianshu.com/p/bb658019f97b" target="_blank" rel="noopener">安卓捕获RuntimeException,ANR,Native信号异常</a></li>
+<li><a href="https://blog.csdn.net/yeyuwuhen1203/article/details/73556813" target="_blank" rel="noopener">Android端线上NativeCrash收集的两种方法(上)</a></li>
 </ul>
-<h2 id="OkHttp-发送HTTP请求的初步分析"><a href="#OkHttp-发送HTTP请求的初步分析" class="headerlink" title="OkHttp 发送HTTP请求的初步分析"></a>OkHttp 发送HTTP请求的初步分析</h2><p>Dispatcher类 中有两个集合分别为：runningAsyncCalls、readyAsyncCalls分别存放正在执行的请求，等待执行的请求</p>
-<p>该类中有一个ThreadPoolExecutor线程池(核心线程0，最大线程Integer.MAX_VALUE，队列Integer.MAX_VALUE，保活60秒)执行器，利用该执行器来执行<strong>异步请求</strong>的execute方法。异步请求发送在非当前工作线程，即创建异步请求的线程，而是从线程池中获取一条线程执行网络请求。同步请求则直接是在当前工作线程中执行。</p>
-<p>该类对<strong>异步请求</strong>的管理是通过maxRequests、maxRequestsPerHost进行控制的，前者控制线程池中同时运行的最大请求数，防止同时运行线程过多，造成OOM。后者限制了同一hostname下的请求数，防止一个应用占用的网络资源过多，优化用户体验。</p>
-<h2 id="设置最大并发数"><a href="#设置最大并发数" class="headerlink" title="设置最大并发数"></a>设置最大并发数</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient().dispatcher(). maxRequests(<span class="number">8</span>);</span><br><span class="line">OkHttpClient().dispatcher().setMaxRequestsPerHost(<span class="number">8</span>);</span><br></pre></td></tr></table></figure>
-<h1 id="一、应用示例–get请求"><a href="#一、应用示例–get请求" class="headerlink" title="一、应用示例–get请求"></a>一、应用示例–get请求</h1><p>下面以聚合数据平台的免费的一个笑话的接口为例 </p>
-<pre><code>接口文档地址：https://www.juhe.cn/docs/api/id/95。 
-接口地址：http://japi.juhe.cn/joke/content/list.from。
-请求参数说明：
-    sort    string    是    类型，desc:指定时间之前发布的，asc:指定时间之后发布的
-     page    int    否    当前页数,默认1
-     pagesize    int    否    每次返回条数,默认1,最大20
-     time    string    是    时间戳（10位），如：1418816972
-     key    string    是    您申请的key
-</code></pre><p><strong>添加依赖</strong></p>
-<pre><code>compile &apos;com.squareup.retrofit2:retrofit:2.0.2&apos;
-compile &apos;com.squareup.retrofit2:converter-gson:2.0.0&apos;  
-compile &apos;com.google.code.gson:gson:2.3&apos;
-</code></pre><p><strong>根据返回json数据建立自己的javabean</strong></p>
-<p>JokeInfo</p>
-<p><strong>定义服务接口 –retrofit把API请求转为接口</strong></p>
-<pre><code>public interface JokeService {
-    @GET(&quot;/joke/content/list.from&quot;)
-    Call&lt;JokeInfo&gt; getJokeInfoList(@Query(&quot;sort&quot;) String sort, @Query(&quot;page&quot;) int page, @Query(&quot;pagesize&quot;) int pagesize, @Query(&quot;time&quot;) String time, @Query(&quot;key&quot;) String key);
-}
-</code></pre><p><strong>封装retrofit的包装类（单例模式）</strong></p>
-<pre><code>public class RetrofitWrapper {
-    private static RetrofitWrapper instance;
-    private Context mContext;
-    private Retrofit retrofit;
+<h1 id="Java-crash"><a href="#Java-crash" class="headerlink" title="Java crash"></a>Java crash</h1><p>Uncaught异常发生时会终止线程，调用 <code>UncaughtExceptionHandler.uncaughtException()</code></p>
+<p>如果该handler没有被显式设置，则会调用对应线程组的默认handler。</p>
+<p><code>Thread.setDefaultUncaughtExceptionHandler(myCrashHandler);</code></p>
+<h1 id="ANR"><a href="#ANR" class="headerlink" title="ANR"></a>ANR</h1><p>收听ANR的广播 <code>String ACTION_ANR = &quot;android.intent.action.ANR&quot;</code></p>
+<h1 id="NativeCrash"><a href="#NativeCrash" class="headerlink" title="NativeCrash"></a>NativeCrash</h1><p>Native崩溃日志存储在手机的 <code>/data/tombstones</code> 目录下，需要root权限</p>
+<h1 id="三方"><a href="#三方" class="headerlink" title="三方"></a>三方</h1><h2 id="buglyg"><a href="#buglyg" class="headerlink" title="buglyg"></a>buglyg</h2><p>Java crash 和 ANR</p>
+<h1 id="google-breakpad"><a href="#google-breakpad" class="headerlink" title="google-breakpad"></a>google-breakpad</h1><p>NativeCrash</p>
 
-    private RetrofitWrapper() {
-        retrofit = new Retrofit.Builder().baseUrl(Constant.BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
-    }
+          
+        
+      
+    </div>
+    
+    
+    
 
-    public static RetrofitWrapper getInstance() {
-        if (instance == null) {
-            synchronized (RetrofitWrapper.class) {
-                if (instance == null) {
-                    instance = new RetrofitWrapper();
-                }
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/08/RN/RN优化/RN稳定性优化-升级JavaScriptCore版本/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/08/RN/RN优化/RN稳定性优化-升级JavaScriptCore版本/" itemprop="url">RN稳定性优化-升级JavaScriptCore版本</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-08T11:14:26+08:00">
+                2019-03-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h1><p>解决RN的 libjsc.so 相关报错引起的崩溃</p>
+<p>携程技术中心的文章 <a href="https://mp.weixin.qq.com/s/Z1GUJW3qBqDGH1jnGt5qAg" target="_blank" rel="noopener">《干货 | 近万字长文详述携程大规模应用RN的工程化实践》</a> 提到</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">这是由于RN自带的JavaScriptCore版本为2014年的版本，</span><br><span class="line">兼容性和稳定性较差，</span><br><span class="line">建议参考开源的jsc-android-buildscrips项目，</span><br><span class="line">将JavaScriptCore升级到2017年11月的版本(WebkitGTK Revision 225067)，</span><br><span class="line">我们升级到该版本后，发现该错误降低了90%；</span><br></pre></td></tr></table></figure>
+<h1 id="jsc-android-buildscripts"><a href="#jsc-android-buildscripts" class="headerlink" title="jsc-android-buildscripts"></a>jsc-android-buildscripts</h1><p><a href="https://github.com/react-native-community/jsc-android-buildscripts" target="_blank" rel="noopener">github</a></p>
+<p><a href="https://www.npmjs.com/package/jsc-android" target="_blank" rel="noopener">npm</a></p>
+<p>目前，最新的稳定版本为 <strong>236355.1.1</strong></p>
+<h2 id="在RN项目中使用"><a href="#在RN项目中使用" class="headerlink" title="在RN项目中使用"></a>在RN项目中使用</h2><ol>
+<li><code>npm install jsc-android</code></li>
+<li><p>添加本地maven的JSC依赖</p>
+<pre><code>Android工程根目录/build.gradle
+    allprojects {
+        repositories {
+            maven {
+                // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+                url &quot;$rootDir/node_modules/react-native/android&quot;
             }
+            maven {
+                // Local Maven repo containing AARs with JSC library built for Android
+                url &quot;$rootDir/node_modules/jsc-android/dist&quot;
+            }
+</code></pre></li>
+<li><p>强制指定JSC版本(覆盖<a href="https://github.com/facebook/react-native/blob/e8df8d9fd579ff14224cacdb816f9ff07eef978d/ReactAndroid/build.gradle#L289" target="_blank" rel="noopener">RN默认的版本</a>)</p>
+<pre><code>app/build.gradle
+    android {
+        configurations.all {
+            resolutionStrategy{
+            force &apos;org.webkit:android-jsc:r236355&apos;
         }
-        return instance;
-    }
-
-    public &lt;T&gt; T create(Class&lt;T&gt; service) {
-        return retrofit.create(service);
-    }
-
-    public class Constant {
-        public static final String BASE_URL = &quot;http://api2.juheapi.com&quot;;
-    }
-}
-</code></pre><p><strong>调用接口（Activity中）</strong></p>
-<pre><code>JokeService jokeService = RetrofitWrapper.getInstance().create(JokeService.class); //RetrofitWrapper.getInstance()就是获取一个retrofit对象
-Call&lt;JokeInfo&gt; call = jokeService.getJokeInfoList(&quot;desc&quot;, 1, 2, &quot;1418816972&quot;, &quot;eb46c85bea73462583e38b84c3a25c4b&quot;);
-call.enqueue(new Callback&lt;JokeInfo&gt;() {
-    @Override
-    public void onResponse(Call&lt;JokeInfo&gt; call, Response&lt;JokeInfo&gt; response) {
-        JokeInfo ji = response.body();
-        //这里显示了列表中的第一条的内容，所以get(0)
-        Toast.makeText(MainActivity.this, ji.getResult().getData().get(0).getContent(), Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onFailure(Call&lt;JokeInfo&gt; call, Throwable t) {
-        Toast.makeText(MainActivity.this, t.getMessage(), Toast.LENGTH_LONG).show();
-    }
-});
-</code></pre><h1 id="二、概念描述"><a href="#二、概念描述" class="headerlink" title="二、概念描述"></a>二、概念描述</h1><h2 id="请求URL"><a href="#请求URL" class="headerlink" title="请求URL"></a>请求URL</h2><p><code>@Url</code></p>
-<pre><code>@GET
-public Call&lt;ResponseBody&gt; profilePicture(@Url String url);
-</code></pre><h3 id="How-Urls-Resolve-Against-Your-Base-Url"><a href="#How-Urls-Resolve-Against-Your-Base-Url" class="headerlink" title="How Urls Resolve Against Your Base Url"></a>How Urls Resolve Against Your Base Url</h3><p>完整url（包括 scheme）–不管baseUrl，直接访问</p>
-<pre><code>Retrofit retrofit = Retrofit.Builder()  
-    .baseUrl(&quot;https://your.api.url/&quot;);
-    .build();
-
-UserService service = retrofit.create(UserService.class);  
-service.profilePicture(&quot;https://s3.amazon.com/profile-picture/path&quot;);
-
-// request url results in:
-// https://s3.amazon.com/profile-picture/path
-</code></pre><p>非完整url（不包括 scheme）–拼接到baseUrl后访问</p>
-<pre><code>Retrofit retrofit = Retrofit.Builder()  
-    .baseUrl(&quot;https://your.api.url/&quot;);
-    .build();
-
-UserService service = retrofit.create(UserService.class);  
-service.profilePicture(&quot;profile-picture/path&quot;);
-
-// request url results in:
-// https://your.api.url/profile-picture/path
-</code></pre><p>非完整url（不包括 scheme）且以 <code>/</code>开头 –拼接到baseUrl中的 <code>host</code> 后访问。  urls that start with a <code>leading slash</code> will be appended to only the <code>base url’s host</code> url</p>
-<pre><code>Retrofit retrofit = Retrofit.Builder()  
-    .baseUrl(&quot;https://your.api.url/v2/&quot;); //升级了接口，v2版本
-    .build();
-
-UserService service = retrofit.create(UserService.class);  
-service.profilePicture(&quot;/profile-picture/path&quot;);
-
-// request url results in:
-// https://your.api.url/profile-picture/path
-</code></pre><h2 id="请求路径-Path-Parameters"><a href="#请求路径-Path-Parameters" class="headerlink" title="请求路径 Path Parameters"></a>请求路径 Path Parameters</h2><p><code>@Path</code> </p>
-<pre><code>@GET(&quot;group/{id}/users&quot;)
-Call&lt;List&lt;User&gt;&gt; groupList(@Path(&quot;id&quot;) int groupId);
-
-@GET(&quot;group/{id}/users&quot;)
-Call&lt;List&lt;User&gt;&gt; groupList(@Path(&quot;id&quot;) int groupId, @Query(&quot;sort&quot;) String sort); 
-
-@GET(&quot;group/{id}/users&quot;)
-Call&lt;List&lt;User&gt;&gt; groupList(@Path(&quot;id&quot;) int groupId, @QueryMap Map&lt;String, String&gt; options);
-</code></pre><h2 id="请求方法"><a href="#请求方法" class="headerlink" title="请求方法"></a>请求方法</h2><p><code>GET, POST, PUT, DELETE, HEAD</code></p>
-<h2 id="请求参数-Query-Parameters"><a href="#请求参数-Query-Parameters" class="headerlink" title="请求参数 Query Parameters"></a>请求参数 Query Parameters</h2><p><code>@Query()</code> ，如果传入 <code>null</code> ，retrofit 会自动忽略改参数</p>
-<pre><code>public interface FutureStudioClient {  
-    @GET(&quot;/tutorials&quot;)
-    Call&lt;List&lt;Tutorial&gt;&gt; getTutorials(
-        @Query(&quot;page&quot;) Integer page
-    );
-
-    @GET(&quot;/tutorials&quot;)
-    Call&lt;List&lt;Tutorial&gt;&gt; getTutorials(
-            @Query(&quot;page&quot;) Integer page,
-            @Query(&quot;order&quot;) String order,
-            @Query(&quot;author&quot;) String author,
-            @Query(&quot;published_at&quot;) Date date
-    );
-} 
-方法2，如果后面三个参数传null，效果和方法1一样
-</code></pre><p><code>@QueryMap</code></p>
-<pre><code>Call&lt;List&lt;News&gt;&gt; getNews(@QueryMap Map&lt;String, String&gt; options);
-</code></pre><h2 id="请求体"><a href="#请求体" class="headerlink" title="请求体"></a>请求体</h2><ul>
-<li><code>@RequestBody</code></li>
-<li><p><code>@Body</code> <strong>自定义请求体格式</strong></p>
-<ul>
-<li>使用创建Retrofit对象时定义的转换器。没有定义转换器只能用 <code>@RequestBody</code></li>
-<li>json格式请求体： {“passWord”:”134”,”userName”:”lili”}</li>
-</ul>
-</li>
-<li><p><code>@FormUrlEncoded 和 @Field/@FieldMap</code> <strong>Url编码</strong></p>
-<ul>
-<li>userName=lili&amp;passWord=123</li>
-</ul>
-</li>
-<li><p><code>@Multipart 和 @Part</code> 分割线分割</p>
-</li>
-</ul>
-<p>示例：</p>
-<pre><code>@POST(&quot;users/new&quot;)
-Call&lt;User&gt; createUser(@Body User user);
-    Caused by: java.lang.IllegalArgumentException: Unable to create @Body converter for class com.xuehu365.xuehu.User (parameter #1)
-    Caused by: java.lang.IllegalArgumentException: Could not locate RequestBody converter for class com.xuehu365.xuehu.User.
-        Tried:
-            * retrofit2.BuiltInConverters
-            * retrofit2.GsonConverterFactory
-    出现这个错误的原因是retrofit版本太低，2.0.0-beta版本不支持@body，升级最新版本即可解决
-
-@FormUrlEncoded
-@POST(&quot;user/edit&quot;)
-Call&lt;User&gt; updateUser(@Field(&quot;first_name&quot;) String first, @Field(&quot;last_name&quot;) String last);
-
-@Headers({&quot;Content-type:application/json;charset=UTF-8&quot;})
-@POST(&quot;auth/update_user_info&quot;)
-   Call&lt;UserInfoResultBean&gt; updateUserBirthday(@Body RequestBody body);       
-    HashMap&lt;String, Long&gt; map = new HashMap&lt;&gt;();
-    map.put(&quot;birthday&quot;, date);
-    String json = new Gson().toJson(map);
-    RequestBody body = RequestBody.create(MediaType.parse(&quot;application/json;charset=UTF-8&quot;), json);
-    NetService.getInstance().getService().updateUserBirthday(body)
-
-Call&lt;User&gt; update(@FieldMap Map&lt;String, String&gt; fields);
-
-@Multipart
-@PUT(&quot;user/photo&quot;)
-Call&lt;User&gt; updateUser(@Part(&quot;photo&quot;) RequestBody photo, @Part(&quot;description&quot;) RequestBody description);
-</code></pre><h2 id="请求头操作-HEADER-MANIPULATION"><a href="#请求头操作-HEADER-MANIPULATION" class="headerlink" title="请求头操作 HEADER MANIPULATION"></a>请求头操作 HEADER MANIPULATION</h2><ul>
-<li><p>静态</p>
-<pre><code>@Headers(&quot;Cache-Control: max-age=640000&quot;)
-@GET(&quot;widget/list&quot;)
-Call&lt;List&lt;Widget&gt;&gt; widgetList();
-
-@Headers({
-    &quot;Accept: application/vnd.github.v3.full+json&quot;,
-    &quot;User-Agent: Retrofit-Sample-App&quot;
-})
-@GET(&quot;users/{username}&quot;)
-Call&lt;User&gt; getUser(@Path(&quot;username&quot;) String username);
-</code></pre></li>
-<li><p>动态</p>
-<pre><code>@GET(&quot;user&quot;)
-Call&lt;User&gt; getUser(@Header(&quot;Authorization&quot;) String authorization)
-</code></pre></li>
-<li><p>OkHttp interceptor</p>
-<p>  Headers that need to be added to every request can be specified using an OkHttp interceptor.</p>
-</li>
-</ul>
-<h2 id="返回体转换器"><a href="#返回体转换器" class="headerlink" title="返回体转换器"></a>返回体转换器</h2><pre><code>Gson: com.squareup.retrofit2:converter-gson  
-Jackson: com.squareup.retrofit2:converter-jackson  
-Moshi: com.squareup.retrofit2:converter-moshi  
-Protobuf: com.squareup.retrofit2:converter-protobuf  
-Wire: com.squareup.retrofit2:converter-wire  
-Simple XML: com.squareup.retrofit2:converter-simplexml  
-Scalars (primitives, boxed, and String): com.squareup.retrofit2:converter-scalars 
-
-自定义转换器，需要继承Converter.Factory，在build adapter时传入我们自定义转换器即可使用
-</code></pre><h2 id="Interceptor"><a href="#Interceptor" class="headerlink" title="Interceptor"></a>Interceptor</h2><pre><code>httpClient.addInterceptor(new Interceptor()
-</code></pre><h3 id="开启OkHttp自带Interceptor-打印请求和响应log"><a href="#开启OkHttp自带Interceptor-打印请求和响应log" class="headerlink" title="开启OkHttp自带Interceptor 打印请求和响应log"></a>开启OkHttp自带Interceptor 打印请求和响应log</h3><p>Since logging isn’t integrated by default anymore in Retrofit 2, we need to add a logging interceptor for OkHttp. </p>
-<p>Luckily OkHttp already ships with this interceptor and you only need to activate it for your OkHttpClient.</p>
-<p>The developers of OkHttp have released a separate logging interceptor project, which implements logging for OkHttp.</p>
-<ol>
-<li><p>You can add it to your project with a quick edit of your <code>build.gradle</code>:</p>
-<pre><code>compile &apos;com.squareup.okhttp3:logging-interceptor:3.3.1&apos;  
-</code></pre></li>
-<li><p><code>your OkHttpClient class</code>:</p>
-<pre><code>OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
-
-// add your other interceptors …
-
-// add logging as last interceptor
-HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-// set your desired log level
-logging.setLevel(Level.BODY);
-httpClientBuilder.addInterceptor(logging);  // &lt;-- this is the important line!
-</code></pre></li>
-<li><p><code>your retrofit use your custom OkHttpClient defined above</code></p>
-<pre><code>new Retrofit.Builder().client(BaseOkHttpClient.getInstance())...
 </code></pre></li>
 </ol>
-<h3 id="Log-Levels"><a href="#Log-Levels" class="headerlink" title="Log Levels"></a>Log Levels</h3><p>Logging too much information will blow up your Android monitor, that’s why OkHttp’s logging interceptor has four log levels: <code>NONE</code>, <code>BASIC</code>, <code>HEADERS</code>, <code>BODY</code>. </p>
-<h3 id="遇到的问题：NoClassDefFoundError-Failed-resolution-of-Lokhttp3-internal-Platform"><a href="#遇到的问题：NoClassDefFoundError-Failed-resolution-of-Lokhttp3-internal-Platform" class="headerlink" title="遇到的问题：NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;"></a>遇到的问题：NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;</h3><pre><code>java.lang.NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;
-    at okhttp3.logging.HttpLoggingInterceptor$Logger$1.log(HttpLoggingInterceptor.java:112)
-    at okhttp3.logging.HttpLoggingInterceptor.intercept(HttpLoggingInterceptor.java:160)
-    at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.java:92)
-    at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.java:67)
-</code></pre><ul>
-<li><p><a href="http://stackoverflow.com/questions/39545629/noclassdeffounderror-failed-resolution-of-lokhttp3-internal-platform" target="_blank" rel="noopener">版本一致</a>，<strong>没有解决</strong></p>
-<pre><code>compile &apos;com.squareup.okhttp3:logging-interceptor:3.4.1&apos;
-compile &apos;com.squareup.okhttp3:okhttp:3.4.1&apos;
+<h3 id="如何验证是否成功使用新版本的JSC"><a href="#如何验证是否成功使用新版本的JSC" class="headerlink" title="如何验证是否成功使用新版本的JSC"></a>如何验证是否成功使用新版本的JSC</h3><p>加载过程会在logcat 输出 JSC版本，过滤tag为 <code>JavaScriptCore.Version</code>。</p>
+<p>实例日志如下：</p>
+<pre><code>D/JavaScriptCore.Version: 236355.1.0
+</code></pre><h3 id="可能遇到的问题"><a href="#可能遇到的问题" class="headerlink" title="可能遇到的问题"></a>可能遇到的问题</h3><p>Compile errors of the sort:</p>
+<pre><code>More than one file was found with OS independent path &apos;lib/armeabi-v7a/libgnustl_shared.so&apos;
+</code></pre><p>Add the following to your app/build.gradle, under android:</p>
+<pre><code>packagingOptions {
+    pickFirst &apos;**/libgnustl_shared.so&apos;
+}        
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
 
-甚至让retrofit 移除okhttp 
-compile (&apos;com.squareup.retrofit2:retrofit:2.1.0&apos;) {
-    // exclude Retrofit’s OkHttp peer-dependency module and define your own module import
-    exclude module: &apos;okhttp&apos;
-}
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/07/电脑使用/git操作/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/07/电脑使用/git操作/" itemprop="url">git使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-07T15:10:53+08:00">
+                2019-03-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://www.git-tower.com/learn/git/ebook/cn/command-line/advanced-topics/git-flow" target="_blank" rel="noopener">git-flow 的工作流程</a></p>
+<h1 id="git认证"><a href="#git认证" class="headerlink" title="git认证"></a>git认证</h1><p>Git客户端可以通过 <code>http</code> 方式和 <code>ssh</code>方式连接git服务器上的仓库</p>
+<p>http 方式 <a href="http://192.168.1.120/mywork.git" target="_blank" rel="noopener">http://192.168.1.120/mywork.git</a></p>
+<p>ssh 方式 <a href="mailto:git@192.168.1.120" target="_blank" rel="noopener">git@192.168.1.120</a>:mywork.git （git为当前机器系统登录用户）</p>
+<h2 id="SSH-Key"><a href="#SSH-Key" class="headerlink" title="SSH Key"></a><a href="http://blog.sina.com.cn/s/blog_6e572cd60101qls0.html" target="_blank" rel="noopener">SSH Key</a></h2><ol>
+<li><p>存储在 ~/.ssh 文件夹，一般是 <code>id_rsa</code> <code>id_rsa.pub</code></p>
+<pre><code>$ cd ~/.ssh
 </code></pre></li>
-<li><p><a href="http://stackoverflow.com/questions/35578135/noclassdeffounderror-for-okhttpclient" target="_blank" rel="noopener">方法数超限，开启 multiDex</a>，<strong>搞定</strong></p>
-<pre><code>defaultConfig {
-    ...
-    multiDexEnabled true
-}
-
-dependencies {
-    compile &apos;com.android.support:multidex:1.0.0&apos;
-}
+<li><p>生成新 SSH</p>
+<pre><code>$ ssh-keygen -t rsa -C &quot;david.l@xuehu365.com&quot;
+Generating public/private rsa key pair.
+Enter file in which to save the key (/c/Users/Administrator/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /c/Users/Administrator/.ssh/id_rsa.
+Your public key has been saved in /c/Users/Administrator/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:BWinjIvY2cjlR/fsWN/zuJyLpnstOuvI1khAd/yDLcs david.l@xuehu365.com
+The key&apos;s randomart image is:
++---[RSA 2048]----+
+|       ...       |
+|      + o.o      |
+|     = + ..+     |
+|    o = ..o +    |
+| + B o oS+ o .   |
+|. * + . . E      |
+|     . . * . o   |
+|       .+.+ =o+o |
+|       .o.*O..*=.|
++----[SHA256]-----+
+</code></pre><p> 会要求输入文件名，密码，确认密码，可以直接三次回车，使用默认文件名，空密码</p>
+</li>
+<li><p>复制id_rsa.pub的内容到github</p>
+</li>
+<li><p>测试</p>
+<pre><code>$ssh -T david@github.com
 </code></pre></li>
-<li><p>总结</p>
-<p>  retrofit2 升级到2.1.0，okhttp3 升级到3.4.1 开启multiDex</p>
-<pre><code>compile &apos;com.squareup.retrofit2:retrofit:2.1.0&apos;
-compile &apos;com.squareup.retrofit2:converter-gson:2.1.0&apos;
-compile &apos;com.squareup.okhttp3:logging-interceptor:3.4.1&apos;
-compile &apos;com.squareup.okhttp3:okhttp:3.4.1&apos;    
+</ol>
+<h1 id="创建本地仓库repository，提交文件"><a href="#创建本地仓库repository，提交文件" class="headerlink" title="创建本地仓库repository，提交文件"></a>创建本地仓库repository，提交文件</h1><p><strong>1. <code>git init</code>初始化git项目</strong></p>
+<pre><code> 在D:/testgit目录下执行以上命令
+成功反馈 Initialized empty Git repository in D:/testgit/.git/，发现testgit目录下多个.git文件夹
+pwd显示当前 目录 
+cd ./AndroidStudioProjects/MyApplication 进入项目目录
+</code></pre><p><strong>2. 在testgit目录下创建 readme.txt ，写入1111111</strong><br>**</p>
+<ol start="3">
+<li><code>git add readme.txt</code> 添加到暂存区**，无任何返回说明add成功</li>
+</ol>
+<p><strong>4. <code>git commit -m &quot;第一次提交&quot;</code> 提交到仓库</strong>。第一次提交是提交注释</p>
+<pre><code>[master (root-commit) 9b057ed] 第一次提交
+ 1 file changed, 1 insertion(+)
+ create mode 100644 readme.txt
+</code></pre><p><strong>5. <code>git status</code>查看是否还有文件未提交</strong></p>
+<pre><code>On branch master
+nothing to commit, working directory clean //没有修改未提交
+</code></pre><p><strong>6. readme.txt增加一行内容 222222</strong></p>
+<p><strong>7. <code>git status</code></strong></p>
+<pre><code>On branch master
+Changes not staged for commit: //stage暂存
+  (use &quot;git add &lt;file&gt;...&quot; to update what will be committed)
+  (use &quot;git checkout -- &lt;file&gt;...&quot; to discard changes in working directory) //discard丢弃
 
-compile &apos;com.android.support:multidex:1.0.0&apos;
-</code></pre></li>
-</ul>
-<h3 id="自定义Interceptor实现-添加get方法通用查询参数-优雅log"><a href="#自定义Interceptor实现-添加get方法通用查询参数-优雅log" class="headerlink" title="自定义Interceptor实现 添加get方法通用查询参数 + 优雅log"></a>自定义Interceptor实现 添加get方法通用查询参数 + 优雅log</h3><pre><code>http://blog.yzapp.cn/Retrofit1.html
+    modified:   readme.txt
 
-OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
-httpClientBuilder.addInterceptor(new Interceptor() {
-    @Override
-    public Response intercept(Chain chain) throws IOException {
-        Request originalRequest = chain.request();
-        HttpUrl originalHttpUrl = originalRequest.url();
-
-        HttpUrl url = originalHttpUrl.newBuilder()
-                .addQueryParameter(&quot;appId&quot;, &quot;xuehu&quot;)
-                .addQueryParameter(&quot;clientType&quot;, &quot;3&quot;)
-                .addQueryParameter(&quot;version&quot;, &quot;v1.0&quot;)
-                .addQueryParameter(&quot;clientVersion&quot;, App.getAppVsersion())
-                .build();
-
-        Request.Builder requestBuilder = originalRequest.newBuilder()
-                .url(url)
-                .method(originalRequest.method(), originalRequest.body());
-
-        Request request = requestBuilder.build();
-        Response response = chain.proceed(request);
-
-        MediaType contentType = null;
-        String bodyString = null;
-        if (response.body() != null) {
-            contentType = response.body().contentType();
-            bodyString = response.body().string();
-        }
-        LogHelp.d(&quot;lyg&quot;, &quot;request: &quot; + request.method() + request.url());
-        LogHelp.d(&quot;lyg&quot;, &quot;response: &quot; + response.code() + &quot;\n&quot; + bodyString);
-        if (response.body() != null) {// 深坑！打印body后原ResponseBody会被清空，需要重新设置body
-            ResponseBody body = ResponseBody.create(contentType, bodyString);
-            return response.newBuilder().body(body).build();
-        } else {
-            return response;
-        }
-    }
-});
-</code></pre><h2 id="泛型封装的失败"><a href="#泛型封装的失败" class="headerlink" title="泛型封装的失败"></a>泛型封装的失败</h2><p>尝试封装一个通用的请求方法</p>
-<pre><code>public class PostAPI&lt;B, T&gt; {
-    public void post(String url, B body, BaseCallBack&lt;Response&lt;T&gt;&gt; callBack) {
-        PostService service = BaseRetrofit.getInstance().create(PostService.class);
-        Call&lt;Response&lt;T&gt;&gt; call = service.post(url, body);
-        call.enqueue(callBack);
-    }
-}
-
-public interface PostService {
-    @POST
-    &lt;B, T&gt; Call&lt;Response&lt;T&gt;&gt; post(@Url String url, B b);
-}
-</code></pre><p>报错</p>
-<pre><code>java.lang.IllegalArgumentException: Method return type must not include a type variable or wildcard: retrofit2.Call&lt;com.xuehu365.xuehu.model.response.Response&lt;T&gt;&gt;
-</code></pre><h1 id="结合rxjava"><a href="#结合rxjava" class="headerlink" title="结合rxjava"></a>结合rxjava</h1><p>不结合rxjava</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//定义接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BusinessService</span> </span>&#123;</span><br><span class="line">	<span class="meta">@GET</span>(<span class="string">"nats/info"</span>)</span><br><span class="line">	<span class="function">Call&lt;NatsInfoBean&gt; <span class="title">getNatsConfig</span><span class="params">(@Query(<span class="string">"clazz_plan_id"</span>)</span> String clazz_plan_id)</span>;</span><br><span class="line">	<span class="comment">//rxjava</span></span><br><span class="line">	<span class="meta">@GET</span>(<span class="string">"nats/info"</span>)</span><br><span class="line">    <span class="function">Observable&lt;NatsInfoBean&gt; <span class="title">getNatsConfig</span><span class="params">(@Query(<span class="string">"clazz_plan_id"</span>)</span> String clazz_plan_id)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NetService</span> </span>&#123;	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> BusinessService <span class="title">getBusinessService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (mBusinessService == <span class="keyword">null</span>) &#123;</span><br><span class="line">            mBusinessService = getRetrofit().create(BusinessService.class);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mBusinessService;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> Retrofit <span class="title">getRetrofit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (mRetrofit == <span class="keyword">null</span>) &#123;</span><br><span class="line">            mRetrofit = <span class="keyword">new</span> Retrofit.Builder()</span><br><span class="line">                    .client(getBaseOkHttpClientBuilder().build())</span><br><span class="line">                    .addConverterFactory(GsonConverterFactory.create(CustomGson.getsInstance().getGson()))</span><br><span class="line">                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())<span class="comment">//rxjava才需要</span></span><br><span class="line">                    .baseUrl(ConstDef.BASE_URL)</span><br><span class="line">                    .build();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mRetrofit;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//使用接口</span></span><br><span class="line">NetService.getInstance().getBusinessService()</span><br><span class="line">	.enqueue(<span class="keyword">new</span> Callback&lt;NatsInfoBean&gt;()&#123;&#125;);</span><br><span class="line"><span class="comment">//使用接口,rxjava</span></span><br><span class="line">NetService.getInstance().getBusinessService()</span><br><span class="line">	.subscribe(<span class="keyword">new</span> Subscriber&lt;OrderStatusBean&gt;()&#123;&#125;)</span><br></pre></td></tr></table></figure>
-<p><strong>总结：</strong></p>
+no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+</code></pre><p><strong>8. <code>git diff readme.txt</code> 对比差异</strong></p>
+<pre><code>diff --git a/readme.txt b/readme.txt
+index 35241c7..8b0f06c 100644
+--- a/readme.txt
++++ b/readme.txt
+@@ -1 +1,2 @@
+-111111111111111111
+\ No newline at end of file
++111111111111111111
++22222222222222222
+\ No newline at end of file
+</code></pre><p><code>git add readme.txt</code> 因为上面说还没暂存以提交（要先暂存）</p>
+<p><code>git status</code><br>    On branch master<br>    Changes to be committed:<br>      (use “git reset HEAD <file>…” to unstage)</file></p>
+<pre><code>modified:   readme.txt
+</code></pre><p><code>git commit  -m &quot;增加了一行内容 2222222&quot;</code></p>
+<pre><code>[master b5fd23c] 增加了一行内容 2222222
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+</code></pre><h1 id="版本回退"><a href="#版本回退" class="headerlink" title="版本回退"></a>版本回退</h1><p>可以回退到某一历史版本(撤销提交)</p>
 <ul>
-<li>定义接口返回值为 <code>Observable</code>。原来为 <code>Call</code></li>
-<li>创建 <code>Retrofit实例</code>时额外 <code>addCallAdapterFactory(RxJavaCallAdapterFactory.create())</code></li>
-<li>调用接口获取返回值改为 <code>观察者模式</code>。原来是 <code>Callback</code></li>
+<li>git reset <ul>
+<li>回到某次提交，类似于穿越时空。中间的提交记录会丢失。<strong>版本历史干净</strong></li>
+<li>reset有三个参数soft,mixed,hard分别对应head的指针移动，index（暂存区）、以及工作目录的修改，当缺省时，默认为mixed参数</li>
 </ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><p><a href="http://www.jianshu.com/p/77d418e7b5d6" target="_blank" rel="noopener">OkHttp, Retrofit, Volley应该选择哪一个？</a> </p>
-<p><a href="http://www.jianshu.com/p/45cb536be2f4" target="_blank" rel="noopener">Retrofit分析-漂亮的解耦套路</a> </p>
-<p><a href="http://mp.weixin.qq.com/s?__biz=MjM5NDkxMTgyNw==&amp;mid=2653057382&amp;idx=2&amp;sn=68c882cc9fc197f67ad7caba80630314#wechat_redirect" target="_blank" rel="noopener">Retrofit初探和简单使用</a> </p>
-<p><a href="https://github.com/square/retrofit" target="_blank" rel="noopener">github地址</a> </p>
-<p><a href="http://square.github.io/retrofit/" target="_blank" rel="noopener">文档地址</a> </p>
-<p><a href="https://futurestud.io/blog/retrofit-2-upgrade-guide-from-1-9" target="_blank" rel="noopener">用法详解系列</a> </p>
+</li>
+<li>git revert<ul>
+<li>生成一个新的提交来撤销某次提交，此次提交之前的commit都会被保留，对于项目的版本历史来说是往前走的。<strong>保留完整历史</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>1. <code>git log</code> 查看历史记录</strong>，由近到远显示。<code>git log –pretty=oneline</code>是一行展示一条记录，方便查看（只展示注释）</p>
+<pre><code>commit b5fd23c15ef2cdec3d70bbcb607f174e0e702055
+Author: David &lt;david.l@xuehu365.com&gt;
+Date:   Tue Apr 19 16:24:37 2016 +0800
+
+    增加了一行内容 2222222
+
+commit 9b057ed353d5de1b5bb88f082b6345ec6080c5f5
+Author: David &lt;david.l@xuehu365.com&gt;
+Date:   Tue Apr 19 15:53:07 2016 +0800
+
+    第一次提交
+</code></pre><p><strong>2. <code>git reset  --hard HEAD^</code> 回退一个版本</strong>。如果要回退到上上个版本只需把HEAD^ 改成 <code>HEAD^^</code> 以此类推</p>
+<pre><code>HEAD is now at 9b057ed 第一次提交
+</code></pre><p>打开readme.txt发现文件内容的确变成了 111111. 或者cat readme.txt命令查看</p>
+<p>git log 发现， 只有第一次提交的历史记录了（没有回退这次记录，也没有第二次增加内容提交的记录）</p>
+<p><strong>3. <code>git reflog</code> 查看所有历史记录（带版本号，精确的），已经reset掉的也会展示</strong></p>
+<pre><code>9b057ed HEAD@{0}: reset: moving to HEAD^
+b5fd23c HEAD@{1}: commit: 增加了一行内容 2222222
+9b057ed HEAD@{2}: commit (initial): 第一次提交
+</code></pre><p><strong>4. <code>git reset --hard b5fd23c</code></strong></p>
+<pre><code>HEAD is now at b5fd23c 增加了一行内容 2222222
+</code></pre><p><code>cat readme.txt</code></p>
+<pre><code>111111111111111111
+22222222222222222
+</code></pre><p><strong>5. git revert</strong></p>
+<p>git revert与reset的区别是git revert会生成一个新的提交来撤销某次提交，此次提交之前的commit都会被保留，也就是说对于项目的版本历史来说是往前走的。而git reset 则是回到某次提交，类似于穿越时空。</p>
+<h1 id="工作区、暂存区、仓库"><a href="#工作区、暂存区、仓库" class="headerlink" title="工作区、暂存区、仓库"></a>工作区、暂存区、仓库</h1><p><code>git add</code> 是把工作区的内容添加到了暂存区(index)</p>
+<p><code>git commit</code> 是把暂存区的内容提交到了仓库</p>
+<p><code>git checkout -- &lt;file&gt;...</code>是丢弃工作区的修改，返回到暂存区的状态。一定不要忘了 – ，否则就成了创建分支</p>
+<p><strong>所以提交流程是，先add 再commit</strong></p>
+<h1 id="远程仓库"><a href="#远程仓库" class="headerlink" title="远程仓库"></a>远程仓库</h1><p>注册github账号，本地Git仓库和github仓库之间的传输是通过SSH加密的</p>
+<ol>
+<li><p>创建SSH Key</p>
+<p> 用户目录/.ssh目录下（我的C:\Users\Administrator\ .ssh）是否有id_rsa和id_rsa.pub这两个文件。没有则在git bash中创建</p>
+</li>
+<li><p>把公钥放到服务器</p>
+<p> 登录github,打开” settings”中的SSH Keys页面，然后点击“Add SSH Key”,填上任意title，在Key文本框里黏贴id_rsa.pub文件的内容</p>
+</li>
+<li><p>到服务器创建仓库</p>
+</li>
+<li><p>添加远程仓库到本地</p>
+<p> <code>git remote add &lt;主机名&gt; &lt;网址&gt;</code> 添加远程主机</p>
+<p> <code>git remote rm &lt;主机名&gt;</code> 删除远程主机</p>
+<p> <code>git remote rename &lt;原主机名&gt; &lt;新主机名&gt;</code>    修改远程主机名</p>
+</li>
+<li><p><code>git push</code>推送本地仓库到远程仓库</p>
+</li>
+</ol>
+<ol start="6">
+<li><p><code>git clone</code>从远程仓库克隆到本地仓库（会在本地仓库根目录下生成新文件夹）（克隆是默认主机名为origin，可用 -o指定主机名;默认克隆master分支，可用 -b 指定分支名）</p>
+<p> git clone -o jQuery <a href="https://github.com/jquery/jquery.git" target="_blank" rel="noopener">https://github.com/jquery/jquery.git</a></p>
+</li>
+<li><p><code>git fetch &lt;远程主机名&gt; &lt;分支名&gt;</code> 取回远程主机特定分支的更新（<strong>并不和本地代码合并，通常用来查看他人进度</strong>）（省略分知名就是取回所有分支更新）</p>
+</li>
+<li><p><code>git pull &lt;远程主机名&gt; &lt;远程分支名&gt;:&lt;本地分支名&gt;</code> 取回远程主机某个分支的更新，再<strong>与本地的指定分支合并。实质上等同于先做git fetch，再做git merge。</strong></p>
+<pre><code>git pull origin next:master //取回origin主机的next分支，与本地的master分支合并
+</code></pre><p> 与当前分支合并，则冒号后面的部分可以省略</p>
+<pre><code>git pull origin next //取回origin/next分支，再与当前分支合并。等同于下面两条命令
+git fetch origin next
+git merge origin/next
+</code></pre><p> 如果当前分支与远程分支存在追踪关系，可以省略远程分支名</p>
+<pre><code>git pull origin
+</code></pre><p> 如果远程主机删除了某个分支，默认情况下，git pull 不会在拉取远程分支的时候，删除对应的本地分支。这是为了防止，由于其他人操作了远程主机，导致git pull不知不觉删除了本地分支。但是，你可以改变这个行为，加上参数 -p 就会在本地删除远程已经删除的分支。</p>
+<p> error: Your local changes to the following files would be overwritten by merge:Please, commit your changes or stash them before you can merge.错误解决</p>
+<pre><code>http://blog.chinaunix.net/uid-10415985-id-4142896.html
+git stash
+git pull
+git stash pop
+然后可以使用git diff -w +文件名 来确认代码自动合并的情况.
+</code></pre></li>
+<li><p><code>git push &lt;远程主机名&gt; &lt;本地分支名&gt;:&lt;远程分支名&gt;</code> 分支推送顺序的写法是&lt;来源地&gt;:&lt;目的地&gt;，所以git pull是&lt;远程分支&gt;:&lt;本地分支&gt;，而git push是&lt;本地分支&gt;:&lt;远程分支&gt;。</p>
+<p> 如果当前分支与多个主机存在追踪关系，则可以使用-u选项指定一个默认主机，这样后面就可以不加任何参数使用git push。</p>
+<pre><code>git push --all origin 不管是否存在对应的远程分支，将本地的所有分支都推送到远程主机
+git push origin --tags 不会推送标签（tag），除非使用--tags选项
+git push --force origin 远程主机版本比本地新，推送会报错，要求先在本地做git pull合并差异，然后再推送到远程主机。--force选项，覆盖远程主机上更新的版本
+</code></pre></li>
+</ol>
+<h1 id="分支"><a href="#分支" class="headerlink" title="分支"></a>分支</h1><ol>
+<li><code>git branch dev</code> 创建分支</li>
+<li><code>git checkout dev</code> 切换分支</li>
+<li><code>git checkout –b dev</code> 创建并切换到分支。相当于上面两条命令 <code>-d</code>删除分支</li>
+<li><code>git checkout -b dev origin/dev</code> 作用是checkout远程的dev分支，在本地起名为dev分支，并切换到本地的dev分支</li>
+<li><code>git branch</code> 查看分支 <code>-r查看远程分支，-a查看所有分支（本地和远程）</code>当前分支前面会添加一个星号</li>
+<li><code>git branch --set-upstream master origin/master</code> 本地master分支追踪远程origin/master分支</li>
+<li><p><code>git branch -m devel develop</code> 重命名本地分支devel为develop</p>
+<pre><code>git checkout -b dev
+    Switched to a new branch &apos;dev&apos;
+编辑readme.txt，增加一行333333
+git add readme.txt
+git commit -m &quot;dev分支增加内容33333&quot; //提交修改
+    [dev 88ac64e] dev分支增加内容33333
+     1 file changed, 2 insertions(+), 1 deletion(-)
+git checkout master //切换到master分支
+    Switched to branch &apos;master&apos;
+cat readme.txt
+    111111111111111111
+    22222222222222222
+git merge dev
+    Updating b5fd23c..88ac64e //88ac64e就是最新的提交3333那次版本
+    Fast-forward
+     readme.txt | 3 ++-
+     1 file changed, 2 insertions(+), 1 deletion(-)
+查看发现master分支readme.txt也有3333了
+git branch -d dev
+    Deleted branch dev (was 88ac64e).
+</code></pre></li>
+<li><p>解决冲突</p>
+<p> 新建分支dev，增加内容4444，提交，切换到master，增加内容5555，合并dev，发现冲突，查看文件内容并修改，重新提交（master就变成了修改后的版本）</p>
+<pre><code>git merge dev
+    Auto-merging readme.txt
+    CONFLICT (content): Merge conflict in readme.txt
+    Automatic merge failed; fix conflicts and then commit the result.
+cat readme.txt
+    111111111111111111
+    22222222222222222
+    33333333333333333
+    &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+    55555555555555555
+    =======
+    44444444444444444
+    &gt;&gt;&gt;&gt;&gt;&gt;&gt; dev
+git status
+    On branch master
+    You have unmerged paths.
+      (fix conflicts and run &quot;git commit&quot;)
+    Unmerged paths:
+      (use &quot;git add &lt;file&gt;...&quot; to mark resolution)            
+            both modified:   readme.txt            
+    no changes added to commit (use &quot;git add&quot; and/or &quot;git commit -a&quot;)
+
+修改readme.txt内容（我这里就不改了）
+git add readme.txt
+git commit -m &quot;master解决冲突&quot;
+    [master af8ac43] master解决冲突
+git status
+    On branch master
+    nothing to commit, working directory clean
+</code></pre></li>
+<li><p>分支管理策略。</p>
+<p> 通常合并分支时，git一般使用”Fast forward”模式，在这种模式下，删除分支后，会丢掉分支信息，现在我们来使用带参数 –no-ff来禁用”Fast forward”模式。<code>git merge –no-ff  -m “注释” dev</code></p>
+</li>
+</ol>
+<p><img src="http://jbcdn2.b0.upaiyun.com/2012/07/Git-branch-management-strategy5.png" alt=""><br><img src="http://jbcdn2.b0.upaiyun.com/2012/07/Git-branch-management-strategy6.png" alt=""></p>
+<pre><code>图片来自 http://blog.jobbole.com/23398/ 图片解释了–no-ff合并和普通合并，分支模型的区别
+</code></pre><ol start="8">
+<li><p>bug分支</p>
+<p> 比如我在开发中接到一个404 bug时候，我们可以创建一个404分支来修复它，但是，当前的dev分支上的工作还没有提交。Git提供了一个stash功能，可以把当前工作现场 ”隐藏起来”，等以后恢复现场后继续工作。确定在哪个分支上修复bug，比如我现在是在主分支master上来修复的，现在我要在master分支上创建一个临时分支issue-404。修复完成后，切换到master分支上，并完成合并，最后删除issue-404分支。</p>
+<p> 回到dev分支上干活，git status发现工作区是干净的，那么我们工作现场去哪里呢？我们可以使用命令 <code>git stash list</code>查看，发现工作现场还在，Git把stash内容存在某个地方了，但是需要恢复一下，可以使用如下2个方法：</p>
+<pre><code>1. git stash apply恢复，恢复后，stash内容并不删除，你需要使用命令git stash drop来删除最上面一条记录。
+2. git stash pop,恢复的同时把stash内容也删除了。
+</code></pre></li>
+</ol>
+<h2 id="分支合并"><a href="#分支合并" class="headerlink" title="分支合并"></a>分支合并</h2><pre><code>git merge dev
+</code></pre><h2 id="合并commit"><a href="#合并commit" class="headerlink" title="合并commit"></a>合并commit</h2><p>分支提交记录(向右增长)</p>
+<pre><code>[master] dd2e86 - 946992 -9143a9 - a6fd86 - 5a6057
+[feature] 76cada - 62ecb3 - b886a0
+</code></pre><p>合并单个commit</p>
+<pre><code>git checkout master
+git cherry-pick 62ecb3  合并 62ecb3 到master
+</code></pre><p>合并连续的commit</p>
+<pre><code>合并 76cada ~62ecb3 到 master
+git checkout -b newNameBranch 62ecb3
+git rebase --onto master 76cada^ 指明从哪个commit开始    
+</code></pre><h1 id="gitignore"><a href="#gitignore" class="headerlink" title="gitignore"></a>gitignore</h1><pre><code>http://www.bubuko.com/infodetail-946833.html
+</code></pre><p>有时添加.gitignore文件后并没有忽略我们想要忽略的文件，解决方法就是<strong>清除缓存</strong>，原因gitignore对已经追踪(track)的文件无效，清除缓存后文件将以未追踪的形式出现.然后再<strong>重新添加提交</strong>一下,.gitignore文件里的规则就可以起作用了</p>
+<pre><code>git rm -r --cached .
+git add .
+git commit -m &quot;update .gitignore&quot;
+</code></pre><h2 id="git配置"><a href="#git配置" class="headerlink" title="git配置"></a>git配置</h2><h3 id="文件名区分大小写"><a href="#文件名区分大小写" class="headerlink" title="文件名区分大小写"></a>文件名区分大小写</h3><p>工程/.git/config文件</p>
+<pre><code>[core]
+repositoryformatversion = 0
+filemode = false
+bare = false
+logallrefupdates = true
+symlinks = false
+ignorecase = false #默认为true
+hideDotFiles = dotGitOnly
+</code></pre><p>或者直接命令行 </p>
+<pre><code>Add ignorecase = false to [core] in .git/config;
+</code></pre><h1 id="git-blame-amp-amp-git-show-查看某一行代码的修改历史"><a href="#git-blame-amp-amp-git-show-查看某一行代码的修改历史" class="headerlink" title="git blame &amp;&amp; git show 查看某一行代码的修改历史"></a>git blame &amp;&amp; git show 查看某一行代码的修改历史</h1><pre><code>git blame file_name
+可以使用 -L指定开始和结束行:
+    实例：git blame ./ScreenLivePlayback.java  -L 1101,+9
+</code></pre><p>其显示格式为：<br>commit ID | 代码提交作者 | 提交时间 | 代码位于文件中的行数 | 实际代码 </p>
+<p>类似于下面这样</p>
+<pre><code>f604879e (yingyinl              2014-09-23 23:39:55 -0700   35) typedef enum
+9be6b4bd (yingyinl              2014-01-01 21:22:50 -0800   36) {
+597886b5 (Shengjie Yu           2015-09-29 12:00:24 +0800   37)     Index_R_Hue = 0,    //Index_Range0_Hue
+9be6b4bd (yingyinl              2014-01-01 21:22:50 -0800   38)     Index_R_Sat,
+9be6b4bd (yingyinl              2014-01-01 21:22:50 -0800   39)     Index_R_brt,
+9be6b4bd (yingyinl              2014-01-01 21:22:50 -0800   40)     Index_R_Offset,
+9be6b4bd (yingyinl              2014-01-01 21:22:50 -0800   41)     Index_R_Gain,
+f604879e (yingyinl              2014-09-23 23:39:55 -0700   42) 
+</code></pre><p>这样，我们就可以知道commit ID了，然后使用命令：git show commitID来看</p>
+<p>对应 AS git 插件中的 <code>git -- annotate</code></p>
+<h1 id="git-flow-工作流程"><a href="#git-flow-工作流程" class="headerlink" title="git-flow 工作流程"></a>git-flow 工作流程</h1><p>在团队开发中使用版本控制系统时，商定一个统一的工作流程是至关重要的</p>
+<p>git-flow是非常流行的工作流程</p>
+<p>git-flow 并不是要替代 Git，它仅仅是把标准的 Git 命令用脚本组合了起来。所以并不需要安装什么特别的东西就可以使用 git-flow 工作流程</p>
+<h2 id="在项目中设置-git-flow"><a href="#在项目中设置-git-flow" class="headerlink" title="在项目中设置 git-flow"></a>在项目中设置 git-flow</h2><p>项目根目录 执行 <code>git flow init</code>，一个交互式安装助手将引导您完成初始化操作。强烈建议使用默认的命名机制，并且一步一步地确定下去</p>
+<p>git-flow 它不会以任何一种戏剧性的方式来改变你的仓库，你还是可以使用普通的 Git 命令</p>
+<h3 id="分支的模式"><a href="#分支的模式" class="headerlink" title="分支的模式"></a>分支的模式</h3><p>预设两个主分支在仓库中：</p>
+<ul>
+<li><strong>master</strong> 只能用来包括产品代码。不能直接工作在这个 master 分支上。不直接提交改动到 master 分支上也是很多工作流程的一个共同的规则。</li>
+<li><strong>develop</strong> 是你进行任何新的开发的基础分支。</li>
+</ul>
+<h2 id="功能开发"><a href="#功能开发" class="headerlink" title="功能开发"></a>功能开发</h2><h3 id="开始新功能"><a href="#开始新功能" class="headerlink" title="开始新功能"></a>开始新功能</h3><pre><code>$ git flow feature start rss-feed
+Switched to a new branch &apos;feature/rss-feed&apos;
+
+Summary of actions:
+- A new branch &apos;feature/rss-feed&apos; was created, based on &apos;develop&apos;
+- You are now on branch &apos;feature/rss-feed&apos;
+</code></pre><p>git-flow 会直接签出这个新的分支，这样你就可以直接进行工作了。</p>
+<h3 id="完成新功能"><a href="#完成新功能" class="headerlink" title="完成新功能"></a>完成新功能</h3><p>经过一段时间艰苦地工作和一系列的聪明提交，我们的新功能终于完成了：</p>
+<pre><code>$ git flow feature finish rss-feed
+Switched to branch &apos;develop&apos;
+Updating 6bcf266..41748ad
+Fast-forward
+    feed.xml | 0
+    1 file changed, 0 insertions(+), 0 deletions(-)
+    create mode 100644 feed.xml
+Deleted branch feature/rss-feed (was 41748ad).
+</code></pre><p> “feature finish” 命令会把我们的工作整合到主 “develop” 分支中去。也会删除这个当下已经完成的功能分支，并且换到 “develop” 分支。</p>
+<h2 id="管理-releases"><a href="#管理-releases" class="headerlink" title="管理 releases"></a>管理 releases</h2><h3 id="创建-release"><a href="#创建-release" class="headerlink" title="创建 release"></a>创建 release</h3><pre><code>$ git flow release start 1.1.5
+Switched to a new branch &apos;release/1.1.5&apos;
+</code></pre><p>“develop” 分支的代码已经是一个成熟的 release 版本时，可以开始生成一个新的 release 了</p>
+<p>release 分支是使用版本号命名的</p>
+<p>release 分支都是基于 “develop” 分支的</p>
+<p>开始完成针对 release 版本号的最后准备工作，并且进行最后的编辑。</p>
+<h3 id="完成-release"><a href="#完成-release" class="headerlink" title="完成 release"></a>完成 release</h3><pre><code>git flow release finish 1.1.5
+</code></pre><p>这个命令会完成如下一系列的操作：</p>
+<ul>
+<li>首先，git-flow 会拉取远程仓库，以确保目前是最新的版本。</li>
+<li>然后，release 的内容会被合并到 “master” 和 “develop” 两个分支中去，这样不仅产品代码为最新的版本，而且新的功能分支也将基于最新代码。</li>
+<li>为便于识别和做历史参考，release 提交会被标记上这个 release 的名字（在我们的例子里是 “1.1.5”）。</li>
+<li>清理操作，版本分支会被删除，并且回到 “develop”。</li>
+</ul>
+<h2 id="hotfix"><a href="#hotfix" class="headerlink" title="hotfix"></a>hotfix</h2><p>release 版本发现一些小错误。需要 hotfix</p>
+<h3 id="创建-Hotfixes"><a href="#创建-Hotfixes" class="headerlink" title="创建 Hotfixes"></a>创建 Hotfixes</h3><pre><code>$ git flow hotfix start missing-link
+</code></pre><p>因为这是对产品代码进行修复，所以这个 hotfix 分支是基于 “master” 分支。这也是和 release 分支最明显的区别，release 分支都是基于 “develop” 分支的。你不应该在一个还不完全稳定的开发分支上对产品代码进行地修复。</p>
+<h3 id="完成-Hotfixes"><a href="#完成-Hotfixes" class="headerlink" title="完成 Hotfixes"></a>完成 Hotfixes</h3><pre><code>$ git flow hotfix finish missing-link
+</code></pre><p>类似 release，修复这个错误当然也会直接影响到项目的版本号！</p>
+<ul>
+<li>完成的改动会被合并到 “master” 中，同样也会合并到 “develop” 分支中，这样就可以确保这个错误不会再次出现在下一个 release 中。</li>
+<li>这个 hotfix 程序将被标记起来以便于参考。</li>
+<li>这个 hotfix 分支将被删除，然后切换到 “develop” 分支上去。</li>
+</ul>
+<p><strong>注意：git flow 操作都是本地仓库进行的(仅仅commit)，需要手动 push</strong></p>
+<h1 id="rebase保持分支整洁"><a href="#rebase保持分支整洁" class="headerlink" title="rebase保持分支整洁"></a>rebase保持分支整洁</h1><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>一个feature分支一般都有多次commit。最后提交到主干分支(master或develop)后，会看到乱七八糟的所有增量修改历史。其实对别人来说，我们的改动应该就是增加或者删除，给别人看开发过程的增量反而太乱。于是我们可以将feature分支的提交合并后然后再merge到主干这样看起来就清爽多了。</p>
+<h2 id="rebase"><a href="#rebase" class="headerlink" title="rebase"></a>rebase</h2><p>可以对某一段线性提交(commit)历史进行编辑、删除、复制、粘贴；因此，合理使用rebase命令可以使我们的提交历史干净、简洁！</p>
+<p><strong>特别注意：</strong></p>
+<ul>
+<li><p>不要通过rebase对任何公共仓库中的公共分支(push)进行修改；即<strong>只能rebase修改自己个人分支</strong></p>
+</li>
+<li><p>如果当前分支提交记录已经push，rebase后本地commit和远程push就会有两条形成两条分支；把远程分支删除即可。merge push本地分支到公共分支</p>
+</li>
+</ul>
+<h2 id="merge-Vs-rebase"><a href="#merge-Vs-rebase" class="headerlink" title="merge Vs rebase"></a>merge Vs rebase</h2><h3 id="merge"><a href="#merge" class="headerlink" title="merge"></a>merge</h3><pre><code>git checkout feature
+git merge master
+</code></pre><img src="/2019/03/07/电脑使用/git操作/merge.jpg">
+<p>为了保持时间顺序，生成一个新的commit记录，插到 feature 最后面</p>
+<p>如果主干分支变动频繁，每次变动都需merge，严重污染feature分支，难以理解历史变更记录</p>
+<h3 id="rebase-1"><a href="#rebase-1" class="headerlink" title="rebase"></a>rebase</h3><pre><code>git checkout feature
+git rebase master
+</code></pre>
+<p>直接将feature提交记录，插到主干分支最后面（本来feature有部分提交是在主干分支前面的，为了保持feature提交连续性，就直接整理插到主干分支最后面）</p>
+<p>产生完美线性的项目历史记录，更加清晰，易于理解</p>
+<p>可以从feature分支顶端一直跟随到项目的开始而没有任何的分叉</p>
+<h2 id="Interactive-Rebase"><a href="#Interactive-Rebase" class="headerlink" title="Interactive Rebase"></a>Interactive Rebase</h2><p>比自动rebase更强大，将提交移动到新分支时更改提交记录。</p>
+<p>通常用于在合并feature分支到主干分支之前清理杂乱的历史记录（比如合并成一条提交记录）</p>
+<p>要开始基于交互式会话rebase，需要 -i 选项：</p>
+<pre><code>git checkout feature
+git rebase -i master
+</code></pre><p>合并提交记录的命名</p>
+<pre><code>pick：保留该commit（缩写:p）
+
+reword：保留该commit，但我需要修改该commit的注释（缩写:r）
+
+edit：保留该commit, 但我要停下来修改该提交(不仅仅修改注释)（缩写:e）
+
+squash：将该commit和前一个commit合并（缩写:s）
+
+fixup：将该commit和前一个commit合并，但我不要保留该提交的注释信息（缩写:f）
+
+exec：执行shell命令（缩写:x）
+
+drop：我要丢弃该commit（缩写:d）
+</code></pre><p>一般都是第一个提交记录reword，其余的squash</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://juejin.im/post/5c7690ab518825404713e709" target="_blank" rel="noopener">Merge vs Rebase</a></li>
+<li><a href="https://github.com/zuopf769/how_to_use_git/blob/master/%E4%BD%BF%E7%94%A8git%20rebase%E5%90%88%E5%B9%B6%E5%A4%9A%E6%AC%A1commit.md" target="_blank" rel="noopener">使用git rebase合并多次commit</a></li>
+</ul>
 
           
         
@@ -926,7 +1695,7 @@ public interface PostService {
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/数据库/sql/sql使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/05/数据库/sql/Android调试数据库/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -945,7 +1714,7 @@ public interface PostService {
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/数据库/sql/sql使用/" itemprop="url">SQL使用</a></h1>
+                <a class="post-title-link" href="/2019/03/05/数据库/sql/Android调试数据库/" itemprop="url">Android调试数据库</a></h1>
         
 
         <div class="post-meta">
@@ -957,8 +1726,8 @@ public interface PostService {
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T15:47:53+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-05T11:54:53+08:00">
+                2019-03-05
               </time>
             
 
@@ -980,8 +1749,8 @@ public interface PostService {
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/数据库/" itemprop="url" rel="index">
-                    <span itemprop="name">数据库</span>
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
                   </a>
                 </span>
 
@@ -1019,457 +1788,347 @@ public interface PostService {
       
         
           
-            <h1 id="SQL"><a href="#SQL" class="headerlink" title="SQL"></a>SQL</h1><p><strong>Structured Query Language</strong>, 结构化查询语言</p>
-<p>操作 关系型数据库（用表存储数据）的 标准 非过程性语言。</p>
-<p>为加强SQL的语言能力，各厂商在实现标准中增加了过程性语言的特征。如Oracle的PL/SQL 过程性处理能力，SQL Server、Sybase的T-SQL</p>
-<h1 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h1><pre><code>不区分大小写。推荐关键字大写，自定义的小写
-每条语句以分号结尾
-注释符号是 #
-</code></pre><h1 id="数据库服务器–数据库–表"><a href="#数据库服务器–数据库–表" class="headerlink" title="数据库服务器–数据库–表"></a>数据库服务器–数据库–表</h1><p>数据库服务器有多个数据库组成，每个数据库有多个表。表中存储着数据。</p>
-<p>一般一个工程项目对应一个数据库，一个JavaBean对应一个表。</p>
-<p>元数据：数据库，表，列的定义信息</p>
-<h2 id="数据库服务器–mysql"><a href="#数据库服务器–mysql" class="headerlink" title="数据库服务器–mysql"></a>数据库服务器–mysql</h2><p>要特别注意连接，备份命令是在cmd窗口执行，要注意和sql语句区分，是没有分号的。特别注意！！</p>
-<h3 id="CentOS安装MySQL"><a href="#CentOS安装MySQL" class="headerlink" title="CentOS安装MySQL"></a>CentOS安装MySQL</h3><p>CentOS 7上把MySQL从默认软件列表中移除了，用MariaDB来代替，所以我们必须要去官网上进行下载</p>
-<pre><code>wget http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm 
+            <p><a href="https://github.com/amitshekhariitbhu/Android-Debug-Database" target="_blank" rel="noopener">Android-Debug-Database</a></p>
+<p>查看，编辑数据库</p>
+<p><code>debugImplementation &#39;com.amitshekhar.android:debug-db:1.0.5&#39;</code></p>
+<p>手机和电脑同一局域网，浏览器打开 手机ip:8080</p>
 
-rpm -ivh mysql-community-release-el7-5.noarch.rpm
+          
+        
+      
+    </div>
+    
+    
+    
 
-yum -y install mysql mysql-server mysql-devel
-</code></pre><h3 id="启动MySQL"><a href="#启动MySQL" class="headerlink" title="启动MySQL"></a>启动MySQL</h3><pre><code>service mysqld start
-</code></pre><h3 id="设置MySQL数据库服务器密码"><a href="#设置MySQL数据库服务器密码" class="headerlink" title="设置MySQL数据库服务器密码"></a>设置MySQL数据库服务器密码</h3><pre><code>mysqladmin -u root password dbroot@quanlist2018
-</code></pre><h3 id="连接MySQL数据库服务器"><a href="#连接MySQL数据库服务器" class="headerlink" title="连接MySQL数据库服务器"></a>连接MySQL数据库服务器</h3><pre><code>mysql -u root -p
-密码默认为空
-</code></pre><h3 id="允许用户远程连接"><a href="#允许用户远程连接" class="headerlink" title="允许用户远程连接"></a>允许用户远程连接</h3><p>登录MySQL后</p>
-<pre><code>grant all privileges on *.* to &apos;root&apos;@&apos;%&apos; identified by &apos;dbroot@quanlist2018&apos; with grant option;
-FLUSH PRIVILEGES;
-exit
+    
 
-&apos;root&apos;@&apos;%&apos; identified by &apos;dbroot@quanlist2018&apos;
-表示root用户可以在任意地址用密码dbroot@quanlist2018登录
-</code></pre><h3 id="备份与恢复数据库"><a href="#备份与恢复数据库" class="headerlink" title="备份与恢复数据库"></a>备份与恢复数据库</h3><ul>
-<li><p>备份数据库：连接mysql服务器前</p>
-<pre><code>mysqldump -u root -p db_name&gt;c:/1.sql
-</code></pre></li>
-<li><p>恢复数据库：必须要先创建数据库，然后导入备份的sql文件</p>
-<pre><code>备份。在cmd窗口
-    mysql -u root -p db_name&lt;c:/1.sql
-恢复。在mysql窗口中（连接mysql服务器后）
-    use db_name;
-    source c:/1.sql;
-</code></pre></li>
-</ul>
-<h2 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h2><pre><code>1.创建数据库
-    create database [if not exists] db_name [character set xxx] [collate xxx]
-    *创建一个名称为mydb1的数据库。
-        create database mydb1;
-    *创建一个使用utf8（中间没有杆）字符集的mydb2数据库。
-        create database mydb2 character set utf8;
-    *创建一个使用utf8字符集，并带校对规则（校对规则是下划线连接）的mydb3数据库。
-        create database mydb3 character set utf8 collate utf8_bin ;
-2.查看数据库
-    show databases;查看所有数据库
-    show create database db_name; 查看数据库的创建方式
-3.修改数据库
-    alter database db_name [character set xxx] [collate xxxx]
-4.删除数据库
-    drop database [if exists] db_name;
-5.使用数据库
-    切换使用的数据库 use db_name; （数据库特有关键字，不用加database）
-    查看当前使用的数据库 select database();注意不要忘了括号
-</code></pre><hr>
-<h2 id="表"><a href="#表" class="headerlink" title="表"></a>表</h2><pre><code>1.创建表
-        create table tab_name(
-            field1 type,
-            field2 type,
-            ...
-            fieldn type
-        )[character set xxx][collate xxx];
+    
 
-        ****java和mysql的数据类型比较
-            String  ----------------------  char(n) varchar(n) 注意是var+char。 
-                                                定长是固定长度，自动补齐。变长是根据存储内容决定长度。
-                                                但都不能超过定义长度n.定长胜在效率，变长胜在节省空间。
-            byte short int long float double -------------- tinyint  smallint int bigint float double。
-                                                    长度分别    1        2        4    8        4        8字节
-            boolean ------------------ bit 0/1
-            Date ------------------ Date、Time、DateTime、timestamp
-            FileInputStream FileReader  ------------------------------ 大数据类型 Blob Text
-            字符和日期型数据应包含在单引号中
+    
 
-            *创建一个员工表employee
-            create table employee(
-                id int primary key auto_increment ,
-                name varchar(20),
-                gender bit default 1,
-                birthday date,
-                entry_date date,
-                job varchar(20),
-                salary double,
-                resume text
-            );
+    <footer class="post-footer">
+      
 
-            约束:
-                primary key 主键，不空切唯一。一般其后都紧跟着auto_increment 主键字段必须是数字类型(非数字无法自增长)。主键无法更改（更改主键，插入数据库就无法知道修改的列）
-                auto_increment只有主键可以自动增长    
-                unique
-                not null
-                外键约束，一般是和多表设计一起理解。看后面
-    2.查看表信息
-        show tables 查看当前数据库中的所有的表
-        show create table tab_name    查看当前数据库表建表语句 
-        desc tab_name 查看表结构。（表特有关键字，所以不用加table）
-    3.修改表
-        alter table add列/drop列/change列名/modify列类型/character set
-        rename table to  重命名表(不要忘记了to)
+      
 
-            *在上面员工表的基本上增加一个image列。
-                alter table employee add image blob;
-            *修改job列，使其长度为60。
-                alter table employee modify job varchar(60);
-            *删除gender列。
-                alter table employee drop gender;
-            *表名改为user。
-                rename table employee to user;
-            *修改表的字符集为utf8
-                alter table user character set gbk; 
-            *列名name修改为username    
-                alter table user change name username varchar(20);
+      
 
-    4.删除表
-        drop table tab_name;
-</code></pre><hr>
-<h2 id="表记录-数据"><a href="#表记录-数据" class="headerlink" title="表记录(数据)"></a>表记录(数据)</h2><pre><code>1.增加一条记录insert into values  其实可以用逗号分隔一次性插入多条记录。
-    insert into tab_name [(field1,filed2,.......)] values (value1,value2,.......)[,(value1,value2,...)];
-    *values中的数据必须与列的排列位置相对应。
-    *插入空值：不要把该列加入列列表  或  值写为null
-    *如果要插入所有字段可以省写列列表，直接按表中字段顺序写值列表insert into tab_name values(value1,value2,......);
-    *字符和日期型数据应包含在单引号中&apos;zhang&apos; &apos;2013-04-20&apos;
-    *mysql中乱码的原因与解决：
-        客户端发送数据时使用的编码和服务器处理数据时使用的编码不相同
-        show variables like &apos;character%&apos;;可以获得服务器使用的编码。
-        %表示任意个字符，下划线_表示一个字符。 模糊匹配like。
-        解决方法
-                (1)set names xxxx; --- 连接后通知服务器和当前客户端进行交互时使用的编码集（每个客户端连接后都需要设置）
-                (2)修改服务器中的my.ini配置文件，修改服务器默认 认为的客户端的编码
-    *练习：使用insert语句向表中插入四个员工的信息。
-    insert into emp (name,birthday,entry_date,job,salary) values (&apos;张飞&apos;,&apos;1990-09-09&apos;,&apos;2000-01-01&apos;,&apos;打手&apos;,999);
-    insert into emp values (null,&apos;黄忠&apos;,1,&apos;1970-05-05&apos;,&apos;2001-01-01&apos;,&apos;战神&apos;,1000,null);
-    insert into emp (name,birthday,entry_date,job,salary) values (&apos;关羽&apos;,&apos;1989-08-08&apos;,&apos;2000-01-01&apos;,&apos;财神&apos;,9999)
-                                                                    ,(&apos;赵云&apos;,&apos;1991-07-07&apos;,&apos;2000-01-02&apos;,&apos;保安&apos;,888);
-
-2.修改表列记录 update  set
-        update tab_name set field1=expr1 [,field2=expr1] [where 语句]
-        *SET子句指示要修改哪些列和要给予哪些值（可以是表达式，比如field+10，表示增加10）。
-        *WHERE子句指定应更新哪些行。如没有WHERE子句，则更新所有的行。
-    *where字句中可以使用：
-                        *比较运算符：    
-                                    = &gt; &lt; &gt;= &lt;= &lt;&gt;  （不等于是&lt;&gt;,特别注意）
-                                    between 10 and 20 值在10到20之间  
-                                    in(10,20,3)值是10或20或30
-                                    like &apos;张pattern&apos; pattern可以是%或者_，如果是%则表示任意多字符，此例中张三丰 张飞 张abcd ，如果是_则表示一个字符张_，张飞符合。
-                                    is null
-
-                        *逻辑运算符
-                            在多个条件直接可以使用逻辑运算符 and or not
-
-            ~将所有员工薪水修改为5000元。
-                update employee set salary=5000;
-            ~将姓名为’张飞’的员工薪水修改为3000元。
-                update employee set salary=3000 where name = &apos;张飞&apos;;
-            ~将姓名为’关羽’的员工薪水修改为4000元,job改为ccc。
-                update employee set salary=4000,job=&apos;ccc&apos; where name=&apos;关羽&apos;;
-            ~将刘备的薪水在原有基础上增加1000元。    
-                update employee set salary=salary+1000 where name=&apos;刘备&apos;;
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
 
 
-3.删除表行操作 delete
-        delete from tab_name [where ....]
-        *如果不跟where语句则删除整张表中的数据
-        *delete只能用来删除一行记录，不能值删除一行记录中的某一列值（这是update操作）。
-        *delete是删除表中选中的数据，表还在。删除表要 drop table
-        truncate是删除表中所有数据。直接删除表，然后创建一张结构一样（具有相同列）的新表。这种删除不能在事务中恢复。
-                当删除表中所有数据时，truncate比delete更高效。
+    
+      
 
-        *实验：
-            ~删除表中名称为’张飞’的记录。
-                delete from employee where name=&apos;张飞&apos;;
-            ~删除表中所有记录。
-                delete from employee;
-            ~使用truncate删除表中记录。
-                truncate employee;
+  
 
+  
+  
+  
 
-    4.select操作
-    （1）select [distinct] *|field1 [,field2] from tab_name 其中from指定从哪张表筛选，*表示查找所有列，也可以指定一个列列表明确指定要查找的列，distinct用来剔除重复行。
-                查询表中所有学生的信息。
-                select * from exam;
-                查询表中所有学生的姓名和对应的英语成绩。
-                select name,english from exam;
-                过滤表中重复数据。
-                select distinct english from exam;
-    （2）select 也可以使用表达式，并且可以使用 as 别名 。（as可以省略，直接空格跟别名）
-                在所有学生分数上加10分特长分显示。
-                select name,english+10,chinese+10,math+10 from exam;
-                统计每个学生的总分。
-                select name,english+chinese+math from exam;
-                使用别名表示学生总分。
-                select name,english+chinese+math as 总成绩 from exam;
-                select name,english+chinese+math 总成绩 from exam;
-                select name english from exam;这个很容易出错。其实是省略as的别名。
-    （3）使用where子句，进行过滤查询。
-        实际应用中，where子句都是动态构造的。多条件查询构造sql技巧，where 1=1 and ......
-                 ~查询英语成绩大于90分的同学
-                    select name,english from exam where english &gt; 90;
-                ~查询总分大于230分的所有同学
-                    select name 姓名,english+chinese+math 总成绩 from exam where english+chinese+math&gt;230;
-                ~查询英语分数在 80－100之间的同学。
-                    select * from exam where english between 80 and 100;
-                ~查询数学分数为75,76,77的同学。
-                    select * from exam where math in(75,76,77);
-                ~查询所有姓张的学生成绩。
-                    select * from exam where name like &apos;张%&apos;;
-                    select * from exam where name like &apos;张_&apos;;
-                    select * from exam where name like &apos;张__&apos;;
-                ~查询数学分&gt;70，语文分&gt;80的同学。
-                    select * from exam where math&gt;70 and chinese&gt;80;
-                ~查找缺考数学的学生的姓名
-                    select name from exam where math is null;
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/性能优化/获取内存和CPU使用情况/">
 
-    （4）Order by field [asc|desc]按指定列排序，可以是别名。
-                Asc 升序、Desc 降序，其中asc为默认值
-                ORDER BY 子句应位于SELECT语句的结尾。
-            *练习：
-                对数学成绩排序后输出。
-                select * from exam order by math desc;
-                对总分排序按从高到低的顺序输出
-                select name ,(ifnull(math,0)+ifnull(chinese,0)+ifnull(english,0)) 总成绩 from exam order by 总成绩 desc;
-                对姓张的学生成绩排序输出
-                select name ,(ifnull(math,0)+ifnull(chinese,0)+ifnull(english,0)) 总成绩 from exam where name like &apos;张%&apos; order by 总成绩 desc;
-    null和任何数运算结果都为null
-    ifnull(col,0)如果某列的值为null，用0替代
-    （5）聚合函数：技巧,先不要管聚合函数要干嘛，先把要求的内容查出来再包上聚合函数即可。
-            ~1.count(列) -- 统计符合条件的记录共有几条
-                ~统计一个班级共有多少学生？
-                    select count(*) from exam;
-                ~统计数学成绩大于70的学生有多少个？
-                    select count(*) from exam where math&gt;70;
-                ~统计总分大于230的人数有多少？
-                    select count(name) from exam where math+english+chinese&gt;230;
-            ~2.sum(列) --Sum函数返回满足where条件的行的和
-                ~统计一个班级数学总成绩？
-                    select sum(math) from exam;    
-                ~统计一个班级语文、英语、数学各科的总成绩
-                    select sum(chinese),sum(english),sum(math) from exam;
-                ~统计一个班级语文、英语、数学的成绩总和
-                    select sum(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-                ~统计一个班级语文成绩平均分
-                    select sum(chinese)/count(name) from exam
-            ~3.AVG --函数返回满足where条件的一列的平均值
-                ~求一个班级数学平均分？
-                    select avg(math) from exam;
-                ~求一个班级总分平均分？            
-                select avg(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-            ~4.MAX/MIN--函数返回满足where条件的一列的最大/最小值    
-                ~求班级最高分和最低分
-                select max(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-                select min(ifnull(chinese,0)+ifnull(english,0)+ifnull(math,0)) 班级总分 from exam;
-    (6)分组查询--GROUP BY
-            ~对订单表中商品归类后，显示每一类商品的总价
-                select id,product,sum(price) from orders group by product;
-            ~查询购买了几类商品，并且每类总价大于100的商品
-                select product,sum(price) from orders group by product having sum(price)&gt;100;
-            ~查询单价小于100 但是总价大于100的商品。
-                select product from orders where price&lt;100 group by product having sum(price)&gt;100;
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
 
-        where 在最前面进行过滤，不能使用别名和聚合函数
-        having 在分组之后进行过滤，可以使用别名和聚合函数,having中用到的列，必须在前面使用过才可以用
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
 
-    （7）重点：综合运用 Select from where group by having order by 
-                    Mysql在执行sql语句时的执行顺序：from where select group by having order by
-            *分析：        
-                select math+english+chinese as 总成绩 from exam where 总成绩 &gt;250; ---- 不成功
-                select math+english+chinese as 总成绩 from exam having 总成绩 &gt;250; --- 成功
-                select math+english+chinese as 总成绩 from exam group by 总成绩 having 总成绩 &gt;250; ----成功
-                select  math+english+chinese as 总成绩 from exam order by 总成绩;----成功
-                select * from exam as 成绩 where 成绩.math&gt;85; ---- 成功
-</code></pre><hr>
-<h1 id="多表设计-–-外键约束"><a href="#多表设计-–-外键约束" class="headerlink" title="多表设计 – 外键约束"></a>多表设计 – 外键约束</h1><img src="/2018/12/20/数据库/sql/sql使用/外键.png">
-<pre><code>1.创建表时指定约束：foreign key (dept_id) references dept(id)
-        create table dept(
-        id int primary key auto_increment,
-        name varchar(30)
-    );
-    insert into dept values(null,&apos;财务部&apos;);
-    insert into dept values(null,&apos;人事部&apos;);
-    insert into dept values(null,&apos;销售部&apos;);
-    insert into dept values(null,&apos;科技部&apos;);
+    
+      <header class="post-header">
 
-    create table emp(
-        id int primary key auto_increment,
-        name varchar(30),
-        dept_id int,
-        foreign key (dept_id) references dept(id)
-    );
-    insert into emp values (null,&apos;奥巴马&apos;,1);
-    insert into emp values (null,&apos;乔峰&apos;,2);    
-    insert into emp values (null,&apos;哈利波特&apos;,3);
-    insert into emp values (null,&apos;朴乾&apos;,4);
-    insert into emp values (null,&apos;萨达姆&apos;,4);
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/01/Android/性能优化/获取内存和CPU使用情况/" itemprop="url">获取内存和CPU使用情况</a></h1>
+        
 
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:16:53+08:00">
+                2019-03-01
+              </time>
+            
 
+            
 
-2.外键约束：
-        （1）增加外键：
-            可以明确指定外键的名称，如果不指定外键的名称,mysql会自动为你创建一个外键名称。
-            RESTRICT : 只要本表格里面有指向主表的数据， 在主表里面就无法删除相关记录。
-            CASCADE : 如果在foreign key 所指向的那个表里面删除一条记录，那么在此表里面的跟那个key一样的所有记录都会一同删掉。
-            alter table book add [constraint FK_BOOK] foreign key(pubid) references pub_com(id) [on delete restrict] [on update restrict];
+            
+          </span>
 
-        （2）删除外键
-            alter table 表名 drop foreign key 外键（区分大小写，外键名可以desc 表名查看）;
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
 
+                
+                
+              
+            </span>
+          
 
-3.主键约束：
-        （1）增加主键（自动增长，只有主键可以自动增长）primary key(id)
-            Alter table tb add primary key(id) [auto_increment];
-        （2）删除主键
-            alter table 表名 drop primary key
-        （3）增加自动增长
-            Alter table employee modify id int auto_increment;
-        （4）删除自动增长
-            Alter table tb modify id int;        
-</code></pre><hr>
-<h1 id="多表设计"><a href="#多表设计" class="headerlink" title="多表设计"></a>多表设计</h1><img src="/2018/12/20/数据库/sql/sql使用/多表设计.png">
-<pre><code>一对一（311教室和20130405班级，两方都是一）:在任意一方保存另一方的主键
-一对多、多对一（班级和学生，其中班级为1，学生为多）：在多的一方保存一的一方的主键
-多对多（教师和学生，两方都是多）：使用中间表，保存对应关系
+          
+            
+          
 
-        create table orderitem(
-            order_id varchar(100),
-            product_id varchar(100),
-            buynum int ,
-            primary key(order_id,product_id), #联合主键,两列的值加在一起作为这张表的主键使用
-            foreign key(order_id) references orders(id),
-            foreign key(product_id) references products(id)
-        );
-</code></pre><hr>
-<h1 id="多表查询"><a href="#多表查询" class="headerlink" title="多表查询"></a>多表查询</h1><pre><code>create table dept(
-        id int primary key auto_increment,
-        name varchar(30)
-    );
-    insert into dept values(null,&apos;caiwu&apos;);
-    insert into dept values(null,&apos;renshi&apos;);
-    insert into dept values(null,&apos;xingzheng&apos;);
+          
+          
 
-    create table emp(
-        id int primary key auto_increment,
-        name varchar(30),
-        dept_id int
-    );
-    insert into emp values (null,&apos;cw&apos;,1);
-    insert into emp values (null,&apos;rs&apos;,2);    
-    insert into emp values (null,&apos;xx&apos;,5);
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="CPU使用"><a href="#CPU使用" class="headerlink" title="CPU使用"></a>CPU使用</h1><h2 id="设备CPU使用情况"><a href="#设备CPU使用情况" class="headerlink" title="设备CPU使用情况"></a>设备CPU使用情况</h2><p><code>/proc/stat</code> </p>
+<p><code>CPU 152342 1421 28562 1600830 12389 553 273 0 0</code></p>
+<p>totalCpuTime: CPU后面7个属性(2-8)的和</p>
+<p>通过 </p>
+<h2 id="指定pid应用CPU使用情况"><a href="#指定pid应用CPU使用情况" class="headerlink" title="指定pid应用CPU使用情况"></a>指定pid应用CPU使用情况</h2><p><code>/proc/pid/stat</code>  <code>Process.myPid()获取pid</code></p>
+<p><code>2341 (com.xxxx.xxxx) S 1131 1131 0 0 -1 3912246 12450 0 2 0 3321 612 0 0 20 0</code></p>
+<p>processCpuTime：3321 612两个属性(13-14)的和</p>
+<h2 id="解析代码"><a href="#解析代码" class="headerlink" title="解析代码"></a>解析代码</h2><p>读取第一行，空格分割</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">String procStatString = procStatFile.readLine();</span><br><span class="line">String procStats[] = procStatString.split(<span class="string">" "</span>);</span><br><span class="line">totalCpuTime = Long.parseLong(procStats[<span class="number">2</span>]) + Long.parseLong(procStats[<span class="number">3</span>])</span><br><span class="line">        + Long.parseLong(procStats[<span class="number">4</span>]) + Long.parseLong(procStats[<span class="number">5</span>])</span><br><span class="line">        + Long.parseLong(procStats[<span class="number">6</span>]) + Long.parseLong(procStats[<span class="number">7</span>])</span><br><span class="line">        + Long.parseLong(procStats[<span class="number">8</span>]);</span><br><span class="line"></span><br><span class="line">String appStatString = appStatFile.readLine();</span><br><span class="line">String appStats[] = appStatString.split(<span class="string">" "</span>);</span><br><span class="line">processCpuTime = Long.parseLong(appStats[<span class="number">13</span>]) + Long.parseLong(appStats[<span class="number">14</span>]);</span><br></pre></td></tr></table></figure>
+<h1 id="内存使用"><a href="#内存使用" class="headerlink" title="内存使用"></a>内存使用</h1><h2 id="设备内存使用情况"><a href="#设备内存使用情况" class="headerlink" title="设备内存使用情况"></a>设备内存使用情况</h2><p>通过 <code>dumpsys meminfo</code> 获取的free mem大约为1.4G。使用android手机自带的内存管理器查看也是1.4G</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Total RAM: 3,498,412K (status normal)</span><br><span class="line"> Free RAM: 1,420,845K (  554,397K cached pss +   729,900K cached kernel +   136,548K free)</span><br><span class="line"> Used RAM: 2,125,902K (1,741,086K used pss +   384,816K kernel)</span><br><span class="line"> Lost RAM:   268,850K</span><br><span class="line">   Tuning: 256 (large 512), oom   325,000K, restore limit   108,333K (high-end-gfx)</span><br></pre></td></tr></table></figure>
+<p><code>/proc/meminfo</code> </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">MemTotal:        3498412 kB</span><br><span class="line">MemFree:          136596 kB</span><br><span class="line">MemAvailable:    1500252 kB</span><br><span class="line">Buffers:          150052 kB</span><br><span class="line">Cached:          1313300 kB</span><br><span class="line">SwapCached:        89844 kB</span><br><span class="line">Active:          1218484 kB</span><br><span class="line">Inactive:        1171716 kB</span><br><span class="line">Active(anon):     472168 kB</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
+<p>free mem大约为0.13G</p>
+<p>linux思想，内存不用白不用，因此它尽可能的cache和buffer一些数据，以方便下次使用。但实际上这些内存也是可以立刻拿来使用的。所以空闲内存=free+buffers+cached</p>
+<p>dumpsys meminfo获得的free mem = cached pss + cached kernel + ion cached + gpu cached + + free</p>
+<h2 id="指定pid应用内存使用情况"><a href="#指定pid应用内存使用情况" class="headerlink" title="指定pid应用内存使用情况"></a>指定pid应用内存使用情况</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);</span><br><span class="line">Debug.MemoryInfo[] memInfo = activityManager.getProcessMemoryInfo(<span class="keyword">new</span> <span class="keyword">int</span>[]&#123;Process.myPid()&#125;);</span><br><span class="line"><span class="keyword">int</span> totalPss = memInfo[<span class="number">0</span>].getTotalPss();<span class="comment">//in KB</span></span><br></pre></td></tr></table></figure>
+<h3 id="当前应用JavaHeap内存使用情况"><a href="#当前应用JavaHeap内存使用情况" class="headerlink" title="当前应用JavaHeap内存使用情况"></a>当前应用JavaHeap内存使用情况</h3><pre><code class="java">Runtime runtime = Runtime.getRuntime();
+<span class="keyword">int</span> M = <span class="number">1024</span> * <span class="number">1024</span>;
+Log.d(<span class="string">"jvm"</span>, <span class="string">"最大可用内存: "</span> + runtime.maxMemory() / M);
+Log.d(<span class="string">"jvm"</span>, <span class="string">"当前可用内存: "</span> + runtime.totalMemory() / M);
+Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内存:"</span> + runtime.freeMemory() / M);
+</code></pre>
+<h4 id="maxMemory"><a href="#maxMemory" class="headerlink" title="maxMemory"></a>maxMemory</h4><p>Dalvik虚拟机，每个App默认的最大可用内存由系统指定（在<code>/system/build.prop</code>文件中定义）</p>
+<p>在Manifest application 里面添加<code>android:allowBackup=&quot;true&quot;</code> 可以增加最大可用内存至512M</p>
+<p>为什么有些APP（比如大型游戏）可以超过这个值？那是因为Java内存又分为Java Heap和Native Heap，Native Heap是不受该值约束的。</p>
+<h4 id="totalMemory"><a href="#totalMemory" class="headerlink" title="totalMemory"></a>totalMemory</h4><p>一般为16M</p>
+<p>如果设置为“-Xms1024m -Xmx1024m”，那么totalMemory=maxMamory</p>
+<img src="/2019/03/01/Android/性能优化/获取内存和CPU使用情况/内存.png">
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
 
 
-mysql&gt; select * from dept;
-    +----+-----------+
-    | id | name      |
-    +----+-----------+
-    |  1 | caiwu     |
-    |  2 | renshi    |
-    |  3 | xingzheng |
-mysql&gt; select * from emp;
-    +----+------+---------+
-    | id | name | dept_id |
-    +----+------+---------+
-    |  1 | cw   |       1 |
-    |  2 | rs   |       2 |
-    |  3 | xx   |       5 |
-    +----+------+---------+
+    
+      
 
-1.笛卡尔积查询：两张表中一条一条对应的记录，m条记录和n条记录查询，最后得到m*n条记录，其中很多错误数据
-    select * from dept,emp;
+  
 
-    mysql&gt; select * from dept,emp;
-            +----+-----------+----+------+---------+
-            | id | name      | id | name | dept_id |
-            +----+-----------+----+------+---------+
-            |  1 | caiwu     |  1 | cw   |       1 |
-            |  2 | renshi    |  1 | cw   |       1 |
-            |  3 | xingzheng |  1 | cw   |       1 |
-            |  1 | caiwu     |  2 | rs   |       2 |
-            |  2 | renshi    |  2 | rs   |       2 |
-            |  3 | xingzheng |  2 | rs   |       2 |
-            |  1 | caiwu     |  3 | xx   |       5 |
-            |  2 | renshi    |  3 | xx   |       5 |
-            |  3 | xingzheng |  3 | xx   |       5 |
-            +----+-----------+----+------+---------+
-2.内连接：查询两张表中都有的关联数据,相当于利用条件从笛卡尔积结果中筛选出了正确的结果。
-inner join on
-    select * from dept,emp            where dept.id=emp.dept_id;
-    select * from dept inner join emp on dept.id=emp.dept_id;
+  
+  
+  
 
-    mysql&gt; select * from dept,emp where dept.id=emp.dept_id;
-            +----+--------+----+------+---------+
-            | id | name   | id | name | dept_id |
-            +----+--------+----+------+---------+
-            |  1 | caiwu  |  1 | cw   |       1 |
-            |  2 | renshi |  2 | rs   |       2 |
-    mysql&gt; select * from dept inner join emp on dept.id=emp.dept_id;
-            +----+--------+----+------+---------+
-            | id | name   | id | name | dept_id |
-            +----+--------+----+------+---------+
-            |  1 | caiwu  |  1 | cw   |       1 |
-            |  2 | renshi |  2 | rs   |       2 |
-            +----+--------+----+------+---------+
-3.外连接
-    （1）左外连接：在内连接的基础上增加左边有右边没有的结果
-    left join on
-                mysql&gt; select * from dept left join emp on dept.id=emp.dept_id;
-                        +----+-----------+------+------+---------+
-                        | id | name      | id   | name | dept_id |
-                        +----+-----------+------+------+---------+
-                        |  1 | caiwu     |    1 | cw   |       1 |
-                        |  2 | renshi    |    2 | rs   |       2 |
-                        |  3 | xingzheng | NULL | NULL |    NULL |
-                        +----+-----------+------+------+---------+
-    （2）右外连接：在内连接的基础上增加右边有左边没有的结果
-    right join on
-                mysql&gt; select * from dept right join emp on dept.id=emp.dept_id;
-                        +------+--------+----+------+---------+
-                        | id   | name   | id | name | dept_id |
-                        +------+--------+----+------+---------+
-                        |    1 | caiwu  |  1 | cw   |       1 |
-                        |    2 | renshi |  2 | rs   |       2 |
-                        | NULL | NULL   |  3 | xx   |       5 |
-                        +------+--------+----+------+---------+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/性能优化/InputMethodManager leaking the last focused view/">
 
-    （3）全外连接：在内连接的基础上增加左边有右边没有的和右边有左边没有的结果
-    full join on  --mysql不支持全外连接
-        left join on
-        union
-        right join on ;--mysql可以使用此种方式间接实现全外连接
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
 
-        mysql&gt; select * from dept left join emp on dept.id=emp.dept_id
-            -&gt; union
-            -&gt; select * from dept right join emp on dept.id=emp.dept_id;
-                +------+-----------+------+------+---------+
-                | id   | name      | id   | name | dept_id |
-                +------+-----------+------+------+---------+
-                |    1 | caiwu     |    1 | cw   |       1 |
-                |    2 | renshi    |    2 | rs   |       2 |
-                |    3 | xingzheng | NULL | NULL |    NULL |
-                | NULL | NULL      |    3 | xx   |       5 |
-                +------+-----------+------+------+---------+
-</code></pre><h1 id="分页查询-limit"><a href="#分页查询-limit" class="headerlink" title="分页查询 limit"></a>分页查询 limit</h1><pre><code>逻辑分页：检索出所有数据存到集合中，需要时从集合中拿
-    优点：一次查询，多次使用。减少数据库访问
-    缺点：数据过大占内存，数据更新有延迟
-物理分页：只检索需要的数据
-            不同数据库有不同的物理分页指令，mysql是limit startIndex,count （索引编号从0开始）
-                    select * from customer limit 0,1; 从表中第一条数据开始取一条记录。
-</code></pre><h1 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h1><pre><code>    create user estore identified by &apos;estore&apos;;
-授权：
-    grant all on estore.* to estore;
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/01/Android/性能优化/InputMethodManager leaking the last focused view/" itemprop="url">InputMethodManager 导致的内存泄露及解决方案</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:15:53+08:00">
+                2019-03-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://code.google.com/p/android/issues/detail?id=171190" target="_blank" rel="noopener">Issue 171190:    InputMethodManager leaks the last focused view</a> <code>Repro steps</code> are very easy:</p>
+<h1 id="泄露实例"><a href="#泄露实例" class="headerlink" title="泄露实例"></a>泄露实例</h1><p><a href="http://www.jianshu.com/p/aa2555628b17" target="_blank" rel="noopener">Android InputMethodManager 导致的内存泄露及解决方案</a></p>
+<p><img src="https://pic4.zhimg.com/c55242f458e266f3e2cfb7d112411167_b.png" alt=""></p>
+<p>并且还给出了参考链接，这是Android输入法的一个bug，在15&lt;=API&lt;=23中都存在。</p>
+<p><code>InputMethodManager.sInstance</code> –&gt; <code>InputMethodManager.mNextServedView</code></p>
+<p>LeakCanary之所以能够显示参考链接是因为它有一个针对SDK已知内存泄露的列表，放在AndroidExcludedRefs.java中，比如输入法的这个。</p>
+<p><img src="https://pic4.zhimg.com/2b97881206ab6a8556946b9a016e078f_b.png" alt=""></p>
+<h1 id="泄露原因"><a href="#泄露原因" class="headerlink" title="泄露原因"></a>泄露原因</h1><p>分析原因比较透彻的是这篇文章：<a href="http://blog.csdn.net/sodino/article/details/32188809" target="_blank" rel="noopener">InputMethodManager内存泄露现象及解决</a></p>
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><h2 id="方案一"><a href="#方案一" class="headerlink" title="方案一"></a>方案一</h2><p>改善方案可以参考Leaknary给出的方案：<a href="https://gist.github.com/pyricau/4df64341cc978a7de414" target="_blank" rel="noopener">InputMethodManager内存泄露修正方案</a></p>
+<p>在退出使用InputMethodManager的Activity时，调用fixFocusedViewLeak方法即可解决。</p>
+<h2 id="方案二、简单方案"><a href="#方案二、简单方案" class="headerlink" title="方案二、简单方案"></a>方案二、简单方案</h2><p><a href="https://medium.com/@amitshekhar/android-memory-leaks-inputmethodmanager-solved-a6f2fe1d1348#.j686ef3a0" target="_blank" rel="noopener">Android Memory Leaks InputMethodManager Solved</a> <code>Simple solution</code> to solve this. </p>
+<p>After some observations we realize that if any other activity is being called after that the finish of main activity the things is going perfect , no more Memory Leaks by InputMethodManager.</p>
+<pre><code>public class DummyActivity extends FragmentActivity {
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                finish();
+            }
+        }, 100);
+    }
+}
+
+可以把Activity设为透明，这样退出时不会出现短暂白屏
 </code></pre>
           
         
@@ -1518,7 +2177,7 @@ inner join on
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/常见开源许可证差异/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/性能优化/性能分析工具/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1537,7 +2196,7 @@ inner join on
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/电脑使用/常见开源许可证差异/" itemprop="url">常见开源许可证差异</a></h1>
+                <a class="post-title-link" href="/2019/03/01/Android/性能优化/性能分析工具/" itemprop="url">性能分析工具</a></h1>
         
 
         <div class="post-meta">
@@ -1549,8 +2208,8 @@ inner join on
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T10:47:53+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:14:53+08:00">
+                2019-03-01
               </time>
             
 
@@ -1572,8 +2231,8 @@ inner join on
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
                   </a>
                 </span>
 
@@ -1611,887 +2270,346 @@ inner join on
       
         
           
-            <img src="/2018/12/20/电脑使用/常见开源许可证差异/1.png">
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/mac/vmware10 安装mac10.9系统/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/mac/vmware10 安装mac10.9系统/" itemprop="url">VMware10安装Mac10.9系统</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T10:46:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="vmware10-安装mac10-9系统"><a href="#vmware10-安装mac10-9系统" class="headerlink" title="vmware10 安装mac10.9系统"></a>vmware10 安装mac10.9系统</h2><p>开始下载了一个mac10.10 的iso格式镜像，发现vmware10最高支持mac10.9，强装也是失败。</p>
-<pre><code>超详细VMware Workstation 10安装OS X Mavericks http://www.oschina.net/question/1039213_158319?fromerr=KYsGXefA
-</code></pre><p>一路下一步，选择磁盘步骤，点击mac的磁盘工具，选择磁盘，分区，完毕，退出磁盘工具，选择刚才分区的磁盘，下一步。</p>
-<p>键盘布局选择 中文-简体</p>
-<p>传输信息到这台mac 选择 不传输任何信息</p>
-<p>Apple id登录 选择 不登录跳过</p>
-<h2 id="安装darwin6-iso-实现拖拽文件和自动适应分辨率"><a href="#安装darwin6-iso-实现拖拽文件和自动适应分辨率" class="headerlink" title="安装darwin6.iso 实现拖拽文件和自动适应分辨率"></a>安装darwin6.iso 实现拖拽文件和自动适应分辨率</h2><p>关机，虚拟机–cd/dvd–设置 选择 D:\down\darwin6.iso</p>
-<p>开机，桌面双击 VMware tools，安装</p>
-<h2 id="VMsvga2-v1-2-5-OS-10-6-10-8-pkg-的作用："><a href="#VMsvga2-v1-2-5-OS-10-6-10-8-pkg-的作用：" class="headerlink" title="VMsvga2_v1.2.5_OS_10.6-10.8.pkg 的作用："></a>VMsvga2_v1.2.5_OS_10.6-10.8.pkg 的作用：</h2><p>要观看优酷之类在线视频或玩小游戏得安装vm显卡驱动VMsvga2_Docs</p>
-<p>安装此驱动会出现不能自动适应分辨率 ，分辨率 要手动调整</p>
-<p>但显示dock图标滑动比较流畅</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/kali无法识别BCM43XX系列无线网卡/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/kali无法识别BCM43XX系列无线网卡/" itemprop="url">kali无法识别BCM43XX系列无线网卡</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:13:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>打开终端，输入<br>cat /etc/apt/sources.list</p>
-<p>看看里面有没有一下三行kali官方源的地址（如果是断网安装，kali的默认源可能不会写入到这个文件里），<br>如果没有，请在/etc/apt/sources.list中入这三行。<br>deb <a href="http://http.kali.org/kali" target="_blank" rel="noopener">http://http.kali.org/kali</a> kali main non-free contrib<br>deb-src <a href="http://http.kali.org/kali" target="_blank" rel="noopener">http://http.kali.org/kali</a> kali main non-free contrib<br>deb <a href="http://security.kali.org/kali-security" target="_blank" rel="noopener">http://security.kali.org/kali-security</a> kali/updates main contrib non-free</p>
-<p>加入之后就可以对整个系统进行更新了，终端中输入：<br>apt-get update &amp;&amp; apt-get dist-upgrade</p>
-<p>解决kali无法识别BCM43XX系列无线网卡问题（我的博通 BCM 4312）<br>安装BCM43XX系列无线网卡驱动：<br>aptitude update &amp;&amp; aptitude install wireless-toolsaptitude install firmware-b43-lpphy-installer<br>完成之后注销或者重启电脑，<br>在终端中输入 iwconfig 即可看到无线网卡已经识别</p>
-<p>关于BCM43XX系列的无线网卡驱动请参考Debian官方文档：<br><a href="http://wiki.debian.org/bcm43xx" target="_blank" rel="noopener">http://wiki.debian.org/bcm43xx</a><br>老的博通系列网卡可能需要 firmware-b43legacy-installer 安装包</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ettercap/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ettercap/" itemprop="url">Kali ettercap</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:12:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="ettercap"><a href="#ettercap" class="headerlink" title="ettercap"></a>ettercap</h1><p>开源的嗅探工具，中间人攻击工具：ARP欺骗，DNS欺骗，劫持，Dos攻击工具</p>
-<p>有GUI</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ferret和hamster劫持登录会话/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ferret和hamster劫持登录会话/" itemprop="url">Kali ferret和hamster劫持登录会话</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:12:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>ferret    英[ˈferɪt] n.    雪貂，白鼬; （经常性的） 搜索者，侦探; 细丝（带）;</p>
-<p>hamster    英[ˈhæmstə(r)] n.    &lt;动&gt;仓鼠;</p>
-<p>ferret 分析登录数据(包括tcpdump/wireshark封包数据，以及实时数据)</p>
-<p>hamster 重放登录请求</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/Dsniff工具集/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/Dsniff工具集/" itemprop="url">Kali Dsniff工具集</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:11:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Dsniff工具集</p>
-<p>嗅探工具，中间人攻击工具：ARP欺骗，DNS欺骗，劫持</p>
-<pre><code>arpspoof
-dnsspoof
-driftnet
-Msgsnarf
-Urlsnarf
-Mailsnarf
-Filesnarf
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/ARP欺骗/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/ARP欺骗/" itemprop="url">Kali ARP欺骗</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:10:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="ARP欺骗原理"><a href="#ARP欺骗原理" class="headerlink" title="ARP欺骗原理"></a>ARP欺骗原理</h1><p>ARP协议：通过IP地址来查找主机的物理地址（MAC地址）。</p>
-<p>在以太网中，是用MAC地址来进行通讯的。</p>
-<p>主机A通过交换机对整个网络进行广播请求目标主机B的MAC地址，正常情况是B会回复ARP请求，将自己的MAC地址发给主机A。</p>
-<p>ARP欺骗就是攻击者主机回复所有的ARP请求并将所有的流量转发到真实的目标主机</p>
+            <p><a href="https://juejin.im/collection/582c2ff36a226505e65d014c" target="_blank" rel="noopener">参考链接</a></p>
+<img src="/2019/03/01/Android/性能优化/性能分析工具/性能优化大图.png">
+<img src="/2019/03/01/Android/性能优化/性能分析工具/性能分析工具.png">
+<h1 id="官方工具"><a href="#官方工具" class="headerlink" title="官方工具"></a>官方工具</h1><h2 id="StrictMode"><a href="#StrictMode" class="headerlink" title="StrictMode"></a>StrictMode</h2><ul>
+<li><p>说明</p>
+<p>  顾名思义, “严格模式”, 主要用来限制应用做一些不符合性能规范的事情. </p>
+<p>  一般用来检测<strong>主线程中的耗时操作和阻塞</strong>. </p>
+<p>  开启StrictMode后, 如果线程中做一些诸如读写文件, 网络访问等操作, 将会在Log console输出一些警告, 警告信息包含Stack Trace来显示哪个地方出了问题.</p>
+</li>
+<li><p>文档</p>
+<p>  <a href="https://developer.android.com/reference/android/os/StrictMode.html" target="_blank" rel="noopener">https://developer.android.com/reference/android/os/StrictMode.html</a></p>
+</li>
+<li><p>作用</p>
+<p>  主要用来做主线程优化分析</p>
+</li>
+<li><p>示例</p>
+</li>
+</ul>
+<p>Example code to enable from early in your <code>Application</code>, <code>Activity</code>, or other <code>application component&#39;s</code> <code>onCreate()</code> method:</p>
+<pre><code>public void onCreate() {
+    if (DEVELOPER_MODE) {
+     StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+             .detectDiskReads()
+             .detectDiskWrites()
+             .detectNetwork()   // or .detectAll() for all detectable problems
+             .penaltyLog()
+             .build());
+     StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+             .detectLeakedSqlLiteObjects()
+             .detectLeakedClosableObjects()
+             .penaltyLog()
+             .penaltyDeath()
+             .build());
+    }
+    super.onCreate();
+}
+</code></pre><ul>
+<li><p>注意</p>
+<p>  StrictMode 不能检测到所有耗时操作</p>
+<p>  StrictMode 检测到的耗时操作不一定要全部修复（UI线程有时可以文件读写）</p>
+</li>
+</ul>
+<h2 id="Systrace"><a href="#Systrace" class="headerlink" title="Systrace"></a>Systrace</h2><ul>
+<li><p>说明</p>
+<p>  Systrace是一个收集和检测时间信息的工具, 它能显示<strong>CPU和时间</strong>被消耗在哪儿了, 每个进程和线程都在其CPU时间片内做了什么事儿. 而且会指示哪个地方出了问题, 以及给出Fix建议.</p>
+<p>  其以trace文件(html)的方式记录. 可以直接用Chrome浏览器打开查看. </p>
+</li>
+<li><p>文档</p>
+<pre><code>https://developer.android.com/studio/profile/systrace.html
+https://developer.android.com/studio/profile/systrace-walkthru.html
+https://developer.android.com/studio/profile/systrace-commandline.html?hl=fy
+</code></pre></li>
+<li><p>使用</p>
+<p>  Android Device Monitor 中  ，点击按钮开启，会生成html文件</p>
+</li>
+<li><p>作用</p>
+<p>  作用很多, 个人主要用来分析<strong>UI的绘制时间</strong>, 结合Hierarchy Viewer来提升UI性能.</p>
+<p>  也可以用来发现<strong>耗时操作</strong>.</p>
+</li>
+</ul>
+<h2 id="Hierarchy-Viewer"><a href="#Hierarchy-Viewer" class="headerlink" title="Hierarchy Viewer"></a>Hierarchy Viewer</h2><ul>
+<li><p>说明</p>
+<p>  Hierarchy Viewer提供了一个可视化的界面来观测<strong>布局的层级</strong>, 让我们可以优化布局层级, 删除多余的不必要的View层级, 提升布局速度.</p>
+  <img src="/2019/03/01/Android/性能优化/性能分析工具/HierarchyViewer.png">
+<p>  有必要说明下的是:</p>
+<p>  上图红框标出的三个点是关键分析数据. 左起依次代表View的Measure, Layout和Draw的性能. 另外颜色表示该View的该项时间指数, 分为:</p>
+<ul>
+<li>绿色, 表示该View的此项性能比该View Tree中超过50%的View都要快.</li>
+<li>黄色, 表示该View的此项性能比该View Tree中超过50%的View都要慢.</li>
+<li>红色, 表示该View的此项性能是View Tree中最慢的.</li>
+</ul>
+</li>
+<li><p>使用</p>
+<p>  <code>Android Device Monitor</code> –&gt; <code>Open Perspective(DDMS左边)</code> –&gt; <code>Hierarchy View</code></p>
+<p>  或者  SDK tools/ 目录下 运行</p>
+</li>
+<li><p>作用</p>
+<p>  用来做View层级分析, 可以分析出View Tree中的性能阻塞点, 以便对症下药, 提升布局性能.</p>
+</li>
+<li><p>注意</p>
+<p>  Hierarchy Viewer需要Root的机器(产品机未Root没有开启ViewServer)才可以执行.</p>
+<p>  可以使用<a href="https://github.com/romainguy/ViewServer" target="_blank" rel="noopener">第三方的开源的ViewServer</a>来协助我们在未Root的机器上使用Hierarchy Viewer分析.</p>
+</li>
+</ul>
+<h2 id="TraceView"><a href="#TraceView" class="headerlink" title="TraceView"></a>TraceView</h2><ul>
+<li><p>作用</p>
+<p>  分析<strong>方法调用栈以及其执行时间</strong>, 优化方法执行.</p>
+</li>
+</ul>
+<h3 id="如何使用TraceView"><a href="#如何使用TraceView" class="headerlink" title="如何使用TraceView"></a>如何使用TraceView</h3><p><a href="http://blog.jobbole.com/78995/" target="_blank" rel="noopener">基本用法</a></p>
+<p><a href="http://blog.csdn.net/androiddevelop/article/details/8223805" target="_blank" rel="noopener">基础到高阶</a> </p>
+<p>使用TraceView主要有两种方式：</p>
+<ul>
+<li><p>DDMS中操作。简单，测试范围不如代码精确</p>
+<pre><code>1. 打开DDMS，选择一个进程，然后按上面的“Start Method Profiling”按钮，等红色小点变成黑色以后就表示TraceView已经开始工作了。
+2. 操作一下app需要测试的功能
+3. 再按一下刚才按的按钮，等一会就会出现上面这幅图，然后就可以开始分析了。
+</code></pre></li>
+<li><p>代码。范围相对精确，更适合检测某一个方法的性能</p>
+<pre><code>1. android.os.Debug.startMethodTracing();和android.os.Debug.stopMethodTracing();
+2. 运行代码，找到trace文件，用DDMS打开。
+    trace文件默认在/sdcard目录中生成，也可以调用startMethodTracing(String traceName) 设置trace文件的文件名，
+    将trace文件复制到电脑中，然后用DDMS工具打开就会出现分析图
+</code></pre></li>
+</ul>
+<h3 id="TraceView界面"><a href="#TraceView界面" class="headerlink" title="TraceView界面"></a>TraceView界面</h3><p>界面包括上下两部分</p>
+<ul>
+<li>上面是测试的进程中每个线程的执行情况，每个线程占一行；</li>
+<li>下面是每个方法执行的指标值</li>
+</ul>
+<h4 id="方法执行指标"><a href="#方法执行指标" class="headerlink" title="方法执行指标"></a>方法执行指标</h4><ul>
+<li><p>纵轴</p>
+<p>  点一个方法后可以看到有两部分，</p>
+<ul>
+<li>Parents 表示调用这个方法的方法，可以叫做父方法</li>
+<li>Children 表示这个方法中调用的其他方法，可以叫做子方法</li>
+</ul>
+</li>
+<li><p>横轴</p>
+<ol>
+<li><p><strong>Incl Cpu Time</strong> </p>
+<p> inclusive ： 全包括的; 一切开支包括在内的 </p>
+<p>  这个方法以及这个方法的子方法一共执行的时间。所以在方法指标界面中，第一个方法 0(toplevel) 改指标总是100%</p>
+</li>
+<li><p><strong>Excl Cpu Time</strong></p>
+<p> Exclusive  ： 专用的; 单独的;</p>
+<p> 这个方法本身执行的时间（不包括这个方法的子方法）</p>
+</li>
+<li><p><strong>Incl Real Time</strong></p>
+</li>
+<li><p><strong>Excl Real Time</strong></p>
+</li>
+<li><p>Calls + Recur Calls / Total</p>
+<p> Recur ： 复发; 重现; 再发生; 回想;</p>
+<p> 这个指标非常重要！</p>
+<p> 这个方法执行的次数，Call表示这个方法调用的次数，Recur Call表示递归调用次数</p>
+</li>
+<li><p><strong>Cpu Time / Call</strong></p>
+<p> 最重要指标</p>
+<p> 这个方法每次调用占用的cpu时间（方法占用的cpu时间/方法调用次数=单位调用时间）</p>
+</li>
+<li><p><strong>Cpu Time 和 Real Time</strong></p>
+<p> Cpu Time 方法占用CPU的时间</p>
+<p> Real Time 方法的实际运行时间</p>
+<p> 因为CPU的上下文切换、阻塞、GC等原因，方法的实际执行时间要比Cpu Time 要稍微长一点。</p>
+</li>
+</ol>
+</li>
+</ul>
+<h2 id="Android-Profiler"><a href="#Android-Profiler" class="headerlink" title="Android Profiler"></a><a href="https://juejin.im/post/5b7cbf6f518825430810bcc6#heading-8" target="_blank" rel="noopener">Android Profiler</a></h2><ul>
+<li><p>说明</p>
+<p>  <strong>内存使用</strong>检测器, 可以实时检测当前Application的内存使用和释放等信息, 并以图形化界面展示.以<strong>字节</strong>为单位</p>
+<p>  Eclipse 使用 MAT</p>
+<p>  Android Studio 2 使用 Android Monitor</p>
+<p>  Android Studio 3 使用 Android Profiler</p>
+</li>
+<li><p>作用</p>
+<ul>
+<li>用来做内存分析, 内存泄露排查的不二之选. 可以结合heap viewer, allocation tracker来分析.</li>
+<li>可以导出hprof文件结合第三方的MAT工具分析泄露点.</li>
+</ul>
+</li>
+</ul>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>最好使用Android 8 及更高版本的手机</p>
+<h4 id="打开-Android-Profiler-窗口"><a href="#打开-Android-Profiler-窗口" class="headerlink" title="打开 Android Profiler 窗口"></a>打开 Android Profiler 窗口</h4><p>点击 <code>View &gt; Tool Windows &gt; Android Profiler</code> 打开 Android Profiler 窗口</p>
+<h4 id="启用高级分析"><a href="#启用高级分析" class="headerlink" title="启用高级分析"></a>启用高级分析</h4><p>Android 7.1 或更低版本的设备，默认情况下，没有启用高级分析。会显示一条消息，“Advanced profiling is unavailable for the selected process”。</p>
+<p>Android 8.0及更高版本上，始终为可调试应用启用高级分析</p>
+<p>启用高级分析以查看下列内容：</p>
+<ul>
+<li>Event 时间线</li>
+<li>分配的对象数</li>
+<li>垃圾回收 Event</li>
+</ul>
+<p>要启用高级分析，请按以下步骤操作：</p>
+<ul>
+<li>选择 <code>Run &gt; Edit Configurations</code></li>
+<li>在左侧窗格中选择您的应用模块。</li>
+<li>点击 <code>Profiling</code> 标签，然后勾选 <code>Enable advanced profiling</code>。</li>
+</ul>
+<p>重新构建并运行应用，即可获取完整的分析功能。</p>
+<p>注意，<strong>高级分析会减缓构建速度</strong>，所以仅当您想要开始分析应用时才启用此功能。</p>
+<h3 id="Memory-Profiler"><a href="#Memory-Profiler" class="headerlink" title="Memory Profiler"></a>Memory Profiler</h3><img src="/2019/03/01/Android/性能优化/性能分析工具/memory.png">
+<p><strong>已分配的Java对象数</strong></p>
+<ul>
+<li>Android 7.1 及更低版本的设备，在 Memory Profiler 连接至您运行的应用时才开始计数</li>
+<li>Android 8.0 及更高版本上，附带一个设备内置分析工具，可记录所有分配。</li>
+</ul>
+<p><strong>内存使用量</strong></p>
+<ul>
+<li>Android Profiler， 比老的Android Monitor监控的类别更多，会增加总的内存使用量</li>
+</ul>
+<p><strong>Java 堆内存使用量</strong></p>
+<ul>
+<li>应用的 Java 堆是从 Zygote 启动的，Android Profiler计入了为它分配的所有物理内存页面(比Android Monitor更准确)。</li>
+</ul>
+<p><strong>原生内存使用量</strong></p>
+<ul>
+<li>误报实际上是分析工具使用的内存。 未来版本中，将从数据中过滤掉。</li>
+</ul>
+<h4 id="查看内存分配"><a href="#查看内存分配" class="headerlink" title="查看内存分配"></a>查看内存分配</h4><p>显示内存中<strong>对象实例的分配回收及调用堆栈</strong></p>
+<ul>
+<li>Android 8.0 或更高版本，点击并按住时间线，并拖动选择您想要查看分配的区域</li>
+<li>Android 7.1 或更低版本，在 Memory Profiler 工具栏中点击 Record memory allocations 开始记录和停止记录。仅保存最新的 65535 个分配</li>
+</ul>
+<p>已分配对象的列表将显示在时间线下方，默认按类名称进行分组，并按其堆计数排序。</p>
+<img src="/2019/03/01/Android/性能优化/性能分析工具/memory2.png">
+<p><strong>Class Name</strong> 列 点击一个类名称，右侧 <strong>Instance View</strong> 窗格显示该类的每个实例，点击一个实例 ，下方 <strong>Call Stack</strong> 显示该实例被分配的线程和调用堆栈。</p>
+<h5 id="Shallow-Size和Retained-Size"><a href="#Shallow-Size和Retained-Size" class="headerlink" title="Shallow Size和Retained Size"></a>Shallow Size和Retained Size</h5><ul>
+<li><strong>Shallow size</strong> <strong>对象</strong>本身占用内存</li>
+<li><strong>Retained size</strong> 对象本身 加上 只有从该对象才能直接或间接访问到对象 占用内存；<strong>该对象被GC之后所能回收到内存</strong>。有助于理解内存结构和对象图中的依赖关系并找到根节点</li>
+</ul>
+<img src="/2019/03/01/Android/性能优化/性能分析工具/memory_retained_size.png">
+<p>上图中蓝色节点代表只有通过obj1才能直接或间接访问的对象</p>
+<p>左图，obj1的retained size是obj1、obj2、obj4的shallow size总和；右图的retained size是obj1、obj2、obj3、obj4的shallow size总和。</p>
+<h4 id="捕获堆转储"><a href="#捕获堆转储" class="headerlink" title="捕获堆转储"></a>捕获堆转储</h4><p>堆转储显示在您捕获堆转储时应用中<strong>哪些对象正在使用内存</strong>。 </p>
+<p>特别是在长时间的用户会话后，堆转储会显示您认为不应再位于内存中却仍在内存中的对象，从而帮助识别内存泄漏。 </p>
+<p>在 Memory Profiler 工具栏中点击 Dump Java heap 捕获堆转储。在转储堆期间，Java 内存量可能会暂时增加。因为堆转储与您的应用发生在同一进程中，并需要一些内存来收集数据。</p>
+<p>可以在应用代码的关键点调用 <code>dumpHprofData()</code> 创建堆转储，更精确地控制转储的创建时间</p>
+<p>默认按类名称进行分组，并按其保留的堆内存排序。</p>
+<img src="/2019/03/01/Android/性能优化/性能分析工具/memory_dump_heap.png">
+<p><strong>Class Name</strong> 列 点击一个类名称，<strong>Instance View</strong> 窗格显示该类的每个实例，点击一个实例，下方 <strong>References</strong>显示该对象的每个引用，点击实例名称旁的箭头可以查看其所有字段，点击一个字段名称查看其所有引用，右键点击该字段并选择 Go to Instance 查看某个字段的实例详情</p>
+<h4 id="将堆转储另存为-HPROF"><a href="#将堆转储另存为-HPROF" class="headerlink" title="将堆转储另存为 HPROF"></a>将堆转储另存为 HPROF</h4><p>保存堆转储以供日后查看</p>
+<p>点击时间线下方工具栏中的 Export heap dump as HPROF file ，将堆转储导出到一个 HPROF 文件中</p>
+<p>将此文件拖到一个空的编辑器窗口（或将其拖到文件标签栏中），您可以在 Android Studio 中重新打开该文件。</p>
+<p>要使用其他 HPROF 分析器（如 jhat），您需要将 HPROF 文件从 Android 格式转换为 Java SE HPROF 格式。 您可以使用 android_sdk/platform-tools/ 目录中提供的 hprof-conv 工具执行此操作。 运行包括以下两个参数的 hprof-conv 命令：原始 HPROF 文件和转换后 HPROF 文件的写入位置。 例如：</p>
+<p><code>hprof-conv heap-original.hprof heap-converted.hprof</code></p>
+<h4 id="分析内存的技巧"><a href="#分析内存的技巧" class="headerlink" title="分析内存的技巧"></a>分析内存的技巧</h4><p>在应用中引发内存泄漏的一种方式是，先让其运行一段时间，然后再检查堆。 泄漏在堆中可能逐渐汇聚到分配顶部（默认其保留的堆内存排序）。 不过，泄漏越小，您越需要运行更长时间的应用才能看到泄漏。</p>
+<p>您可以通过以下方式之一触发内存泄漏：</p>
+<ul>
+<li>将设备从纵向旋转为横向，然后在不同的 Activity 状态下反复操作多次。 旋转设备经常会导致应用泄漏 Activity、Context 或 View 对象，因为系统会重新创建 Activity，而如果您的应用在其他地方保持对这些对象之一的引用，系统将无法对其进行垃圾回收。</li>
+<li>处于不同的 Activity 状态时，在您的应用与另一个应用之间切换（导航到主屏幕，然后返回到您的应用）。</li>
+</ul>
+<h3 id="实例分析内存泄漏"><a href="#实例分析内存泄漏" class="headerlink" title="实例分析内存泄漏"></a>实例分析内存泄漏</h3><p>单例持有Activity</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> <span class="keyword">extends</span> <span class="title">AppCompatActivity</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        CommonUtils.getInstance(<span class="keyword">this</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CommonUtils</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> CommonUtils instance;</span><br><span class="line">    <span class="keyword">private</span> Context context;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">CommonUtils</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.context = context;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> CommonUtils <span class="title">getInstance</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            instance = <span class="keyword">new</span> CommonUtils(context);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>打开APP 横屏 竖屏，点击GC，发现内存没有下降，内存泄漏无疑</p>
+<p><strong>Depth：从任意 GC 根到所选实例的最短 hop 数</strong></p>
+<p>dump发现，MainActivity 有三个实例</p>
+<p>Depth 从上到下 是 2 ，0，3；0 代表该activity，可以被 gc 回收<br><img src="/2019/03/01/Android/性能优化/性能分析工具/第一个MainActivity.png"><br><img src="/2019/03/01/Android/性能优化/性能分析工具/第三个MainActivity.png"> </p>
+<p>第一个MainActivity 被 CommonUtils中 instance 持有，不可被回收</p>
+<p>第三个MainActivity 没被CommonUtils中 instance 持有</p>
+<ul>
+<li>第一次创建MainActivity 生成了 CommonUtils中 instance；再创建MainActivity的时候 它的上下文不会再次被持有</li>
+<li>这是我们<strong>当前看到</strong>的MainActivity。他当然不可能被销毁。</li>
+</ul>
+<p>Android profiler 分析内存泄漏的<strong>缺点</strong>：</p>
+<ul>
+<li><strong>效率太低</strong>；没有过滤(软引用，弱引用)功能，只能逐个查看实例及实例引用</li>
+<li>必须非常熟悉代码；</li>
+</ul>
+<h2 id="MAT"><a href="#MAT" class="headerlink" title="MAT"></a>MAT</h2><p>with incoming references ： 表示该类被 哪些外部对象 引用了</p>
+<p>with outgoing references : 表示 该类 持有了 哪些外部对象的引用</p>
+<h3 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h3><p>为了 说明MAT 的强大 我们写一个稍微复杂的内存泄漏的代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">在上面实例基础上</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> Link linkInstance;</span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">        setContentView(R.layout.activity_main);</span><br><span class="line">        CommonUtils.getInstance(<span class="keyword">this</span>);</span><br><span class="line">        <span class="keyword">if</span> (linkInstance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            linkInstance = <span class="keyword">new</span> Link();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">new</span> MyThread().start();</span><br><span class="line">    &#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Link</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dosomething</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                sleep(<span class="number">1000</span>);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="生成报告"><a href="#生成报告" class="headerlink" title="生成报告"></a>生成报告</h3><p>打开 经过格式转过的hprof文件</p>
+<p>选择 Leak Suspect Report</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><h4 id="定位类实例列表"><a href="#定位类实例列表" class="headerlink" title="定位类实例列表"></a>定位类实例列表</h4><p>Overview – Histogram: Lists number of instances per class</p>
+<h4 id="定位类实例"><a href="#定位类实例" class="headerlink" title="定位类实例"></a>定位类实例</h4><p>在最上面可以输入包名(或者带完整包名的类名)，回车，只关心我们自己的类</p>
+<p>定位引用者对象列表</p>
+<p>类实例 右键 List objects -&gt; with incoming references</p>
+<h4 id="过滤-弱引用，软引用-幻影引用"><a href="#过滤-弱引用，软引用-幻影引用" class="headerlink" title="过滤 弱引用，软引用 幻影引用"></a>过滤 弱引用，软引用 幻影引用</h4><p>类实例 右键 -&gt;Path to Gc Root -&gt; exclude all phantom/weak/soft etc. references</p>
+<p>到此，就找到了真实的内存泄漏原因了</p>
+<h4 id="分析结果"><a href="#分析结果" class="headerlink" title="分析结果"></a>分析结果</h4><img src="/2019/03/01/Android/性能优化/性能分析工具/MainActivity1.png">
+<img src="/2019/03/01/Android/性能优化/性能分析工具/MainActivity2.png">
+<img src="/2019/03/01/Android/性能优化/性能分析工具/MainActivity3.png">
+<p>MainActivity的创建顺序如上所示，第三个是我们当前看到的</p>
+<p>共三个内存泄漏点</p>
+<ul>
+<li>CommonUtils的instance 所持有</li>
+<li>Link的linkInstance 所持有</li>
+<li>MyThread的线程 所持有<ul>
+<li>内部类会持有 外部类的引用</li>
+<li>thread 写了一个 while（true）的死循环 </li>
+</ul>
+</li>
+</ul>
+<h2 id="Android开发者模式"><a href="#Android开发者模式" class="headerlink" title="Android开发者模式"></a>Android开发者模式</h2><p>Android开发者模式中也提供了较多的用来监测性能的选项</p>
+<h2 id="adb-shell-dumpsys"><a href="#adb-shell-dumpsys" class="headerlink" title="adb shell dumpsys"></a>adb shell dumpsys</h2><p>该命令可以用户输出当前的系统状态信息.</p>
+<p>其中就有关于内存的选项:</p>
+<pre><code>$ adb shell dumpsys meminfo com.udinic.perfdemo
+</code></pre><p>该命令常用来查看当前进程的的内存使用状态, 是一个总体的预览.</p>
+<p>输出信息如下:</p>
+<img src="/2019/03/01/Android/性能优化/性能分析工具/memory_dumpsys.png">
+<h1 id="第三方工具"><a href="#第三方工具" class="headerlink" title="第三方工具"></a>第三方工具</h1><p>以下工具全部开源, 开源万岁…</p>
+<h2 id="Battery-Historian"><a href="#Battery-Historian" class="headerlink" title="Battery Historian"></a>Battery Historian</h2><ul>
+<li><p>说明</p>
+<p>  Google出品, 通过Android系统的bugreport文件来做<strong>电量使用</strong>分析的工具.</p>
+</li>
+<li><p>文档</p>
+<p>  <a href="https://github.com/google/battery-historian" target="_blank" rel="noopener">https://github.com/google/battery-historian</a></p>
+</li>
+</ul>
+<h2 id="Emmagee"><a href="#Emmagee" class="headerlink" title="Emmagee"></a>Emmagee</h2><ul>
+<li><p>说明</p>
+<p>  网易出品，在界面实时显示Android App的<strong>CPU, 内存, 网络, 电量</strong>使用情况. </p>
+<p>  支持Android 7.0 以下</p>
+</li>
+<li><p>文档</p>
+<p>  <a href="https://github.com/NetEase/Emmagee" target="_blank" rel="noopener">https://github.com/NetEase/Emmagee</a></p>
+</li>
+</ul>
+<h2 id="leakcanary"><a href="#leakcanary" class="headerlink" title="leakcanary"></a>leakcanary</h2><ul>
+<li><p>说明</p>
+<p>  Square出品, 必属精品.</p>
+<p>  类似与App探针的内存泄露监测工具.</p>
+<p>  集成到App中, 用来做内存问题预防最好不过了.</p>
+</li>
+<li><p>文档</p>
+<p>  <a href="https://github.com/square/leakcanary" target="_blank" rel="noopener">https://github.com/square/leakcanary</a></p>
+</li>
+</ul>
+<h2 id="AndroidDevMetrics"><a href="#AndroidDevMetrics" class="headerlink" title="AndroidDevMetrics"></a>AndroidDevMetrics</h2><ul>
+<li><p>说明</p>
+<p>  一个library, 用来检测Activity生命周期执行性能, Dagger2注入性能以及帧率性能的工具.</p>
+<p>  如果你的应用使用的Dagger2, 这个就比较必要了.</p>
+</li>
+<li><p>文档</p>
+<p>  <a href="https://github.com/frogermcs/AndroidDevMetrics" target="_blank" rel="noopener">https://github.com/frogermcs/AndroidDevMetrics</a></p>
+</li>
+</ul>
+<h2 id="BlockCanary"><a href="#BlockCanary" class="headerlink" title="BlockCanary"></a>BlockCanary</h2><ul>
+<li>说明</li>
+</ul>
+<p>非侵入式的性能监控组件</p>
+<ul>
+<li><a href="https://github.com/markzhai/AndroidPerformanceMonitor" target="_blank" rel="noopener">文档</a></li>
+</ul>
+<h2 id="PerfDog性能狗"><a href="#PerfDog性能狗" class="headerlink" title="PerfDog性能狗"></a>PerfDog性能狗</h2><p>移动全平台iOS\Android性能测试工具平台</p>
+<p>需要PC上安装客户端配合</p>
+<p>腾讯出品</p>
+<p><a href="https://wetest.qq.com/product/perfdog" target="_blank" rel="noopener">官网</a></p>
+<h2 id="GT"><a href="#GT" class="headerlink" title="GT"></a>GT</h2><p>可以对CPU、内存、流量、点亮、帧率/流畅度进行测试，还可以查看开发日志、crash日志、抓取网络数据包、APP内部参数调试、真机代码耗时统计等等</p>
+<p>应用需要集成GT的sdk后，GT这个apk才能在应用运行时对各个性能进行检测。</p>
+<p>腾讯出品</p>
+<p><a href="https://github.com/Tencent/GT" target="_blank" rel="noopener">GitHub</a></p>
+<h2 id="matrix"><a href="#matrix" class="headerlink" title="matrix"></a>matrix</h2><p>应用性能检测SDK</p>
+<p><a href="https://github.com/Tencent/matrix" target="_blank" rel="noopener">腾讯开源</a></p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.csdn.net/wanghao200906/article/details/79305126" target="_blank" rel="noopener">Android 性能优化 - 彻底解决内存泄漏</a></li>
+<li><a href="https://blog.csdn.net/lmj623565791/article/details/58626355" target="_blank" rel="noopener">Android UI性能优化 检测应用中的UI卡顿</a></li>
+</ul>
 
           
         
@@ -2531,7 +2649,7 @@ Filesnarf
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/15/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><span class="page-number current">16</span><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/17/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/15/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><span class="page-number current">16</span><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="extend next" rel="next" href="/page/17/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2581,7 +2699,7 @@ Filesnarf
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">266</span>
+                  <span class="site-state-item-count">308</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2592,7 +2710,7 @@ Filesnarf
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">19</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2603,7 +2721,7 @@ Filesnarf
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">71</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2640,7 +2758,7 @@ Filesnarf
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

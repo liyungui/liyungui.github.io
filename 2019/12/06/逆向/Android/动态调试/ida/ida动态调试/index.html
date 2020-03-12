@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="逆向," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="ida动态调试支持动态调试 dex，so，二进制文件 dex动态调试网上的教程都是ida6.6调试dex，但是自己在红米真机一直不能操作成功    Permission denied 然后 the file cannot be loaded by the debugger plugin然后Google中看到一篇老外的英文文章，ida调试Android二进制文件最后在 Android软件安全与逆向分">
+<meta name="keywords" content="逆向">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ida动态调试">
+<meta property="og:url" content="http://yoursite.com/2019/12/06/逆向/Android/动态调试/ida/ida动态调试/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="ida动态调试支持动态调试 dex，so，二进制文件 dex动态调试网上的教程都是ida6.6调试dex，但是自己在红米真机一直不能操作成功    Permission denied 然后 the file cannot be loaded by the debugger plugin然后Google中看到一篇老外的英文文章，ida调试Android二进制文件最后在 Android软件安全与逆向分">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.387Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ida动态调试">
+<meta name="twitter:description" content="ida动态调试支持动态调试 dex，so，二进制文件 dex动态调试网上的教程都是ida6.6调试dex，但是自己在红米真机一直不能操作成功    Permission denied 然后 the file cannot be loaded by the debugger plugin然后Google中看到一篇老外的英文文章，ida调试Android二进制文件最后在 Android软件安全与逆向分">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/ida/ida动态调试/"/>
+
+
+
+
+
+  <title>ida动态调试 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/ida/ida动态调试/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ida动态调试</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T13:51:53+08:00">
+                2019-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="ida动态调试"><a href="#ida动态调试" class="headerlink" title="ida动态调试"></a>ida动态调试</h1><p>支持动态调试 dex，so，二进制文件</p>
+<h1 id="dex动态调试"><a href="#dex动态调试" class="headerlink" title="dex动态调试"></a>dex动态调试</h1><p>网上的教程都是ida6.6调试dex，<br>但是自己在红米真机一直不能操作成功<br>    Permission denied 然后 the file cannot be loaded by the debugger plugin<br>然后Google中看到一篇老外的英文文章，ida调试Android二进制文件<br>最后在 Android软件安全与逆向分析8.5也看到一样的内容<br>以为总算看到了正确方法，而网上的教程都是错误的。<br>后来在模拟器环境调试才发现网上 ida6.6调试dex 是正确的</p>
+<p>打开classes.dex</p>
+<p>Debugger-&gt;Debugger Options<br>    勾选在进程入口挂起，suspend on process entry point<br>    点击Set specific options 填入APP包名和入口activity<br>        对应manifest的package name 和 activity的完整路径<br>        <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.simpleencryption"><br>        <activity android:label="@string/app_name" android:name=".MainActivity"></activity></manifest></p>
+<p>Debugger-&gt;Process Options<br>    端口这里改为8700。<br>    这里默认端口是23946，我在这里困扰了很久，就是因为这个端口没有改为8700所致<br>    apk调试端口。ddms里面可以看到（后面为调试端口）</p>
+<p>下断点，f9运行，ida弹框running（无法取消），<br>    只有触发断点才能自动取消running提示框，然后操作ida</p>
+<p>debugger–debugger window–locals<br>    该窗口可以看到本地变量，但是值都表示为bad type（hex 格式显示也是这样）    </p>
+<h1 id="so动态调试"><a href="#so动态调试" class="headerlink" title="so动态调试"></a>so动态调试</h1><p>ida动态调试安卓动态链接库so（远程附加调试）</p>
+<p>必须先运行一遍功能代码，从而加载so库</p>
+<p>step 1:move android_server to your target and execute</p>
+<p>step 2: port forwarding</p>
+<p>step 3:apk必须先运行一遍功能代码，从而加载so库</p>
+<p>step 4: IDA Pro Configuration<br>    debugger–attach – remore armlinux/anroid debugger<br>    选择进程，进入调试界面</p>
+<pre><code>这时候发现不是在我们要调试的so库（libdebugjniso.so）领空（本例在libc.so）
+用一个ida打开要调试so库，function Window找到要下断方法偏移地址（本例0xc38）
+回到调试ida，ctr+s 打开段选择对话框，找到调试so库基址（两个同名的，取第一个），48a64000
+基址+偏移，快捷键g跳转到该地址（48a64c38），右键-code，下断。
+
+操作apk（设置标题功能），断下
+    apk附加调试后，操作一直假死，没有操作成功
+</code></pre><p>问题：附加不上端口<br>    ida报错：<br>        irs_recv: 等待的操作过时。<br>    cmd日志：<br>        [1] Accepting connection from 127.0.0.1…<br>        [1] Could not establish the connection<br>        [1] Closing connection from 127.0.0.1…</p>
+<h1 id="二进制文件动态调试"><a href="#二进制文件动态调试" class="headerlink" title="二进制文件动态调试"></a>二进制文件动态调试</h1><p>ida动态调试安卓二进制文件（原生应用，远程运行调试）</p>
+<p><a href="http://finn.svbtle.com/remotely-debugging-android-binaries-in-ida-pro" target="_blank" rel="noopener">http://finn.svbtle.com/remotely-debugging-android-binaries-in-ida-pro</a><br>Android软件安全与逆向分析8.5</p>
+<p>必须使用ida6.1版本32位版<br>    6.6版本debugger菜单下没有 run – remore armlinux/anroid debugger<br>    后来在模拟器环境调试才发现是有的，一直觉得没有。是因为加载了dex后的确没有（所有版本都这样）<br>网上的教程都是ida6.6调试dex，最后在 Android软件安全与逆向分析8.5总算看到了正确方法。<br>后来在模拟器环境调试才发现网上 ida6.6调试dex 是正确的</p>
+<p>64位版本远程附加调试报错是 Incompatible debugging server: address size is 4 bytes, expexted 4<br>然后提示the file cannot be loaded by the debugger plugin<br>自然想到32位，切换一看，成功</p>
+<p>老外网站提到的另一种无法加载文件错误<br>无法the file cannot be loaded by the debugger plugin 修复<br><a href="http://finn.svbtle.com/error-the-file-cant-be-loaded-by-the-debugger-plugin" target="_blank" rel="noopener">http://finn.svbtle.com/error-the-file-cant-be-loaded-by-the-debugger-plugin</a></p>
+<pre><code>step 1:move android_server to your target and execute
+    Push the android_server
+        adb push &quot;C:\Program Files (x86)\IDA 6.6\dbgsrv\android_server&quot; /data/local/tmp
+        IDA 6.6\dbgsrv\android_server
+        有人说ida6.4版本后已经移除（反正我6.6还有），同目录下有Android,linux,mac,arm等远程服务
+    Connect to your device and navigate to /data/local/tmp
+        adb shell
+        su
+        cd /data/local/tmp
+        ll 列出目录下所有文件信息（包含隐藏文件，文件权限，比ls详细）
+    Set permissions
+        chmod 755 /data/local/tmp/android_server
+    Execute android_server
+        ./android_server    
+        Listening on port #23946...执行后反馈显示。保留该cmd窗口，观察后续连接反馈
+
+step 2: port forwarding
+    adb forward tcp:23946 tcp:23946 在计算机上另开一个cmd
+        We can confirm this has worked by running:
+        netstat -a -n | findstr 23946
+        TCP    127.0.0.1:23946        0.0.0.0:0              LISTENING
+
+step 3: move binaries to your target and executable
+    adb push &quot;C:\debugnativeapp&quot; /data/local/tmp/debugnativeapp
+    chmod 755 /data/local/tmp/debugnativeapp
+
+step 4: IDA Pro Configuration
+    debugger--run -- remore armlinux/anroid debugger
+    最关键的，自己在这里困扰很久。作者也说他在这里经历过所有错误
+    主要核心看ida 最上面的note可知：all paths must be valid on the remote computer
+        而国内千篇一律的教程是本地计算机路径
+        ida6.6没有该菜单，相似的Debugger &gt; Process Options
+            默认填的就是我们选的dex路径（讲dex调试和二进制文件调试肯定不一样），大家也不改
+            后来在模拟器环境调试才发现，是因为加载了dex后才没有（所有版本都这样）
+    路径填 /data/local/tmp/debugnativeapp
+    目录 /data/local/tmp
+    hostName localhost 
+    port 23946
+</code></pre>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/逆向/" rel="tag"><i class="fa fa-tag"></i> 逆向</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/12/06/逆向/Android/动态调试/TraceReader分析方法调用记录/" rel="next" title="TraceReader分析方法调用记录">
+                <i class="fa fa-chevron-left"></i> TraceReader分析方法调用记录
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/12/11/直播/音频/aac解码/" rel="prev" title="aac解码">
+                aac解码 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ida动态调试"><span class="nav-number">1.</span> <span class="nav-text">ida动态调试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#dex动态调试"><span class="nav-number">2.</span> <span class="nav-text">dex动态调试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#so动态调试"><span class="nav-number">3.</span> <span class="nav-text">so动态调试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二进制文件动态调试"><span class="nav-number">4.</span> <span class="nav-text">二进制文件动态调试</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

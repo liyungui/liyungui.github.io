@@ -262,7 +262,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/28/Android/UI性能优化/Android 8.0以后CPU使用率的方案研究/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/17/Android/设置音量/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -281,7 +281,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/09/28/Android/UI性能优化/Android 8.0以后CPU使用率的方案研究/" itemprop="url">Android 8.0以后CPU使用率的方案研究</a></h1>
+                <a class="post-title-link" href="/2019/12/17/Android/设置音量/" itemprop="url">设置音量</a></h1>
         
 
         <div class="post-meta">
@@ -293,8 +293,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-28T15:43:53+08:00">
-                2019-09-28
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-17T11:19:53+08:00">
+                2019-12-17
               </time>
             
 
@@ -355,371 +355,19 @@
       
         
           
-            <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>Android 8.0以后Google的权限限制，再也拿不到进程CPU的实时占用率，只能拿到自己本身进程的Jiffies，但是又拿不到系统整体Jiffies的情况下，就没办法衡量CPU当前的消耗状况了，也没办法根据当前CPU状态实时做一些策略调整。</p>
-<p>因此进行深入研究以后，给出Android 8.0以后判断CPU状态的几个参考方案（非标准答案）。</p>
-<h1 id="单位时间执行汇编指令数获取CPU频率"><a href="#单位时间执行汇编指令数获取CPU频率" class="headerlink" title="单位时间执行汇编指令数获取CPU频率"></a>单位时间执行汇编指令数获取CPU频率</h1><h2 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h2><h3 id="Jiffies"><a href="#Jiffies" class="headerlink" title="Jiffies"></a>Jiffies</h3><p>全局变量jiffies用来记录自系统启动以来产生的节拍的总数。</p>
-<p>启动时，内核将该变量初始化为0，此后，每次时钟中断处理程序都会增加该变量的值。</p>
-<p>一秒内时钟中断的次数等于Hz，所以jiffies一秒内增加的值也就是Hz。</p>
-<h3 id="Tick"><a href="#Tick" class="headerlink" title="Tick"></a>Tick</h3><p>HZ的倒数，意即timer interrupt每发生一次中断的时间。如HZ为250时，tick为4毫秒。</p>
-<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><ul>
-<li>一条原子化操作汇编指令（比如 add），在任意型号CPU上是都是在一个时钟周期内完成的</li>
-<li>连续执行n条 add指令</li>
-<li>循环20次，取出花费时间最小的那轮时间 min_time_s<ul>
-<li>取最小值，而不是平均值；是因为CPU时刻在动态调整频率，各CPU调整策略各不相同。</li>
-<li>使用最小值，可以避免CPU调频导致的误差</li>
-<li>执行次数越多，CPU频率越准确，但也耗时越久。取一个平衡点</li>
-</ul>
-</li>
-<li>每条指令耗时 cos = min_time_s/n;</li>
-<li>cpu频率 freq = 1/cos;也就是单位时间（s）内执行cycles的数量</li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>反应整机CPU繁忙程度；不能很好的反应当前应用APP所在CPU核心的繁忙程度</p>
-<h1 id="在代码内部执行TOP获取CPU占比"><a href="#在代码内部执行TOP获取CPU占比" class="headerlink" title="在代码内部执行TOP获取CPU占比"></a>在代码内部执行TOP获取CPU占比</h1><p>TOP本身是有权限拿到 <code>/proc/stat</code> 后统计的</p>
-<p>TOP整体来说是比较准确的，耗时太大，资源消耗也大；</p>
-<h1 id="读取-proc-pid-stat-的Jiffies值"><a href="#读取-proc-pid-stat-的Jiffies值" class="headerlink" title="读取/proc/$pid/stat 的Jiffies值"></a>读取<code>/proc/$pid/stat</code> 的Jiffies值</h1><p>准确判断当前进程的性能消耗；无法反应整机CPU繁忙程度</p>
-<h1 id="读取CPU各个核的当前频率"><a href="#读取CPU各个核的当前频率" class="headerlink" title="读取CPU各个核的当前频率"></a>读取CPU各个核的当前频率</h1><h2 id="思路-1"><a href="#思路-1" class="headerlink" title="思路"></a>思路</h2><p>CPU的频率档位是离散的(不连续)，Android为了Linux系统稳定运行，会对几个核锁频。</p>
-<p>计算CPU的频率有下面几个步骤：</p>
-<p>1）拿到各个核心的当前频率</p>
-<p>2）拿到CPU的频率档位</p>
-<p>3）解析当前进程/线程被系统分派到哪几个核上</p>
-<h2 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h2><p>可以实时反应当前设备以及进程所在CPU核的繁忙程度</p>
-<h1 id="任务调度延迟时间"><a href="#任务调度延迟时间" class="headerlink" title="任务调度延迟时间"></a>任务调度延迟时间</h1><h2 id="思路-2"><a href="#思路-2" class="headerlink" title="思路"></a>思路</h2><p>开个线程测试两次调度的延迟时间；这个相对指标用来反映系统的繁忙程度。这个值20ms以下，意味着较为流畅；80ms以上，非常繁忙；</p>
-<h2 id="延迟时间的计算"><a href="#延迟时间的计算" class="headerlink" title="延迟时间的计算"></a>延迟时间的计算</h2><p>比如一个每秒调度一次的线程；发现两次调度的时间差为1100ms，这个延迟即为100ms</p>
-<p>下面的日志是 80% cpu使用率时，延迟&gt;20ms的时间戳</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">2019-09-28 15:32:51.098 20418-20979/com.zy.course.dev I/time:  122</span><br><span class="line">2019-09-28 15:33:01.350 20418-20979/com.zy.course.dev I/time:  240</span><br><span class="line">2019-09-28 15:34:12.473 20418-20979/com.zy.course.dev I/time:  45</span><br><span class="line">2019-09-28 15:36:47.727 20418-20979/com.zy.course.dev I/time:  23</span><br><span class="line">2019-09-28 15:36:52.767 20418-20979/com.zy.course.dev I/time:  35</span><br><span class="line">2019-09-28 15:37:11.816 20418-20979/com.zy.course.dev I/time:  26</span><br><span class="line">2019-09-28 15:38:41.957 20418-20979/com.zy.course.dev I/time:  28</span><br><span class="line">2019-09-28 15:38:47.986 20418-20979/com.zy.course.dev I/time:  29</span><br><span class="line">2019-09-28 15:39:22.134 20418-20979/com.zy.course.dev I/time:  87</span><br><span class="line">2019-09-28 15:39:49.226 20418-20979/com.zy.course.dev I/time:  48</span><br><span class="line">2019-09-28 15:40:33.382 20418-20979/com.zy.course.dev I/time:  50</span><br><span class="line">2019-09-28 15:40:37.383 20418-20979/com.zy.course.dev I/time:  29</span><br><span class="line">2019-09-28 15:41:19.569 20418-20979/com.zy.course.dev I/time:  64</span><br><span class="line">2019-09-28 15:41:26.621 20418-20979/com.zy.course.dev I/time:  29</span><br></pre></td></tr></table></figure>
-<p>观察发现，并不是每次调度都会延迟，有可能2分钟内，调度延迟都是正常的</p>
-<p>所以，为了直观反映CPU繁忙程度，需要对延迟进行聚合，取最高的延迟值；</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://cloud.tencent.com/developer/article/1427843" target="_blank" rel="noopener">Android 8.0以后CPU使用率的方案研究</a> </li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/25/电脑使用/搜索引擎语法/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/25/电脑使用/搜索引擎语法/" itemprop="url">搜索引擎语法</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-25T11:22:09+08:00">
-                2019-09-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="双引号"><a href="#双引号" class="headerlink" title="双引号"></a>双引号</h1><p><code>&quot;&quot;</code> 表示精确匹配。</p>
-<p>比如搜索 网站SEO技术 关键词；返回的结果可能包含只部分匹配关键词的结果；如果加上 双引号，就只返回完全匹配关键词的内容</p>
-<h1 id="减号"><a href="#减号" class="headerlink" title="减号"></a>减号</h1><p><code>-</code> 表示 排除包含减号后面关键词的结果</p>
-<h1 id="site"><a href="#site" class="headerlink" title="site"></a>site</h1><p>限定网址</p>
-<p>site:qq.com</p>
-<p>常用于查询域名下的网站收录情况</p>
-<h1 id="intitle"><a href="#intitle" class="headerlink" title="intitle"></a>intitle</h1><p>限定页面title中包含关键词</p>
-<h1 id="inurl"><a href="#inurl" class="headerlink" title="inurl"></a>inurl</h1><p>限定url中包含关键词</p>
-<h1 id="domain"><a href="#domain" class="headerlink" title="domain"></a>domain</h1><p>搜索包含指定域名字符串内容的网页</p>
-<p>很多站长用这个指令来查网站外链；其实并不准确</p>
-<h1 id="filetype"><a href="#filetype" class="headerlink" title="filetype"></a>filetype</h1><p>限定文件格式</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/19/直播/播放器技术/三、音画同步/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/19/直播/播放器技术/三、音画同步/" itemprop="url">播放器技术三-音画同步</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-19T16:12:14+08:00">
-                2019-09-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="音画同步的概念"><a href="#音画同步的概念" class="headerlink" title="音画同步的概念"></a>音画同步的概念</h1><p>音画同步是指播放器正在渲染的每一帧画面和正在播放的每一段声音都是严格对应起来的，不存在<strong>人耳和肉眼可以分辨的偏差</strong>。</p>
-<h1 id="音画同步的标准"><a href="#音画同步的标准" class="headerlink" title="音画同步的标准"></a>音画同步的标准</h1><h2 id="时间戳"><a href="#时间戳" class="headerlink" title="时间戳"></a>时间戳</h2><p>机器如何去感知视频文件中的某一帧视频数据跟某一帧音频数据是属于 同一时间 的呢 ？</p>
-<p>现实生活中，判断两件事情是否同一时刻发生的方法就是记录并且比较事件发生的日期时间，同样，音视频在采集（生产）的时候，就给每一帧都打上 “时间戳”（注意，音视频的时间戳需要使用一个共同的时间戳基准），代表着它的出生时间。由此，播放器就可以通过附加在音频和视频帧上的时间戳信息，感知到音频帧和视频帧的 “相对关系”，实现音画同步就轻而易举了</p>
-<img src="/2019/09/19/直播/播放器技术/三、音画同步/音画同步-时间戳.png">
-<p>视频帧和音频帧的时间戳大致的递增规律为：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">视频帧：10，43，76，109，142，……</span><br><span class="line">音频帧：0，20，40，60，80，120，……</span><br></pre></td></tr></table></figure>
-<p>音视频是分开采集的，所以它们的时间戳不可能完全对应得上，因此，只要在一个合理的 “阈值” 范围内即可认为是同步的。</p>
-<p><strong>音画同步的方法</strong>：判断视频与音频帧的<strong>时间戳差值</strong>，是不是在一定的 “阈值” 范围内，如果是，则可以渲染/播放，否则就 “等” 到合适的时间。</p>
-<h2 id="时间戳偏移的-“阈值”"><a href="#时间戳偏移的-“阈值”" class="headerlink" title="时间戳偏移的 “阈值”"></a>时间戳偏移的 “阈值”</h2><p>音频和视频的时间戳差值 “阈值”，国际标准 “RFC-1359” 定义了：</p>
-<ol>
-<li><strong>无法察觉</strong>：(-100ms ~ +25ms)。 </li>
-<li><strong>可以接受</strong>：(-185ms ~ +90ms)。</li>
-</ol>
-<p>负数表示音频滞后；正数表示音频超前。（<strong>人类对音频滞后有更高的兼容性</strong>）</p>
-<img src="/2019/09/19/直播/播放器技术/三、音画同步/音画同步-时间戳差值阈值.png">
-<h1 id="音画同步的实现"><a href="#音画同步的实现" class="headerlink" title="音画同步的实现"></a>音画同步的实现</h1><p>音画同步的<strong>实现策略</strong>一般有 3 种：</p>
-<ol>
-<li><p>视频同步到音频。<strong>最常用</strong></p>
-</li>
-<li><p>音频同步到视频</p>
-</li>
-<li><p>音视频同步到外部时钟</p>
-</li>
-</ol>
-<h2 id="视频同步到音频"><a href="#视频同步到音频" class="headerlink" title="视频同步到音频"></a>视频同步到音频</h2><p>最常用。</p>
-<p>因为</p>
+            <h1 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h1><p><code>&lt;uses-permission android:name=&quot;android.permission.MODIFY_AUDIO_SETTINGS&quot; /&gt;</code></p>
+<h1 id="API"><a href="#API" class="headerlink" title="API"></a>API</h1><h2 id="setStreamVolume"><a href="#setStreamVolume" class="headerlink" title="setStreamVolume"></a>setStreamVolume</h2><p>直接设置音量大小</p>
+<p><code>audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume+1, 1);</code></p>
+<p>有个副作用：当音量设置为0时，会将以下设备音量均设置为0。</p>
 <ul>
-<li>人对声音敏感度高于图像</li>
-<li><p>视频播放速率更好控制。</p>
-<p>  <strong>音频是流式</strong>的，按照规律<strong>匀速播放</strong>，才能显得更加 “平滑”，而视频的播放其实是一张一张图片进行刷新显示，它的刷新时间的调整相对而言更容易一些，用户肉眼的敏感度也更弱一些。</p>
-</li>
+<li>device: 2 表示 <code>DEVICE_OUT_SPEAKER</code> 扬声器</li>
+<li>device: 4 表示 <code>DEVICE_OUT_WIRED_HEADSET</code> 线控耳机</li>
+<li>device: 8 表示 <code>DEVICE_OUT_WIRED_HEADPHONE</code> 普通耳机</li>
+<li>device: 128 表示 <code>DEVICE_OUT_BLUETOOTH_A2DP</code> 蓝牙A2DP输出</li>
 </ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.51cto.com/ticktick/2328003" target="_blank" rel="noopener">播放器技术分享（3）：音画同步</a> 七牛-卢俊</li>
-</ul>
+<p>如果想把音量设置为0，先用setStreamVolume设置1，再用adjustStreamVolume设置0。</p>
+<h2 id="adjustStreamVolume"><a href="#adjustStreamVolume" class="headerlink" title="adjustStreamVolume"></a>adjustStreamVolume</h2><p>设置direction，以步长调节音量大小</p>
+<h1 id="音量按键"><a href="#音量按键" class="headerlink" title="音量按键"></a>音量按键</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onKeyDown</span><span class="params">(<span class="keyword">int</span> keyCode, KeyEvent event)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">switch</span> (keyCode) &#123;</span><br><span class="line">		<span class="keyword">case</span> KeyEvent.KEYCODE_VOLUME_UP:<span class="comment">// 音量增大</span></span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> KeyEvent.KEYCODE_VOLUME_DOWN:<span class="comment">// 音量减小</span></span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
           
         
@@ -768,7 +416,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/17/直播/播放器技术/二、缓冲区管理/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/12/Android/图片加载/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -787,7 +435,7 @@
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/09/17/直播/播放器技术/二、缓冲区管理/" itemprop="url">播放器技术二-缓冲区管理</a></h1>
+                <a class="post-title-link" href="/2019/12/12/Android/图片加载/" itemprop="url">图片加载</a></h1>
         
 
         <div class="post-meta">
@@ -799,8 +447,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-17T16:12:14+08:00">
-                2019-09-17
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-12T17:00:53+08:00">
+                2019-12-12
               </time>
             
 
@@ -822,8 +470,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
                   </a>
                 </span>
 
@@ -861,558 +509,696 @@
       
         
           
-            <h1 id="缓冲区"><a href="#缓冲区" class="headerlink" title="缓冲区"></a>缓冲区</h1><p>在上一篇文章中，我们利用缓冲区把单线程模型的数据流改造为多线程模型，从而可以有效抵抗网络和解码的抖动，防止频繁卡顿，同时也能充分利用多核 CPU 的计算能力，如下图所示：</p>
-<img src="/2019/09/17/直播/播放器技术/二、缓冲区管理/单线程多线程对比.png">
-<h1 id="缓冲区的作用"><a href="#缓冲区的作用" class="headerlink" title="缓冲区的作用"></a>缓冲区的作用</h1><h2 id="帧缓冲区"><a href="#帧缓冲区" class="headerlink" title="帧缓冲区"></a>帧缓冲区</h2><p>“读线程”和“解码线程”之间的缓冲池</p>
-<p>它主要起到了三个作用：</p>
-<ol>
-<li><p>抵抗网络抖动。</p>
-<p> 单线程无缓冲区，IO卡顿会卡住Decoder</p>
-</li>
-<li><p>抵抗解码抖动。</p>
-<p> 单线程无缓冲区，Decoder卡顿会卡住IO</p>
-</li>
-<li><p>避免被动丢帧导致花屏。</p>
-<p> 单线程无缓冲区，IO卡顿，服务端的 TCP 协议栈缓存了较多的数据，TCP 发送队列爆满而产生被动丢帧；</p>
-<p> 网络恢复，下发到客户端，数据不完整导致解码花屏</p>
-</li>
-</ol>
-<h2 id="显示缓冲区"><a href="#显示缓冲区" class="headerlink" title="显示缓冲区"></a>显示缓冲区</h2><p>“解码线程”和“显示线程”之间的缓冲池</p>
-<p>它主要起到了两个作用：</p>
-<ol>
-<li><p>实现 “音画同步” 的必要条件</p>
-<p> 单线程无缓冲区，Decoder完直接渲染，无法添加音画同步逻辑</p>
-</li>
-<li><p>抵抗渲染抖动</p>
-<p> 单线程无缓冲区，Render卡顿会卡住Decoder</p>
-</li>
-</ol>
-<h1 id="缓冲区的数据填充方式"><a href="#缓冲区的数据填充方式" class="headerlink" title="缓冲区的数据填充方式"></a>缓冲区的数据填充方式</h1><p>“主动缓冲” 与 “被动缓冲”    </p>
-<h2 id="主动缓冲"><a href="#主动缓冲" class="headerlink" title="主动缓冲"></a>主动缓冲</h2><p>播放器<strong>主动暂停消费</strong>缓冲区的数据，等待数据生产者逐渐填充数据，直到达到某种条件再恢复</p>
-<p>多用于<strong>点播场景</strong></p>
-<p>为了降低频繁卡顿，在开始播放视频之前，会主动 buffering 一段时间（比如：10s）的数据，再开始播放。当缓冲区内的数据因为网络抖动等原因消耗完了，会再次启动 buffering，如此循环。</p>
-<img src="/2019/09/17/直播/播放器技术/二、缓冲区管理/主动缓冲.png">
-<p>如图所示，假设播放器缓冲区内的数据低于 Low 这个水位点后，会主动暂停播放，启动 buffering 过程直到缓冲区中的数据达到 M 水位值。</p>
-<h2 id="被动缓冲"><a href="#被动缓冲" class="headerlink" title="被动缓冲"></a>被动缓冲</h2><p>播放器对缓冲区数据的<strong>消费速度赶不上生产速度</strong>，从而被动滞留了数据在缓冲区中</p>
-<p>多出现在<strong>直播场景</strong></p>
-<p>可能有 2 种原因：</p>
-<ol>
-<li><p>设备<strong>解码性能不足</strong></p>
-<p> 比如软解 1080P 的高清视频，导致视频的解码和渲染的速度赶不上视频的读取速度，导致数据堆积在“帧缓冲区”</p>
-</li>
-<li><p><strong>网络抖动</strong>频繁</p>
-<p> 客户端无法及时拿到数据进行解码渲染，当网络恢复后，数据会迅速下发下来，但播放器已没有办法再快速消费掉（因为播放的速率是固定的，除非添加追帧的逻辑，后续文章会详细介绍）</p>
-</li>
-</ol>
-<h1 id="缓冲区的大小"><a href="#缓冲区的大小" class="headerlink" title="缓冲区的大小"></a>缓冲区的大小</h1><p>理解了缓冲区的作用，那这两个缓冲区的大小如何制定呢 ？</p>
-<p>首先，我们需要知道这两个缓冲区大小究竟影响或者决定了什么 ？</p>
-<h2 id="缓冲区大小的影响"><a href="#缓冲区大小的影响" class="headerlink" title="缓冲区大小的影响"></a>缓冲区大小的影响</h2><ol>
-<li><p>缓冲区越大 -&gt; <strong>抗抖动能力</strong>越强</p>
-</li>
-<li><p>缓冲区越大 -&gt; <strong>内存占用</strong>越高</p>
-</li>
-<li><p>缓冲区越大 -&gt; <strong>播放延时</strong>越大</p>
-</li>
-</ol>
-<p>由此可见，缓冲区也不是越大越好，需要根据实际的<strong>使用场景来决定</strong>。</p>
-<h2 id="缓冲区大小的策略"><a href="#缓冲区大小的策略" class="headerlink" title="缓冲区大小的策略"></a>缓冲区大小的策略</h2><h3 id="帧缓冲区-1"><a href="#帧缓冲区-1" class="headerlink" title="帧缓冲区"></a>帧缓冲区</h3><p>可以抵抗网络抖动，网络抖动往往是比较频繁的，抖动的时间也有时会比较久一些，所以相对要设置得<strong>大</strong>一点，但以不过于影响内存和播放延时为前提。</p>
-<p>对于直播场景，为了防止 “被动丢帧”，往往 “帧缓冲区” 默认是设置为 “无限大” 的，当检测到缓冲区达到一定阈值后，启动一些诸如主动丢帧或者倍数播放的方式，来快速消耗掉缓冲的内容，从而降低内存和延时。</p>
-<h3 id="显示缓冲区-1"><a href="#显示缓冲区-1" class="headerlink" title="显示缓冲区"></a>显示缓冲区</h3><p>解码和渲染的抖动并不频繁，所以并不需要特别大的缓冲区，最低 <strong>3 帧</strong>左右即可，一帧在生产，一帧在消费，还有一帧在缓冲区中待命。</p>
-<h1 id="缓冲区主动清空"><a href="#缓冲区主动清空" class="headerlink" title="缓冲区主动清空"></a>缓冲区主动清空</h1><p>有如下几种场景，播放器会主动清空缓冲区内的数据：</p>
-<ol>
-<li><p>播放器重置</p>
-</li>
-<li><p>播放进度条被拖动</p>
-</li>
-<li><p>消除累积延时</p>
-</li>
-<li><p>系统内存告警</p>
-</li>
-</ol>
-<h1 id="IJKPlayer-的缓冲区管理"><a href="#IJKPlayer-的缓冲区管理" class="headerlink" title="IJKPlayer 的缓冲区管理"></a>IJKPlayer 的缓冲区管理</h1><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ff_ffplay_def.h</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DEFAULT_HIGH_WATER_MARK_IN_BYTES        (256 * 1024)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * START: buffering after prepared/seeked</span></span><br><span class="line"><span class="comment"> * NEXT:  buffering for the second time after START</span></span><br><span class="line"><span class="comment"> * MAX:   ...</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DEFAULT_FIRST_HIGH_WATER_MARK_IN_MS     (100)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DEFAULT_NEXT_HIGH_WATER_MARK_IN_MS      (1 * 1000)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> DEFAULT_LAST_HIGH_WATER_MARK_IN_MS      (5 * 1000)</span></span><br></pre></td></tr></table></figure>
-<p>ijkplayer 使用非常广泛，这里以它为例看看播放器缓冲区的真实案例是怎么样的 ？</p>
-<ol>
-<li><p>播放器首次打开，缓冲 100ms，再开始播放</p>
-</li>
-<li><p>遇到了卡顿（缓冲区为空），则暂停播放，缓冲到 1000ms，再开始播放</p>
-</li>
-<li><p>再次遇到卡顿，则缓冲时间增加 1000ms，依次类推，直到 5000ms</p>
-</li>
-</ol>
-<p>它的缓冲区的<strong>最大阈值是逐步递增</strong>上去的，这是一个<strong>非常棒</strong>的用户体验优化，因为如果用户网络不是那么差的话，不用第一次缓冲就等 5s 了</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.51cto.com/ticktick/2326207" target="_blank" rel="noopener">播放器技术分享（2）：缓冲区管理</a> 七牛-卢俊</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/17/直播/播放器技术/一、架构设计/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/17/直播/播放器技术/一、架构设计/" itemprop="url">播放器技术一-架构设计</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-17T13:22:14+08:00">
-                2019-09-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="功能特性"><a href="#功能特性" class="headerlink" title="功能特性"></a>功能特性</h1><p>归纳起来，播放器主要有如下 3 个方面的功能特性：</p>
+            <h1 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h1><h2 id="Engine"><a href="#Engine" class="headerlink" title="Engine"></a>Engine</h2><p>引擎部分，负责创建与调度任务(获取数据，处理数据，展示资源等任务)</p>
+<h2 id="RequestManager"><a href="#RequestManager" class="headerlink" title="RequestManager"></a>RequestManager</h2><p>请求管理模块</p>
+<h2 id="GetDataInterface"><a href="#GetDataInterface" class="headerlink" title="GetDataInterface"></a>GetDataInterface</h2><p>数据获取接口，负责从各个数据源获取数据。<br>比如 MemoryCache 从内存缓存获取数据、DiskCache 从本地缓存获取数据，下载器从网络获取数据等。</p>
+<h2 id="Processor"><a href="#Processor" class="headerlink" title="Processor"></a>Processor</h2><p>资源(图片)处理器<br>负责处理资源，比如旋转、压缩、截取等。</p>
+<h2 id="Displayer"><a href="#Displayer" class="headerlink" title="Displayer"></a>Displayer</h2><p>资源(图片)显示器，用于显示或操作资源。</p>
+<p>ImageLoader 中叫做 ImageAware，在 Picasso 和 Glide 中叫做 Target</p>
+<p>比如 ImageView，同时支持其他 View 以及虚拟的 Displayer 概念。</p>
+<h1 id="框架选型"><a href="#框架选型" class="headerlink" title="框架选型"></a>框架选型</h1><h2 id="异同点"><a href="#异同点" class="headerlink" title="异同点"></a>异同点</h2><p>共同点</p>
 <ul>
-<li><p>读取（IO）：“获取” 内容  -&gt; 从 “本地” or “服务器” 上获取</p>
-</li>
-<li><p>解析（Parser &amp; Demuxer）：“理解” 内容  -&gt; 参考 “格式&amp;协议” 来 “理解” 内容</p>
-</li>
-<li><p>渲染（Render）：“展示” 内容  -&gt; 通过扬声器/屏幕来 “展示” 内容</p>
-</li>
+<li>支持 okhttp、Volley。默认通过 UrlConnection 获取数据，可以配合 okhttp 或是 Volley 使用。</li>
+<li>显示时支持动画、支持 transform 处理、获取 EXIF 信息等</li>
 </ul>
-<h1 id="数据流-功能模块"><a href="#数据流-功能模块" class="headerlink" title="数据流/功能模块"></a>数据流/功能模块</h1><p>把3 个功能串起来，就构成了整个播放器的数据流，如图所示：</p>
-<img src="/2019/09/17/直播/播放器技术/一、架构设计/播放器数据流.png">
-<h2 id="IO"><a href="#IO" class="headerlink" title="IO"></a>IO</h2><p>负责数据的读取。</p>
-<p>从数据源读取数据有多种标准协议，比如常见的有：File，HTTP(s)，RTMP，RTSP 等</p>
-<h2 id="Parser-amp-Demuxer"><a href="#Parser-amp-Demuxer" class="headerlink" title="Parser &amp; Demuxer"></a>Parser &amp; Demuxer</h2><p>负责数据的解析。</p>
-<p>音视频数据的封装格式，都有着各种业界标准，只需要参考这些行业标准文档，即可解析各种封装格式，比如常见的格式：mp4，flv，m3u8，avi 等。</p>
-<p>muxer是指合并文件，即将视频文件、音频文件和字幕文件合并为某一个视频格式。比如把rmvb格式的视频，mp3格式的音频文件以及srt格式的字幕文件，合并成为一个新的mp4或者mkv格式的文件。</p>
-<p>demuxer是muxer的逆过程，就是把合成的文件中提取出不同的格式文件。</p>
-<h2 id="Decoder"><a href="#Decoder" class="headerlink" title="Decoder"></a>Decoder</h2><p>其实也属于数据解析的一种，只不过更多的是负责对压缩的音视频数据进行解码，拿到原始的 YUV 和 PCM 数据，常见的视频压缩格式如：H.264、MPEG4、VP8/VP9，音频压缩格式如 G.711、AAC、Speex 等</p>
-<h2 id="Render"><a href="#Render" class="headerlink" title="Render"></a>Render</h2><p>负责视频数据的绘制和渲染，是一个平台相关的特性，不同的平台有不同的渲染 API 和方法，比如：Windows 的 DDraw/DirectSound，Android 的 SurfaceView/AudioTrack，跨平台的如：OpenGL 和 ALSA 等</p>
-<h1 id="模块设计"><a href="#模块设计" class="headerlink" title="模块设计"></a>模块设计</h1><p>下面我们逐一剖析一下播放器整个数据流的每一个模块的 <strong>输入和输出</strong> ，并一起设计一下每一个模块的 <strong>接口 API</strong> 。</p>
-<h2 id="IO模块"><a href="#IO模块" class="headerlink" title="IO模块"></a>IO模块</h2><img src="/2019/09/17/直播/播放器技术/一、架构设计/IO模块.png">
-<h3 id="输入"><a href="#输入" class="headerlink" title="输入"></a>输入</h3><p>数据源的地址（URL），这个 URL 可以是一个本地的文件路径，也可以是一个网络的流地址。</p>
-<h3 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h3><p>二进制的数据，即通过 IO 协议读取的音视频二进制数据。</p>
-<h3 id="API"><a href="#API" class="headerlink" title="API"></a>API</h3><p>播放器 IO 模块的接口设计如下所示：</p>
-<img src="/2019/09/17/直播/播放器技术/一、架构设计/IO模块API.png">
-<h4 id="打开-关闭视频流"><a href="#打开-关闭视频流" class="headerlink" title="打开/关闭视频流"></a>打开/关闭视频流</h4><p>Open/Close</p>
-<p>播放器内核可以通过 URL 的头（Schemes）知道需要采用哪一种 IO 协议来拉流（如：FILE/RTMP/HTTP），然后通过继承本接口的子类去完成实际的协议解析和数据读取。</p>
-<h4 id="读取数据"><a href="#读取数据" class="headerlink" title="读取数据"></a>读取数据</h4><p>Read 方法用于顺序读取数据</p>
-<p>ReadAt 用于从指定的 Offset 偏移的位置读取数据，主要用于文件或者视频点播，为播放器提供 Seek 能力。</p>
-<h4 id="断线重连"><a href="#断线重连" class="headerlink" title="断线重连"></a>断线重连</h4><p>网络流，可能出现断线的情况，因此独立出一个 Reconnect 接口，用于提供重连的能力。</p>
-<h2 id="Parser-amp-Demuxer-模块"><a href="#Parser-amp-Demuxer-模块" class="headerlink" title="Parser &amp; Demuxer 模块"></a>Parser &amp; Demuxer 模块</h2><img src="/2019/09/17/直播/播放器技术/一、架构设计/解析模块.png">
-<h3 id="输入-1"><a href="#输入-1" class="headerlink" title="输入"></a>输入</h3><p>由 IO 模块读取出来的 bytes 二进制数据</p>
-<h3 id="输出-1"><a href="#输出-1" class="headerlink" title="输出"></a>输出</h3><p>音视频的媒体信息，未解码的音频数据包，未解码的视频数据包</p>
-<h4 id="音视频的媒体信息"><a href="#音视频的媒体信息" class="headerlink" title="音视频的媒体信息"></a>音视频的媒体信息</h4><p>主要包括如下内容：</p>
-<ul>
-<li>视频时长、码率、帧率等</li>
-<li>音频的格式：编码算法，采样率，通道数等</li>
-<li>视频的格式：编码算法，宽高，长宽比等</li>
-</ul>
-<h3 id="API-1"><a href="#API-1" class="headerlink" title="API"></a>API</h3><img src="/2019/09/17/直播/播放器技术/一、架构设计/解析模块API.png">
-<h4 id="创建-释放解析对象"><a href="#创建-释放解析对象" class="headerlink" title="创建/释放解析对象"></a>创建/释放解析对象</h4><p>Create/Release</p>
-<h4 id="解析音视频的媒体信息"><a href="#解析音视频的媒体信息" class="headerlink" title="解析音视频的媒体信息"></a>解析音视频的媒体信息</h4><p>Parse 解析</p>
-<p>Get方法 获取媒体信息（时长，比特率等）</p>
-<h4 id="读取分离的音视频数据包"><a href="#读取分离的音视频数据包" class="headerlink" title="读取分离的音视频数据包"></a>读取分离的音视频数据包</h4><p>Read</p>
-<h2 id="Decoder模块"><a href="#Decoder模块" class="headerlink" title="Decoder模块"></a>Decoder模块</h2><img src="/2019/09/17/直播/播放器技术/一、架构设计/解码模块.png">
-<h3 id="输入-2"><a href="#输入-2" class="headerlink" title="输入"></a>输入</h3><p>音视频的媒体信息，未解码的音频数据包，未解码的视频数据包</p>
-<h3 id="输出-2"><a href="#输出-2" class="headerlink" title="输出"></a>输出</h3><p>解码的音频/图像的原始数据，即 PCM 和 YUV</p>
-<h3 id="API-2"><a href="#API-2" class="headerlink" title="API"></a>API</h3><h4 id="生产消费者模式"><a href="#生产消费者模式" class="headerlink" title="生产消费者模式"></a>生产消费者模式</h4><p>由于音视频的解码，往往不是每送入×××一帧数据就一定能输出一帧数据，而是经常需要缓存几帧参考帧才能拿到输出，所以编码器的接口设计常常采用一种 “生产者-消费者” 模型，通过一个公共的 buffer 队列来串联 “生产者-消费者”，如下图所述（截取自 Android MediaCodec 编解码库的设计）：</p>
-<img src="/2019/09/17/直播/播放器技术/一、架构设计/解码模块API-生产消费者模式.png">
-<img src="/2019/09/17/直播/播放器技术/一、架构设计/解码模块API.png">
-<h4 id="创建-关闭解码器"><a href="#创建-关闭解码器" class="headerlink" title="创建/关闭解码器"></a>创建/关闭解码器</h4><p>Open/Close</p>
-<h4 id="配置解码器"><a href="#配置解码器" class="headerlink" title="配置解码器"></a>配置解码器</h4><p>Configure</p>
-<h4 id="入队列-出队列"><a href="#入队列-出队列" class="headerlink" title="入队列/出队列"></a>入队列/出队列</h4><p>QueueBuffer 送数据进入解码缓冲区队列，</p>
-<p>DequeueBuffer 从解码缓冲区队列取数据</p>
-<h2 id="Render模块"><a href="#Render模块" class="headerlink" title="Render模块"></a>Render模块</h2><img src="/2019/09/17/直播/播放器技术/一、架构设计/渲染模块.png">
-<h3 id="输入-3"><a href="#输入-3" class="headerlink" title="输入"></a>输入</h3><p>解码的音频/图像的原始数据，即 PCM 和 YUV</p>
-<h3 id="输出-3"><a href="#输出-3" class="headerlink" title="输出"></a>输出</h3><p>Vie 和 Loudspeaker</p>
-<h3 id="API-3"><a href="#API-3" class="headerlink" title="API"></a>API</h3><p>不同平台的窗口绘制和扬声器播放的系统层 API 都不太一样，但是接口层面的流程都差不多，如图所示：</p>
-<img src="/2019/09/17/直播/播放器技术/一、架构设计/渲染模块API-音频.png">
-<img src="/2019/09/17/直播/播放器技术/一、架构设计/渲染模块API-视频.png">
-<h4 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h4><p>Init/UnInit</p>
-<h4 id="设置窗口"><a href="#设置窗口" class="headerlink" title="设置窗口"></a>设置窗口</h4><p>SetView</p>
-<p>音频渲染不需要</p>
-<h4 id="设置渲染参数"><a href="#设置渲染参数" class="headerlink" title="设置渲染参数"></a>设置渲染参数</h4><p>SetParam</p>
-<h4 id="渲染"><a href="#渲染" class="headerlink" title="渲染"></a>渲染</h4><p>Render</p>
-<h1 id="多线程模型"><a href="#多线程模型" class="headerlink" title="多线程模型"></a>多线程模型</h1><h2 id="单线程模型的缺陷"><a href="#单线程模型的缺陷" class="headerlink" title="单线程模型的缺陷"></a>单线程模型的缺陷</h2><p>截止目前，播放器的数据流，是一个单线程的结构</p>
-<p>会存在如下几个问题：</p>
-<ol>
-<li>音视频分离后 -&gt; 解码 -&gt; 播放，中间无法插入逻辑进行<strong>音画同步</strong></li>
-<li>无数据缓冲区，一旦网络/解码抖动 -&gt; 导致<strong>频繁卡顿</strong></li>
-<li>单线程运行，没有充分利用 CPU 多核</li>
-</ol>
-<h2 id="多线程模型-1"><a href="#多线程模型-1" class="headerlink" title="多线程模型"></a>多线程模型</h2><p>可以以数据的 “生产者 - 消费者” 为边界，添加数据缓冲区，将单线程模型，改造为多线程模型（IO 线程、解码线程、渲染线程），如图所示：</p>
-<img src="/2019/09/17/直播/播放器技术/一、架构设计/多线程模型.png">
-<p>新增了两个缓冲区（区别于单线程模型解码器内部缓冲区）</p>
-<img src="/2019/09/17/直播/播放器技术/一、架构设计/单线程多线程对比.png">
-<h2 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h2><p>改造为多线程模型后，其优势如下：</p>
-<ol>
-<li>帧队列（Packet Queue）：可抵抗网络抖动</li>
-<li>显示队列（Frame Queue）：可抵抗解码/渲染的抖动</li>
-<li>渲染线程：添加 AV Sync 逻辑，可支持音画同步的处理</li>
-<li>并行工作，高效，充分利用多核 CPU</li>
-</ol>
-<h1 id="SDK-接口设计"><a href="#SDK-接口设计" class="headerlink" title="SDK 接口设计"></a>SDK 接口设计</h1><p>前面详细介绍了播放器内涵的关键架构设计和数据流</p>
-<p>如果期望以该播放器内核作为 SDK 给 APP 提供底层能力的话，还需要设计一套易用的 API 接口</p>
-<p>API 接口，其实可抽象为如下 5 大部分：</p>
-<ol>
-<li><p>创建/销毁播放器。Create/Release/Reset</p>
-</li>
-<li><p>配置参数（如：窗口句柄、视频 URL、循环播放等）。SetDataSource/SetOptions/SetView/SetVolume</p>
-</li>
-<li><p>发送命令（如：初始化，开始播放，暂停播放，拖动，停止等）。Prepare/Start/Pause/Stop/SeekTo</p>
-</li>
-<li><p>音视频数据回调（如：解码后的音视频数据回调）。SetXXXListener/OnXXXCallback</p>
-</li>
-<li><p>消息/状态消息回调（如：缓冲开始/结束、播放完成等）</p>
-</li>
-</ol>
-<h1 id="状态模型"><a href="#状态模型" class="headerlink" title="状态模型"></a>状态模型</h1><p>总体来说，播放器其实是一个状态机，被创建出来了以后，会根据应用层发送给它的命令以及自身产生的事件在各个状态之间切换，可以用如下这张图来展示：</p>
-<img src="/2019/09/17/直播/播放器技术/一、架构设计/状态模型.png">
-<p>播放器一共有 9 种状态，其中，Idle 是创建后/重置后的到达的初始状态，End 和 Error 分别是主动销毁播放器和发生错误后进入的最终状态（通过 reset 重置后可恢复 Idle 状态）</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.51cto.com/ticktick/2324928" target="_blank" rel="noopener">播放器技术分享（1）：架构设计</a> 七牛-卢俊</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/16/电脑使用/linux/tar使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/16/电脑使用/linux/tar使用/" itemprop="url">tar使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-16T17:40:53+08:00">
-                2019-09-16
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="打包和压缩"><a href="#打包和压缩" class="headerlink" title="打包和压缩"></a>打包和压缩</h1><p>打包:是指将一大堆文件或目录变成一个总的文件.</p>
-<p>压缩:则是将一个大的文件通过一些压缩算法变成一个小文件。</p>
-<p>Linux中很多压缩程序只能针对一个文件进行压缩，这样当你想要压缩一大堆文件时，你得先将这一大堆文件先打成一个包（最常用的打包程序就是tar），然后再用压缩程序进行压缩（gzip bzip2命令）</p>
-<h1 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h1><h2 id="tar-tar"><a href="#tar-tar" class="headerlink" title="tar .tar"></a>tar <code>.tar</code></h2><pre><code>tar [参数] [tar包名] [源文件，解包不需要]
-</code></pre><p>打包解包</p>
-<p>本身不具有压缩功能。他是调用压缩功能实现压缩</p>
-<h2 id="gzip-gz"><a href="#gzip-gz" class="headerlink" title="gzip .gz"></a>gzip <code>.gz</code></h2><pre><code>压缩： gzip FileName
-解压1： gunzip FileName.gz
-解压2： gzip -d FileName.gz
-</code></pre><h2 id="bzip2-bz2"><a href="#bzip2-bz2" class="headerlink" title="bzip2 .bz2"></a>bzip2 <code>.bz2</code></h2><pre><code>压缩： bzip2 -z FileName
-解压1：bzip2 -d FileName.bz2
-解压2：bunzip2 FileName.bz2
-</code></pre><h2 id="rar-rar"><a href="#rar-rar" class="headerlink" title="rar .rar"></a>rar <code>.rar</code></h2><pre><code>压缩：rar a FileName.rar DirName
-解压：rar x FileName.rar
-</code></pre><h2 id="zip-zip"><a href="#zip-zip" class="headerlink" title="zip . zip"></a>zip <code>. zip</code></h2><pre><code>压缩：zip FileName.zip DirName
-解压：unzip FileName.zip
-</code></pre><h2 id="compress-z"><a href="#compress-z" class="headerlink" title="compress .z"></a>compress <code>.z</code></h2><pre><code>压缩：zip FileName.zip DirName
-解压：unzip FileName.zip
-</code></pre><h1 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h1><table>
+<p>不同点</p>
+<table>
 <thead>
 <tr>
-<th>参数</th>
-<th>描述</th>
+<th></th>
+<th>Universal ImageLoader</th>
+<th>Picasso</th>
+<th>Glide</th>
+<th>Fresco</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>-c</td>
-<td>或–create，建立新的压缩文件</td>
+<td>作者</td>
+<td>nostra12 停止维护</td>
+<td>Square JakeWharton</td>
+<td>Google</td>
+<td>Facebook</td>
 </tr>
 <tr>
-<td>-x</td>
-<td>或–extrac，从压缩的文件中提取文件</td>
+<td>View</td>
+<td>原生ImageView</td>
+<td>原生ImageView</td>
+<td>原生ImageView</td>
+<td>特有DraweeView</td>
 </tr>
 <tr>
-<td>-z</td>
-<td>或–gzip或–ungzip,通过gzip指令解压缩文件</td>
+<td>gif</td>
+<td>不支持</td>
+<td>不支持</td>
+<td>支持</td>
+<td>不支持</td>
 </tr>
 <tr>
-<td>-j</td>
-<td>通过bzip2指令解压缩文件</td>
+<td>视频首帧</td>
+<td>不支持</td>
+<td>不支持</td>
+<td>支持</td>
+<td>不支持</td>
 </tr>
 <tr>
-<td>-Z</td>
-<td>通过compress指令解压文件</td>
+<td>webp</td>
+<td>不支持</td>
+<td>不支持</td>
+<td>支持</td>
+<td>支持</td>
 </tr>
 <tr>
-<td>-p</td>
-<td>或–same-permissions 用原来的文件权限还原文件</td>
+<td>加载进度</td>
+<td>支持</td>
+<td>需要自定义</td>
+<td>需要自定义</td>
+<td>支持</td>
 </tr>
 <tr>
-<td>-v</td>
-<td>显示操作过程</td>
+<td>优先级</td>
+<td>不支持</td>
+<td>支持</td>
+<td>支持</td>
+<td>支持</td>
 </tr>
 <tr>
-<td>-f</td>
-<td>指定压缩文件。必要参数，放最后，后面只能接档案名</td>
+<td>图片质量</td>
+<td>ARGB8888</td>
+<td>ARGB8888</td>
+<td>RGB565 可配置</td>
+<td>ARGB8888</td>
 </tr>
 <tr>
-<td>-t</td>
-<td>或–list ，列出压缩文件的内容</td>
+<td>内存消耗</td>
+<td>大</td>
+<td>大</td>
+<td>配置ARGB8888也比Picasso小</td>
+<td>小</td>
 </tr>
 <tr>
-<td>-r</td>
-<td>或–append 新增文件到已存在的压缩文件的结尾部分</td>
+<td>SDK体积</td>
+<td></td>
+<td>200KB</td>
+<td>500KB</td>
+<td>2MB</td>
 </tr>
 <tr>
-<td>-u</td>
-<td>或–update 仅置换较压缩文件内的文件更新的文件</td>
+<td>缓存级别</td>
+<td>内存和磁盘</td>
+<td>内存和磁盘</td>
+<td>内存和磁盘</td>
+<td>2内存1磁盘</td>
 </tr>
 <tr>
-<td>-d</td>
-<td>或-diff，记录文件的差别</td>
+<td>缓存图片</td>
+<td>原图</td>
+<td>原图</td>
+<td>原图和目标尺寸图</td>
+<td>原图</td>
 </tr>
 </tbody>
 </table>
-<h1 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h1><h2 id="打包"><a href="#打包" class="headerlink" title="打包"></a>打包</h2><pre><code>tar -cvf log.tar 1.log 仅打包，不压缩！
-tar -zcvf log.tar.gz 1.log 打包后，以 gzip 压缩
-tar -jcvf log.tar.bz2 1.log 打包后，以 bzip2 压缩
-</code></pre><p>在加参数 f 之后的文件档名是自己取的</p>
-<p>我们习惯上都用 .tar 来作为辨识。 </p>
-<p>如果加 z 参数，则以 .tar.gz 或 .tgz 来代表 gzip 压缩过的 tar包； </p>
-<p>如果加 j 参数，则以 .tar.bz2 来作为tar包名。</p>
-<h2 id="解包"><a href="#解包" class="headerlink" title="解包"></a>解包</h2><pre><code>tar -zxvf /home/hc/test/log.tar.gz 
+<h2 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h2><h3 id="Universal-ImageLoader"><a href="#Universal-ImageLoader" class="headerlink" title="Universal ImageLoader"></a>Universal ImageLoader</h3><ul>
+<li>可以在 View 滚动中暂停图片加载。 <code>PauseOnScrollListener</code></li>
+<li>支持本地缓存文件名规则定义</li>
+</ul>
+<img src="/2019/12/12/Android/图片加载/ImageLoader.png">
+<h3 id="Picasso"><a href="#Picasso" class="headerlink" title="Picasso"></a>Picasso</h3><ul>
+<li>自带统计监控功能(缓存命中率、已使用内存大小、节省的流量等)</li>
+<li>本地缓存由下载框架实现</li>
+</ul>
+<img src="/2019/12/12/Android/图片加载/Picasso.png">
+<p>需要注意的是上面 Data 的 File system 部分，Picasso 没有自定义本地缓存的接口，默认使用 http 的本地缓存，API 9 以上使用 okhttp，9以下使用 Urlconnection，所以如果需要自定义本地缓存就需要重定义 Downloader。</p>
+<h3 id="Glide"><a href="#Glide" class="headerlink" title="Glide"></a>Glide</h3><ul>
+<li>Picasso的升级版，API类似，功能更强，性能更优</li>
+<li>对Bitmap的复用和线程优化有着明显的优势</li>
+<li>内存友好<ul>
+<li>内存缓存 active 设计。内存缓存中取数据时，不像一般的实现用 get，而是用 remove，再将这个缓存数据放到一个 value 为软引用的 activeResources map 中，并计数引用数，在图片加载完成后进行判断，如果引用计数为空则回收掉。</li>
+<li>缓存目标尺寸图片。以 url、view_width、view_height、屏幕的分辨率等做为联合 key 缓存图片</li>
+<li>与 Activity/Fragment 生命周期一致，支持 trimMemory</li>
+<li>图片默认使用默认 RGB_565 而不是 ARGB_888</li>
+</ul>
+</li>
+</ul>
+<img src="/2019/12/12/Android/图片加载/Glide.png">
+<h3 id="Fresco"><a href="#Fresco" class="headerlink" title="Fresco"></a>Fresco</h3><ul>
+<li>最大亮点：内存管理。<ul>
+<li>图片放到一个特别的内存区域，不再显示的时候，占用的内存会自动被释放</li>
+</ul>
+</li>
+<li>性能远超glide</li>
+<li>支持图像的渐进式呈现。先呈现大致的图片轮廓，逐渐呈现清晰的图片，在低网速带来更好地用户体验</li>
+</ul>
+<h4 id="内存缓存"><a href="#内存缓存" class="headerlink" title="内存缓存"></a>内存缓存</h4><p>两级内存缓存都存储在java heap</p>
+<ul>
+<li>未解码的内存缓存（EncodedMemoryCache）</li>
+<li>已解码的内存缓存（BitmapMemoryCache）</li>
+</ul>
+<p>实现方式一样，区别仅仅在于资源的测量与释放方式不同。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">已解码内存缓存的数据是 CloseableReference&lt;CloseableBitmap&gt;</span><br><span class="line">未解码内存缓存的数据是 CloseableReference</span><br><span class="line"></span><br><span class="line">已解码的内存缓存键 BitmapMemoryCacheKey，会对Uri字符串、缩放尺寸、解码参数、PostProcessor等关键参数进行hashCode作为唯一标识</span><br><span class="line">普通的缓存键 SimpleCacheKey，使用传入字符串的hashCode作为唯一标识</span><br></pre></td></tr></table></figure>
+<h2 id="Fresco-vs-Glide"><a href="#Fresco-vs-Glide" class="headerlink" title="Fresco vs Glide"></a>Fresco vs Glide</h2><p>Universal ImageLoader 已经停止维护，过于老旧</p>
+<p>Picasso功能比Glide少，加载速度慢（展示前需要尺寸转换），内存消耗大</p>
+<p>如何在Glide和Fresco中进行选择呢？如果应用不是一个以图片为主元素的应用，那么Glide就是一个非常合适的选择了，它不会让你的应用体积臃肿，而且可以很好的完成流畅加载图片并显示出来的任务。否则，就不必太在意体积了，直接上Fresco吧，这个时候更好的图片质量和更好的内存处理才是王道。</p>
+<h1 id="glide"><a href="#glide" class="headerlink" title="glide"></a>glide</h1><h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><p>依赖</p>
+<pre><code>dependencies {
+  compile &apos;com.github.bumptech.glide:glide:3.7.0&apos;
+  compile &apos;com.android.support:support-v4:19.1.0&apos;
+}
+</code></pre><p>proguard</p>
+<pre><code>-keep public class * implements com.bumptech.glide.module.GlideModule
+-keep public enum com.bumptech.glide.load.resource.bitmap.ImageHeaderParser$** {
+  **[] $VALUES;
+  public *;
+}
+</code></pre><p>使用</p>
+<pre><code>Glide.with(this).load(&quot;http://goo.gl/gEgYUd&quot;).into(imageView);
+
+Glide
+    .with(myFragment)
+    .load(url)
+    .centerCrop()
+    .placeholder(R.drawable.loading_spinner) //占位符（加载前）
+    .error(R.drawable.loading_spinner) //错误占位符（加载出错）
+    .crossFade()
+    .into(myImageView);
+</code></pre><p>扩展库推荐</p>
+<ul>
+<li><a href="https://github.com/florent37/GlidePalette" target="_blank" rel="noopener">GlidePalette</a> 一个可以在Glide加载时很方便使用Palette的库。界面显示一致的利器。Palette 主要功能便是取到一张图的色彩，然后返回一系列颜色，可供我们选择设置我们的文本颜色，背景颜色，从而达到界面的一致性</li>
+<li><a href="https://github.com/wasabeef/glide-transformations" target="_blank" rel="noopener">glide-transformations</a> 处理各种图片显示效果。图片特效推荐使用这个库，避免使用圆形的ImageView（搭配glide有bug）</li>
+</ul>
+<h2 id="第一次加载的时候只显示占位图，第二次才显示正常的图片"><a href="#第一次加载的时候只显示占位图，第二次才显示正常的图片" class="headerlink" title="第一次加载的时候只显示占位图，第二次才显示正常的图片"></a><a href="http://www.jianshu.com/p/4a3177b57949" target="_blank" rel="noopener">第一次加载的时候只显示占位图，第二次才显示正常的图片</a></h2><p><strong>原因：</strong></p>
+<p>用了自定义圆形Imageview，又刚好设置了占位</p>
+<p><strong>解决方案：</strong></p>
+<ul>
+<li>方案一: 不设置占位；</li>
+<li><p>方案二：使用Glide的Transformation API自定义圆形Bitmap的转换。</p>
+<pre><code>Glide.with(context).load(url).apply(RequestOptions.circleCropTransform()).into(imageView);
+</code></pre></li>
+<li>方案三：asBitmap()</li>
+<li><p>方案四：不使用Glide的默认动画：</p>
+<pre><code>Glide.with(mContext)
+    .load(url) 
+    .dontAnimate()
+    .placeholder(R.drawable.loading_spinner)
+    .into(circleImageview);
+</code></pre></li>
+<li><p>方案五：</p>
+<pre><code>Glide.with(mContext)
+    .load(url) 
+    .placeholder(R.drawable.loading_spinner)
+    .into(new SimpleTarget&lt;Bitmap&gt;(width, height) {
+        @Override 
+        public void onResourceReady(Bitmap bitmap, GlideAnimation anim) {
+            // setImageBitmap(bitmap) on CircleImageView 
+        } 
+    });
+</code></pre><p>  该方法在listview上复用bug</p>
+</li>
+</ul>
+<h2 id="You-cannot-start-a-load-for-a-destroyed-activity"><a href="#You-cannot-start-a-load-for-a-destroyed-activity" class="headerlink" title="You cannot start a load for a destroyed activity"></a><a href="http://www.jianshu.com/p/4a3177b57949" target="_blank" rel="noopener">You cannot start a load for a destroyed activity</a></h2><h3 id="非主线程使用glide"><a href="#非主线程使用glide" class="headerlink" title="非主线程使用glide"></a>非主线程使用glide</h3><p>把context参数换成getApplicationContext</p>
+<h3 id="activity的确已销毁"><a href="#activity的确已销毁" class="headerlink" title="activity的确已销毁"></a><a href="http://www.jianshu.com/p/519bb23987ca" target="_blank" rel="noopener">activity的确已销毁</a></h3><p>在RecyclerView.OnScrollListener 的onScrolled滑动事件中利用Glide加载图片</p>
+<p>滑动的时候按back键，activity在按back键时候已经销毁了，而那个滚动事件的Glide图片处理事件还在执行，App crash</p>
+<pre><code>@Override
+ protected void onPause() {
+     recyclerView.removeOnScrollListener(mOnScrollListener);
+     super.onPause();
+}
+</code></pre><h2 id="给加载的图片setTag"><a href="#给加载的图片setTag" class="headerlink" title="给加载的图片setTag()"></a><a href="http://www.jianshu.com/p/4a3177b57949" target="_blank" rel="noopener">给加载的图片setTag()</a></h2><h3 id="方案一、使用setTag-int-object"><a href="#方案一、使用setTag-int-object" class="headerlink" title="方案一、使用setTag(int,object)"></a>方案一、使用setTag(int,object)</h3><pre><code>Glide.with(context).load(urls.get(i).getUrl()).fitCenter().into(imageViewHolder.image);
+imageViewHolder.image.setTag(R.id.image_tag, i);
+imageViewHolder.image.setOnClickListener(new View.OnClickListener() {
+    @Override
+        int position = (int) v.getTag(R.id.image_tag);
+        Toast.makeText(context, urls.get(position).getWho(), Toast.LENGTH_SHORT).show();
+    }
+});
+</code></pre><p>在values文件夹下新建ids.xml，添加</p>
+<pre><code>&lt;item name=&quot;image_tag&quot; type=&quot;id&quot;/&gt;
+</code></pre><h3 id="方案二、自定义GlideMoudle接口，全局设置ViewTaget的tagId"><a href="#方案二、自定义GlideMoudle接口，全局设置ViewTaget的tagId" class="headerlink" title="方案二、自定义GlideMoudle接口，全局设置ViewTaget的tagId"></a>方案二、自定义GlideMoudle接口，全局设置ViewTaget的tagId</h3><p>Glide的3.6以上</p>
+<pre><code>public class MyGlideMoudle implements GlideModule{
+    @Override
+    public void applyOptions(Context context, GlideBuilder builder) {
+        ViewTarget.setTagId(R.id.glide_tag_id);
+    }
+
+    @Override
+    public void registerComponents(Context context, Glide glide) {
+
+    }
+}
+</code></pre><p>最后在AndroidManifest.xml文件里面添加</p>
+<pre><code>&lt;meta-data
+    android:name=&quot;com.yourpackagename.MyGlideMoudle&quot;
+    android:value=&quot;GlideModule&quot; /&gt;
+</code></pre><h3 id="方案三、复写ImageViewTaget类的get-setRequest方法"><a href="#方案三、复写ImageViewTaget类的get-setRequest方法" class="headerlink" title="方案三、复写ImageViewTaget类的get/setRequest方法"></a>方案三、复写ImageViewTaget类的get/setRequest方法</h3><pre><code>Glide.with(context).load(urls.get(i).getUrl()).fitCenter().into(new ImageViewTarget&lt;GlideDrawable&gt;(imageViewHolder.image) {
+        @Override
+        protected void setResource(GlideDrawable resource) {
+            imageViewHolder.image.setImageDrawable(resource);
+        }
+
+        @Override
+        public void setRequest(Request request) {
+            imageViewHolder.image.setTag(i);
+            imageViewHolder.image.setTag(R.id.glide_tag_id,request);
+        }
+
+        @Override
+        public Request getRequest() {
+            return (Request) imageViewHolder.image.getTag(R.id.glide_tag_id);
+        }
+    });
+
+    imageViewHolder.image.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            int position = (int) v.getTag();
+            Toast.makeText(context, urls.get(position).getWho(), Toast.LENGTH_SHORT).show();
+        }
+    });
+</code></pre><h2 id="Android-Glide加载图片自动适应宽高"><a href="#Android-Glide加载图片自动适应宽高" class="headerlink" title="Android Glide加载图片自动适应宽高"></a>Android Glide加载图片自动适应宽高</h2><p><a href="http://blog.csdn.net/hai29785/article/details/52611577" target="_blank" rel="noopener">Android Glide加载图片自动适应宽度</a></p>
+<h3 id="主要思路"><a href="#主要思路" class="headerlink" title="主要思路:"></a>主要思路:</h3><ul>
+<li>获取到图片后，获得图片的宽高</li>
+<li>获取imageview宽高</li>
+<li>计算缩放比例</li>
+<li>计算imageview的宽高，</li>
+<li>载图片到imageview中，就可以保持原来图片的比例。</li>
+</ul>
+<p>实例代码</p>
+<pre><code>public void loadLiveroomPic(Context context, String uri, int placeholderId, final int maxWidth, final int maxHeight, final ImageView imageView) {
+    Glide.with(context).load(uri).placeholder(placeholderId).listener(new RequestListener&lt;String, GlideDrawable&gt;() {
+        @Override
+        public boolean onException(Exception e, String model, Target&lt;GlideDrawable&gt; target, boolean isFirstResource) {
+            return false;
+        }
+
+        @Override
+        public boolean onResourceReady(GlideDrawable resource, String model, Target&lt;GlideDrawable&gt; target, boolean isFromMemoryCache, boolean isFirstResource) {
+            if (imageView == null) {
+                return false;
+            }
+            if (imageView.getScaleType() != ImageView.ScaleType.FIT_XY) {
+                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+            }
+            ViewGroup.LayoutParams params = imageView.getLayoutParams();
+
+            float scale = ImageCompressHelp.getScaleRate(resource.getIntrinsicWidth(), resource.getIntrinsicHeight(), maxWidth, maxHeight);
+
+            int imageViewRealHeight = Math.round(resource.getIntrinsicHeight() * scale);
+            int imageViewRealWidth = Math.round(resource.getIntrinsicWidth() * scale);
+            params.height = imageViewRealHeight + imageView.getPaddingTop() + imageView.getPaddingBottom();
+            params.width = imageViewRealWidth + imageView.getPaddingLeft() + imageView.getPaddingRight();
+            imageView.setLayoutParams(params);
+            return false;
+        }
+    }).into(imageView);
+}
+</code></pre><h2 id="手动加载网络图片-downloadOnly"><a href="#手动加载网络图片-downloadOnly" class="headerlink" title="手动加载网络图片 downloadOnly"></a>手动加载网络图片 downloadOnly</h2><h2 id="加载gif"><a href="#加载gif" class="headerlink" title="加载gif"></a>加载gif</h2><pre><code>Glide.with(this).load(&quot;图片地址：url&quot;).asGif().into(iv);
+    可以不使用.asGif()
+    使用了.asGif()方法的话，传入的图片必须是gif图，其他图会报错。
+</code></pre><h3 id="加载很慢或者出不来"><a href="#加载很慢或者出不来" class="headerlink" title="加载很慢或者出不来"></a>加载很慢或者出不来</h3><p>如果gif图没问题，加入缓存策略即可解决</p>
+<pre><code>Glide.with(this).load(url).asGif().diskCacheStrategy(DiskCacheStrategy.SOURCE).into(imageView);  
+</code></pre><h3 id="动态显示gif图的次数"><a href="#动态显示gif图的次数" class="headerlink" title="动态显示gif图的次数"></a>动态显示gif图的次数</h3><pre><code>GlideDrawableImageViewTarget(ImageView view, int maxLoopCount)
+
+Glide.with(this).load(&quot;url&quot;).diskCacheStrategy(DiskCacheStrategy.SOURCE).into(new GlideDrawableImageViewTarget(iv, 1));
+</code></pre><h2 id="弱网容易超时"><a href="#弱网容易超时" class="headerlink" title="弱网容易超时"></a>弱网容易超时</h2><p>指定glide使用okhttp3加载图片，连接超时时间60秒（修改okhttp3之前原来是2.5秒连接超时）</p>
+<p>添加依赖(注意没有@aar后缀，有的话会自动注册默认GlideModule，把自定的给替换掉)</p>
+<p> <code>implementation com.github.bumptech.glide:okhttp3-integration:1.5.0</code></p>
+<p>自定义GlideModule</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 自定义GlideModule</span></span><br><span class="line"><span class="comment"> * 设置较长的超时时间</span></span><br><span class="line"><span class="comment"> * 解决在网络不好的情况下，默认超时时间设置过短，导致图片加载失败</span></span><br><span class="line"><span class="comment"> * "java.net.SocketTimeoutException: failed to connect to static-zy-com.oss-cn-hangzhou.aliyuncs.com/183.131.227.244 (port 443) from /10.8.0.2 (port 59276) after 2500ms"</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomOkHttpGlideModule</span> <span class="keyword">implements</span> <span class="title">GlideModule</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">applyOptions</span><span class="params">(Context context, GlideBuilder builder)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Do nothing.</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerComponents</span><span class="params">(Context context, Glide glide)</span> </span>&#123;</span><br><span class="line">        OkHttpClient client = <span class="keyword">new</span> OkHttpClient.Builder()</span><br><span class="line">                .connectTimeout(<span class="number">60</span>, TimeUnit.SECONDS)</span><br><span class="line">                .readTimeout(<span class="number">60</span>, TimeUnit.SECONDS)</span><br><span class="line">                .writeTimeout(<span class="number">60</span>, TimeUnit.SECONDS)</span><br><span class="line">                .build();</span><br><span class="line">        OkHttpUrlLoader.Factory factory = <span class="keyword">new</span> OkHttpUrlLoader.Factory(client);</span><br><span class="line">        glide.register(GlideUrl.class, InputStream.class, factory);</span><br><span class="line">        glide.register(GlideUrl.class, InputStream.class, <span class="keyword">new</span> OkHttpUrlLoader.Factory());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">```	</span><br><span class="line"></span><br><span class="line">manifest注册GlideModule</span><br></pre></td></tr></table></figure>
+<!--   GlideModule     -->
+<p><meta-data android:name="com.shensz.course.utils.CustomOkHttpGlideModule" android:value="GlideModule"><br><code>`</code></meta-data></p>
+<h2 id="内存占用巨多"><a href="#内存占用巨多" class="headerlink" title="内存占用巨多"></a>内存占用巨多</h2><p>Glide在不指定图片目标宽高的情况下，自动将图片缩放到控件大小 ，这在高分辨率设备中，控件大小往往比实际图片尺寸大很多</p>
+<p>解决方案：加载图片的时候，使用 .override(width, height) 限制图片的宽高</p>
+<h1 id="Fresco-1"><a href="#Fresco-1" class="headerlink" title="Fresco"></a>Fresco</h1><ul>
+<li>不支持warp_content</li>
+<li>一定要打开DownsampleEnabled来让图片压缩，不然全图展示超大的图片还是会有OOM</li>
+<li>在列表加载中一定要加上Resizing 来减少内存的开销，如果有必要，还可以在滑动的时候做优化处理</li>
+<li>不要设置大量大尺寸的R.drawable.XX资源，因为这种类似的内存释放不及时</li>
+</ul>
+<h2 id="扩展推荐"><a href="#扩展推荐" class="headerlink" title="扩展推荐"></a>扩展推荐</h2><h3 id="FrescoImageView"><a href="#FrescoImageView" class="headerlink" title="FrescoImageView"></a><a href="https://github.com/HomHomLin/FrescoImageView" target="_blank" rel="noopener">FrescoImageView</a></h3><p>继承了SimpleDraweeView，封装了需要的一些接口，让人使用起来更方便</p>
+<h3 id="fresco-processors"><a href="#fresco-processors" class="headerlink" title="fresco-processors"></a><a href="https://github.com/wasabeef/fresco-processors" target="_blank" rel="noopener">fresco-processors</a></h3><p>继承于Postprocessor，对图像二次处理：高斯模糊，改变形状、颜色、马赛克。</p>
+<h3 id="PhotoDraweeView"><a href="#PhotoDraweeView" class="headerlink" title="PhotoDraweeView"></a><a href="https://github.com/ongakuer/PhotoDraweeView" target="_blank" rel="noopener">PhotoDraweeView</a></h3><p>功能与鼎鼎大名的PhotoView一样，支持双击放大，单击返回，手动放大与缩小等，无缝接入Fresco</p>
+<h3 id="subsampling-scale-image-view"><a href="#subsampling-scale-image-view" class="headerlink" title="subsampling-scale-image-view"></a><a href="https://github.com/davemorrissey/subsampling-scale-image-view" target="_blank" rel="noopener">subsampling-scale-image-view</a></h3><p>加载高清长图。它采用的是BitmapRegionDecoder的方式，分段加载显示超长图，拒绝OOM，而且支持：双击放大，单击返回，手动放大等。</p>
+<p>目前只能加载本地，可以下下来用缓存</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/bumptech/glide" target="_blank" rel="noopener">glide github</a></li>
+<li><a href="https://www.cnblogs.com/linghu-java/p/5741358.html" target="_blank" rel="noopener">Android四大图片缓存（Imageloader,Picasso,Glide,Fresco）原理、特性对比</a></li>
+<li><a href="https://juejin.im/post/582bc554d203090067ed75a3" target="_blank" rel="noopener">Android图片加载开源库深度推荐，安利Fresco</a></li>
+<li><a href="https://www.jianshu.com/p/928732ce1041" target="_blank" rel="noopener">Fresco内存缓存</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/11/直播/音频/aac解码/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/12/11/直播/音频/aac解码/" itemprop="url">aac解码</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-11T10:32:14+08:00">
+                2019-12-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="使用ffmpeg"><a href="#使用ffmpeg" class="headerlink" title="使用ffmpeg"></a>使用ffmpeg</h1><p>将aac解码成pcm</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">char</span> *in_file = <span class="string">"./hefang.aac"</span>;</span><br><span class="line"><span class="keyword">const</span> <span class="keyword">char</span> *out_file = <span class="string">"./hefang.pcm"</span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">//注册所有的工具</span></span><br><span class="line">    av_register_all();</span><br><span class="line"> </span><br><span class="line">    AVFormatContext *fmt_ctx = <span class="literal">NULL</span>;</span><br><span class="line">    AVCodecContext  *cod_ctx = <span class="literal">NULL</span>;</span><br><span class="line">    AVCodec         *cod   = <span class="literal">NULL</span>;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//分配一个AVFormatContext</span></span><br><span class="line">    fmt_ctx = avformat_alloc_context();</span><br><span class="line">    <span class="keyword">if</span> (fmt_ctx == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"alloc fail"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//打开文件，解封装</span></span><br><span class="line">    <span class="keyword">if</span> (avformat_open_input(&amp;fmt_ctx, in_file, <span class="literal">NULL</span>, <span class="literal">NULL</span>) != <span class="number">0</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"open fail"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//查找文件的相关流信息</span></span><br><span class="line">    <span class="keyword">if</span> (avformat_find_stream_info(fmt_ctx, <span class="literal">NULL</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"find stream fail"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//输出格式信息</span></span><br><span class="line">    av_dump_format(fmt_ctx, <span class="number">0</span>, in_file, <span class="number">0</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//查找解码信息</span></span><br><span class="line">    <span class="keyword">int</span> stream_index = <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; fmt_ctx-&gt;nb_streams; i++)</span><br><span class="line">        <span class="keyword">if</span> (fmt_ctx-&gt;streams[i]-&gt;codec-&gt;codec_type == AVMEDIA_TYPE_AUDIO) &#123;</span><br><span class="line">            stream_index = i;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (stream_index == <span class="number">-1</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"find stream fail"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//保存解码器</span></span><br><span class="line">    cod_ctx = fmt_ctx-&gt;streams[stream_index]-&gt;codec;</span><br><span class="line">    cod = avcodec_find_decoder(cod_ctx-&gt;codec_id);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (cod == <span class="literal">NULL</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"find codec fail"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">if</span> (avcodec_open2(cod_ctx, cod, <span class="literal">NULL</span>) &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">"can't open codec"</span>);</span><br><span class="line"> </span><br><span class="line">    FILE *out_fb = <span class="literal">NULL</span>;</span><br><span class="line">    out_fb = fopen(out_file, <span class="string">"wb"</span>);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//创建AVPacket,用于存储解码前的数据</span></span><br><span class="line">    AVPacket *packet = (AVPacket *)<span class="built_in">malloc</span>(<span class="keyword">sizeof</span>(AVPacket));</span><br><span class="line">    av_init_packet(packet);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//设置转码后输出相关参数</span></span><br><span class="line">    <span class="comment">//采样的布局方式</span></span><br><span class="line">    <span class="keyword">uint64_t</span> out_channel_layout = AV_CH_LAYOUT_MONO;</span><br><span class="line">    <span class="comment">//采样个数</span></span><br><span class="line">    <span class="keyword">int</span> out_nb_samples = <span class="number">1024</span>;</span><br><span class="line">    <span class="comment">//采样格式</span></span><br><span class="line">    <span class="keyword">enum</span> AVSampleFormat  sample_fmt = AV_SAMPLE_FMT_S16;</span><br><span class="line">    <span class="comment">//采样率</span></span><br><span class="line">    <span class="keyword">int</span> out_sample_rate = <span class="number">44100</span>;</span><br><span class="line">    <span class="comment">//通道数</span></span><br><span class="line">    <span class="keyword">int</span> out_channels = av_get_channel_layout_nb_channels(out_channel_layout);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">"%d\n"</span>,out_channels);</span><br><span class="line">    <span class="comment">//创建buffer</span></span><br><span class="line">    <span class="keyword">int</span> buffer_size = av_samples_get_buffer_size(<span class="literal">NULL</span>, out_channels, out_nb_samples, sample_fmt, <span class="number">1</span>);</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">    <span class="comment">//注意要用av_malloc</span></span><br><span class="line">    <span class="keyword">uint8_t</span> *buffer = (<span class="keyword">uint8_t</span> *)av_malloc(MAX_AUDIO_FRAME_SIZE * <span class="number">2</span>);</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">    <span class="comment">//创建Frame，用于存储解码后的数据</span></span><br><span class="line">    AVFrame *frame = av_frame_alloc();</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">int</span> got_picture;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">int64_t</span> in_channel_layout = av_get_default_channel_layout(cod_ctx-&gt;channels);</span><br><span class="line">    <span class="comment">//打开转码器</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">SwrContext</span> *<span class="title">convert_ctx</span> = <span class="title">swr_alloc</span>();</span></span><br><span class="line">    <span class="comment">//设置转码参数</span></span><br><span class="line">    convert_ctx = swr_alloc_set_opts(convert_ctx, out_channel_layout, sample_fmt, out_sample_rate, \</span><br><span class="line">            in_channel_layout, cod_ctx-&gt;sample_fmt, cod_ctx-&gt;sample_rate, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">    <span class="comment">//初始化转码器</span></span><br><span class="line">    swr_init(convert_ctx);</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//while循环，每次读取一帧，并转码</span></span><br><span class="line"> </span><br><span class="line">    <span class="keyword">while</span> (av_read_frame(fmt_ctx, packet) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line"> </span><br><span class="line">        <span class="keyword">if</span> (packet-&gt;stream_index == stream_index) &#123;</span><br><span class="line"> </span><br><span class="line">            <span class="comment">//解码声音</span></span><br><span class="line">            <span class="keyword">if</span> (avcodec_decode_audio4(cod_ctx, frame, &amp;got_picture, packet) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"decode error"</span>);</span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">            &#125;</span><br><span class="line"> </span><br><span class="line">            <span class="keyword">if</span> (got_picture &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">//转码</span></span><br><span class="line">                swr_convert(convert_ctx, &amp;buffer, MAX_AUDIO_FRAME_SIZE, (<span class="keyword">const</span> <span class="keyword">uint8_t</span> **)frame-&gt;data, frame-&gt;nb_samples);</span><br><span class="line"> </span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">"pts:%10lld\t packet size:%d\n"</span>, packet-&gt;pts, packet-&gt;size);</span><br><span class="line"> </span><br><span class="line">                fwrite(buffer, <span class="number">1</span>, buffer_size, out_fb);</span><br><span class="line">            &#125;</span><br><span class="line">            got_picture=<span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        av_free_packet(packet);</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    swr_free(&amp;convert_ctx);</span><br><span class="line"> </span><br><span class="line">    fclose(out_fb);</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="时序图"><a href="#时序图" class="headerlink" title="时序图"></a>时序图</h2><img src="/2019/12/11/直播/音频/aac解码/ffmpeg解码aac.jpg">
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.csdn.net/yinsui1839/article/details/80433677" target="_blank" rel="noopener">ffmpeg aac解码pcm</a></li>
+<li><a href="https://www.jianshu.com/p/6f69e4d1f874" target="_blank" rel="noopener">FFmpeg入门系列教程（三）</a> 视频解码，保存为yuv</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/ida/ida动态调试/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/12/06/逆向/Android/动态调试/ida/ida动态调试/" itemprop="url">ida动态调试</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T13:51:53+08:00">
+                2019-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="ida动态调试"><a href="#ida动态调试" class="headerlink" title="ida动态调试"></a>ida动态调试</h1><p>支持动态调试 dex，so，二进制文件</p>
+<h1 id="dex动态调试"><a href="#dex动态调试" class="headerlink" title="dex动态调试"></a>dex动态调试</h1><p>网上的教程都是ida6.6调试dex，<br>但是自己在红米真机一直不能操作成功<br>    Permission denied 然后 the file cannot be loaded by the debugger plugin<br>然后Google中看到一篇老外的英文文章，ida调试Android二进制文件<br>最后在 Android软件安全与逆向分析8.5也看到一样的内容<br>以为总算看到了正确方法，而网上的教程都是错误的。<br>后来在模拟器环境调试才发现网上 ida6.6调试dex 是正确的</p>
+<p>打开classes.dex</p>
+<p>Debugger-&gt;Debugger Options<br>    勾选在进程入口挂起，suspend on process entry point<br>    点击Set specific options 填入APP包名和入口activity<br>        对应manifest的package name 和 activity的完整路径<br>        <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.simpleencryption"><br>        <activity android:label="@string/app_name" android:name=".MainActivity"></activity></manifest></p>
+<p>Debugger-&gt;Process Options<br>    端口这里改为8700。<br>    这里默认端口是23946，我在这里困扰了很久，就是因为这个端口没有改为8700所致<br>    apk调试端口。ddms里面可以看到（后面为调试端口）</p>
+<p>下断点，f9运行，ida弹框running（无法取消），<br>    只有触发断点才能自动取消running提示框，然后操作ida</p>
+<p>debugger–debugger window–locals<br>    该窗口可以看到本地变量，但是值都表示为bad type（hex 格式显示也是这样）    </p>
+<h1 id="so动态调试"><a href="#so动态调试" class="headerlink" title="so动态调试"></a>so动态调试</h1><p>ida动态调试安卓动态链接库so（远程附加调试）</p>
+<p>必须先运行一遍功能代码，从而加载so库</p>
+<p>step 1:move android_server to your target and execute</p>
+<p>step 2: port forwarding</p>
+<p>step 3:apk必须先运行一遍功能代码，从而加载so库</p>
+<p>step 4: IDA Pro Configuration<br>    debugger–attach – remore armlinux/anroid debugger<br>    选择进程，进入调试界面</p>
+<pre><code>这时候发现不是在我们要调试的so库（libdebugjniso.so）领空（本例在libc.so）
+用一个ida打开要调试so库，function Window找到要下断方法偏移地址（本例0xc38）
+回到调试ida，ctr+s 打开段选择对话框，找到调试so库基址（两个同名的，取第一个），48a64000
+基址+偏移，快捷键g跳转到该地址（48a64c38），右键-code，下断。
+
+操作apk（设置标题功能），断下
+    apk附加调试后，操作一直假死，没有操作成功
+</code></pre><p>问题：附加不上端口<br>    ida报错：<br>        irs_recv: 等待的操作过时。<br>    cmd日志：<br>        [1] Accepting connection from 127.0.0.1…<br>        [1] Could not establish the connection<br>        [1] Closing connection from 127.0.0.1…</p>
+<h1 id="二进制文件动态调试"><a href="#二进制文件动态调试" class="headerlink" title="二进制文件动态调试"></a>二进制文件动态调试</h1><p>ida动态调试安卓二进制文件（原生应用，远程运行调试）</p>
+<p><a href="http://finn.svbtle.com/remotely-debugging-android-binaries-in-ida-pro" target="_blank" rel="noopener">http://finn.svbtle.com/remotely-debugging-android-binaries-in-ida-pro</a><br>Android软件安全与逆向分析8.5</p>
+<p>必须使用ida6.1版本32位版<br>    6.6版本debugger菜单下没有 run – remore armlinux/anroid debugger<br>    后来在模拟器环境调试才发现是有的，一直觉得没有。是因为加载了dex后的确没有（所有版本都这样）<br>网上的教程都是ida6.6调试dex，最后在 Android软件安全与逆向分析8.5总算看到了正确方法。<br>后来在模拟器环境调试才发现网上 ida6.6调试dex 是正确的</p>
+<p>64位版本远程附加调试报错是 Incompatible debugging server: address size is 4 bytes, expexted 4<br>然后提示the file cannot be loaded by the debugger plugin<br>自然想到32位，切换一看，成功</p>
+<p>老外网站提到的另一种无法加载文件错误<br>无法the file cannot be loaded by the debugger plugin 修复<br><a href="http://finn.svbtle.com/error-the-file-cant-be-loaded-by-the-debugger-plugin" target="_blank" rel="noopener">http://finn.svbtle.com/error-the-file-cant-be-loaded-by-the-debugger-plugin</a></p>
+<pre><code>step 1:move android_server to your target and execute
+    Push the android_server
+        adb push &quot;C:\Program Files (x86)\IDA 6.6\dbgsrv\android_server&quot; /data/local/tmp
+        IDA 6.6\dbgsrv\android_server
+        有人说ida6.4版本后已经移除（反正我6.6还有），同目录下有Android,linux,mac,arm等远程服务
+    Connect to your device and navigate to /data/local/tmp
+        adb shell
+        su
+        cd /data/local/tmp
+        ll 列出目录下所有文件信息（包含隐藏文件，文件权限，比ls详细）
+    Set permissions
+        chmod 755 /data/local/tmp/android_server
+    Execute android_server
+        ./android_server    
+        Listening on port #23946...执行后反馈显示。保留该cmd窗口，观察后续连接反馈
+
+step 2: port forwarding
+    adb forward tcp:23946 tcp:23946 在计算机上另开一个cmd
+        We can confirm this has worked by running:
+        netstat -a -n | findstr 23946
+        TCP    127.0.0.1:23946        0.0.0.0:0              LISTENING
+
+step 3: move binaries to your target and executable
+    adb push &quot;C:\debugnativeapp&quot; /data/local/tmp/debugnativeapp
+    chmod 755 /data/local/tmp/debugnativeapp
+
+step 4: IDA Pro Configuration
+    debugger--run -- remore armlinux/anroid debugger
+    最关键的，自己在这里困扰很久。作者也说他在这里经历过所有错误
+    主要核心看ida 最上面的note可知：all paths must be valid on the remote computer
+        而国内千篇一律的教程是本地计算机路径
+        ida6.6没有该菜单，相似的Debugger &gt; Process Options
+            默认填的就是我们选的dex路径（讲dex调试和二进制文件调试肯定不一样），大家也不改
+            后来在模拟器环境调试才发现，是因为加载了dex后才没有（所有版本都这样）
+    路径填 /data/local/tmp/debugnativeapp
+    目录 /data/local/tmp
+    hostName localhost 
+    port 23946
 </code></pre>
           
         
@@ -1461,7 +1247,7 @@ tar -jcvf log.tar.bz2 1.log 打包后，以 bzip2 压缩
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/16/电脑使用/linux/ssh使用/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/TraceReader分析方法调用记录/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1480,7 +1266,7 @@ tar -jcvf log.tar.bz2 1.log 打包后，以 bzip2 压缩
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/09/16/电脑使用/linux/ssh使用/" itemprop="url">ssh使用</a></h1>
+                <a class="post-title-link" href="/2019/12/06/逆向/Android/动态调试/TraceReader分析方法调用记录/" itemprop="url">TraceReader分析方法调用记录</a></h1>
         
 
         <div class="post-meta">
@@ -1492,8 +1278,8 @@ tar -jcvf log.tar.bz2 1.log 打包后，以 bzip2 压缩
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-16T17:32:53+08:00">
-                2019-09-16
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T13:41:53+08:00">
+                2019-12-06
               </time>
             
 
@@ -1515,8 +1301,8 @@ tar -jcvf log.tar.bz2 1.log 打包后，以 bzip2 压缩
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
                   </a>
                 </span>
 
@@ -1554,39 +1340,9 @@ tar -jcvf log.tar.bz2 1.log 打包后，以 bzip2 压缩
       
         
           
-            <p>Secure Shell</p>
-<p>Linux/Unix 支持四种远程连接协议</p>
-<ul>
-<li>ssh。安全shell</li>
-<li>telnet。远程登录</li>
-<li>ftp。文件传输</li>
-<li>sftp。安全文件传输。支持的shell命令有限。rm只能删除文件</li>
-</ul>
-<h1 id="登录"><a href="#登录" class="headerlink" title="登录"></a>登录</h1><p><code>ssh root@192.168.25.137</code></p>
-<p>登录之后支持执行 shell</p>
-<h1 id="安全拷贝-scp"><a href="#安全拷贝-scp" class="headerlink" title="安全拷贝 scp"></a>安全拷贝 scp</h1><p>scp是远程安全拷贝，cp为本地拷贝</p>
-<p>可以推送过去，也可以拉过来                   </p>
-<p>每次都是全量拷贝(效率不高，适合第一次)，增量拷贝用 <code>rsync</code></p>
-<p><code>scp [-r递归，文件夹] [src源路径] [dest目标路径]</code></p>
-<pre><code>把本机/var/www/目录下的test.php文件上传到192.168.0.101这台服务器上的/var/www/目录中  
-scp /var/www/test.php root@192.168.0.101:/var/www/
-</code></pre><h1 id="sftp"><a href="#sftp" class="headerlink" title="sftp"></a>sftp</h1><p>基于ssh的安全加密传输 </p>
-<h2 id="sftp-user-ip-或者域名"><a href="#sftp-user-ip-或者域名" class="headerlink" title="sftp user@ip(或者域名)"></a>sftp user@ip(或者域名)</h2><p>输入密码，建立sftp连接</p>
-<p>登录成功，所有命令都是默认在远程服务器执行。</p>
-<p>想在本地执行，命令前前缀 <code>!</code> 或 <code>l</code> ，例如 <code>!pwd</code> <code>lpwd</code></p>
-<h2 id="目录查到"><a href="#目录查到" class="headerlink" title="目录查到"></a>目录查到</h2><ul>
-<li>pwd 查看远程服务器当前目录</li>
-<li>lpwd 查看本地当前目录</li>
-<li>ls 查看远程服务器当前目录的文件</li>
-<li>lls 查看本地当前目录的文件</li>
-</ul>
-<h2 id="文件传输"><a href="#文件传输" class="headerlink" title="文件传输"></a>文件传输</h2><ul>
-<li>put local [remote] 上传</li>
-<li>get remote [local] 下载</li>
-</ul>
-<p>如果是传输文件夹，加上 <code>-r</code> 参数</p>
-<p>建议打包上传。文件夹目录结构复杂的话，特别耗时</p>
-<h2 id="exit和quit"><a href="#exit和quit" class="headerlink" title="exit和quit"></a>exit和quit</h2>
+            <p><a href="https://github.com/panhongwei/TraceReader" target="_blank" rel="noopener">TraceReader</a></p>
+<p>Android的Method Profiling功能，是可以在一段时间内记录所有运行过的函数，最后生成一个xxx.trace文件</p>
+
           
         
       
@@ -1634,7 +1390,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/05/NDK/使用JNI_OnLoad动态注册Native函数/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/adb logcat 使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1653,7 +1409,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/09/05/NDK/使用JNI_OnLoad动态注册Native函数/" itemprop="url">使用JNI_OnLoad动态注册Native函数</a></h1>
+                <a class="post-title-link" href="/2019/12/06/逆向/Android/动态调试/adb logcat 使用/" itemprop="url">adb logcat 使用</a></h1>
         
 
         <div class="post-meta">
@@ -1665,8 +1421,8 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-05T11:39:14+08:00">
-                2019-09-05
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T13:41:53+08:00">
+                2019-12-06
               </time>
             
 
@@ -1688,8 +1444,8 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
                   </a>
                 </span>
 
@@ -1727,32 +1483,421 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
       
         
           
-            <h1 id="JNI-OnLoad"><a href="#JNI-OnLoad" class="headerlink" title="JNI_OnLoad"></a>JNI_OnLoad</h1><p>加载so,虚拟机先自动执行JNI_OnLoad；</p>
-<p>卸载so,虚拟机先自动执行JNI_UnLoad；</p>
-<h1 id="传统java-Jni方式"><a href="#传统java-Jni方式" class="headerlink" title="传统java Jni方式"></a>传统java Jni方式</h1><ol>
-<li>编写带有native方法的Java类</li>
-<li>使用javah命令生成.h头文件</li>
-<li>编写代码实现头文件中的方法</li>
+            <p>logcat [options] [filterspecs]</p>
+<p><strong>options include:</strong></p>
+<pre><code>-s    Set default filter to silent.Like specifying filterspec &apos;*:s&apos;
+</code></pre><p><strong>filterspecs</strong></p>
+<pre><code>V    Verbose
+D    Debug
+I    Info
+W    Warn
+E    Error
+F    Fatal
+S    Silent (supress all output)
+</code></pre><ol>
+<li><p>查看warning以上的log</p>
+<p> adb logcat *:w</p>
+</li>
+<li><p>过滤查看dalvikvm标签的log</p>
+<p> logcat的过滤方式有点儿怪异，要设定为silent,在此基础上设置的tag过滤才成功。</p>
+<p> adb logcat -s dalvikvm 或者 adb logcat dalvikvm *:s 或者 adb logcat -s dalvikvm:D</p>
+<p> 结果如下 D/dalvikvm( 257): GC freed 1191 objects / 343344 bytes in 65ms</p>
+</li>
+<li><p>过滤多个app 的log</p>
+<p> adb logcat -s dalvikvm vold</p>
+</li>
+<li><p>过滤exception栈</p>
+<p> new Exception(“lyg”).printStackTrace(); tag是System.err 级别为Warn</p>
+<p> adb logcat -s System.err：W</p>
+</li>
+<li><p>log保存到文件</p>
+<p> adb logcat &gt; 1.txt (“&gt;”是windows用的数据流导向符号）</p>
+</li>
 </ol>
-<h1 id="RegisterNatives"><a href="#RegisterNatives" class="headerlink" title="RegisterNatives"></a>RegisterNatives</h1><p>使用RegisterNatives方法把c/c++中的方法映射到Java中的native方法</p>
-<h1 id="使用RegisterNatives步骤"><a href="#使用RegisterNatives步骤" class="headerlink" title="使用RegisterNatives步骤"></a>使用RegisterNatives步骤</h1><ul>
-<li><p>在c/c++文件中定义并实现对应java中声明的本地方法，方法名称随意，但是参数类型和参数个数必须一样</p>
-</li>
-<li><p>创建声明JNINativeMethod类型的数组，值为需要动态加载映射的本地方法</p>
-</li>
-<li><p>实现JNI_OnLoad方法，主要分为下面两步：</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/gikdbg动态调试dex和so工具使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/12/06/逆向/Android/动态调试/gikdbg动态调试dex和so工具使用/" itemprop="url">gikdbg动态调试dex和so工具使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T13:41:53+08:00">
+                2019-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>官网下载 gikdbg.art
+唯一4.4.2版本，root，开启art模式，可以调试dex和so库
+</code></pre><p>运行模拟器</p>
+<p>打开gikdbg.art.exe，执行ART Debug – server – adb device 选择设备，双击， 连接到设备</p>
+<p>第一次连接到该远程设备，会提示安装gikdbg.apk（位于artserver目录下）<br>    也可以自己手动安装</p>
+<p>设备上运行需要调试的apk</p>
+<p>ART Debug – file – attach 选择进程，双击，进入该进程</p>
+<p>ART Debug – view – module（alt + m）打开模块，选择要调试的dex或so模块，双击，进入到该模块</p>
+<p>右键–search–function 搜索函数，断点，运行（f9必须快捷键）</p>
+<p>发现断不下来（不知道是因为没找对函数地址还是真的断不下来。看不懂arm汇编码）</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/打开调试模式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/12/06/逆向/Android/动态调试/打开调试模式/" itemprop="url">打开调试模式</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T13:41:53+08:00">
+                2019-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>根据android的官方文档，如果要调试一个apk里面的dex代码，只要满足以下两个条件中的一个就行：</p>
+<ol>
+<li><strong>APP debuggable</strong>。apk中的AndroidManifest.xml文件中的Application标签属性android:debuggable=”true”（release包默认false）</li>
+<li><strong>系统debuggable</strong> <code>/default.prop</code>中ro.debuggable的值为1（默认为0）</li>
+</ol>
+<h1 id="APP-debuggable"><a href="#APP-debuggable" class="headerlink" title="APP debuggable"></a>APP debuggable</h1><h2 id="重打包apk"><a href="#重打包apk" class="headerlink" title="重打包apk"></a>重打包apk</h2><ul>
+<li>反编译apk</li>
+<li>修改 android:debuggable</li>
+<li>编译、签名、安装</li>
+<li>动态调试</li>
+</ul>
+<h3 id="存在的问题"><a href="#存在的问题" class="headerlink" title="存在的问题"></a>存在的问题</h3><ul>
+<li>重打包流程繁琐</li>
+<li>部分apk加壳</li>
+<li>部分apk自校验检测</li>
+</ul>
+<h2 id="hook"><a href="#hook" class="headerlink" title="hook"></a>hook</h2><p>加载apk时的时候hook PackageManagerService.getPackageInfo()，使得该方法返回的包信息中都带有调试模式选项</p>
+<p>推荐使用</p>
+<h3 id="现成工具-BDOpener"><a href="#现成工具-BDOpener" class="headerlink" title="现成工具 BDOpener"></a>现成工具 BDOpener</h3><h3 id="Android应用的调试模式判断逻辑"><a href="#Android应用的调试模式判断逻辑" class="headerlink" title="Android应用的调试模式判断逻辑"></a>Android应用的调试模式判断逻辑</h3><p>Android应用的调试模式运行判断逻辑是在<code>ActivityThread.handleBindApplication()</code>中进行的。</p>
+<p>该函数 在Application的attach函数和onCreate函数之前执行，因此Apk程序会暂停等待调试器连接上，然后才执行Application的代码和Activity显示。</p>
+<p><a href="http://androidxref.com/4.4.4_r1/xref/frameworks/base/core/java/android/app/ActivityThread.java" target="_blank" rel="noopener">/frameworks/base/core/java/android/app/ActivityThread.java</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">handleBindApplication</span><span class="params">(AppBindData data)</span> </span>&#123;</span><br><span class="line">	...</span><br><span class="line">	<span class="comment">// LoadedApk info;	</span></span><br><span class="line">	data.info = getPackageInfoNoCheck(data.appInfo, data.compatInfo);</span><br><span class="line">    <span class="comment">// 判断Android应用是否打开调试模式</span></span><br><span class="line">    <span class="keyword">if</span> (data.debugMode != IApplicationThread.DEBUG_OFF) &#123;</span><br><span class="line">        <span class="keyword">if</span> (data.debugMode == IApplicationThread.DEBUG_WAIT) &#123;</span><br><span class="line">            <span class="comment">// 调试模式运行app并调试等待</span></span><br><span class="line">            Debug.waitForDebugger(); </span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//logcat 调试模式失败        </span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	...</span><br><span class="line">	<span class="comment">// 创建Android应用的Application类对象的实例并调用其attach方法；间接通过调用attach方法调用Android应用的attachBaseContext方法</span></span><br><span class="line">    Application app = data.info.makeApplication(data.restrictedBackupMode, <span class="keyword">null</span>);</span><br><span class="line">	</span><br><span class="line">	...</span><br><span class="line">	<span class="comment">// 调用Application的OnCreate方法</span></span><br><span class="line">	mInstrumentation.callApplicationOnCreate(app);</span><br></pre></td></tr></table></figure>
+<p><a href="http://androidxref.com/4.4.4_r1/xref/frameworks/base/core/java/android/content/pm/ApplicationInfo.java" target="_blank" rel="noopener">/frameworks/base/core/java/android/content/pm/ApplicationInfo.java</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Value for &#123;<span class="doctag">@link</span> #flags&#125;: if set, this application is installed in the</span></span><br><span class="line"><span class="comment">* device's system image.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> FLAG_SYSTEM = <span class="number">1</span>&lt;&lt;<span class="number">0</span>;</span><br><span class="line">   </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> FLAG_DEBUGGABLE = <span class="number">1</span>&lt;&lt;<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+<h3 id="hook原理"><a href="#hook原理" class="headerlink" title="hook原理"></a>hook原理</h3><p>java Hook “com.android.server.pm.PackageManagerService.getPackageInfo()”，为该函数返回值PackageInfo对象中的实例成员变量flags增加调试模式。这用每次调用该方法返回的包信息中都带有调试模式选项</p>
+<p>Xposed Hook的插件代码：</p>
+<pre><code class="java"><span class="meta">@Override</span>
+<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleLoadPackage</span><span class="params">(<span class="keyword">final</span> LoadPackageParam lpparam)</span> <span class="keyword">throws</span> Throwable </span>{
+    <span class="keyword">final</span> <span class="keyword">int</span> FLAG_DEBUGGABLE = <span class="number">1</span>&lt;&lt;<span class="number">1</span>;<span class="comment">//调试标识</span>
+
+    Class&lt;?&gt; packageManagerService = 
+        XposedHelpers.findClass(<span class="string">"com.android.server.pm.PackageManagerService"</span>, lpparam.classLoader);
+    XC_MethodHook callback = <span class="keyword">new</span> XC_MethodHook() {
+        <span class="meta">@Override</span>
+        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">beforeHookedMethod</span><span class="params">(MethodHookParam param)</span></span>
+<span class="function">                <span class="keyword">throws</span> Throwable </span>{
+        }
+
+        <span class="meta">@Override</span>
+        <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">afterHookedMethod</span><span class="params">(MethodHookParam param)</span></span>
+<span class="function">                <span class="keyword">throws</span> Throwable </span>{
+            PackageInfo packageInfo = (PackageInfo) param.getResult();
+            <span class="keyword">if</span> (packageInfo != <span class="keyword">null</span>) {
+                ApplicationInfo applicationInfo = packageInfo.applicationInfo;
+                <span class="comment">// 没有开启调试模式选项</span>
+                <span class="keyword">if</span> ((nFlags &amp; FLAG_DEBUGGABLE) == <span class="number">0</span>) {
+                    nFlags |= FLAG_DEBUGGABLE;<span class="comment">//增加调试模式选项</span>
+                }
+                applicationInfo.flags = nFlags;
+                param.setResult(packageInfo);<span class="comment">//修改函数的返回值</span>
+            }
+        }
+    };
+    <span class="comment">// 执行java Hook操作</span>
+    XposedBridge.hookAllMethods(packageManagerService, <span class="string">"getPackageInfo"</span>, callback);
+</code></pre>
+<h1 id="系统-sdebuggable"><a href="#系统-sdebuggable" class="headerlink" title="系统 sdebuggable"></a>系统 sdebuggable</h1><p><code>/default.prop</code>是系统文件，只读</p>
+<h2 id="重编译系统"><a href="#重编译系统" class="headerlink" title="重编译系统"></a>重编译系统</h2><ul>
+<li>下载适配的源码</li>
+<li>编译</li>
+<li>刷手机系统</li>
+</ul>
+<h3 id="存在的问题-1"><a href="#存在的问题-1" class="headerlink" title="存在的问题"></a>存在的问题</h3><ul>
+<li>商业系统不开源，难找到适配源码</li>
+<li>编译和刷机过程坑很多，需要对系统有一定深入</li>
+</ul>
+<h2 id="重打包系统"><a href="#重打包系统" class="headerlink" title="重打包系统"></a>重打包系统</h2><ul>
+<li>获取适配的boot.img</li>
+<li>解压。使用工具（abootimg，gunzip, cpio）</li>
+<li>修改 <code>default.prop</code></li>
+<li>重打包</li>
+<li>刷手机系统</li>
+</ul>
+<h3 id="存在的问题-2"><a href="#存在的问题-2" class="headerlink" title="存在的问题"></a>存在的问题</h3><ul>
+<li>流程繁琐</li>
+</ul>
+<h2 id="注入init进程"><a href="#注入init进程" class="headerlink" title="注入init进程"></a>注入init进程</h2><p>Android系统初始化时，init进程会解析系统属性文件，然后将其保存到内存中去，以便给所有应用提供服务，所以在init进程的内存块中是存在这些属性的；</p>
 <ul>
-<li>通过FindClass获取所需的映射的java类</li>
-<li>通过jint RegisterNatives(jclass clazz, const JNINativeMethod* methods, jint nMethods) 方法动态注册</li>
+<li>注入</li>
+<li>修改</li>
+<li>重启adbd</li>
 </ul>
-</li>
+<p>需要注意，虽然已经修改了内存中的值，但需要重启adbd进程才能重新加载所有应用的连接信息，因为它是adb的守护进程；</p>
+<p>重启adbd进程，直接stop;start即可；</p>
+<h3 id="现成工具-mprop"><a href="#现成工具-mprop" class="headerlink" title="现成工具 mprop"></a>现成工具 mprop</h3><p>运行 <code>./mprop setprop ro.debuggable 1</code>命令即可</p>
+<h3 id="存在的问题-3"><a href="#存在的问题-3" class="headerlink" title="存在的问题"></a>存在的问题</h3><ul>
+<li>系统重启，需要重新注入init进程修改；手机重启频率不高，可以接受</li>
 </ul>
-<h1 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JniOnloadTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">native</span> <span class="keyword">int</span>  <span class="title">javaAdd</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">native</span> String <span class="title">javaSayHi</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.loadLibrary(<span class="string">"test-lib"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>jniload.cpp</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;android/log.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  LOG_TAG    <span class="meta-string">"liuhang"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  LOGI(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> jint JNICALL <span class="title">cAdd</span><span class="params">(JNIEnv *env, jobject jobj, jint x, jint y)</span></span>&#123;</span><br><span class="line">    LOGI(<span class="string">"cAdd x is :%d  y is :%d"</span>, x, y);</span><br><span class="line">    <span class="keyword">return</span> x + y;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> jstring JNICALL <span class="title">cSayHi</span><span class="params">(JNIEnv *env, jobject jobj, jint x, jint y)</span></span>&#123;</span><br><span class="line">    LOGI(<span class="string">"cSayHi runs... will return a string in c"</span>);</span><br><span class="line">    <span class="keyword">return</span> env-&gt;NewStringUTF(<span class="string">"hello from cSayHi"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">   第一个参数：javaAdd 是java中的方法名称</span></span><br><span class="line"><span class="comment">   第二个参数：(II)I  是java中方法的签名，可以通过javap -s -p 类名.class 查看</span></span><br><span class="line"><span class="comment">   第三个参数： (jstring *)cSayHi  （返回值类型）映射到native的方法名称</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> JNINativeMethod gMethods[] = &#123;</span><br><span class="line">        &#123;<span class="string">"javaAdd"</span>, <span class="string">"(II)I"</span>, (jint *)cAdd&#125;,</span><br><span class="line">        &#123;<span class="string">"javaSayHi"</span>,<span class="string">"()Ljava/lang/String;"</span>,(jstring *)cSayHi&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> jclass myClass;</span><br><span class="line"><span class="comment">// 这里是java调用C的存在Native方法的类路径</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">char</span>* <span class="keyword">const</span> className=<span class="string">"com/jni/test/JniOnloadTest"</span>;</span><br><span class="line"><span class="function">JNIEXPORT jint JNICALL <span class="title">JNI_OnLoad</span><span class="params">(JavaVM* vm, <span class="keyword">void</span>* reserved)</span></span>&#123;</span><br><span class="line">    LOGI(<span class="string">"jni onload called"</span>);</span><br><span class="line">    JNIEnv* env = <span class="literal">NULL</span>; <span class="comment">//注册时在JNIEnv中实现的，所以必须首先获取它</span></span><br><span class="line">    jint result = <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">if</span>(vm-&gt;GetEnv((<span class="keyword">void</span> **) &amp;env, JNI_VERSION_1_4) != JNI_OK) &#123; <span class="comment">//从JavaVM获取JNIEnv，一般使用1.4的版本</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 获取映射的java类</span></span><br><span class="line">    myClass = env-&gt;FindClass(className);</span><br><span class="line">    <span class="keyword">if</span>(myClass == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">"cannot get class:%s\n"</span>, className);</span><br><span class="line">      <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 通过RegisterNatives方法动态注册</span></span><br><span class="line">    <span class="keyword">if</span>(env-&gt;RegisterNatives(myClass, gMethods, <span class="keyword">sizeof</span>(gMethods)/<span class="keyword">sizeof</span>(gMethods[<span class="number">0</span>])) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">"register native method failed!\n"</span>);</span><br><span class="line">      <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    LOGI(<span class="string">"jni onload called end..."</span>);</span><br><span class="line">    <span class="keyword">return</span> JNI_VERSION_1_4; <span class="comment">//这里很重要，必须返回版本，否则加载会失败。</span></span><br><span class="line">&#125;    </span><br><span class="line">```	</span><br><span class="line"></span><br><span class="line">java端调用</span><br><span class="line"></span><br><span class="line">```java</span><br><span class="line">JniOnloadTest jniOnloadTest = <span class="keyword">new</span> JniOnloadTest();</span><br><span class="line">Log.d(<span class="string">"liuhang"</span>, <span class="string">"jnionload add result is :"</span>+jniOnloadTest.javaAdd(<span class="number">1</span>, <span class="number">2</span>)+<span class="string">" sayhi is :"</span>+jniOnloadTest.javaSayHi());</span><br></pre></td></tr></table></figure>
-<img src="/2019/09/05/NDK/使用JNI_OnLoad动态注册Native函数/结果.png">
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.jianshu.com/p/f4b4b9006742" target="_blank" rel="noopener">使用JNI_OnLoad动态注册函数</a></li>
+<h1 id="参考-amp-链接"><a href="#参考-amp-链接" class="headerlink" title="参考&amp;链接"></a>参考&amp;链接</h1><ul>
+<li><a href="https://github.com/wpvsyou/mprop" target="_blank" rel="noopener">mprop</a></li>
+<li><a href="https://security.tencent.com/index.php/opensource/detail/17" target="_blank" rel="noopener">BDOpener——开启APK调试与备份选项的Xposed模块</a></li>
+<li><a href="https://blog.csdn.net/qq1084283172/article/details/80963610" target="_blank" rel="noopener">开启Android Apk调试与备份选项的Xposed模块的编写</a></li>
 </ul>
 
           
@@ -1802,7 +1947,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症八-播放杂音、噪音、回声/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/无源码调试Android dex/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1821,7 +1966,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/09/03/直播/直播疑难杂症/直播疑难杂症八-播放杂音、噪音、回声/" itemprop="url">直播疑难杂症八-播放杂音、噪音、回声</a></h1>
+                <a class="post-title-link" href="/2019/12/06/逆向/Android/动态调试/无源码调试Android dex/" itemprop="url">无源码调试Android dex</a></h1>
         
 
         <div class="post-meta">
@@ -1833,8 +1978,8 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T15:10:14+08:00">
-                2019-09-03
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T13:41:53+08:00">
+                2019-12-06
               </time>
             
 
@@ -1856,8 +2001,8 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
                   </a>
                 </span>
 
@@ -1895,37 +2040,116 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
       
         
           
-            <p>相比于视频而言，音频要敏感得多，视频画面有噪点、马赛克都还是可以勉强被接受，而声音一旦有任何瑕疵，人耳都会特别容易感觉到，而且难以忍受。</p>
-<h1 id="表现"><a href="#表现" class="headerlink" title="表现"></a>表现</h1><ul>
-<li><p>电流音，爆音，滋滋声或者嘟嘟声</p>
-</li>
-<li><p>声音断断续续，听不清楚</p>
-</li>
-<li><p>回声，同一个声音能听到两遍</p>
-</li>
+            <p>标 题: 【原创】阿里聚安全技术分享之APK无源码调试<br>作 者: alimobsec<br>时 间: 2014-12-18,14:42:14<br>链 接: <a href="http://bbs.pediy.com/showthread.php?t=195660" target="_blank" rel="noopener">http://bbs.pediy.com/showthread.php?t=195660</a><br>这年头，apk全都是加密啊，加壳啊，反调试啊，小伙伴们表示已经不能愉快的玩耍了。静态分析越来越不靠谱了<br>我们的目标是——“debug apk step by step”。</p>
+<p>那些不靠谱的工具<br>    IDA pro<br>    触发断点，在watch view和Locals窗口都能看到内存变量的值<br>    仔细观察下，就算你勾选了“Hex display”，你还是无法看到变量的值<br>    WTF！我特么忙活了半天居然还不如直接logcat来得痛快！</p>
+<pre><code>apktool+eclipse
+debug窗口表示命中第30行的断点
+variables窗口没有任何本地变量的值，寄存器的值也没有
+单步步入、单步步过等调试按钮都是灰色的，快捷键F5678都没反应
+测试失败
+
+apktool+android studio
+可以看到现在程序停在哪一行，虽然不明显
+本地变量能看到，但是寄存器还是木有啊
+单步按钮还有单步快捷键都能用了，看起来好多了啊
+我还是想说，问题是寄存器的值还是没法直观的看到啊
+测试失败
+</code></pre><p>apktool+idea 正菜来了<br>    下断点<br>    新建远程调试：依次点击run-&gt; edit configuration-&gt;“＋”号-&gt;Remote，命名为mytest<br>    run-&gt;debug-&gt;mytest<br>    断下，按两次resume，apk才能跑起来<br>    测试成功</p>
+<p>另外，阿呆曾经提到一篇文章用jdb远程调试android程序的文章，<br>链接为：<a href="http://resources.infosecinstitute.com/android-hacking-security-part-6-exploiting-debuggable-android-applications/" target="_blank" rel="noopener">http://resources.infosecinstitute.com/android-hacking-security-part-6-exploiting-debuggable-android-applications/</a></p>
+<p><a href="http://www.kanxue.com/bbs/showthread.php?p=1338639" target="_blank" rel="noopener">http://www.kanxue.com/bbs/showthread.php?p=1338639</a></p>
+<hr>
+<p>下载<a href="http://ibotpeaches.github.io/Apktool/install/" target="_blank" rel="noopener">最新版Apktool</a>，按照教程操作</p>
+<pre><code>个人推荐下载bat。把apktool.jar和apktool.bat放到同一目录即可。
+    一是不用每次都敲 java -jar apktool.jar apktool
+    二是在编译回apk时，cmd会把 b 参数解析成文件名（一直报找不到文件错误）
+</code></pre><p>apktool 加-d参数反编译成java文件，全部拷贝到一个空java工程src目录下<br>    其实是伪java。每一行都是a=0;然后smali作为行注释<br>    -d的作用就是编译成 debug模式（.java，不加的话是.smali）<br>    apktool d -d test.apk -o test</p>
+<p>manifest 加入debuggable属性，重打包，安装<br>    android:debuggable=”true”</p>
+<p>使用-d选项重打包apk，签名(其他签名工具)，安装<br>    加-d才可以调试，否则断点无效<br>    apktool b -d test -o debug.apk</p>
+<p>am命令启动apk，停留在等待调试器界面<br>    adb shell am start -D -W -n com.snda.wifilocating/com.lantern.launcher.ui.MainActivity<br>        出现ddms自动附加调试的话，尝试先让app进入等待调试模式，再开idea</p>
+<p>eclipse调试按钮更多，远程调试，地址local，端口调试端口，附加上就可以断点调试了。<br>    一直没成功。<br>    附加不上，<br>    附加上是把原来的等待调试的杀死，启动了新进程<br>    附加上了，断不下来</p>
+<p>有文章说在入口类入口方法第一行加 等待调试器代码（有api可调），可以远程附加调试<br>    onCreate第一行（.prologue后面）<br>    invoke-static {}, Landroid/os/Debug;-&gt;waitForDebugger()V<br>    的确会等待调试器附加，但是附加上去还是无法断点调试（断不下）</p>
+<p>有文章甚至说反编译为jar包，加入一个空java工程中，就可以实现远程附加断点调试<br>    尝试失败</p>
+<p>后来尝试用idea，成功！！</p>
+<p>必须用另一个idea打开一个Android工程（上面我们是java工程），才能在tools–Android–Android device monitor 打开ddms，查看目标程序的调试端口（8700），同时防止adb掉线</p>
+<p>新建远程调试：依次点击run-&gt; edit configuration-&gt;“＋”号-&gt;Remote，host写localhost，端口写上面查到的</p>
+<p>点击run-&gt;debug-&gt;unnamed，其中unnamed是第9步中新建的远程调试的名字<br>    如果adb掉线，会出现连接拒绝，重连adb即可解决。 Unable to open debugger port (localhost:8700): java.net.ConnectException “Connection refused: connect”</p>
+<h1 id="Smalidea-IntelliJ-IDEA-Android-Studio无源码调试"><a href="#Smalidea-IntelliJ-IDEA-Android-Studio无源码调试" class="headerlink" title="Smalidea+IntelliJ IDEA/Android Studio无源码调试"></a><a href="https://bbs.pediy.com/thread-220743.htm" target="_blank" rel="noopener">Smalidea+IntelliJ IDEA/Android Studio无源码调试</a></h1><p><a href="https://github.com/JesusFreke/smali/wiki/smalidea" target="_blank" rel="noopener">smalidea</a>是一个IntelliJ IDEA/Android Studio smali语言插件，可实现动态调试smali代码。支持14.1或以上版本的IDEA</p>
+<h2 id="一、反编译apk为smali"><a href="#一、反编译apk为smali" class="headerlink" title="一、反编译apk为smali"></a>一、反编译apk为smali</h2><ul>
+<li><p>baksmail:</p>
+<pre><code>java -jar baksmali-2.2.1.jar  d myapp.apk -o ~/projects/myapp/src
+</code></pre></li>
+<li><p>apktool:</p>
+<pre><code>java -jar apktool.jar d myapp.apk -o ~/projects/myapp/src
+</code></pre></li>
 </ul>
-<h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><h2 id="参数配置问题"><a href="#参数配置问题" class="headerlink" title="参数配置问题"></a>参数配置问题</h2><p>音频是一个特别敏感的东西，涉及到许多参数配置，一旦配置不太匹配，就会导致声音听起来非常诡异（比如：采样率是 32000Hz 的音频，给播放器配置为 8000Hz 或者 44100Hz，就明显会出现音频慢放或者快放的效果）。</p>
-<p>我们只需要注意的是，无论是采集和播放，都要给系统的 API 以及第三方的库配置正确的参数，如：采样率、位宽、声道数等等。</p>
-<h2 id="代码层面"><a href="#代码层面" class="headerlink" title="代码层面"></a>代码层面</h2><h3 id="音频-buffer-大小不匹配"><a href="#音频-buffer-大小不匹配" class="headerlink" title="音频 buffer 大小不匹配"></a>音频 buffer 大小不匹配</h3><p>一段 1024 bytes 的音频，放到了 2048 bytes 的数组，导致尾部有随机数</p>
-<h3 id="重采样的算法问题"><a href="#重采样的算法问题" class="headerlink" title="重采样的算法问题"></a>重采样的算法问题</h3><p>音频 resample 重采样的算法问题，导致采样出来的数据出了问题</p>
-<h3 id="Android-的-ByteBuffer-取出数组"><a href="#Android-的-ByteBuffer-取出数组" class="headerlink" title="Android 的 ByteBuffer 取出数组"></a>Android 的 ByteBuffer 取出数组</h3><p>不能直接用 .array() 方法的，而需要用 .get() 方法</p>
-<h3 id="iOS-的-AudioSession采样率被更改"><a href="#iOS-的-AudioSession采样率被更改" class="headerlink" title="iOS 的 AudioSession采样率被更改"></a>iOS 的 AudioSession采样率被更改</h3><p>iOS 系统，其他 app 通过系统 API 更改了 AudioSession 采样率的配置</p>
-<h3 id="混音越界"><a href="#混音越界" class="headerlink" title="混音越界"></a>混音越界</h3><p>音频的 PCM 数据，通常用 short 数组来存放，当我们做一些多路音频的混音功能的时候，如果不注意处理 short 类型的大小越界，则往往带来爆音的问题。下面是一段参考 webrtc 的混音代码，专门针对混音越界做了简单处理，可以参考参考：</p>
-<img src="/2019/09/03/直播/直播疑难杂症/直播疑难杂症八-播放杂音、噪音、回声/webrtc混音防越界代码.png">
-<h2 id="网络宽带不足"><a href="#网络宽带不足" class="headerlink" title="网络宽带不足"></a>网络宽带不足</h2><p>视频是一帧一帧连续的图像构成的，在播放过程中，如果无法按时渲染，则会出现卡顿的效果；如果丢失几帧画面，则会出现快进效果。</p>
-<p>而音频是流式的，虽然也被切分为了一个个音频帧，但如果无法按时播放或者连续丢失较多的音频帧，则会明显听到断断续续的声音出现。特别是在弱网、丢包率高等不稳定网络环境下，很容易出现这种情况。</p>
-<p>表现为 帧缓冲区为空</p>
-<p>复现的网速阈值：差不多是最低网速需求的40%-50%；</p>
-<p>比如，当前直播的最低网速要求是112 kBps；将手机网络模拟为 500 kbps；</p>
-<h2 id="设备性能不足"><a href="#设备性能不足" class="headerlink" title="设备性能不足"></a>设备性能不足</h2><p>设备性能不足的情况下，容易出现虽然帧缓冲区数据充足，但是解码不及时，导致无法播放，也会听到断断续续的声音出现</p>
-<p>表现为 显示缓冲区为空</p>
-<p>复现的CPU阈值：CPU使用率80%</p>
-<h2 id="解码失败"><a href="#解码失败" class="headerlink" title="解码失败"></a>解码失败</h2><h2 id="音频丢帧"><a href="#音频丢帧" class="headerlink" title="音频丢帧"></a>音频丢帧</h2><h2 id="回声"><a href="#回声" class="headerlink" title="回声"></a>回声</h2><p>回声一般出现在同时有音频的采集和播放的场景，比如：连麦互动、混音返听等等，采集到的音频通过扬声器又播放出来了，同时又被采集了进去，从而产生了回声或者啸叫声。</p>
-<p>这样的场景下，一般需要通过系统的回声消除 API，或者第三方回声消除库（如：speexdsp，webrtc 等）进行处理。</p>
-<p>注意：很多 Android 机型硬件自带的回声消除效果并不是很好。</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.qiniu.com/archives/8524" target="_blank" rel="noopener">《直播疑难杂症排查》系列之八：播放杂音、噪音、回声</a></li>
+<h2 id="使apk可调试"><a href="#使apk可调试" class="headerlink" title="使apk可调试"></a>使apk可调试</h2><ul>
+<li>使用模拟器</li>
+<li>重打包apk。修改Manifest application 属性 android:debuggable=”true”</li>
+<li>编译一个debug版 的rom</li>
+<li>修改测试机的 /default.prop 文件的ro.debuggable=1。需root</li>
 </ul>
+<h2 id="开始调试"><a href="#开始调试" class="headerlink" title="开始调试"></a>开始调试</h2><hr>
+<p>来自 看雪 古河 使用AndBug调试Android Java Bytecode<br>    <a href="http://bbs.pediy.com/showthread.php?t=141995" target="_blank" rel="noopener">http://bbs.pediy.com/showthread.php?t=141995</a></p>
+<pre><code>附参考：看雪 anbn Android动态逆向分析工具（一）——Andbug之基本操作 系列。更加详细
+    http://bbs.pediy.com/showthread.php?t=183412
+</code></pre><p>AndBug的主页是：<a href="https://github.com/swdunlop/AndBug" target="_blank" rel="noopener">https://github.com/swdunlop/AndBug</a></p>
+<p>必须Linux环境（我是Ubuntu 14）。Python开发，需要python-dev，bottle库（Python Web Framework）</p>
+<p>github下载后解压，进入根目录，开启终端，make<br>    make 报错就是没有python-dev（Ubuntu自带Python，但没有python-dev）<br>        sudo apt-get install python-dev</p>
+<p>在模拟器中启动apk，在命令行下输入 adb shell ps，找到相应的进程pid，在这个例子中pid是243<br>    apk 必须debuggable，否则附加调试会出现 Connection reset by peer 错误</p>
+<pre><code>Ubuntu adb 问题。
+    sudo add-apt-repository ppa:nilarimogard/webupd8
+    sudo apt-get update
+    sudo apt-get install android-tools-adb
+
+安卓设备连接 adb 问题
+    lsusb 配合插拔usb设备，确定 USB设备。
+    发现usb口是当前使用的端口：Bus 002 Devices 004：ID 230b:0100        
+    ID 230b 就是idVendor ，0100就是 idProduct
+
+    新建并编辑一个文件
+    sudo vi /etc/udev/rules.d/70-android.rules
+    在里面写入：
+    SUBSYSTEM==&quot;usb&quot;, ATTRS{idVendor}==&quot;230b&quot;, ATTRS{idProduct}==&quot;0100&quot;,MODE=&quot;0666&quot;
+        ID 230b 就是idVendor ，0100就是 idProduct
+        其实还应该写一个OWNER项，用来指定是哪个用户有权限操作
+        如果不写则是root（不是所有用户都可以访问）
+
+    保存退出，再设置一下权限
+    sudo chmod a+rx /etc/udev/rules.d/70-android.rules
+
+    向adb_usb.ini文件写入厂商id（注意加 0x前缀）
+    echo 0x230b &gt; ~/.android/adb_usb.ini
+        用户根目录下，ls -a 可以发现
+
+    重启USB服务
+    sudo service udev restart
+</code></pre><p>进入AndBug根目录，输入PYTHONPATH=lib ./andbug shell -p 8723，命令attach上目标进程<br>    andbug是Python脚本，andbug shell 附加调试命令<br>    adb shell ps | grep “com.yuki” 可以找到对应名字的pid</p>
+<pre><code>[Errno 104] Connection reset by peer 问题
+搜索了好久，包括原贴和官网上都没有解决。
+我尝试去attach其它进程，发现其它进程是可以成功的，
+继而我想到可能是debuggable的问题，逆向AndroidManifest添加 android:debuggable=true 成功。
+</code></pre><p>classes 命令，查看apk调用了哪些类<br>    classes java.net 查看调用的包含java.net的类</p>
+<p>methods 命令，查看apk调用了哪些类方法</p>
+<p>break java.net.URL 断点类调用。<br>    也可断点方法调用 break 类名 方法名（类名和方法名间空格）<br>    Android4.4.2上实际操作发现断java.net.URL会在触摸屏幕触发断点<br>         com.android.okhttp.Connection.connect 这个断点效果好<br>         break com.android.okhttp.Connection connect</p>
+<p>break-list命令查看断点设置情况<br>break-remove 536870916    删除已设置断点</p>
+<p>操作apk，触发断点</p>
+<p>navi命令，提示 server地址<a href="http://localhost:8080" target="_blank" rel="noopener">http://localhost:8080</a> 查看线程状态<br>    !! command not supported: “navi.”  问题<br>    这是需要 bottle库（Python Web Framework）<br>        apt-get install python-bottle</p>
+<pre><code>Error: 500 Internal Server Error 问题
+访问http://localhost:8080 错误。
+解释说是地址，或资源问题。没有搞定（rooted红米note1 Android4.4.2）
+后来过了很长一段时间，用华为 g521-L076 测试成功（rooted，Android4.3）
+</code></pre><p>resume 恢复运行</p>
+<p>suspend 进程暂停命令</p>
+<p>help 帮助命令</p>
+<p>class-trace 类跟踪命令<br>取消跟踪也可以使用break-remove命令实现。</p>
+<p>method-trace 方法跟踪命令</p>
+<p>列举当前线程信息<br>命令：threads 会列出函数调用的情况，参数，以及堆栈情况。</p>
+<p>示指定类中的静态变量的信息<br>命令：statics com.android.internal.view.menu.MenuBuilder</p>
+<p>查看对象信息<br>通过class-trace命令可以跟踪到目标函数中对象的Id信息，</p>
+<p>通过对象的Id使用inspect命令，可以查处该队形的详细信息。<br>由于在break命令设置断点后，触发断点时反馈的信息，没有包含Object Id的信息，导致inspect命令用起来不是很方便。</p>
+<p>19、源码关联命令<br>命令：source 与源代码关联起来，可以是smali代码。<br>命令：dump 展示指定方法的代码。</p>
+<p>20、Web输出命令<br>命令：navi<br>注：为了支持navi命令，需要安**ottle库。</p>
+<p>退出命令<br>命令：exit     </p>
 
           
         
@@ -1974,7 +2198,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/jswat 无源码动态调试/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1993,7 +2217,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/" itemprop="url">直播疑难杂症二-卡顿</a></h1>
+                <a class="post-title-link" href="/2019/12/06/逆向/Android/动态调试/jswat 无源码动态调试/" itemprop="url">jswat无源码动态调试</a></h1>
         
 
         <div class="post-meta">
@@ -2005,8 +2229,8 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T15:08:14+08:00">
-                2019-09-03
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T11:51:53+08:00">
+                2019-12-06
               </time>
             
 
@@ -2028,8 +2252,8 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
                   </a>
                 </span>
 
@@ -2067,42 +2291,46 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
       
         
           
-            <h1 id="表现"><a href="#表现" class="headerlink" title="表现"></a>表现</h1><p>包括但不限于以下这些：</p>
-<ul>
-<li><p>频繁出现缓冲</p>
+            <p><a href="http://blog.csdn.net/douniwan5788/article/details/17657665" target="_blank" rel="noopener">Android 无源码动态调试</a> </p>
+<p><a href="http://bbs.pediy.com/showthread.php?p=1277276" target="_blank" rel="noopener">jswat无源码动态调试</a> </p>
+<h2 id="rooadb-jswat-AndBug-jdb"><a href="#rooadb-jswat-AndBug-jdb" class="headerlink" title="rooadb + jswat(AndBug,jdb)"></a>rooadb + jswat(AndBug,jdb)</h2><p>Android无原码动态调试无敌了！ </p>
+<p>rootadb 可以以root启动adbd并使用其自带工具setpropex修改ro.debuggable = 1。（droid4x海马玩模拟器自带调试属性也可以）</p>
+<p>jswat、andbug、jdb都是可以无源码调试java的debuger</p>
+<ol>
+<li>jswat有GUI，java写的跨平台</li>
+<li>AndBug Linux下编译比较方便，Windows要自己搭建mingw环境</li>
+<li><p>jdb最强大。而且是jdk的一部分，免费且跨平台。命令行操作</p>
+<pre><code>gdbserver在ndk目录下的prebuilt文件夹，选择对应cpu即可
+gdb是GNU开源组织发布的一个强大的UNIX下的程序调试工具。
+也可以自己下载编译，同时获得gdb的客户端和服务端。
+</code></pre></li>
+</ol>
+<p>链接</p>
+<p><a href="https://github.com/poliva/rootadb" target="_blank" rel="noopener">rootadb下载</a></p>
+<p><a href="https://drive.google.com/folderview?id=0B8-CbCFlTA3nOVhZREhIcXBvT2c&amp;usp=sharing" target="_blank" rel="noopener">jswat下载</a></p>
+<pre><code>google 编译好的版本：如果是windows建议下exe安装版本,jar安装版好像环境变量有点问题
+</code></pre><p><a href="https://github.com/swdunlop/AndBug" target="_blank" rel="noopener">AndBug下载</a></p>
+<h2 id="附加进程-session–attach"><a href="#附加进程-session–attach" class="headerlink" title="附加进程 session–attach"></a>附加进程 session–attach</h2><p>附加进程有多中方式，下面是最常用的两种</p>
+<ol>
+<li><p>attach by socket（默认）</p>
+<p> host： localhost</p>
+<p> port：运行端口。千万不要写调试端口（所有app调试端口默认8700，这样就会附加到第一个找到的进程上）</p>
+<pre><code>android device monitor 设备/进程为空，先打开monitor，再打开模拟器可解决
+</code></pre></li>
+<li><p>attach to process<br> process id填 pid。adb shell ps 可查到</p>
 </li>
-<li><p>播放不够流畅，画面声音一卡一卡的</p>
-</li>
-</ul>
-<p>从代码层面来说，<strong>帧率太低</strong></p>
-<h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><p>通常可能有如下几大类</p>
-<h2 id="网络带宽不足"><a href="#网络带宽不足" class="headerlink" title="网络带宽不足"></a>网络带宽不足</h2><p>一个完整的直播应用，简单来说数据流是这样的：<code>主播 -&gt; CDN -&gt; 观众</code></p>
-<p>因此，直播出现卡顿，三个端都可能是问题的源头：</p>
-<ul>
-<li>主播端的网络不好，导致推流上行不稳定</li>
-<li>服务端的线路质量不好，导致分发不稳定</li>
-<li>观众端的网络不好，导致拉流下行不稳定</li>
-</ul>
-<h3 id="如何判断网络不好"><a href="#如何判断网络不好" class="headerlink" title="如何判断网络不好"></a>如何判断网络不好</h3><ul>
-<li>宽度测速。是否低于推流码率所需宽带</li>
-<li>宽带稳定性。丢包率，延时</li>
-<li>SDK回调。推流/拉流 码率 帧率</li>
-</ul>
-<h2 id="播放设备性能不足"><a href="#播放设备性能不足" class="headerlink" title="播放设备性能不足"></a>播放设备性能不足</h2><p>设备性能不足，导致解码播放的帧率远小于视频码流的实际帧率，从而产生卡顿。</p>
-<p>解决方案：</p>
-<ul>
-<li>优先硬解，充分利用 GPU 加速</li>
-<li>低端机上优先选择非高清码流。越高清的码率，对解码的要求越高</li>
-<li>增大缓冲区，缓解卡顿</li>
-</ul>
-<h2 id="视频流时间戳问题"><a href="#视频流时间戳问题" class="headerlink" title="视频流时间戳问题"></a>视频流时间戳问题</h2><p>播放器一般是严格根据码流中的音视频的时间戳来做音画同步的，因此，如果码流中的音视频时间戳出现错误，肯定会影响到播放画面的渲染时机</p>
-<p>播放器一般 master 主时钟是单调递增的，当后来的视频帧小于了当前的主时钟，播放器就会做丢帧处理，从而导致播放的视频帧率远低于实际码流中的视频帧率，从而产生卡顿现象。</p>
-<img src="/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/stream_time.jpeg">
-<p>排查这个问题，可以把读取到的每一帧音频、视频的时间戳打印出来看看</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.qiniu.com/archives/8405" target="_blank" rel="noopener">《直播疑难杂症排查》之二：播放卡顿</a></li>
-</ul>
-
+</ol>
+<h2 id="窗口"><a href="#窗口" class="headerlink" title="窗口"></a>窗口</h2><p>classes可以看到调用的所有类（混淆后的名字），可以直接展开在上面下类/方法断点</p>
+<p>variables可以看到断点方法的变量</p>
+<p>breakpoints可以查看所有断点</p>
+<p>callstack 调用堆栈</p>
+<p>debuggerConsole 控制台输出，包括断点、单步调用的方法过程（如果单步调试中的话）</p>
+<h2 id="断点"><a href="#断点" class="headerlink" title="断点"></a>断点</h2><h3 id="方法断点"><a href="#方法断点" class="headerlink" title="方法断点"></a>方法断点</h3><pre><code>android.view.View.setOnClickListener(android.view.View$OnClickListener)断点
+package: android.view
+class: View
+method: setOnClickListener
+parameters: android.view.View$OnClickListener 参数不填也可以（系统补*表示任意参数类型）
+</code></pre>
           
         
       
@@ -2141,7 +2369,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="extend next" rel="next" href="/page/4/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2191,7 +2419,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">266</span>
+                  <span class="site-state-item-count">308</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2202,7 +2430,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">19</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2213,7 +2441,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">71</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2250,7 +2478,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

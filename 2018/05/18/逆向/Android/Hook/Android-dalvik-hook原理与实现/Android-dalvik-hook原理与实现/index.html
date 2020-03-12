@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Hook," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Android dalvik hook的另外一种实现形式  注入安卓进程,并hook java世界的方法  替换方法实现–修改Method对象的insns字段dalvik中，每一个java方法都有一个对应的Method对象（Method结构体声明在源码目录树下的dalvik/vm/oo/Object.h文件内） Method结构体字段insns保存着java方法具体的实现代码。 下面用代码实现说明">
+<meta name="keywords" content="Hook">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android dalvik hook原理与实现">
+<meta property="og:url" content="http://yoursite.com/2018/05/18/逆向/Android/Hook/Android-dalvik-hook原理与实现/Android-dalvik-hook原理与实现/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="Android dalvik hook的另外一种实现形式  注入安卓进程,并hook java世界的方法  替换方法实现–修改Method对象的insns字段dalvik中，每一个java方法都有一个对应的Method对象（Method结构体声明在源码目录树下的dalvik/vm/oo/Object.h文件内） Method结构体字段insns保存着java方法具体的实现代码。 下面用代码实现说明">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.347Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android dalvik hook原理与实现">
+<meta name="twitter:description" content="Android dalvik hook的另外一种实现形式  注入安卓进程,并hook java世界的方法  替换方法实现–修改Method对象的insns字段dalvik中，每一个java方法都有一个对应的Method对象（Method结构体声明在源码目录树下的dalvik/vm/oo/Object.h文件内） Method结构体字段insns保存着java方法具体的实现代码。 下面用代码实现说明">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/05/18/逆向/Android/Hook/Android-dalvik-hook原理与实现/Android-dalvik-hook原理与实现/"/>
+
+
+
+
+
+  <title>Android dalvik hook原理与实现 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/逆向/Android/Hook/Android-dalvik-hook原理与实现/Android-dalvik-hook原理与实现/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android dalvik hook原理与实现</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T16:44:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><a href="http://bbs.pediy.com/showthread.php?t=187522&amp;highlight=dalvik+hook" target="_blank" rel="noopener">Android dalvik hook的另外一种实现形式</a> </p>
+<p><a href="http://bbs.pediy.com/showthread.php?t=186054" target="_blank" rel="noopener">注入安卓进程,并hook java世界的方法</a> </p>
+<h1 id="替换方法实现–修改Method对象的insns字段"><a href="#替换方法实现–修改Method对象的insns字段" class="headerlink" title="替换方法实现–修改Method对象的insns字段"></a>替换方法实现–修改Method对象的insns字段</h1><p>dalvik中，每一个java方法都有一个对应的Method对象（Method结构体声明在源码目录树下的dalvik/vm/oo/Object.h文件内）</p>
+<p>Method结构体字段insns保存着java方法具体的实现代码。</p>
+<p>下面用代码实现说明</p>
+<pre><code>public class HelloJni extends Activity {
+    static {
+        System.loadLibrary(&quot;hello-jni&quot;);
+    }
+
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        TextView tv = new TextView(this);
+        tv.setText(truth());
+        setContentView(tv);
+    }
+
+    public String truth() {
+        return &quot;hello from truth&quot;;
+    }
+
+    public String fake() {
+        return &quot;fake string&quot;;
+    }
+
+}
+-----------------------c code --------------------
+#include &lt;string.h&gt;
+#include &lt;jni.h&gt;
+
+jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    JNIEnv *env;
+
+    if ((*vm)-&gt;GetEnv(vm, (void**) &amp;env, JNI_VERSION_1_6) != 0) {
+        return -1;
+    }
+    jclass father = (*env)-&gt;FindClass(env, &quot;com/example/hellojni/HelloJni&quot;); //搜索java类
+
+    jmethodID truthMethod = (*env)-&gt;GetMethodID(env, father, &quot;truth&quot;, &quot;()Ljava/lang/String;&quot;); //搜索java方法
+    jmethodID fakeMethod = (*env)-&gt;GetMethodID(env, father, &quot;fake&quot;, &quot;()Ljava/lang/String;&quot;);
+
+    // jmethodID 是一个ClassObject 的指针类型，
+    // ClassObject 对象的偏移地址32位处为insns字段。
+    *(int *) ((int) truthMethod + 32) = *(int *) ((int) fakeMethod + 32);
+
+    int result = JNI_OK;
+    return ((result != JNI_OK) ? result : JNI_VERSION_1_6);
+}
+</code></pre><h1 id="替换方法为native方法–native方法替换java方法"><a href="#替换方法为native方法–native方法替换java方法" class="headerlink" title="替换方法为native方法–native方法替换java方法"></a>替换方法为native方法–native方法替换java方法</h1><p>正常情况下,只能在Java世界通过jni调用native方法,而native不能在没有任何java上的支持下干涉java世界。</p>
+<p>传统的linux进程注入技术在安卓上只能进入目标进程的native世界。</p>
+<p>本教程是要注入别的进程,并hook java世界的java 方法!</p>
+<p>程序大致的流程是这样的：</p>
+<pre><code>so.so注入到目标进程 --&gt; 执行Hook()函数 
+                  --&gt; Hook()加载libTest.so,获取libTest.so定义的Hook信息.接着用ClassMethodHook()hook java世界的方法.
+</code></pre><p>  关键一,从native世界进入java世界。我们只要获得一个JNIEnv就能进入到java世界了。突破点就在android::AndroidRuntime::getJavaVM();这个静态方法能够获取一个JavaVM,JavaVM-&gt;GetEnv方法能够获得一个JNIEnv了。JNIEnv是和线程相关的,使用前一定记得将其附加到当前进程,也要在适当的时候将其销毁。</p>
+<p>  关键二,怎么影响内存里的java代码。替换内存是不现实的,但是可以取巧，在运行时将一个不是native的方法修改成native方法。我们知道java代码里将一个方法声明为native方法时,对此函数的调用就会到native世界里找。</p>
+<h1 id="两种方法的比较"><a href="#两种方法的比较" class="headerlink" title="两种方法的比较"></a>两种方法的比较</h1><table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">替换方法实现</th>
+<th style="text-align:left">替换方法为native方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">难度</td>
+<td style="text-align:left">容易，只要修改insns字段</td>
+<td style="text-align:left">难，多个字段</td>
+</tr>
+<tr>
+<td style="text-align:left">线程安全</td>
+<td style="text-align:left">安全</td>
+<td style="text-align:left">非安全，修改字段过多</td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Hook/" rel="tag"><i class="fa fa-tag"></i> Hook</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/18/逆向/Android/Hook/android-hook框架/VirtualApp/" rel="next" title="VirtualApp">
+                <i class="fa fa-chevron-left"></i> VirtualApp
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/05/18/逆向/Android/Hook/gdb演示Android-ELF的GOT-Hook/" rel="prev" title="Android Hook原理">
+                Android Hook原理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#替换方法实现–修改Method对象的insns字段"><span class="nav-number">1.</span> <span class="nav-text">替换方法实现–修改Method对象的insns字段</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#替换方法为native方法–native方法替换java方法"><span class="nav-number">2.</span> <span class="nav-text">替换方法为native方法–native方法替换java方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#两种方法的比较"><span class="nav-number">3.</span> <span class="nav-text">两种方法的比较</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

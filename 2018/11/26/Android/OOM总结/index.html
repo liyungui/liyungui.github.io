@@ -79,18 +79,21 @@
 
 
 
-<meta name="description" content="常规OOM–Java堆内存不够导致的OOMjava.lang.OutOfMemoryError:      Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM 下面是几个关于Android官方声明内存限制阈值的API： ActivityManager.getMemoryClass()：">
+<meta name="description" content="背景App对于应用稳定性的要求非常高，体现App稳定性的一个重要数据就是Crash率，而在众多Crash中最棘手最难定位的就是OOM问题。构建快速定位线上OOM问题的组件非常有必要 OOM原因要定位OOM问题，首先需要弄明白Android中有哪些原因会导致OOM 分配堆内存失败Android 虚拟机最终抛出OutOfMemoryError的代码位于 /art/runtime/thread.cc 1">
 <meta name="keywords" content="Android">
 <meta property="og:type" content="article">
 <meta property="og:title" content="OOM总结">
 <meta property="og:url" content="http://yoursite.com/2018/11/26/Android/OOM总结/index.html">
 <meta property="og:site_name" content="风">
-<meta property="og:description" content="常规OOM–Java堆内存不够导致的OOMjava.lang.OutOfMemoryError:      Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM 下面是几个关于Android官方声明内存限制阈值的API： ActivityManager.getMemoryClass()：">
+<meta property="og:description" content="背景App对于应用稳定性的要求非常高，体现App稳定性的一个重要数据就是Crash率，而在众多Crash中最棘手最难定位的就是OOM问题。构建快速定位线上OOM问题的组件非常有必要 OOM原因要定位OOM问题，首先需要弄明白Android中有哪些原因会导致OOM 分配堆内存失败Android 虚拟机最终抛出OutOfMemoryError的代码位于 /art/runtime/thread.cc 1">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-10-30T07:30:53.515Z">
+<meta property="og:image" content="http://yoursite.com/2018/11/26/Android/OOM总结/创建线程.png">
+<meta property="og:image" content="http://yoursite.com/2018/11/26/Android/OOM总结/OOM原因.png">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.171Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="OOM总结">
-<meta name="twitter:description" content="常规OOM–Java堆内存不够导致的OOMjava.lang.OutOfMemoryError:      Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM 下面是几个关于Android官方声明内存限制阈值的API： ActivityManager.getMemoryClass()：">
+<meta name="twitter:description" content="背景App对于应用稳定性的要求非常高，体现App稳定性的一个重要数据就是Crash率，而在众多Crash中最棘手最难定位的就是OOM问题。构建快速定位线上OOM问题的组件非常有必要 OOM原因要定位OOM问题，首先需要弄明白Android中有哪些原因会导致OOM 分配堆内存失败Android 虚拟机最终抛出OutOfMemoryError的代码位于 /art/runtime/thread.cc 1">
+<meta name="twitter:image" content="http://yoursite.com/2018/11/26/Android/OOM总结/创建线程.png">
 
 
 
@@ -330,106 +333,38 @@
       
 
       
-        <h1 id="常规OOM–Java堆内存不够导致的OOM"><a href="#常规OOM–Java堆内存不够导致的OOM" class="headerlink" title="常规OOM–Java堆内存不够导致的OOM"></a>常规OOM–Java堆内存不够导致的OOM</h1><pre><code>java.lang.OutOfMemoryError: 
-    Failed to allocate a XXX byte allocation with XXX free bytes and XXXKB until OOM
-</code></pre><p>下面是几个关于Android官方声明内存限制阈值的API：</p>
-<pre><code>ActivityManager.getMemoryClass()：     虚拟机java堆大小的上限，分配对象时突破这个大小就会OOM
-ActivityManager.getLargeMemoryClass()：manifest中设置largeheap=true时虚拟机java堆的上限
-Runtime.getRuntime().maxMemory() ：    当前虚拟机实例的内存使用上限，为上述两者之一
-Runtime.getRuntime().totalMemory() ：  当前已经申请的内存，包括已经使用的和还没有使用的
-Runtime.getRuntime().freeMemory() ：   上一条中已经申请但是尚未使用的那部分。那么已经申请并且正在使用的部分used=totalMemory() - freeMemory()
-ActivityManager.MemoryInfo.totalMem:   设备总内存
-ActivityManager.MemoryInfo.availMem:   设备当前可用内存
-/proc/meminfo                                           记录设备的内存信息
-</code></pre><p> <strong>通常认为OOM发生是由于java堆内存不够用了</strong>，即</p>
-<pre><code>Runtime.getRuntime().maxMemory()这个指标满足不了申请堆内存大小时
-</code></pre><p>这种OOM可以非常方便的验证（比如: 通过new byte[]的方式尝试申请超过阈值maxMemory()的堆内存）</p>
-<h2 id="图片消耗内存计算"><a href="#图片消耗内存计算" class="headerlink" title="图片消耗内存计算"></a>图片消耗内存计算</h2><pre><code>Bitmap.Config.ALPHA_8：只有透明度，8位。
-Bitmap.Config.ARGB_4444：16位。显示图片不清楚
-Bitmap.Config.ARGB_8888：32位。Bitmap默认，最占空间
-Bitmap.Config.RGB_565：16位。性能优化最常使用
-
-2000*2000*4 bytes =15M
-</code></pre><h2 id="Bitmap是否需要调用-recycle"><a href="#Bitmap是否需要调用-recycle" class="headerlink" title="Bitmap是否需要调用 recycle()"></a>Bitmap是否需要调用 recycle()</h2><p>Bitmap需调用 recycle() 是历史问题，在 Android 3.0之前，Bitmap 的图片数据是在底层C中处理的，因此在 Android3.0 之前 recycle() 是应该调用的</p>
-<p>现在在 Bitmap 置 null 后图片数据会被GC回收。 </p>
-<h1 id="不可思议的OOM"><a href="#不可思议的OOM" class="headerlink" title="不可思议的OOM"></a><a href="https://www.jianshu.com/p/e574f0ffdb42" target="_blank" rel="noopener">不可思议的OOM</a></h1><p><strong>特征：崩溃时java堆内存和设备物理内存都充足</strong></p>
-<p><strong>关键字：</strong></p>
-<p><code>Could not allocate JNI Env</code>, <code>pthread_create failed</code></p>
-<h2 id="OOM-一"><a href="#OOM-一" class="headerlink" title="OOM 一"></a>OOM 一</h2><pre><code>java.lang.OutOfMemoryError: 
-    Could not allocate JNI Env
-
-在Android6.0，Android7.0上各个机型均有发生
-
-文件描述符(FD)数受限导致创建线程时JNIENV创建不成功
-</code></pre><h2 id="OOM-二"><a href="#OOM-二" class="headerlink" title="OOM 二"></a>OOM 二</h2><pre><code>java.lang.OutOfMemoryError: 
-    pthread_create (1040KB stack) failed: Out of memory
-在Android7.0及以上的华为手机（EmotionUI_5.0及以上）
-
-线程数受限导致创建线程时clone failed
-
-Threads上限: 500
-</code></pre><h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><p>基于Android6.0的代码进行简单分析</p>
-<p>Android虚拟机最终抛出OutOfMemoryError的代码位于 <code>/art/runtime/thread.cc</code></p>
-<pre><code>void Thread::ThrowOutOfMemoryError(const char* msg)
-参数msg携带了OOM时的错误信息
-</code></pre><p>        <br>搜索代码可以发现以下几个地方调用了上述方法抛出OutOfMemoryError错误</p>
-<p><strong>第一个地方是堆操作时</strong></p>
-<p>Java堆OOM</p>
-<pre><code>系统源码文件：
-    /art/runtime/gc/heap.cc
-函数：
-    void Heap::ThrowOutOfMemoryError(Thread* self, size_t byte_count, AllocatorType allocator_type)
-抛出时的错误信息：
-    oss &lt;&lt; &quot;Failed to allocate a &quot; &lt;&lt; byte_count &lt;&lt; &quot; byte allocation with &quot; &lt;&lt; total_bytes_free  &lt;&lt; &quot; free bytes and &quot; &lt;&lt; PrettySize(GetFreeMemoryUntilOOME()) &lt;&lt; &quot; until OOM&quot;;
-</code></pre><p>这种抛出的其实就是堆内存不够用的时候，即前面提到的申请堆内存大小超过了Runtime.getRuntime().maxMemory()</p>
-<p><strong>第二个地方是创建线程时</strong></p>
-<p>线程创建时OOM</p>
-<pre><code>系统源码文件：
-    /art/runtime/thread.cc
-函数：
-    void Thread::CreateNativeThread(JNIEnv* env, jobject java_peer, size_t stack_size, bool is_daemon)
-抛出时的错误信息：
-    &quot;Could not allocate JNI Env&quot;
-  或者
-    StringPrintf(&quot;pthread_create (%s stack) failed: %s&quot;, PrettySize(stack_size).c_str(), strerror(pthread_create_result)));
-</code></pre><p>对比错误信息，可以知道我们遇到的OOM崩溃就是这个时机，即创建线程的时候（Thread::CreateNativeThread）产生的。</p>
-<h1 id="导致OOM发生的原因"><a href="#导致OOM发生的原因" class="headerlink" title="导致OOM发生的原因"></a>导致OOM发生的原因</h1><p>综上，可以导致OOM的原因有以下几种：</p>
-<h2 id="文件描述符-fd-数目超限"><a href="#文件描述符-fd-数目超限" class="headerlink" title="文件描述符(fd)数目超限"></a>文件描述符(fd)数目超限</h2><p>即<strong>proc/pid/fd</strong>下文件数目突破<strong>/proc/pid/limits</strong>中的限制。</p>
-<p>可能的发生场景有：</p>
-<p>短时间内大量请求导致socket的fd数激增，大量（重复）打开文件等</p>
-<h3 id="proc-pid-limits"><a href="#proc-pid-limits" class="headerlink" title="/proc/pid/limits"></a>/proc/pid/limits</h3><p>linux 系统对<strong>对应进程的限制</strong></p>
-<p>用排除法筛选上面文件中的 limits：</p>
-<ul>
-<li>Max stack size，Max processes 的限制是整个系统的，不是针对某个进程的，排除；</li>
-<li>Max locked memory ，排除，后面会分析，线程创建过程中分配线程私有 stack 使用的 mmap 调用没有设置 MAP_LOCKED，所以这个限制与线程创建过程无关 ；</li>
-<li>Max pending signals，c 层信号个数阈值，无关，排除 ；</li>
-<li>Max msgqueue size，Android IPC 机制不支持消息队列，排除。</li>
-<li><strong>Max open files</strong> 这一项限制最可疑。表示 每个进程最大打开文件的数目，进程 每打开一个文件就会产生一个文件描述符 fd（记录在 /proc/pid/fd 下面），这个限制表明 fd 的数目不能超过 Max open files 规定的数目。线程创建过程中涉及到文件描述符</li>
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>App对于应用稳定性的要求非常高，体现App稳定性的一个重要数据就是Crash率，而在众多Crash中最棘手最难定位的就是OOM问题。构建快速定位线上OOM问题的组件非常有必要</p>
+<h1 id="OOM原因"><a href="#OOM原因" class="headerlink" title="OOM原因"></a>OOM原因</h1><p>要定位OOM问题，首先需要弄明白Android中有哪些原因会导致OOM</p>
+<h2 id="分配堆内存失败"><a href="#分配堆内存失败" class="headerlink" title="分配堆内存失败"></a>分配堆内存失败</h2><p>Android 虚拟机最终抛出OutOfMemoryError的代码位于 <code>/art/runtime/thread.cc</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">void Thread::ThrowOutOfMemoryError(const char* msg)</span><br><span class="line">参数 msg 携带了 OOM 时的错误信息</span><br></pre></td></tr></table></figure>
+<h3 id="Java堆内存不足"><a href="#Java堆内存不足" class="headerlink" title="Java堆内存不足"></a>Java堆内存不足</h3><h4 id="错误日志"><a href="#错误日志" class="headerlink" title="错误日志"></a>错误日志</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Failed to allocate a 536870924 byte allocation with 16777216 free bytes and 221MB until OOM</span><br></pre></td></tr></table></figure>
+<h4 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h4><p><code>/art/runtime/gc/heap.cc</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">void Heap::ThrowOutOfMemoryError(Thread* self, size_t byte_count, AllocatorType allocator_type)</span><br><span class="line">抛出时的错误信息：</span><br><span class="line">    oss &lt;&lt; &quot;Failed to allocate a &quot; &lt;&lt; byte_count &lt;&lt; &quot; byte allocation </span><br><span class="line">    with &quot; &lt;&lt; total_bytes_free  &lt;&lt; &quot; free bytes and &quot;</span><br><span class="line">     &lt;&lt; PrettySize(GetFreeMemoryUntilOOME()) &lt;&lt; &quot; until OOM&quot;;</span><br></pre></td></tr></table></figure>
+<h3 id="连续的Java堆内存不足"><a href="#连续的Java堆内存不足" class="headerlink" title="连续的Java堆内存不足"></a>连续的Java堆内存不足</h3><p>进程中存在大量的内存碎片导致的</p>
+<h4 id="错误日志-1"><a href="#错误日志-1" class="headerlink" title="错误日志"></a>错误日志</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Failed to allocate a 458 byte allocation with 1613776 free bytes and 1575KB until OOM; </span><br><span class="line">failed due to fragmentation (required continguous free 32768 bytes for a new buffer where largest contiguous free 4096 bytes)</span><br></pre></td></tr></table></figure>
+<p>比Java堆内存不足的OOM堆栈多出一段信息</p>
+<h4 id="源码-1"><a href="#源码-1" class="headerlink" title="源码"></a>源码</h4><p><code>art/runtime/gc/allocator/rosalloc.cc</code> <a href="https://android.googlesource.com/platform/art/+/a9033d7%5E%21/" target="_blank" rel="noopener">链接</a></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">required_bytes = numOfPages[SizeToIndex(failed_alloc_bytes)] * kPageSize;</span><br><span class="line">new_buffer_msg = &quot; for a new buffer&quot;;</span><br><span class="line">if (required_bytes &gt; largest_continuous_free_pages) &#123;</span><br><span class="line">	os &lt;&lt; &quot;; failed due to fragmentation (&quot;</span><br><span class="line">	&lt;&lt; &quot;required contiguous free &quot; &lt;&lt; required_bytes &lt;&lt; &quot; bytes&quot; &lt;&lt; new_buffer_msg</span><br><span class="line">	&lt;&lt; &quot;, largest contiguous free &quot; &lt;&lt; largest_continuous_free_pages &lt;&lt; &quot; bytes&quot;</span><br><span class="line">	&lt;&lt; &quot;, total free pages &quot; &lt;&lt; total_free &lt;&lt; &quot; bytes&quot;</span><br><span class="line">	&lt;&lt; &quot;, space footprint &quot; &lt;&lt; footprint_ &lt;&lt; &quot; bytes&quot;</span><br><span class="line">	&lt;&lt; &quot;, space max capacity &quot; &lt;&lt; max_capacity_ &lt;&lt; &quot; bytes&quot;</span><br><span class="line">	&lt;&lt; &quot;)&quot; &lt;&lt; std::endl;</span><br></pre></td></tr></table></figure>
+<h2 id="创建线程失败"><a href="#创建线程失败" class="headerlink" title="创建线程失败"></a>创建线程失败</h2><p>创建线程的源码 <code>/art/runtime/thread.cc</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">void Thread::CreateNativeThread(JNIEnv* env, jobject java_peer, size_t stack_size, bool is_daemon)</span><br><span class="line">抛出时的错误信息：</span><br><span class="line">    &quot;Could not allocate JNI Env&quot;</span><br><span class="line">  或者</span><br><span class="line">    StringPrintf(&quot;pthread_create (%s stack) failed:</span><br><span class="line">     %s&quot;, PrettySize(stack_size).c_str(), </span><br><span class="line">     strerror(pthread_create_result)));</span><br></pre></td></tr></table></figure>
+<p>Android中创建线程的步骤，其中两个关键节点是创建JNIEnv结构体和创建线程，而这两步均有可能抛出OOM。 </p>
+<img src="/2018/11/26/Android/OOM总结/创建线程.png"> 
+<h3 id="创建JNI失败"><a href="#创建JNI失败" class="headerlink" title="创建JNI失败"></a>创建JNI失败</h3><h4 id="FD到达上限"><a href="#FD到达上限" class="headerlink" title="FD到达上限"></a>FD到达上限</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">E/art: ashmem_create_region failed for &apos;indirect ref table&apos;: Too many open files</span><br><span class="line"> java.lang.OutOfMemoryError: Could not allocate JNI Env</span><br><span class="line">   at java.lang.Thread.nativeCreate(Native Method)</span><br><span class="line">   at java.lang.Thread.start(Thread.java:730)</span><br></pre></td></tr></table></figure>
+<h4 id="进程虚拟内存耗尽"><a href="#进程虚拟内存耗尽" class="headerlink" title="进程虚拟内存耗尽"></a>进程虚拟内存耗尽</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">E/art: Failed anonymous mmap(0x0, 8192, 0x3, 0x2, 116, 0): Operation not permitted. See process maps in the log.</span><br><span class="line">java.lang.OutOfMemoryError: Could not allocate JNI Env</span><br><span class="line">  at java.lang.Thread.nativeCreate(Native Method)</span><br><span class="line">  at java.lang.Thread.start(Thread.java:1063)</span><br></pre></td></tr></table></figure>
+<h3 id="创建线程失败-1"><a href="#创建线程失败-1" class="headerlink" title="创建线程失败"></a>创建线程失败</h3><h4 id="进程虚拟内存耗尽-1"><a href="#进程虚拟内存耗尽-1" class="headerlink" title="进程虚拟内存耗尽"></a>进程虚拟内存耗尽</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">W/libc: pthread_create failed: couldn&apos;t allocate 1073152-bytes mapped space: Out of memory</span><br><span class="line">W/tch.crowdsourc: Throwing OutOfMemoryError with VmSize  4191668 kB &quot;pthread_create (1040KB stack) failed: Try again&quot;</span><br><span class="line">java.lang.OutOfMemoryError: pthread_create (1040KB stack) failed: Try again</span><br><span class="line">        at java.lang.Thread.nativeCreate(Native Method)</span><br><span class="line">        at java.lang.Thread.start(Thread.java:753)</span><br></pre></td></tr></table></figure>
+<h4 id="线程数超限"><a href="#线程数超限" class="headerlink" title="线程数超限"></a>线程数超限</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">W/libc: pthread_create failed: clone failed: Out of memory</span><br><span class="line">W/art: Throwing OutOfMemoryError &quot;pthread_create (1040KB stack) failed: Out of memory&quot;</span><br><span class="line">java.lang.OutOfMemoryError: pthread_create (1040KB stack) failed: Out of memory</span><br><span class="line">  at java.lang.Thread.nativeCreate(Native Method)</span><br><span class="line">  at java.lang.Thread.start(Thread.java:1078)</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><img src="/2018/11/26/Android/OOM总结/OOM原因.png"> 
+<h1 id="OOM问题定位"><a href="#OOM问题定位" class="headerlink" title="OOM问题定位"></a>OOM问题定位</h1><h2 id="堆内存不足"><a href="#堆内存不足" class="headerlink" title="堆内存不足"></a>堆内存不足</h2><p>Debug.dumpHprofData得到当前进程的Java内存快照文件，分析内存对象</p>
+<h2 id="FD数超出限制"><a href="#FD数超出限制" class="headerlink" title="FD数超出限制"></a>FD数超出限制</h2><p>在 <code>/proc/pid/limits</code> 描述着Linux系统对对应进程的限制，其中Max open files就代表可创建FD的最大数目。</p>
+<p>进程中创建的FD记录在 <code>/proc/pid/fd</code> 中</p>
+<p>当检测到FD数量达到阈值时（FD最大限制的95%），读取当前进程的所有FD信息归并后上报。</p>
+<h2 id="线程数超出限制"><a href="#线程数超出限制" class="headerlink" title="线程数超出限制"></a>线程数超出限制</h2><p><code>/proc/sys/kernel/threads-max</code> 规定了每个进程创建线程数目的上限。大部分手机上限1万多，华为机型修改为500</p>
+<h2 id="虚拟内存耗尽"><a href="#虚拟内存耗尽" class="headerlink" title="虚拟内存耗尽"></a>虚拟内存耗尽</h2><p><code>/proc/pid/status</code> 文件的 <code>VmPeak/VmSize</code> 记录了进程所使用的虚拟内存</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://mp.weixin.qq.com/s/tO1yxFs2qNQlQ2bJ8vGzQA" target="_blank" rel="noopener">Probe：Android线上OOM问题定位组件</a> 美团技术团队</li>
+<li><a href="https://www.jianshu.com/p/31f207782915" target="_blank" rel="noopener">Android进阶性能调优；不可思议的OOM</a></li>
+<li><a href="https://mp.weixin.qq.com/s/tO1yxFs2qNQlQ2bJ8vGzQA" target="_blank" rel="noopener">Probe：Android线上OOM问题定位组件</a> 美团，体系化，全面详细</li>
 </ul>
-<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><p>触发大量网络连接（每个连接处于独立的线程中）并保持，每打开一个 socket 都会增加一个 fd（/proc/pid/fd 下多一项）</p>
-<p>注：不只有这一种增加 fd 数的方式，也可以用其他方法，比如打开文件，创建 handlerthread 等等</p>
-<p>实验结果：当 fd 数目到达 /proc/pid/limits 中规定的 Max open files 时，继续开线程确实会导致 OOM 的产生</p>
-<p>此外从 虚拟机的 Log 中看出，还有一个关键的信息 <code>art: ashmem_create_region failed for &#39;indirect ref table&#39;: Too many open files</code></p>
-<h2 id="线程数超限"><a href="#线程数超限" class="headerlink" title="线程数超限"></a>线程数超限</h2><p>即<strong>proc/pid/status</strong>中记录的线程数（threads项）突破<strong>/proc/sys/kernel/threads-max</strong>中规定的<strong>每个进程创建线程数目的上限</strong></p>
-<p>可能的发生场景有：</p>
-<p>app内多线程使用不合理，如多个不共享线程池的OKhttpclient；<br><strong>rxjava的Scheduler.io使用不合理极易导致OOM</strong>(自增无上限的线程池，每个线程保活60s)</p>
-<h3 id="验证-1"><a href="#验证-1" class="headerlink" title="验证"></a>验证</h3><p>创建大量的空线程（不做任何事情，直接 sleep）</p>
-<p>实验结果：在 Android7.0 及以上的华为手机（EmotionUI_5.0 及以上）的手机产生 OOM，这些手机的线程数限制都很小 (应该是华为 rom 特意修改的 limits)，每个进程只允许最大同时开 500 个线程，因此很容易复现了。</p>
-<h2 id="传统的java堆内存超限"><a href="#传统的java堆内存超限" class="headerlink" title="传统的java堆内存超限"></a>传统的java堆内存超限</h2><p>即申请堆内存大小超过了 Runtime.getRuntime().maxMemory()</p>
-<h2 id="32位系统进程逻辑空间被占满导致OOM"><a href="#32位系统进程逻辑空间被占满导致OOM" class="headerlink" title="32位系统进程逻辑空间被占满导致OOM"></a>32位系统进程逻辑空间被占满导致OOM</h2><p>低概率</p>
-<p>每个线程通常需要 mapp 1MB 左右的 stack 空间（stack 大小可以自行设置），32 为系统进程逻辑地址 4GB，用户空间少于 3GB。逻辑地址空间不够（已用逻辑空间地址可以查看 /proc/pid/status 中的 VmPeak/VmSize 记录）</p>
-<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><h1 id="监控措施"><a href="#监控措施" class="headerlink" title="监控措施"></a>监控措施</h1><p>可以利用linux的inotify机制进行监控:</p>
-<pre><code>watch /proc/pid/fd来监控app打开文件的情况,
-watch /proc/pid/task来监控线程使用情况．
-</code></pre><p>捕获到OutOfMemoryError 时记录 /proc/pid 目录下的如下信息：</p>
-<ol>
-<li><p>/proc/pid/fd 目录下文件数 (fd 数)</p>
-</li>
-<li><p>/proc/pid/status 中 threads 项（当前线程数目）</p>
-</li>
-</ol>
-<h1 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h1><p><a href="https://github.com/piece-the-world/OOMDemo" target="_blank" rel="noopener">POC(Proof of concept) 代码</a></p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><p><a href="https://www.jianshu.com/p/31f207782915" target="_blank" rel="noopener">Android进阶性能调优；不可思议的OOM</a></p>
 
       
     </div>
@@ -553,7 +488,7 @@ watch /proc/pid/task来监控线程使用情况．
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">266</span>
+                  <span class="site-state-item-count">308</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -564,7 +499,7 @@ watch /proc/pid/task来监控线程使用情况．
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">19</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -575,7 +510,7 @@ watch /proc/pid/task来监控线程使用情况．
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">71</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -608,7 +543,7 @@ watch /proc/pid/task来监控线程使用情况．
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#常规OOM–Java堆内存不够导致的OOM"><span class="nav-number">1.</span> <span class="nav-text">常规OOM–Java堆内存不够导致的OOM</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#图片消耗内存计算"><span class="nav-number">1.1.</span> <span class="nav-text">图片消耗内存计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bitmap是否需要调用-recycle"><span class="nav-number">1.2.</span> <span class="nav-text">Bitmap是否需要调用 recycle()</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#不可思议的OOM"><span class="nav-number">2.</span> <span class="nav-text">不可思议的OOM</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#OOM-一"><span class="nav-number">2.1.</span> <span class="nav-text">OOM 一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OOM-二"><span class="nav-number">2.2.</span> <span class="nav-text">OOM 二</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#源码分析"><span class="nav-number">3.</span> <span class="nav-text">源码分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#导致OOM发生的原因"><span class="nav-number">4.</span> <span class="nav-text">导致OOM发生的原因</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件描述符-fd-数目超限"><span class="nav-number">4.1.</span> <span class="nav-text">文件描述符(fd)数目超限</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#proc-pid-limits"><span class="nav-number">4.1.1.</span> <span class="nav-text">/proc/pid/limits</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#验证"><span class="nav-number">4.1.2.</span> <span class="nav-text">验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程数超限"><span class="nav-number">4.2.</span> <span class="nav-text">线程数超限</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#验证-1"><span class="nav-number">4.2.1.</span> <span class="nav-text">验证</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#传统的java堆内存超限"><span class="nav-number">4.3.</span> <span class="nav-text">传统的java堆内存超限</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#32位系统进程逻辑空间被占满导致OOM"><span class="nav-number">4.4.</span> <span class="nav-text">32位系统进程逻辑空间被占满导致OOM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他"><span class="nav-number">4.5.</span> <span class="nav-text">其他</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#监控措施"><span class="nav-number">5.</span> <span class="nav-text">监控措施</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Demo"><span class="nav-number">6.</span> <span class="nav-text">Demo</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">7.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#OOM原因"><span class="nav-number">2.</span> <span class="nav-text">OOM原因</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#分配堆内存失败"><span class="nav-number">2.1.</span> <span class="nav-text">分配堆内存失败</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Java堆内存不足"><span class="nav-number">2.1.1.</span> <span class="nav-text">Java堆内存不足</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#错误日志"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">错误日志</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#源码"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">源码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#连续的Java堆内存不足"><span class="nav-number">2.1.2.</span> <span class="nav-text">连续的Java堆内存不足</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#错误日志-1"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">错误日志</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#源码-1"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">源码</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建线程失败"><span class="nav-number">2.2.</span> <span class="nav-text">创建线程失败</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建JNI失败"><span class="nav-number">2.2.1.</span> <span class="nav-text">创建JNI失败</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#FD到达上限"><span class="nav-number">2.2.1.1.</span> <span class="nav-text">FD到达上限</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进程虚拟内存耗尽"><span class="nav-number">2.2.1.2.</span> <span class="nav-text">进程虚拟内存耗尽</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建线程失败-1"><span class="nav-number">2.2.2.</span> <span class="nav-text">创建线程失败</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#进程虚拟内存耗尽-1"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">进程虚拟内存耗尽</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#线程数超限"><span class="nav-number">2.2.2.2.</span> <span class="nav-text">线程数超限</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.3.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#OOM问题定位"><span class="nav-number">3.</span> <span class="nav-text">OOM问题定位</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#堆内存不足"><span class="nav-number">3.1.</span> <span class="nav-text">堆内存不足</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FD数超出限制"><span class="nav-number">3.2.</span> <span class="nav-text">FD数超出限制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程数超出限制"><span class="nav-number">3.3.</span> <span class="nav-text">线程数超出限制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#虚拟内存耗尽"><span class="nav-number">3.4.</span> <span class="nav-text">虚拟内存耗尽</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">4.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
             
 
           </div>
@@ -628,7 +563,7 @@ watch /proc/pid/task来监控线程使用情况．
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

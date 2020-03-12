@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CocosCreator," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="背景Cocos Creator 的打包出来的原生项目（即便是一个空白项目），打开应用后，「黑屏」一段时间才能进入到场景 视乎机型与Android系统版本，这个「黑屏」时长可能会持续不同时间，但是实际测试这个持续最短可能也要1秒，需要优化改进 黑屏原因分析 Cocos2dxActivity.onCreate 启动流程 Activity.setContentView前引擎启动耗时长 Activity.">
+<meta name="keywords" content="CocosCreator">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android原生启动黑屏优化">
+<meta property="og:url" content="http://yoursite.com/2019/11/01/CocosCreator/CocosCreator优化/Android原生启动黑屏优化/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="背景Cocos Creator 的打包出来的原生项目（即便是一个空白项目），打开应用后，「黑屏」一段时间才能进入到场景 视乎机型与Android系统版本，这个「黑屏」时长可能会持续不同时间，但是实际测试这个持续最短可能也要1秒，需要优化改进 黑屏原因分析 Cocos2dxActivity.onCreate 启动流程 Activity.setContentView前引擎启动耗时长 Activity.">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="http://yoursite.com/2019/11/01/CocosCreator/CocosCreator优化/Android原生启动黑屏优化/CocosCreator启动黑屏优化.png">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.211Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Android原生启动黑屏优化">
+<meta name="twitter:description" content="背景Cocos Creator 的打包出来的原生项目（即便是一个空白项目），打开应用后，「黑屏」一段时间才能进入到场景 视乎机型与Android系统版本，这个「黑屏」时长可能会持续不同时间，但是实际测试这个持续最短可能也要1秒，需要优化改进 黑屏原因分析 Cocos2dxActivity.onCreate 启动流程 Activity.setContentView前引擎启动耗时长 Activity.">
+<meta name="twitter:image" content="http://yoursite.com/2019/11/01/CocosCreator/CocosCreator优化/Android原生启动黑屏优化/CocosCreator启动黑屏优化.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/11/01/CocosCreator/CocosCreator优化/Android原生启动黑屏优化/"/>
+
+
+
+
+
+  <title>Android原生启动黑屏优化 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/01/CocosCreator/CocosCreator优化/Android原生启动黑屏优化/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Android原生启动黑屏优化</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-01T11:30:53+08:00">
+                2019-11-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/游戏/" itemprop="url" rel="index">
+                    <span itemprop="name">游戏</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>Cocos Creator 的打包出来的原生项目（即便是一个空白项目），打开应用后，「黑屏」一段时间才能进入到场景</p>
+<p>视乎机型与Android系统版本，这个「黑屏」时长可能会持续不同时间，但是实际测试这个持续最短可能也要1秒，需要优化改进</p>
+<h1 id="黑屏原因"><a href="#黑屏原因" class="headerlink" title="黑屏原因"></a>黑屏原因</h1><p>分析 <code>Cocos2dxActivity.onCreate</code> 启动流程</p>
+<h2 id="Activity-setContentView前"><a href="#Activity-setContentView前" class="headerlink" title="Activity.setContentView前"></a>Activity.setContentView前</h2><p>引擎启动耗时长</p>
+<h2 id="Activity-setContentView后"><a href="#Activity-setContentView后" class="headerlink" title="Activity.setContentView后"></a>Activity.setContentView后</h2><p>setContentView并没有设置任何有颜色的组件，还是黑屏状态</p>
+<h2 id="加载场景"><a href="#加载场景" class="headerlink" title="加载场景"></a>加载场景</h2><p>加载场景（main.js）需要一定时间</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><img src="/2019/11/01/CocosCreator/CocosCreator优化/Android原生启动黑屏优化/CocosCreator启动黑屏优化.png">
+<p>主场景JS的优化方案，在 一定程度上 都是属于弱优化，因为黑屏大头在前面两个阶段，场景JS优化只能优化第三阶段的黑屏。这也是为什么空白项目打包也会出现黑屏的原因，问题不在于场景大小，js脚本复杂度，而在于 原生启动阶段</p>
+<p>因此为了减少可变因子，我们直接以一个简单场景作为第三阶段要加载的场景</p>
+<p>还特别需要注意一点：因为我们是探索测试，所以强烈建议采用基于 default 模板去进行操作</p>
+<p>default 和 link 的区别：</p>
+<ul>
+<li>default，使用默认的 cocos2d-x 源码版引擎构建项目</li>
+<li>link，不会拷贝 cocos2d-x 源码到构建目录下，而是使用共享的 cocos2d-x 源码。这样可以有效减少构建目录占用空间，以及对 cocos2d-x 源码的修改可以得到共享。</li>
+</ul>
+<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><h2 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h2><h3 id="设置Activity背景"><a href="#设置Activity背景" class="headerlink" title="设置Activity背景"></a>设置Activity背景</h3><p>解决第一阶段的黑屏，进入第二个阶段(setContentView)后回再次触发黑屏</p>
+<p>通过给Activity设置主题样式，可以在样式中 <code>android:windowBackground</code>属性指定背景（纯色或者图片）</p>
+<h3 id="添加背景到contentView"><a href="#添加背景到contentView" class="headerlink" title="添加背景到contentView"></a>添加背景到contentView</h3><p>解决第二阶段的黑屏</p>
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> ImageView sSplashBgImageView = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * oncreate 调用 显示原生开屏背景的方法</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">showSplash</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    sSplashBgImageView = <span class="keyword">new</span> ImageView(sCocos2dxActivity);</span><br><span class="line">    sSplashBgImageView.setImageResource(R.drawable.splash);</span><br><span class="line">    sSplashBgImageView.setScaleType(ImageView.ScaleType.FIT_XY);</span><br><span class="line">    sCocos2dxActivity.addContentView(sSplashBgImageView,</span><br><span class="line">            <span class="keyword">new</span> WindowManager.LayoutParams(</span><br><span class="line">                    FrameLayout.LayoutParams.MATCH_PARENT,</span><br><span class="line">                    FrameLayout.LayoutParams.MATCH_PARENT</span><br><span class="line">            )</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 这是给 JS 调用的隐藏原生开屏背景的方法</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">hideSplash</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    sCocos2dxActivity.runOnUiThread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (sSplashBgImageView != <span class="keyword">null</span>) &#123;</span><br><span class="line">                sSplashBgImageView.setVisibility(View.GONE);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">@ccclass</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">MainSceneCtrl</span> <span class="keyword">extends</span> <span class="title">cc</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    start() &#123;</span><br><span class="line">        <span class="comment">// 场景加载之后，隐藏原生纯色背景View</span></span><br><span class="line">        <span class="comment">// 这里延迟1秒是为了更好的体验，实际可以不用</span></span><br><span class="line">        <span class="keyword">this</span>.scheduleOnce(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>._hideNativeSplash();</span><br><span class="line">        &#125;, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private _hideNativeSplash() &#123;</span><br><span class="line">        <span class="keyword">if</span> (CC_JSB) &#123;</span><br><span class="line">            <span class="keyword">if</span> (cc.sys.os == cc.sys.OS_ANDROID) &#123;</span><br><span class="line">                <span class="comment">// 反射调用原生的隐藏方法</span></span><br><span class="line">                jsb.reflection.callStaticMethod(</span><br><span class="line">                    <span class="string">"org/cocos2dx/javascript/AppActivity"</span>,</span><br><span class="line">                    <span class="string">"hideSplash"</span>,</span><br><span class="line">                    <span class="string">"()V"</span></span><br><span class="line">                );</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="图片的屏幕适配问题"><a href="#图片的屏幕适配问题" class="headerlink" title="图片的屏幕适配问题"></a>图片的屏幕适配问题</h2><p>上面两个阶段都是设置了一张图片作为背景</p>
+<p>Activity主题背景是通过拉升图片的方式去屏幕适配，第二阶段我们可以自定义 <code>ImageView.ScaleType</code> 来屏幕适配</p>
+<p>然后Activity启动后进入游戏一般就会隐藏底部虚拟按键，屏幕宽高比会发生变化，只用一张固定尺寸的图片，肯定会出现适配问题</p>
+<p>这或许就是大部分游戏开屏不设置图片的原因，而是设置 Slogan图片 + 背景色 作为启动页</p>
+<h2 id="Slogan图片-背景色"><a href="#Slogan图片-背景色" class="headerlink" title="Slogan图片 + 背景色"></a>Slogan图片 + 背景色</h2><p>创建一个DrawableXML文件 <code>app/res/drawable/splash_slogan_with_bg.xml</code></p>
+<p>使用 Android 的图层列表 LayerList生成一个 Drawable：一个纯色的矩形，在这之上放置一个 Slogan 的 Bitmap 图片</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span><br><span class="line"><span class="tag">&lt;<span class="name">layer-list</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span> &gt;</span></span><br><span class="line">    <span class="comment">&lt;!--矩形 黄色作为背景色--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> &gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">shape</span> <span class="attr">android:shape</span>=<span class="string">"rectangle"</span> &gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">solid</span> <span class="attr">android:color</span>=<span class="string">"@color/splash_slogan_bg"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">shape</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">item</span> &gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!--单独的slogan图片居中显示--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> &gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">bitmap</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:gravity</span>=<span class="string">"center"</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:src</span>=<span class="string">"@drawable/splash_slogan_small"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">item</span> &gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">layer-list</span> &gt;</span></span><br></pre></td></tr></table></figure>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.jianshu.com/p/2df139d48539" target="_blank" rel="noopener">Cocos Creator Android 原生启动优化系列 1 —— 黑屏原因分析</a></li>
+<li><a href="https://www.jianshu.com/p/21d269c8ef09" target="_blank" rel="noopener">Cocos Creator Android 原生启动优化系列 2 —— 自定义启动页</a></li>
+<li><a href="https://blog.csdn.net/aa464971/article/details/86692198" target="_blank" rel="noopener">Splash适配解决启动图拉伸的问题</a></li>
+<li><a href="https://www.jianshu.com/p/662274d5d637" target="_blank" rel="noopener">Android启动页优化，去黑屏实现秒启动</a></li>
+<li><a href="https://juejin.im/post/5ce8daa95188250ae716e1c2" target="_blank" rel="noopener">Android性能优化之启动优化</a></li>
+<li><a href="https://mp.weixin.qq.com/s/OWImTj_4Ml1nmpN2v9mRAw" target="_blank" rel="noopener">Android 性能优化—— 启动优化提升60%</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CocosCreator/" rel="tag"><i class="fa fa-tag"></i> CocosCreator</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/10/31/CocosCreator/CocosCreator技术攻坚总结/" rel="next" title="CocosCreator技术攻坚总结">
+                <i class="fa fa-chevron-left"></i> CocosCreator技术攻坚总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/11/14/Android/性能优化/低端机方案/" rel="prev" title="低端机方案">
+                低端机方案 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#黑屏原因"><span class="nav-number">2.</span> <span class="nav-text">黑屏原因</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Activity-setContentView前"><span class="nav-number">2.1.</span> <span class="nav-text">Activity.setContentView前</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Activity-setContentView后"><span class="nav-number">2.2.</span> <span class="nav-text">Activity.setContentView后</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加载场景"><span class="nav-number">2.3.</span> <span class="nav-text">加载场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.4.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#优化"><span class="nav-number">3.</span> <span class="nav-text">优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#流程"><span class="nav-number">3.1.</span> <span class="nav-text">流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#设置Activity背景"><span class="nav-number">3.1.1.</span> <span class="nav-text">设置Activity背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#添加背景到contentView"><span class="nav-number">3.1.2.</span> <span class="nav-text">添加背景到contentView</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#源码"><span class="nav-number">3.2.</span> <span class="nav-text">源码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#图片的屏幕适配问题"><span class="nav-number">3.3.</span> <span class="nav-text">图片的屏幕适配问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Slogan图片-背景色"><span class="nav-number">3.4.</span> <span class="nav-text">Slogan图片 + 背景色</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">4.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

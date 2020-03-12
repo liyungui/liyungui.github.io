@@ -79,20 +79,20 @@
 
 
 
-<meta name="description" content="ss 啊啊 APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。 清单合并工具通过遵循某些合并冲突启发式算法，和 合并首选项(通过特殊 XML 属性定义)，来合并各个文件中的所有 XML 元素 。 合并优先级从优先">
+<meta name="description" content="AndroidManifest合并原理 官网 manifest-merge APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。 清单合并工具通过遵循某些合并冲突启发式算法，和 合并首选项(通过特殊 XML 属性定">
 <meta name="keywords" content="Manifest">
 <meta property="og:type" content="article">
 <meta property="og:title" content="AndroidManifest合并原理">
 <meta property="og:url" content="http://yoursite.com/2018/05/24/Android/AndroidManifest合并原理/index.html">
 <meta property="og:site_name" content="风">
-<meta property="og:description" content="ss 啊啊 APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。 清单合并工具通过遵循某些合并冲突启发式算法，和 合并首选项(通过特殊 XML 属性定义)，来合并各个文件中的所有 XML 元素 。 合并优先级从优先">
+<meta property="og:description" content="AndroidManifest合并原理 官网 manifest-merge APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。 清单合并工具通过遵循某些合并冲突启发式算法，和 合并首选项(通过特殊 XML 属性定">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2018/05/24/Android/AndroidManifest合并原理/manifest-merger_priority.png">
 <meta property="og:image" content="http://yoursite.com/2018/05/24/Android/AndroidManifest合并原理/merge.png">
-<meta property="og:updated_time" content="2019-10-30T07:30:53.451Z">
+<meta property="og:updated_time" content="2020-03-12T04:25:00.159Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="AndroidManifest合并原理">
-<meta name="twitter:description" content="ss 啊啊 APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。 清单合并工具通过遵循某些合并冲突启发式算法，和 合并首选项(通过特殊 XML 属性定义)，来合并各个文件中的所有 XML 元素 。 合并优先级从优先">
+<meta name="twitter:description" content="AndroidManifest合并原理 官网 manifest-merge APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。 清单合并工具通过遵循某些合并冲突启发式算法，和 合并首选项(通过特殊 XML 属性定">
 <meta name="twitter:image" content="http://yoursite.com/2018/05/24/Android/AndroidManifest合并原理/manifest-merger_priority.png">
 
 
@@ -333,8 +333,8 @@
       
 
       
-        <p><a href="http://mouxuejie.com/blog/2016-02-05/androidmanifest-merge/" target="_blank" rel="noopener">ss</a></p>
-<p><a href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn" target="_blank" rel="noopener">啊啊</a></p>
+        <p><a href="http://mouxuejie.com/blog/2016-02-05/androidmanifest-merge/" target="_blank" rel="noopener">AndroidManifest合并原理</a></p>
+<p><a href="https://developer.android.com/studio/build/manifest-merge?hl=zh-cn" target="_blank" rel="noopener">官网 manifest-merge</a></p>
 <p>APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。</p>
 <p>清单合并工具通过遵循某些<strong>合并冲突启发式算法</strong>，和 <strong>合并首选项</strong>(通过特殊 XML 属性定义)，来合并各个文件中的所有 XML 元素 。</p>
 <h1 id="合并优先级"><a href="#合并优先级" class="headerlink" title="合并优先级"></a>合并优先级</h1><p><strong>从优先级最低的文件合并至优先级最高的文件</strong></p>
@@ -391,6 +391,14 @@
 </li>
 <li><strong>remove</strong></li>
 </ul>
+<h1 id="Manifest-merger-failed-解决"><a href="#Manifest-merger-failed-解决" class="headerlink" title="Manifest merger failed 解决"></a>Manifest merger failed 解决</h1><p>编译报错：</p>
+<p><code>Manifest merger failed with multiple errors, see logs</code></p>
+<p>用下面的命令查看详细日志，分析到底是什么东西冲突了</p>
+<p><code>gradlew processDebugManifest --stacktrace</code></p>
+<p>这个命令比 <code>./gradlew assembleDebug --stacktrace -info</code> 更加轻量（后者用于展示整个编译过程的错误详情）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&gt; Task :app:processDebugManifest FAILED</span><br><span class="line">D:\aspjs\kinland\app\src\main\AndroidManifest.xml:14:5-67 Warning:</span><br><span class="line">        Element uses-permission#android.permission.INTERNET at AndroidManifest.xml:14:5-67 duplicated with element declared at AndroidManifest.xml:6:5-67</span><br><span class="line">D:\aspjs\kinland\app\src\main\AndroidManifest.xml:25:9-47 Error:</span><br><span class="line">        Attribute application@icon value=(@mipmap/ic_launcher_new) from AndroidManifest.xml:25:9-47</span><br><span class="line">        is also present at [com.github.**:v1.0.1] AndroidManifest.xml:13:9-43 value=(@mipmap/ic_launcher).</span><br><span class="line">        Suggestion: add &apos;tools:replace=&quot;android:icon&quot;&apos; to &lt;application&gt; element at AndroidManifest.xml:22:5-125:19 to override.</span><br><span class="line">D:\aspjs\kinland\app\src\main\AndroidManifest.xml:27:9-58 Error:</span><br><span class="line">        Attribute application@roundIcon value=(@mipmap/ic_launcher_round_new) from AndroidManifest.xml:27:9-58</span><br><span class="line">        is also present at [com.github.**] AndroidManifest.xml:15:9-54 value=(@mipmap/ic_launcher_round).</span><br><span class="line">        Suggestion: add &apos;tools:replace=&quot;android:roundIcon&quot;&apos; to &lt;application&gt; element at AndroidManifest.xml:22:5-125:19 to override.</span><br><span class="line"></span><br><span class="line">See http://g.co/androidstudio/manifest-merger for more information about the manifest merger.</span><br></pre></td></tr></table></figure>
+<p>日志上可以看出来有两个字段冲突了，并且给出了提示，这里直接加上就好了，两个字段的话中间用逗号分隔</p>
+<p><code>tools:replace=&quot;android:icon,android:roundIcon&quot;</code></p>
 
       
     </div>
@@ -514,7 +522,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">266</span>
+                  <span class="site-state-item-count">308</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -525,7 +533,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">19</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -536,7 +544,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">66</span>
+                  <span class="site-state-item-count">71</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -569,7 +577,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#合并优先级"><span class="nav-number">1.</span> <span class="nav-text">合并优先级</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#库清单文件"><span class="nav-number">1.1.</span> <span class="nav-text">库清单文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#构建变体"><span class="nav-number">1.2.</span> <span class="nav-text">构建变体</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#合并冲突启发式算法"><span class="nav-number">2.</span> <span class="nav-text">合并冲突启发式算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#默认合并规则"><span class="nav-number">2.1.</span> <span class="nav-text">默认合并规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编码原则：不依赖于默认属性值"><span class="nav-number">2.1.1.</span> <span class="nav-text">编码原则：不依赖于默认属性值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#合并工具为减少合并冲突的特殊规则"><span class="nav-number">2.2.</span> <span class="nav-text">合并工具为减少合并冲突的特殊规则</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#合并规则标记"><span class="nav-number">3.</span> <span class="nav-text">合并规则标记</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#元素-节点标记"><span class="nav-number">3.1.</span> <span class="nav-text">元素/节点标记</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#合并优先级"><span class="nav-number">1.</span> <span class="nav-text">合并优先级</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#库清单文件"><span class="nav-number">1.1.</span> <span class="nav-text">库清单文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#构建变体"><span class="nav-number">1.2.</span> <span class="nav-text">构建变体</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#合并冲突启发式算法"><span class="nav-number">2.</span> <span class="nav-text">合并冲突启发式算法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#默认合并规则"><span class="nav-number">2.1.</span> <span class="nav-text">默认合并规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编码原则：不依赖于默认属性值"><span class="nav-number">2.1.1.</span> <span class="nav-text">编码原则：不依赖于默认属性值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#合并工具为减少合并冲突的特殊规则"><span class="nav-number">2.2.</span> <span class="nav-text">合并工具为减少合并冲突的特殊规则</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#合并规则标记"><span class="nav-number">3.</span> <span class="nav-text">合并规则标记</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#元素-节点标记"><span class="nav-number">3.1.</span> <span class="nav-text">元素/节点标记</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Manifest-merger-failed-解决"><span class="nav-number">4.</span> <span class="nav-text">Manifest merger failed 解决</span></a></li></ol></div>
             
 
           </div>
@@ -589,7 +597,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
