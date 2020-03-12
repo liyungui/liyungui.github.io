@@ -1793,7 +1793,7 @@ append initrd=/ubninit
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Linux的su和su -/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Linux文件系统/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="风">
@@ -1812,7 +1812,7 @@ append initrd=/ubninit
         
           <h1 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Linux的su和su -/" itemprop="url">Linux的su和su -</a></h1>
+                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Linux文件系统/" itemprop="url">Linux文件系统</a></h1>
         
 
         <div class="post-meta">
@@ -1886,29 +1886,135 @@ append initrd=/ubninit
       
         
           
-            <h2 id="su命令和su-作用"><a href="#su命令和su-作用" class="headerlink" title="su命令和su - 作用"></a>su命令和su - 作用</h2><p>切换用户。切换到root用户可以省略用户名</p>
-<h2 id="su命令和su-命令-区别"><a href="#su命令和su-命令-区别" class="headerlink" title="su命令和su -命令 区别"></a>su命令和su -命令 区别</h2><p>是否改变 <code>shell</code> <code>工作目录</code> <code>环境变量</code></p>
-<h3 id="su"><a href="#su" class="headerlink" title="su"></a>su</h3><p><code>shell</code> 未切换，原来用户（默认普通用户登录）</p>
-<p><code>工作目录</code> 未切换，原来用户（默认普通用户登录）</p>
-<p><code>环境变</code> 未切换，原来用户（默认普通用户登录）</p>
-<pre><code>wina66@ubuntu:~$ su
-Password: 
-root@ubuntu:/home/wina66# pwd
-/home/wina66
-root@ubuntu:/home/wina66# echo $PATH
-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
-root@ubuntu:/home/wina66# 
-</code></pre><h3 id="su-1"><a href="#su-1" class="headerlink" title="su -"></a>su -</h3><p><code>shell</code> 切换，新用户（默认普通用户登录）</p>
-<p><code>工作目录</code> 切换，新用户（默认普通用户登录）</p>
-<p><code>环境变</code> 切换，新用户（默认普通用户登录）</p>
-<pre><code>wina66@ubuntu:~$ su -
-Password: 
-root@ubuntu:~# pwd
-/root
-root@ubuntu:~# echo $PATH
-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin
-root@ubuntu:~# 
-</code></pre>
+            <h1 id="一、linux版本"><a href="#一、linux版本" class="headerlink" title="一、linux版本"></a>一、linux版本</h1><img src="/2018/12/20/电脑使用/linux/Linux文件系统/linux-1.jpg">
+<img src="/2018/12/20/电脑使用/linux/Linux文件系统/linux-2.jpg">
+<h1 id="二、-类Unix系统目录结构"><a href="#二、-类Unix系统目录结构" class="headerlink" title="二、 类Unix系统目录结构"></a><a href="http://www.ruanyifeng.com/blog/2012/02/a_history_of_unix_directory_structure.html" target="_blank" rel="noopener">二、 类Unix系统目录结构</a></h1><p><img src="http://image.beekka.com/blog/201202/bg2012020601.jpg" alt=""></p>
+<h2 id="目录结构的来历"><a href="#目录结构的来历" class="headerlink" title="目录结构的来历"></a>目录结构的来历</h2><p><strong>规定</strong></p>
+<ul>
+<li>第一块盘，专门放系统程序，挂载的目录点为根目录<strong>“/“</strong>（<strong>斜杠</strong>）</li>
+<li>第二块盘，专门放用户自己的程序，挂载的目录点取名为/usr。<ul>
+<li>两块盘的目录结构完全相同</li>
+<li>第一块盘的目录（/bin, /sbin, /lib, /tmp…）都在/usr目录下重新出现一次。</li>
+</ul>
+</li>
+<li>第三块盘，用于存放用户的数据，挂载的目录点取名为/home</li>
+</ul>
+<p>这种目录结构就延续了下来。随着硬盘容量越来越大，各个目录的含义进一步得到明确</p>
+<ul>
+<li><code>/</code>：存放系统程序，也就是At&amp;t开发的Unix程序。</li>
+<li><code>/usr</code>：存放Unix系统商（比如IBM和HP）开发的程序。</li>
+<li><code>/usr/local</code>：存放用户自己安装的程序。</li>
+<li><code>/opt</code>：在某些系统，用于存放第三方厂商开发的程序，所以取名为option，意为”选装”。</li>
+</ul>
+<h2 id="用户目录"><a href="#用户目录" class="headerlink" title="用户目录"></a>用户目录</h2><pre><code>/home/user
+~
+</code></pre><h2 id="上一目录"><a href="#上一目录" class="headerlink" title="上一目录"></a>上一目录</h2><pre><code>- 上一目录。最近一次切换目录之前的目录
+</code></pre><h2 id="相对路径、绝对路径"><a href="#相对路径、绝对路径" class="headerlink" title="相对路径、绝对路径"></a>相对路径、绝对路径</h2><p>绝对路径： /home</p>
+<p>相对路径： <code>. 当前目录</code> <code>.. 父目录</code></p>
+<h1 id="常用的linux文件权限："><a href="#常用的linux文件权限：" class="headerlink" title="常用的linux文件权限："></a>常用的linux文件权限：</h1><pre><code>444 r--r--r--
+600 rw-------
+644 rw-r--r--
+666 rw-rw-rw-
+700 rwx------
+744 rwxr--r--
+755 rwxr-xr-x
+777 rwxrwxrwx
+</code></pre><h2 id="文件和文件夹"><a href="#文件和文件夹" class="headerlink" title="文件和文件夹"></a>文件和文件夹</h2><pre><code>drwxr-xr-x d表示文件夹（ubuntu用绿色字体展示文件夹名）
+-rwxr-xr-x -表示文件（ubuntu用白色字体展示文件名）
+</code></pre><h2 id="文件所有者、用户组、其他用户"><a href="#文件所有者、用户组、其他用户" class="headerlink" title="文件所有者、用户组、其他用户"></a>文件所有者、用户组、其他用户</h2><p>从左至右，1-3位数字代表文件所有者的权限，4-6位数字代表同组用户的权限，7-9数字代表其他用户的权限。</p>
+<h2 id="权限值"><a href="#权限值" class="headerlink" title="权限值"></a>权限值</h2><p>读取的权限等于4，用r表示；写入的权限等于2，用w表示；执行的权限等于1，用x表示；</p>
+<p><strong>通过4、2、1的组合，得到以下几种权限：</strong></p>
+<pre><code>0（没有权限）；
+4（读取权限）；
+5（4+1 | 读取+执行）；
+6（4+2 | 读取+写入）；
+7（4+2+1 | 读取+写入+执行）
+</code></pre><p>以755为例：</p>
+<pre><code>1-3位7等于4+2+1，rwx，所有者具有读取、写入、执行权限；
+4-6位5等于4+1+0，r-x，同组用户具有读取、执行权限但没有写入权限；
+7-9位5，同上，也是r-x，其他用户具有读取、执行权限但没有写入权限。
+</code></pre><h2 id="chmod语法"><a href="#chmod语法" class="headerlink" title="chmod语法"></a>chmod语法</h2><p><strong>语法为：chmod abc file</strong></p>
+<p>其中a,b,c各为一个数字，分别表示User、Group、及Other的权限（对应u,g,o，a表示三者一起设置）。</p>
+<pre><code>r=4，w=2，x=1
+若要rwx属性则4+2+1=7；
+若要rw-属性则4+2=6；
+若要r-x属性则4+1=7。
+</code></pre><p>范例：</p>
+<pre><code>chmod a=rwx file 
+和
+chmod 777 file 
+效果相同
+
+chmod ug=rwx,o=x file 
+和
+chmod 771 file 
+效果相同
+
+若用chmod 4755 filename可使此程序具有root的权限
+</code></pre><h1 id="三、-ubuntu-设置终端文字大小"><a href="#三、-ubuntu-设置终端文字大小" class="headerlink" title="三、 ubuntu 设置终端文字大小"></a>三、 ubuntu 设置终端文字大小</h1><pre><code>调大： ctr + shift + +
+调小： ctr + -
+</code></pre><h1 id="终端命令技巧"><a href="#终端命令技巧" class="headerlink" title="终端命令技巧"></a>终端命令技巧</h1><ul>
+<li><p>输出命令帮助</p>
+<pre><code>命令 -- help
+man 命令
+    man后可以跟手册名指定要查阅的手册
+</code></pre></li>
+<li><p>自动补全功能</p>
+<pre><code>Tab键 自动补全功能
+    按一次tab，当前输入自动补全具唯一性，自动补全
+            不具唯一性，没有反应
+    连按两次tab，提示自动补全的候选项
+</code></pre></li>
+<li><p>历史命令</p>
+<pre><code>上下键 选中历史命令
+history 列出所有执行过的命令
+</code></pre></li>
+<li><p>多参</p>
+<pre><code>多参数可以只写一个 - 
+</code></pre></li>
+<li><p>查看命令位置</p>
+<pre><code>which 命令
+</code></pre></li>
+</ul>
+<h1 id="四、-文件操作命令"><a href="#四、-文件操作命令" class="headerlink" title="四、 文件操作命令"></a>四、 文件操作命令</h1><pre><code>ls 列出目录显式（非隐藏）文件/文件夹名称。list directory contents
+    ls -l 列出目录显式（非隐藏）文件/文件夹属性
+    ls - alh 列出目录所有文件/文件夹属性，文件大小格式化输出
+ll 列出当前目录所有文件/文件夹属性
+pwd 显示当前路径 print name of current/working directory
+cd 跳转目录
+clear 清空屏幕。 其实是假操作，往上翻还是能找到之前的记录
+touch 更新文件时间戳，不存在则创建新文件 change file timestamps
+cat 阅读/连接文件 concatenate files and print on the standard output
+more 分屏显示文件 file perusal filter for crt viewing 
+gpedit 编辑文件
+mkdir 创建目录 make directories
+rmdir 移除空目录 remove empty directories
+rm 删除文件/文件夹 remove files or directories
+    -r, -R, --recursive
+          remove directories and their contents recursively
+    -f, --force
+          ignore nonexistent files and arguments, never prompt
+grep [-选项] &apos;搜索内容&apos; 文件名 搜索文件内容
+find 查找文件 search for files in a directory hierarchy
+cp 拷贝文件/文件夹 copy files and directories
+mv 移动/重命名文件 move (rename) files
+tar tar归档工具 The GNU version of the tar archiving utility
+gzip 解压/压缩 compress or expand files
+bzip2
+zip、unzip
+chmod 修改文件权限
+chown 修改文件所有者
+chgrp 修改文件所属组
+</code></pre><h1 id="五、-输出重定向"><a href="#五、-输出重定向" class="headerlink" title="五、 输出重定向"></a>五、 输出重定向</h1><pre><code>&gt; 重定向（覆盖已有内容）
+&gt;&gt; 追加方式重定向
+</code></pre><h1 id="六、-管道"><a href="#六、-管道" class="headerlink" title="六、 管道"></a>六、 管道</h1><pre><code>| 一个命令的输出通过管道作为后一个命令的输入
+</code></pre><h1 id="七、-链接文件"><a href="#七、-链接文件" class="headerlink" title="七、 链接文件"></a>七、 链接文件</h1><p>硬链接：其实相当于复制源文件，只能链接文件。默认链接方式<br><br>软链接：不占磁盘空间，源文件删除则软链接失效。</p>
+<ul>
+<li><p>如果软链接文件与源文件不同目录，源文件必须用绝对路径</p>
+<p>  ln -s 源文件 链接文件</p>
+</li>
+</ul>
+
           
         
       
