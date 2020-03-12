@@ -1,13 +1,11 @@
 ---
 title: AMR音频在Android和iOS跨平台应用
-date: 2019-09-03 14:52:14
+date: 2018-12-20 08:57:53
 categories:
   - 直播
 tags:
   - 直播
----	
-	
-	AMR音频在Android和iOS上的应用  http://shaoyuan1943.github.io/2016/02/26/chat-in-game-three/
+---
 
 AMR格式的文件大小比AAC更小，经过测试之后发现的确如此，10s左右的语音采用AMR格式的文件大小可以稳定在15k左右。
 

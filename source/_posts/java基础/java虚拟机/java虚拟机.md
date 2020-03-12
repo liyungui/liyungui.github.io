@@ -1,3 +1,12 @@
+---
+title: java虚拟机
+date: 2018-12-20 08:57:53
+categories:
+  - Java
+tags:
+  - Java
+---
+
 ![](jvm_1.jpg)
 
 # 一、运行时数据区 Runtime Data Area #
