@@ -7,244 +7,99 @@ tags:
   - 编程思想
 ---
 
-[mvp in android](http://blog.csdn.net/lmj623565791/article/details/46596109)     
+本文所采用的架构是单Activity多View栈模式，跟常见的Activity架构不同
 
-**MVC**
-	
-	Model：业务逻辑(biz)和实体模型(bean)
-	View：对应于布局文件(xml)
-	Controllor：对应于Activity
+# 基础架构
 
-View对应于布局文件，其实能做的事情特别少，关于该布局文件中的数据绑定的操作，事件处理的代码都在Activity中，造成了**Activity既像View又像Controller**（当然了Data-Binder的出现，可能会让View更像View吧）。这可能也就是为何，在该文中有一句这样的话：
+{% asset_img 基础架构.jpg %}
 
-	Most of the modern Android applications just use View-Model architecture，everything is connected with Activity.
+**Contract**：协议层，负责定义MVP三层所有对外的接口。
 
-而当将架构改为**MVP**以后，Presenter的出现，将Actvity视为View层，Presenter负责完成View层与Model层的交互。现在是这样的：
+**Model**：数据业务层，负责数据获取、处理等逻辑，其通过回调接口将数据返回给Presenter层(可以不通过接口回调，持有Presenter返回数据)。
 
-	Model 依然是业务逻辑和实体模型
-	View 对应于Activity，负责View的绘制以及与用户交互
-	Presenter 负责完成View于Model间的交互
+**Presenter**：中间层，Model层与View层的中间枢纽，负责表现层逻辑以及提供模块对外的方法，其持有Model层与View层的引用（对View层的引用为弱引用，以防出现内存泄漏）。
 
-**减少了Activity的职责**，简化了Activity中的代码，将复杂的逻辑代码提取到了Presenter中进行处理。与之对应的好处就是，耦合度更低，更方便的进行测试。
+**View**：视图层，只负责UI更新和交互相关的逻辑，持有Presenter的引用，用以响应控件的交互事件。
 
-这个开发架构，在慢慢演变，出现了一种思路，就是将Model继续分解，出来一个管理**Model**的**DataManager**,对Model进行统一管理。
 
-有了这个DaraManager之后，Presenter不直接对应Model,而是对应调用DataManager的接口，DataManager内部实现各个 Model 的实现细节。
+## View层
 
-## （一）Model ##
+{% asset_img view.png %}
 
-实体类User、业务类UserBiz(接口类IUserBiz)
+一般一个交互模块(比如直播投票)需要多个视图组件协同工作，因此设置ViewManager类统一管理模块内部的所有组件。ViewManager作为View层的黑盒入口，起到隔离Presenter与View层的作用（Presenter无需知道View层内部的具体实现）。那么对于Presenter来说，它就只需要在特定时机下，调用IView.showVote()方法即可。
+     
+关于ViewManager还有以下几点说明：
 
-	public class User {
-	    private String username;
-	    private String password;
-	    ...getter setter method...
-	}
+- ViewManager对象的初始化是在主模块ScreenLiveRoom中完成的，在初始化的时候会注入模块相关的父容器和控件
+- 需要动态加载的子View会在ViewManager中完成初始化
+- ViewManager负责子View生命周期的管理（动态添加到相关区域的父容器、互动结束时清除View对象等）
+- 在ViewManager的构造方法中会初始化此模块的Presenter对象
 
-	public interface IUserBiz {
-	    public void login(String username, String password, OnLoginListener loginListener);
-	}
+## Presenter层
 
-	public class UserBiz implements IUserBiz {
-	    @Override
-	    public void login(final String username, final String password, final OnLoginListener loginListener) {
-	        //模拟子线程耗时操作
-	        new Thread() {
-	            @Override
-	            public void run() {
-	                try {
-	                    Thread.sleep(2000);
-	                } catch (InterruptedException e) {
-	                    e.printStackTrace();
-	                }
-	                //模拟登录成功
-	                if ("zhy".equals(username) && "123".equals(password)) {
-	                    User user = new User();
-	                    user.setUsername(username);
-	                    user.setPassword(password);
-	                    loginListener.loginSuccess(user);
-	                } else {
-	                    loginListener.loginFailed();
-	                }
-	            }
-	        }.start();
-	    }
-	}
+{% asset_img presenter.png %}
 
-	public interface OnLoginListener {
-	    void loginSuccess(User user);
-	    void loginFailed();
-	}
+Presenter的职责如下：
 
-## (二) View ##
+- 初始化Model对象，接收Model层数据，实现表现层逻辑
+- 在构造方法中注入持有ViewManager的引用，控制View层更新UI
+- 作为互动模块的黑盒入口对外提供接口方法
 
-Presenter与View交互是通过接口。所以我们这里需要定义一个接口ILoginView
+## Model层
 
-本例中有两个方法：login和clear
+{% asset_img model.png %}
 
-### View交互接口考虑： ###
+持有Repository对象的引用。Model负责加工处理数据以及数据的映射工作，而Repository则为Model提供数据（数据可以是从网络也可以是从本地获取）。
 
-1. 该操作需要什么？（getUserName, getPassword）
-2. 该操作过程中，对应的友好的交互？(showLoading, hideLoading)
-3. 该操作的结果，对应的反馈？(toMainActivity,showFailedError)
+# 模块通信
 
-### 完整接口IUserLoginView ###
-	public interface IUserLoginView {
-	    String getUserName();
-	    String getPassword();
-	
-	    void clearUserName();
-	    void clearPassword();
-	
-	    void showLoading();
-	    void hideLoading();
-	
-	    void toMainActivity(User user);
-	    void showFailedError();
-	}
+{% asset_img 基础架构-模块.jpg %}
 
-### View交互接口的实现类--Activity ###
+模块之间将处于各自独立的状态，无法直接通信
 
-控件肯定需要的（findViewById、setOnClickListener），然后需要和Presenter交互，肯定就需要Presenter啦
+通过路由的方式解决模块间通信的问题
 
-	public class UserLoginActivity extends ActionBarActivity implements IUserLoginView {
-	    private EditText mEtUsername, mEtPassword;//控件
-	    private Button mBtnLogin, mBtnClear;
-	    private ProgressBar mPbLoading;
-	
-	    private UserLoginPresenter mUserLoginPresenter = new UserLoginPresenter(this);//Presenter
-	
-	    @Override
-	    protected void onCreate(Bundle savedInstanceState) {
-	        super.onCreate(savedInstanceState);
-	        setContentView(R.layout.activity_user_login);
-	
-	        initViews();
-	    }
-	
-	    private void initViews() {
-	       	...findViewById....
-	        mBtnLogin.setOnClickListener(new View.OnClickListener() {
-	            @Override
-	            public void onClick(View v) {
-	                mUserLoginPresenter.login();
-	            }
-	        });
-	        mBtnClear.setOnClickListener(new View.OnClickListener() {
-	            @Override
-	            public void onClick(View v) {
-	                mUserLoginPresenter.clear();
-	            }
-	        });
-	    }
-	
-	    @Override
-	    public String getUserName() {
-	        return mEtUsername.getText().toString();
-	    }
-	
-	    @Override
-	    public String getPassword() {
-	        return mEtPassword.getText().toString();
-	    }
-	
-	    @Override
-	    public void clearUserName() {
-	        mEtUsername.setText("");
-	    }
-	
-	    @Override
-	    public void clearPassword() {
-	        mEtPassword.setText("");
-	    }
-	
-	    @Override
-	    public void showLoading() {
-	        mPbLoading.setVisibility(View.VISIBLE);
-	    }
-	
-	    @Override
-	    public void hideLoading() {
-	        mPbLoading.setVisibility(View.GONE);
-	    }
-	
-	    @Override
-	    public void toMainActivity(User user) {
-	        Toast.makeText(this, user.getUsername() +
-	                " login success , to MainActivity", Toast.LENGTH_SHORT).show();
-	    }
-	
-	    @Override
-	    public void showFailedError() {
-	        Toast.makeText(this,
-	                "login failed", Toast.LENGTH_SHORT).show();
-	    }
-	}
+路由内部维护着一份路由表（通过Map实现），路由表保存着所有直播间模块（包括主模块）的Presenter对象，其索引为对象的类型。
 
-## （三）Presenter ##
-Presenter是用作Model和View之间交互的桥梁。presenter完成二者的交互，那么肯定需要二者的实现类。大致就是从View中获取需要的参数，交给Model去执行业务方法，执行的过程中需要的反馈，以及结果，再让View进行做对应的显示。
+```java
+public class LiveRouter {
+    public static Map<Class, Object> mPresenterMap = new HashMap<>();// 互动模块Presenter路由表
+ 
+    public static void savePresenter(Object presenter) {
+        mPresenterMap.put(presenter.getClass(), presenter);
+    }
+ 
+    public static  <T> T findPresenter(Class<T> clazz) {
+        if (mPresenterMap.containsKey(clazz)) {
+            return (T) mPresenterMap.get(clazz);
+        } else {
+            return null;
+        }
+    }
+ 
+    public static void clearCache() {
+        mPresenterMap.clear();
+    }
+}
+```
 
-本例中有两个方法：login和clear
+在Presenter基类的构造方法中调用LiveRouter.savePresenter()方法将本类对象存入路由表中，然后在其他模块里就可以通过LiveRouter.findPresenter()方法查找到目标对象。这样，通过路由器LiveRouter的中转作用，模块之间就可以以间接调用的方式访问对方的外部方法了。
 
-	public class UserLoginPresenter {
-	    private IUserBiz userBiz;
-	    private IUserLoginView userLoginView;
-	    private Handler mHandler = new Handler();
-	
-	    public UserLoginPresenter(IUserLoginView userLoginView) {
-	        this.userLoginView = userLoginView;
-	        this.userBiz = new UserBiz();
-	    }
-	
-	    public void login() {
-	        userLoginView.showLoading();
-	        userBiz.login(userLoginView.getUserName(), userLoginView.getPassword(), new OnLoginListener() {
-	            @Override
-	            public void loginSuccess(final User user) {
-	                //需要在UI线程执行
-	                mHandler.post(new Runnable() {
-	                    @Override
-	                    public void run() {
-	                        userLoginView.toMainActivity(user);
-	                        userLoginView.hideLoading();
-	                    }
-	                });
-	
-	            }
-	            @Override
-	            public void loginFailed() {
-	                //需要在UI线程执行
-	                mHandler.post(new Runnable() {
-	                    @Override
-	                    public void run() {
-	                        userLoginView.showFailedError();
-	                        userLoginView.hideLoading();
-	                    }
-	                });
-	
-	            }
-	        });
-	    }
-	
-	    public void clear() {
-	        userLoginView.clearUserName();
-	        userLoginView.clearPassword();
-	    }
-	}
+当前LiveRouter的实现方式成本极低（只有十几行代码），但有不足的地方。LiveRouter.findPresenter()方法需要显式地传入Presenter的类型来查找对应的对象，这会造成一定程度上的耦合，当需要移除某个模块所有代码时，就要去到其他模块删除其Presenter类型的引用。但这种代价是可以接受的，因为这样的引用并不会太多，而且清理起来非常方便，此外，对比其他实现方案（事件总线、apt实现的路由），这种方式性价比是最高的，因此直播间模块通信暂定为这种方法。
 
-## 总结 ##
+{% asset_img 整体架构.jpg %}
 
-mvc模式中，Activity既负责View的初始化、数据绑定等操作(v)，还负责业务逻辑控制(c)，Activity代码臃肿
-
-mvp模式，Activity单纯的负责View的初始化、数据绑定等操作(v)，present通过接口和view交互（Activity实现接口，present包含接口--Activity）
-
-## mvp接口迷局 ##
+# mvp接口迷局
 
 MVP的问题在于，使用接口去连接view层和presenter层，这就导致一个逻辑复杂的页面，接口会有很多，十几二十个都不足为奇。维护接口的成本就会非常的大。
 
 这个问题的解决方案就是你得根据自己的业务逻辑去斟酌着写接口。你可以定义一些基类接口，把一些公共的逻辑，比如网络请求成功失败，toast等等放在里面，之后你再定义新的接口的时候可以继承自那些基类，这样会好不少。
 
-## mvp开源库 ##
+# mvp开源库
 
 [A Model-View-Presenter library for modern Android apps](https://github.com/sockeqwe/mosby)
+
+# 参考&扩展
+
+- [mvp in android](http://blog.csdn.net/lmj623565791/article/details/46596109)
 

@@ -4,6 +4,14 @@ date: 2018-05-17 11:27:25
 tags: APK签名
 ---
 
+# 手动签名
+
+```
+jarsigner -verbose -keystore [您的私钥存放路径] 
+	-storepass 密码库密码 
+	-signedjar [签名后文件存放路径] [未签名的文件路径] [您的证书名称]
+```
+
 # 查看签名 #
 
 使用第三方sdk时经常要求绑定签名
@@ -45,6 +53,4 @@ tags: APK签名
 ### keystore ###
 
 	keytool -list -v -keystore e:\debug.keystore -storepass xxx(密匙)
-
-
 

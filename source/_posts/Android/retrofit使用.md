@@ -125,6 +125,40 @@ JokeInfo
         }
     });
 
+# 超时时间
+
+默认超时时间，10秒
+
+```java
+public class OkHttpClient implements Cloneable, Call.Factory, WebSocket.Factory {
+	public static final class Builder {
+		connectTimeout = 10_000;
+      	readTimeout = 10_000;
+      	writeTimeout = 10_000;
+  }
+}
+```
+
+自定义
+
+```java
+OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+httpClientBuilder
+		.connectTimeout(60, TimeUnit.SECONDS)
+    	.readTimeout(60, TimeUnit.SECONDS)
+    	.writeTimeout(60, TimeUnit.SECONDS);//设置超时时间
+httpClientBuilder.hostnameVerifier(new HostnameVerifier() {
+    @Override
+    public boolean verify(String hostname, SSLSession session) {
+        return true;
+    }
+});
+SSLSocketFactory sslSocketFactory = createSSLSocketFactory();
+if (sslSocketFactory != null) {
+    httpClientBuilder.sslSocketFactory(sslSocketFactory);
+}
+```
+  
 # 二、概念描述 #
 
 ## 请求URL  ##

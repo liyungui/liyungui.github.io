@@ -1,0 +1,61 @@
+@startuml
+
+class TXLivePlayer #red
+class TXVodPlayer #red
+abstract class TXIStreamDownloader
+abstract class "TXIPlayer \n liteav.r" as TXIPlayer
+class "TXLivePlayerImp \n liteav.g" as TXLivePlayerImp
+class "TXVodPlayerImp \n liteav.n" as TXVodPlayerImp
+class "TXLivePlayerImpDelegate \n rtmp.a" as TXLivePlayerImpDelegate
+interface "IVideoDecoder \n .liteav.videodecoder.a" as IVideoDecoder
+interface "IMediaPlayer \n ijkplay" as IMediaPlayer
+interface "IDownloaderCallback \n liteav.network.h" as IDownloaderCallback
+interface "VideoDecodeListener \n liteav.videodecoder.c" as VideoDecodeListener
+class "MediaCodecDecoder \n liteav.videodecoder.b" as MediaCodecDecoder
+class "TXCSurfaceRender \n liteav.renderer.f" as TXCSurfaceRender
+class "TXCGLRender \n liteav.renderer.a" as TXCGLRender
+
+TXIPlayer <|-- TXLivePlayerImp
+TXIPlayer <|-- TXVodPlayerImp
+
+TXIStreamDownloader <|-- TXCFLVDownloader
+TXIStreamDownloader <|-- TXCRTMPDownloader
+
+IVideoDecoder <|-- TXCVideoFfmpegDecoder
+IVideoDecoder <|-- TXCVideoDecoder
+IVideoDecoder <|-- MediaCodecDecoder
+
+TXCSurfaceRender <|-- TXCGLRender
+
+TXLivePlayer *-- TXLivePlayerImpDelegate
+TXLivePlayerImpDelegate *-- TXIPlayer
+
+TXLivePlayerImp *-- TXCloudVideoView
+TXLivePlayerImp *-- TXCStreamDownloader
+TXCStreamDownloader *-- TXIStreamDownloader
+TXLivePlayerImp *-- TXCRenderAndDec
+TXCRenderAndDec *-- IVideoDecoder
+
+TXCRenderAndDec *-- TXCSurfaceRender
+TXCGLRender *-- TXCYuvTextureRender
+
+
+TXVodPlayer *-- TXVodPlayerImp
+TXVodPlayerImp *-- TXCloudVideoView
+TXVodPlayerImp *-- TXCVodVideoView
+TXVodPlayerImp *-- TextureRenderView
+TextureRenderView *-- IMediaPlayer
+
+TXIStreamDownloader *-- IDownloaderCallback
+
+IVideoDecoder *-- VideoDecodeListener
+
+
+
+
+
+
+
+
+
+@enduml

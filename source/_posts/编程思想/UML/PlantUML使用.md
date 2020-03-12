@@ -44,7 +44,86 @@ PlantUML 是基于 Java 语言的开源 UML 图形绘制工具，是创建UML图
 
 	participant "我是很长的一段话，如果要用我来表达的话，就太长了吧！" as par
 	"Tom()" -> "牛儿还在山上吃草，放牛的却不知道哪里去了的王二小" as wang : Hi
-	
+
+# 类图
+
+## 关系
+
+{% asset_img 类图-关系.png %}
+
+使用`..` 来代替 `--` 可以得到点 线
+
+## 关系上的标识
+
+使用 :后接 标签文字，来说明 关系之间的标签
+
+在标签的开始或结束位置添加< 或 >以表明是哪个对象作用到哪个对象上。
+
+对关系数量的说明，可以在每一边使用 "数字" 来说明.
+
+## 定义类
+
+```
+class Dummy {
+  String data
+  void methods()
+}
+```
+
+### 可访问性
+
+{% asset_img 类图-可访问性.png %}
+
+### 抽象与静态
+
+{static}
+
+{abstract}
+
+### 分割符
+
+PlantUML默认自动将方法和属性重新分组，可以定义分隔符来重排方法和属性
+
+可用的分隔符：
+
+- `..` ；虚线
+- `__` 下划线 ；细实线
+- `--` 中划线 ；粗实线（默认的方法和属性分割线）
+- `==` ；双实线
+
+### 抽象类和接口
+
+abstract class来定义抽象类。抽象类用斜体显示
+
+也可以使用interface, annotation 和 enum关键字
+
+### 指定标记（Spot）
+
+默认通用标记字符 (C, I, E, A) 用于标记 类(classes), 接口（interface）, 枚举（enum）和 抽象类（abstract classes）
+
+自定义标记：定义原型时，可以增加对应的单个字符及颜色
+
+```
+class System << (S,#FF7700) Singleton >>
+class Date << (D,red) >>
+```
+
+### 泛型
+
+你可以用 < 和 > 来定义类的泛型。
+
+`class Foo<? extends Element>`
+
+## 包
+
+package 声明包，同时可选的来声明对应的背景色（通过使用html色彩代码或名称）
+
+包可以被定义为嵌套。
+
+package "Classic Collections" #DDDDDD {
+  Object <|-- ArrayList
+}
+
 # 时序图
 
 	张三 -> 李四 : 我要借钱

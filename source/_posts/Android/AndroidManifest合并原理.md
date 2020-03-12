@@ -4,9 +4,9 @@ date: 2018-05-24 18:44:53
 tags: Manifest
 ---
 
-[ss](http://mouxuejie.com/blog/2016-02-05/androidmanifest-merge/)
+[AndroidManifest合并原理](http://mouxuejie.com/blog/2016-02-05/androidmanifest-merge/)
 
-[啊啊](https://developer.android.com/studio/build/manifest-merge?hl=zh-cn)
+[官网 manifest-merge](https://developer.android.com/studio/build/manifest-merge?hl=zh-cn)
 
 APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可以包含多个文件（通过主源集、构建变体和导入的库提供）。因此，在构建应用时，Gradle 构建会将所有清单文件合并到一个清单文件中。
 
@@ -76,3 +76,35 @@ APK 只能包含一个 AndroidManifest.xml 文件，但 Android Studio 项目可
 - **merge-only-attributes**
 	- 仅合并属性，不合并嵌套元素
 - **remove**
+
+# Manifest merger failed 解决
+
+编译报错：
+
+`Manifest merger failed with multiple errors, see logs`
+
+用下面的命令查看详细日志，分析到底是什么东西冲突了
+
+`gradlew processDebugManifest --stacktrace`
+
+这个命令比 `./gradlew assembleDebug --stacktrace -info` 更加轻量（后者用于展示整个编译过程的错误详情）
+
+```
+> Task :app:processDebugManifest FAILED
+D:\aspjs\kinland\app\src\main\AndroidManifest.xml:14:5-67 Warning:
+        Element uses-permission#android.permission.INTERNET at AndroidManifest.xml:14:5-67 duplicated with element declared at AndroidManifest.xml:6:5-67
+D:\aspjs\kinland\app\src\main\AndroidManifest.xml:25:9-47 Error:
+        Attribute application@icon value=(@mipmap/ic_launcher_new) from AndroidManifest.xml:25:9-47
+        is also present at [com.github.**:v1.0.1] AndroidManifest.xml:13:9-43 value=(@mipmap/ic_launcher).
+        Suggestion: add 'tools:replace="android:icon"' to <application> element at AndroidManifest.xml:22:5-125:19 to override.
+D:\aspjs\kinland\app\src\main\AndroidManifest.xml:27:9-58 Error:
+        Attribute application@roundIcon value=(@mipmap/ic_launcher_round_new) from AndroidManifest.xml:27:9-58
+        is also present at [com.github.**] AndroidManifest.xml:15:9-54 value=(@mipmap/ic_launcher_round).
+        Suggestion: add 'tools:replace="android:roundIcon"' to <application> element at AndroidManifest.xml:22:5-125:19 to override.
+
+See http://g.co/androidstudio/manifest-merger for more information about the manifest merger.
+```
+
+日志上可以看出来有两个字段冲突了，并且给出了提示，这里直接加上就好了，两个字段的话中间用逗号分隔
+
+`tools:replace="android:icon,android:roundIcon"`

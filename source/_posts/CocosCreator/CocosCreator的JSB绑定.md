@@ -152,10 +152,17 @@ JSB绑定通常有两种方式：手动绑定和自动绑定
 
 ## 流程
 
-- 确定方法接口与 JS/Native 公共字段
-- 声明头文件，并分别实现 Android JNI 与 OC 具体业务代码
-- 编写抽象层代码，将必要的类与对应方法注册到 JS 虚拟机中
-- 将绑定的类挂载在 JS 中的指定对象（类似命名空间）中
+- 定义原生类。
+	- 确定方法接口与 JS/Native 公共字段 
+	- 分别实现 Android JNI 与 OC 具体业务代码
+- JSB
+	- 声明 供JS层调用的方法
+	- 实现与包装 供JS层调用的方法
+	- 注册JS类
+		- 代码创建JS类，指定类挂载JS对象（类似命名空间）和类的属性（成员和方法）
+		- 将JS类注册到虚拟机
+		- 注册JS类与原生类的对应关系
+- JS中使用JS类
 
 ## 实例
 
@@ -169,17 +176,9 @@ JSB绑定通常有两种方式：手动绑定和自动绑定
 - `std::unordered_map<std::string, ResultCallback> reqCtx;`
 	- map类型，存储回调对应关系 
 
-为了方便使用，我们将它挂载在 `jsb` 对象下
 
-这样我们便可以使用如下代码进行简单地调用:
 
-```js
-jsb.fileDownloader.download(url, path, (msg, code) => {
-    // do whatever you want
-});
-```
-
-### 定义接口
+### 定义原生类
 
 ```cpp
 class FileDownloader {
@@ -198,9 +197,11 @@ class FileDownloader {
 };
 ```
 
-### 绑定
+### JSB
 
 下载器就功能上分类属于 network 模块，我们可以选择将我们的 FileDownloader 的绑定实现在 Cocos 源码中现有的 `jsb_cocos2dx_network_auto` 中。
+
+#### 声明 供JS层调用的方法
 
 在 `jsb_cocos2dx_network_auto.hpp` 中声明 JS调用 函数：
 
@@ -209,11 +210,27 @@ SE_DECLARE_FUNC(js_cocos2dx_network_FileDownloader_download); // 声明成员函
 SE_DECLARE_FUNC(js_cocos2dx_network_FileDownloader_getInstance); // 声明静态函数，getInstance，获取单例
 ```
 
-在 `jsb_cocos2dx_network_auto.cpp` 中注册 上面声明的两个函数到 JS 虚拟机中。实现留空，等注册逻辑完成后再来补全
+#### 实现与包装 供JS层调用的方法
+
+在 `jsb_cocos2dx_network_auto.cpp` 中注册 上面声明的两个函数到 JS 虚拟机中。
 
 ```cpp
 static bool js_cocos2dx_network_FileDownloader_download(se::State &s) { // 方法名与声明时一致
-    // TODO
+	//可以通过 se::State 获取到 C++ 指针、se::Object 对象指针、参数列表、返回值引用
+	//args() 获取 JS 带过来的全部参数（se::Value 的 vector）；
+    const auto& args = s.args();
+    size_t argc = args.size();
+    CC_UNUSED bool ok = true;
+    //数个数判断，getInstance() 参数为 0；
+    if (argc == 0) {
+        cocos2d::network::FileDownloader* result = cocos2d::network::FileDownloader::getInstance(); // C++ 单例
+        //native_ptr_to_seval() 用于在绑定层根据一个 C++ 对象指针获取一个 se::Value，并赋返回值给rval()至 JS 层；
+        ok &= native_ptr_to_seval<cocos2d::network::FileDownloader>((cocos2d::network::FileDownloader*)result, &s.rval());
+        SE_PRECONDITION2(ok, false, "js_cocos2dx_network_FileDownloader_getInstance : Error processing arguments");
+        return true;
+    }
+    SE_REPORT_ERROR("wrong number of arguments: %d, was expecting %d", (int)argc, 0);
+    return false;
 }
 
 SE_BIND_FUNC(js_cocos2dx_network_FileDownloader_download); // 包装该方法
@@ -225,7 +242,7 @@ static bool js_cocos2dx_network_FileDownloader_getInstance(se::State& s) { // �
 SE_BIND_FUNC(js_cocos2dx_network_FileDownloader_getInstance); // 包装该方法
 ```
 
-### 注册
+#### 注册JS类
 
 新增一个注册方法实现 FileDownloader 的全部注册逻辑
 
@@ -283,6 +300,19 @@ bool register_all_cocos2dx_network(se::Object* obj)
 ```
 
 到此，Class 已经成功绑定
+
+### 使用JS类
+
+为了方便使用，我们在上面将它挂载在 `jsb` 对象下
+
+这样我们便可以使用如下代码进行简单地调用:
+
+```js
+jsb.fileDownloader = jsb.FileDownloader.getInstance();
+jsb.fileDownloader.download(url, path, (msg, code) => {
+    // do whatever you want
+});
+```
 
 # 自动绑定
 
