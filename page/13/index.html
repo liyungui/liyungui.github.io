@@ -262,6 +262,183 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/13/web/nginx使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/13/web/nginx使用/" itemprop="url">nginx使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-13T12:54:14+08:00">
+                2019-06-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/web/" itemprop="url" rel="index">
+                    <span itemprop="name">web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="概念介绍"><a href="#概念介绍" class="headerlink" title="概念介绍"></a>概念介绍</h1><p>Nginx (engine x) 是一个<strong>高性能</strong>(占有内存少，并发能力强)<strong>高可扩展</strong>的 HTTP和反向代理web服务器，同时也提供了IMAP/POP3/SMTP服务。</p>
+<p>高并发的情况下，Nginx是Apache服务不错的替代品</p>
+<p>兼容性：Linux系统,Windows NT系统</p>
+<h1 id="版本选择"><a href="#版本选择" class="headerlink" title="版本选择"></a>版本选择</h1><p>Nginx高性能，高可扩展。但并非指随便下载一款事先编译好的，就能满足要求，尤其是<strong>不建议使用官方编译好的Windows版本</strong></p>
+<h2 id="官方编译的Windows版本基本事实："><a href="#官方编译的Windows版本基本事实：" class="headerlink" title="官方编译的Windows版本基本事实："></a>官方编译的Windows版本基本事实：</h2><ol>
+<li><p>使用的是内生Win32 API，不是通过Cygwin的模拟层。</p>
+</li>
+<li><p>仅用了select()连接方法，无缘高性能、高可扩展。</p>
+</li>
+<li><p>Nginx运行时有两种进程，一个是主进程，一个是工作进程。Windows版的，只有一个有效的工作进程，虽然你可以运行多个工作进程。</p>
+</li>
+<li><p>没有windows服务进程版，计划在下个版本加入。</p>
+</li>
+</ol>
+<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="Mac版安装"><a href="#Mac版安装" class="headerlink" title="Mac版安装"></a>Mac版安装</h2><ol>
+<li>安装Command Line tools</li>
+</ol>
+<p><code>xcode-select --install</code></p>
+<ol start="2">
+<li>安装brew</li>
+</ol>
+<p><code>ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;</code></p>
+<ol start="3">
+<li>安装nginx</li>
+</ol>
+<p><code>brew install nginx</code></p>
+<p>安装完毕的提示</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">==&gt; Caveats</span><br><span class="line">==&gt; openssl</span><br><span class="line">A CA file has been bootstrapped using certificates from the SystemRoots</span><br><span class="line">keychain. To add additional certificates (e.g. the certificates added in</span><br><span class="line">the System keychain), place .pem files in</span><br><span class="line">  /usr/local/etc/openssl/certs</span><br><span class="line"></span><br><span class="line">and run</span><br><span class="line">  /usr/local/opt/openssl/bin/c_rehash</span><br><span class="line"></span><br><span class="line">openssl is keg-only, which means it was not symlinked into /usr/local,</span><br><span class="line">because Apple has deprecated use of OpenSSL in favor of its own TLS and crypto libraries.</span><br><span class="line"></span><br><span class="line">If you need to have openssl first in your PATH run:</span><br><span class="line">  echo &apos;export PATH=&quot;/usr/local/opt/openssl/bin:$PATH&quot;&apos; &gt;&gt; ~/.bash_profile</span><br><span class="line"></span><br><span class="line">For compilers to find openssl you may need to set:</span><br><span class="line">  export LDFLAGS=&quot;-L/usr/local/opt/openssl/lib&quot;</span><br><span class="line">  export CPPFLAGS=&quot;-I/usr/local/opt/openssl/include&quot;</span><br><span class="line"></span><br><span class="line">==&gt; nginx</span><br><span class="line">Docroot is: /usr/local/var/www</span><br><span class="line"></span><br><span class="line">The default port has been set in /usr/local/etc/nginx/nginx.conf to 8080 so that</span><br><span class="line">nginx can run without sudo.</span><br><span class="line"></span><br><span class="line">nginx will load all files in /usr/local/etc/nginx/servers/.</span><br><span class="line"></span><br><span class="line">To have launchd start nginx now and restart at login:</span><br><span class="line">  brew services start nginx</span><br><span class="line">Or, if you don&apos;t want/need a background service you can just run:</span><br><span class="line">  nginx</span><br></pre></td></tr></table></figure>
+<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h1><p><code>brew services start nginx</code></p>
+<p>访问 <a href="http://localhost:8080/" target="_blank" rel="noopener">http://localhost:8080/</a></p>
+<p>重启</p>
+<p><code>brew services restart nginx</code></p>
+<h1 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h1><h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p><code>/usr/local/etc/nginx/nginx.conf</code></p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="http://nginx.org/en/" target="_blank" rel="noopener">官方文档</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/04/网络/反向代理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1702,196 +1879,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/29/RN/RN之Native处理异常/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/29/RN/RN之Native处理异常/" itemprop="url">RN之Native处理异常</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-29T17:41:12+08:00">
-                2019-03-29
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>研究RN框架异常的动机在于，我们需要建立起一套针对性的容错机制，毕竟它还是一个不够成熟的框架。期望能够做到的效果就是，对于每一个RN页面的启动，我们能够在<strong>进入页面至退出页面</strong>期间侦测所有发生的<strong>RN相关</strong>的崩溃，然后根据崩溃来考虑该页面是否该有降级策略、判断框架是否真的能够支持稳定迭代。</p>
-<p>并且，集中地处理崩溃，也有利于我们后续对框架稳定性进行针对性的统计与优化。即使最后还是最简单粗暴的try-catch，这个catch的位置也是一门艺术。</p>
-<p><strong>异常种类</strong></p>
-<ul>
-<li>产生位置<ul>
-<li>JS</li>
-<li>Java </li>
-<li>C++</li>
-</ul>
-</li>
-<li>产生时期<ul>
-<li>启动期</li>
-<li>运行期</li>
-</ul>
-</li>
-</ul>
-<h1 id="启动期异常"><a href="#启动期异常" class="headerlink" title="启动期异常"></a>启动期异常</h1><h2 id="框架启动流程"><a href="#框架启动流程" class="headerlink" title="框架启动流程"></a>框架启动流程</h2><p>ReactActivity.onCreate 调用 ReactActivityDelegate.loadApp 开始核心启动流程</p>
-<ul>
-<li><strong>预初始化</strong>：<ul>
-<li>初始化ReactRootView与ReactInstanceManager实例</li>
-</ul>
-</li>
-<li><strong>创建React上下文</strong>：由ReactRootView.startReactApplication一路走下来，会用懒加载方式创建React上下文，通过进入ReactInstanceManager.ReactContextInitAsyncTask这个AsyncTask中执行上下文创建的工作，里面执行的东西可以说是所有的Java部分初始化内容（收集与注册提供的Native/JS/View模块、初始化CatalystInstance（负责核心Bridge相关）、运行JSBundle、将界面展示到ReactRootView上等）。</li>
-</ul>
-<h2 id="预初始化"><a href="#预初始化" class="headerlink" title="预初始化"></a>预初始化</h2><p>涉及了so加载的操作，可以在 <code>ReactRootView.startReactApplication</code><br>外部再加一层try-catch</p>
-<h2 id="创建React上下文阶段"><a href="#创建React上下文阶段" class="headerlink" title="创建React上下文阶段"></a>创建React上下文阶段</h2><img src="/2019/03/29/RN/RN之Native处理异常/启动期异常.png">
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">runCreateReactContextOnNewThread</span><span class="params">(<span class="keyword">final</span> ReactContextInitParams initParams)</span> </span>&#123;</span><br><span class="line">  mCreateReactContextThread = <span class="keyword">new</span> Thread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">final</span> ReactApplicationContext reactApplicationContext = createReactContext(</span><br><span class="line">            initParams.getJsExecutorFactory().create(),</span><br><span class="line">            initParams.getJsBundleLoader());</span><br><span class="line"></span><br><span class="line">        Runnable setupReactContextRunnable = <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">          <span class="meta">@Override</span></span><br><span class="line">          <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">              setupReactContext(reactApplicationContext);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">              mDevSupportManager.handleException(e);</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        mDevSupportManager.handleException(e);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在框架启动的核心阶段，RN有捕获异常，但是仅仅只用 <code>DevSupportManager</code> 去处理，当不使用 <code>develop support</code> 时，会直接抛出异常。</p>
-<p>这里我们可以做<strong>第一个修改</strong>，不使用dev support时</p>
-<ul>
-<li>传入一个Handler去专门处理启动期的崩溃</li>
-<li>用<code>ReactInstanceManagerBuilder.setNativeModuleCallExceptionHandler()</code> 传入的ExceptionHandler 统一去处理崩溃</li>
-</ul>
-<h2 id="运行期异常"><a href="#运行期异常" class="headerlink" title="运行期异常"></a>运行期异常</h2><ol>
-<li>JS调用Native产生异常<ul>
-<li>Native模块不存在</li>
-<li>Native模块函数原型不一致</li>
-<li>Native模块执行的异常</li>
-</ul>
-</li>
-<li>Native调用JS异常<ul>
-<li>JS模块不存在</li>
-<li>JS模块函数原型不一致</li>
-<li>JS模块执行的异常</li>
-</ul>
-</li>
-<li>JS本身代码执行的异常</li>
-<li>UI操作的异常</li>
-</ol>
-<h3 id="运行线程"><a href="#运行线程" class="headerlink" title="运行线程"></a>运行线程</h3><p>RN维护了三个线程的MessageQueue，所有的操作都会被push到上面运行</p>
-<ul>
-<li><strong>NativeQueue</strong> 运行Native模块函数的线程（通常由JS发起），后台线程；</li>
-<li><strong>JSQueue</strong> 运行JS的线程，后台线程。</li>
-<li><strong>UIQueue</strong> 专门做UI操作，使用Android里面的<strong>主线程</strong>；</li>
-</ul>
-<p>在CatalystInstance初始化的时候会初始化三个Queue，启动后台线程，并将他们的句柄传给C++层的Bridge。Queue里面调度使用的Handler，重写了dispatchMessage，并在外面包装了层try-catch，统统都会交到 <code>CatalystInstance.onNativeException</code> 中。而这其中使用的就是我们传入给ReactInstanceManager的ExceptionHandler。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">  <span class="function"><span class="keyword">private</span> <span class="title">CatalystInstanceImpl</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> ReactQueueConfigurationSpec reactQueueConfigurationSpec,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> JavaScriptExecutor jsExecutor,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> NativeModuleRegistry nativeModuleRegistry,</span></span></span><br><span class="line"><span class="function"><span class="params">     <span class="keyword">final</span> JSBundleLoader jsBundleLoader,</span></span></span><br><span class="line"><span class="function"><span class="params">     NativeModuleCallExceptionHandler nativeModuleCallExceptionHandler)</span> </span>&#123;</span><br><span class="line">   Log.d(ReactConstants.TAG, <span class="string">"Initializing React Xplat Bridge."</span>);</span><br><span class="line">   mHybridData = initHybrid();</span><br><span class="line"></span><br><span class="line"><span class="comment">//创建三大线程：UI线程、Native线程与JS线程</span></span><br><span class="line">   mReactQueueConfiguration = ReactQueueConfigurationImpl.create(</span><br><span class="line">       reactQueueConfigurationSpec,</span><br><span class="line">       <span class="keyword">new</span> NativeExceptionHandler());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">onNativeException</span><span class="params">(Exception e)</span> </span>&#123;</span><br><span class="line">    mNativeModuleCallExceptionHandler.handleException(e);</span><br><span class="line">    mReactQueueConfiguration.getUIQueueThread().runOnQueue(</span><br><span class="line">      <span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">          destroy();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">NativeExceptionHandler</span> <span class="keyword">implements</span> <span class="title">QueueThreadExceptionHandler</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleException</span><span class="params">(Exception e)</span> </span>&#123;</span><br><span class="line">      <span class="comment">// Any Exception caught here is because of something in JS. Even if it's a bug in the</span></span><br><span class="line">      <span class="comment">// framework/native code, it was triggered by JS and theoretically since we were able</span></span><br><span class="line">      <span class="comment">// to set up the bridge, JS could change its logic, reload, and not trigger that crash.</span></span><br><span class="line">      onNativeException(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-<p>初始化 <code>ReactInstanceManager</code> 时传的Handler 可以处理上面的前7种异常，我们需要单独处理UI操作异常</p>
-<h3 id="UI操作的异常"><a href="#UI操作的异常" class="headerlink" title="UI操作的异常"></a>UI操作的异常</h3><p>UI操作，其实是调用的UIManagerModule这个Java模块进行的操作，但是实际上它不是马上被同步执行的，而是仅仅只有一个入队列的操作。所有的UI操作都通过Choreographer来驱动执行，那这个时候虽然是在主线程运行，但是不在上面任何一个MessageQueue里面了，于是上面的方式捕获不到。</p>
-<p>以创建视图(<code>UIManagerModule.createView()</code>)为例，来追踪调用流程</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">GuardedFrameCallback</span> <span class="keyword">extends</span> <span class="title">ChoreographerCompat</span>.<span class="title">FrameCallback</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> ReactContext mReactContext;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> <span class="title">GuardedFrameCallback</span><span class="params">(ReactContext reactContext)</span> </span>&#123;</span><br><span class="line">    mReactContext = reactContext;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">doFrame</span><span class="params">(<span class="keyword">long</span> frameTimeNanos)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      doFrameGuarded(frameTimeNanos);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RuntimeException e) &#123;</span><br><span class="line">      mReactContext.handleException(e);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>UI操作的异常默认由 <code>ReactContext.handleException</code> 处理，追踪发现是 RN React上下文创建时设给它一个Handler，只在develop support时才起作用</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> ReactApplicationContext <span class="title">createReactContext</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      JavaScriptExecutor jsExecutor,</span></span></span><br><span class="line"><span class="function"><span class="params">      JSBundleLoader jsBundleLoader)</span> </span>&#123;</span><br><span class="line">    Log.d(ReactConstants.TAG, <span class="string">"ReactInstanceManager.createReactContext()"</span>);</span><br><span class="line">    ReactMarker.logMarker(CREATE_REACT_CONTEXT_START);</span><br><span class="line">    <span class="keyword">final</span> ReactApplicationContext reactContext = <span class="keyword">new</span> ReactApplicationContext(mApplicationContext);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (mUseDeveloperSupport) &#123;</span><br><span class="line">      reactContext.setNativeModuleCallExceptionHandler(mDevSupportManager);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    NativeModuleRegistry nativeModuleRegistry = processPackages(reactContext, mPackages, <span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">    NativeModuleCallExceptionHandler exceptionHandler = mNativeModuleCallExceptionHandler != <span class="keyword">null</span></span><br><span class="line">      ? mNativeModuleCallExceptionHandler</span><br><span class="line">      : mDevSupportManager;</span><br><span class="line">    CatalystInstanceImpl.Builder catalystInstanceBuilder = <span class="keyword">new</span> CatalystInstanceImpl.Builder()</span><br><span class="line">      .setReactQueueConfigurationSpec(mUseSeparateUIBackgroundThread ?</span><br><span class="line">        ReactQueueConfigurationSpec.createWithSeparateUIBackgroundThread() :</span><br><span class="line">        ReactQueueConfigurationSpec.createDefault())</span><br><span class="line">      .setJSExecutor(jsExecutor)</span><br><span class="line">      .setRegistry(nativeModuleRegistry)</span><br><span class="line">      .setJSBundleLoader(jsBundleLoader)</span><br><span class="line">      .setNativeModuleCallExceptionHandler(exceptionHan&#125;ler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这里我们可以做<strong>第二个修改</strong>，初始化ReactContext时，可以像设给CatalystInstance的一样</p>
-<ul>
-<li>在使用develop support时设给它DevSupportManagerImpl</li>
-<li>否则使用传入的NativeModuleExceptionHandler</li>
-</ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://mp.weixin.qq.com/s/aWuenpGOKug4fovT5uKXTQ?" target="_blank" rel="noopener">React Native for Android 异常处理概览</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1946,7 +1933,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-count">310</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

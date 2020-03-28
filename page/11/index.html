@@ -262,6 +262,196 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer系列一-开篇/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/05/直播/ijkplayer/ijkplayer系列一-开篇/" itemprop="url">ijkplayer系列一-开篇</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-05T15:22:14+08:00">
+                2019-08-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>ijkplayer 是一款比较出众的开源 Android/IOS 跨平台播放器，基于 ffplay，API 易于集成，可定制编译控制体积。</p>
+<p>本系列基于 <strong>0.8.8</strong> 版本(目前<strong>最新</strong>版本)的 ijkplayer ，对其源码进行剖析，涉及到不同平台下的封装接口或处理方式时，均以 <strong>Android</strong> 为例。</p>
+<p>ijkplayer android 集成了三种播放器实现：</p>
+<ul>
+<li><strong>AndroidMediaPlayer</strong>：即安卓系统自带的播放器 <strong>MediaPlayer</strong>，基于 MediaCodec、AudioTrack 等安卓系统 API.</li>
+<li><strong>IjkExoMediaPlayer</strong>：即谷歌新推出的 <strong>ExoPlayer</strong>，同样是基于 MediaCodec、AudioTrack 等安卓系统 API，但相比 MediaPlayer 具有支持 DASH、高级 HLS、自定义扩展等优点。</li>
+<li><strong>IjkMediaPlayer</strong>：基于 FFmpeg 的 <strong>ffplay</strong>，集成了 MediaCodec 硬解码器、Opengl 渲染方式等。</li>
+</ul>
+<p>一般而言， ijkplayer 就是指 <strong>IjkMediaPlayer</strong>，本文分析的对象就是 IjkMediaPlayer.</p>
+<h1 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ijkplayer（项目文件夹）</span><br><span class="line">	├──tools  - 初始化项目工程脚本</span><br><span class="line">	├──config - 编译ffmpeg使用的配置文件</span><br><span class="line">	├──extra - 存放编译ijkplayer所需的依赖源文件, 如ffmpeg、openssl等</span><br><span class="line">	├──ijkmedia - 核心代码</span><br><span class="line">		├──ijkplayer - 播放器数据下载及解码相关</span><br><span class="line">		├──ijksdl - 音视频数据渲染相关</span><br><span class="line">	├──android -  android平台上的上层接口封装以及平台相关方法</span><br><span class="line">	├──ios - iOS平台上的上层接口封装以及平台相关方法</span><br></pre></td></tr></table></figure>
+<h1 id="功能实现的平台差异"><a href="#功能实现的平台差异" class="headerlink" title="功能实现的平台差异"></a>功能实现的平台差异</h1><p>iOS和Android平台的差异主要表现在</p>
+<ul>
+<li>视频硬件解码</li>
+<li>音频渲染</li>
+<li>视频渲染</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Hardware Codec</th>
+<th>Video Render</th>
+<th>Video Output</th>
+<th>Audio Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Android</td>
+<td>MediaCodec</td>
+<td>OpenGL ES、MediaCodec</td>
+<td>NativeWindow、OpenGL ES</td>
+<td>OpenSL ES、AudioTrack</td>
+</tr>
+<tr>
+<td>iOS</td>
+<td>VideoToolBox</td>
+<td>OpenGL ES</td>
+<td></td>
+<td>AudioQueue</td>
+</tr>
+</tbody>
+</table>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/bilibili/ijkplayer" target="_blank" rel="noopener">github</a></li>
+<li><a href="https://www.jianshu.com/p/5345ab4cf979" target="_blank" rel="noopener">ijkplayer 源码分析（上）</a> 王英豪，基于k0.8.8版本</li>
+<li><a href="https://cloud.tencent.com/developer/article/1032547" target="_blank" rel="noopener">ijkplayer框架深入剖析</a> 金山云团队，基于k0.7.6版本</li>
+<li><a href="https://www.jianshu.com/p/7d9b86919682" target="_blank" rel="noopener">ijkplayer视频播放器源码分析(android)</a> 尸情化异，基于k0.5.1版本，系列专栏5篇：使用，初始化，数据读取，音频解码播放，视频解码播放</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/05/直播/直播技术/直播技术七-现代播放器原理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2262,193 +2452,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/26/java基础/异常/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/26/java基础/异常/" itemprop="url">异常</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-26T15:55:53+08:00">
-                2019-07-26
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="异常声明"><a href="#异常声明" class="headerlink" title="异常声明"></a>异常声明</h1><p>属于方法说明的一部分，紧跟在参数列表之后</p>
-<p><code>void method() throws IOException {}</code></p>
-<p>子类在覆盖方法时，不能添加父类方法没有的异常声明（只能保持或者减少）。</p>
-<h1 id="Throwable-方法汇总"><a href="#Throwable-方法汇总" class="headerlink" title="Throwable 方法汇总"></a>Throwable 方法汇总</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">getMessage()</span><br><span class="line">getLocalizedMessage()</span><br><span class="line">toString()</span><br><span class="line"></span><br><span class="line">getCause()</span><br><span class="line">initCause(Throwable cause)</span><br><span class="line"></span><br><span class="line">printStackTrace()</span><br><span class="line">getStackTrace()</span><br><span class="line">fillInStackTrace()</span><br><span class="line">setStackTrace(StackTraceElement[] stackTrace)</span><br><span class="line"></span><br><span class="line">addSuppressed(Throwable exception)</span><br><span class="line">getSuppressed()</span><br></pre></td></tr></table></figure>
-<h2 id="实例1"><a href="#实例1" class="headerlink" title="实例1"></a>实例1</h2><p><code>throw new RuntimeException(&quot;My Exception&quot;);</code></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">getMessage(): My Exception</span><br><span class="line">getLocalizedMessage(): My Exception</span><br><span class="line">toString(): java.lang. RuntimeException: My Exception</span><br><span class="line"></span><br><span class="line">printStackTrace(): </span><br><span class="line">	java.lang. RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:<span class="number">9</span>)</span><br></pre></td></tr></table></figure>
-<ul>
-<li><code>getLocalizedMessage()</code>和 <code>getMessage()</code> 返回构造方法传入的参数信息</li>
-<li>toString() 返回异常完整类名和 <code>getMessage()</code>的信息</li>
-<li>printStackTrace() 打印 <code>toString()</code>信息和异常堆栈</li>
-</ul>
-<h1 id="printStackTrace"><a href="#printStackTrace" class="headerlink" title="printStackTrace()"></a>printStackTrace()</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">printStackTrace</span><span class="params">(PrintStreamOrWriter s)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Guard against malicious overrides of Throwable.equals by</span></span><br><span class="line">    <span class="comment">// using a Set with identity equality semantics.</span></span><br><span class="line">    Set&lt;Throwable&gt; dejaVu =</span><br><span class="line">        Collections.newSetFromMap(<span class="keyword">new</span> IdentityHashMap&lt;Throwable, Boolean&gt;());</span><br><span class="line">    dejaVu.add(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">synchronized</span> (s.lock()) &#123;</span><br><span class="line">        <span class="comment">// Print our stack trace</span></span><br><span class="line">        s.println(<span class="keyword">this</span>);</span><br><span class="line">        StackTraceElement[] trace = getOurStackTrace();</span><br><span class="line">        <span class="keyword">for</span> (StackTraceElement traceElement : trace)</span><br><span class="line">            s.println(<span class="string">"\tat "</span> + traceElement);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Print suppressed exceptions, if any</span></span><br><span class="line">        <span class="keyword">for</span> (Throwable se : getSuppressed())</span><br><span class="line">            se.printEnclosedStackTrace(s, trace, SUPPRESSED_CAPTION, <span class="string">"\t"</span>, dejaVu);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Print cause, if any</span></span><br><span class="line">        Throwable ourCause = getCause();</span><br><span class="line">        <span class="keyword">if</span> (ourCause != <span class="keyword">null</span>)</span><br><span class="line">            ourCause.printEnclosedStackTrace(s, trace, CAUSE_CAPTION, <span class="string">""</span>, dejaVu);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>打印 自身 堆栈</li>
-<li><strong>递归</strong> 打印 <strong>抑制(suppressed)异常链</strong> 堆栈<ul>
-<li>第一行前缀 <code>Suppressed by:</code>在异常完整类名和构造参数之前 </li>
-</ul>
-</li>
-<li><strong>递归</strong> 打印 <strong>cause</strong> 堆栈<ul>
-<li>第一行前缀 <code>Caused by:</code>在异常完整类名和构造参数之前     </li>
-</ul>
-</li>
-</ul>
-<p>printEnclosedStackTrace() 是 <strong>递归方法</strong></p>
-<h1 id="getOurStackTrace"><a href="#getOurStackTrace" class="headerlink" title="getOurStackTrace()"></a>getOurStackTrace()</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">synchronized</span> StackTraceElement[] getOurStackTrace() &#123;</span><br><span class="line">    <span class="keyword">return</span> stackTrace;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><strong>倒序</strong>记录着方法调用帧：后调用的在最前面/最顶上</p>
-<ul>
-<li>栈顶元素（元素0），是方法调用序列中最后一个方法调用</li>
-<li>栈底元素（最后一个元素）是调用序列中的第一个方法调用</li>
-</ul>
-<h1 id="getStackTrace"><a href="#getStackTrace" class="headerlink" title="getStackTrace()"></a>getStackTrace()</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> StackTraceElement[] getStackTrace() &#123;</span><br><span class="line">    <span class="keyword">return</span> getOurStackTrace().clone();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="StackTraceElement"><a href="#StackTraceElement" class="headerlink" title="StackTraceElement"></a>StackTraceElement</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">StackTraceElement</span> <span class="keyword">implements</span> <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Normally initialized by VM (public constructor added in 1.5)</span></span><br><span class="line">    <span class="keyword">private</span> String declaringClass; <span class="comment">//完整类名</span></span><br><span class="line">    <span class="keyword">private</span> String methodName; <span class="comment">//方法名。不带签名(参数和返回值)</span></span><br><span class="line">    <span class="keyword">private</span> String fileName; <span class="comment">//类文件名</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span>    lineNumber; <span class="comment">//行号；-2表示该方法是Native方法</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="重新抛出异常和异常链"><a href="#重新抛出异常和异常链" class="headerlink" title="重新抛出异常和异常链"></a>重新抛出异常和异常链</h1><h2 id="抛出原异常对象"><a href="#抛出原异常对象" class="headerlink" title="抛出原异常对象"></a>抛出原异常对象</h2><p>有时我们在捕获到异常后，可能在捕获的地方不适合处理该异常，我们需要将它重新抛出</p>
-<p>这样就会存在一个问题，抛出的的异常携带的信息，是原来异常抛出点的调用栈信息，而非新抛出点的信息（新抛出点的调用信息就被掩盖了）。</p>
-<p>可以使用 <code>fillInStackTrace()</code> 更新新抛出点信息到这个异常调用栈中</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">java.lang.RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:9)</span><br><span class="line">	</span><br><span class="line">使用 fillInStackTrace() 后：</span><br><span class="line">java.lang.RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:11)</span><br></pre></td></tr></table></figure>
-<p>单纯的更新了抛出异常的所在函数</p>
-<p><strong>不推荐使用</strong></p>
-<h2 id="抛出新异常对象"><a href="#抛出新异常对象" class="headerlink" title="抛出新异常对象"></a>抛出新异常对象</h2><p>新建异常对象时传入原来的异常对象，或者调用 <code>initCause(Throwable cause)</code>传入原异常对象。</p>
-<p>这样原来的异常对象作为 <code>cause</code> 保持</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java.lang.RuntimeException: java.lang.RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:14) //新异常抛出处</span><br><span class="line">Caused by: java.lang.RuntimeException: My Exception</span><br><span class="line">	at Test.main(Test.java:12) //老异常抛出处</span><br></pre></td></tr></table></figure>
-<h2 id="异常抑制"><a href="#异常抑制" class="headerlink" title="异常抑制"></a>异常抑制</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"try"</span>);</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">// throw new RuntimeException("finally");</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">java.lang.RuntimeException: try</span><br><span class="line">	at Test.main(Test.java:10)</span><br><span class="line">	</span><br><span class="line">finally 也抛出异常：</span><br><span class="line">java.lang.RuntimeException: finally</span><br><span class="line">	at Test.main(Test.java:12)</span><br></pre></td></tr></table></figure>
-<p>finally 抑制了上一个异常</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Exception exception = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"try"</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span>(Exception e)&#123;</span><br><span class="line">    exception = e;</span><br><span class="line">&#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">    RuntimeException e = <span class="keyword">new</span> RuntimeException(<span class="string">"finally"</span>);</span><br><span class="line">    <span class="keyword">if</span>(exception!=<span class="keyword">null</span>)&#123;</span><br><span class="line">        e.addSuppressed(exception);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">throw</span> e;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java.lang.RuntimeException: finally</span><br><span class="line">	at Test.main(Test.java:15)</span><br><span class="line">	Suppressed: java.lang.RuntimeException: try</span><br><span class="line">		at Test.main(Test.java:11)</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2503,7 +2506,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-count">310</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

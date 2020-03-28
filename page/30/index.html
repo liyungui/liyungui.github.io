@@ -262,6 +262,341 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/电脑使用/mac/联想t420安装黑苹果/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/电脑使用/mac/联想t420安装黑苹果/" itemprop="url">联想t420安装黑苹果</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T13:29:46+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="MBR和GPT分区"><a href="#MBR和GPT分区" class="headerlink" title="MBR和GPT分区"></a>MBR和GPT分区</h1><p>Intel 6系列主板之后，就开始提供UEFI BIOS支持，正式支持GPT硬盘分区表，一举取代了此前的MBR分区表格式</p>
+<p>新平台用户（Intel 6系以后/AMD 900系列以后和A系列）来说，都强烈推荐使用GPT分区表格式</p>
+<p>Windows Vista以上已经都支持读取和使用GPT分区表。而对于Windows 8以上的用户，换用GPT后开机启动速度也可以进一步得到显著提升。</p>
+<h2 id="MBR"><a href="#MBR" class="headerlink" title="MBR"></a>MBR</h2><p><strong>MBR的全称是Master Boot Record（主引导记录）</strong></p>
+<p>是存在于驱动器开始部分的一个特殊的启动扇区。这个扇区包含了已安装的操作系统的启动加载器和驱动器的逻辑分区信息。</p>
+<p>主引导扇区是硬盘的第一扇区。它由三个部分组成，主引导记录MBR、硬盘分区表DPT和硬盘有效标志</p>
+<p>启动加载器，是一小段代码，用于加载驱动器上其他分区上更大的加载器。Linux系统位于MBR里的通常会是GRUB加载器。</p>
+<p>MBR最大支持2.2TB磁盘，只支持最多4个主分区(再多分区只能设为逻辑分区)</p>
+<h2 id="GPT"><a href="#GPT" class="headerlink" title="GPT"></a>GPT</h2><p><strong>GPT的全称是Globally Unique Identifier Partition Table（GUID分区表）</strong></p>
+<p>GPT首要的任务就是突破2.2T分区的限制，最大支持18EB的分区。</p>
+<p>它的推出是和UEFI BIOS相辅相成的</p>
+<h3 id="ESP"><a href="#ESP" class="headerlink" title="ESP"></a>ESP</h3><p><strong>ESP的全称是EFI system partition（EFI系统分区）</strong></p>
+<p>GPT格式的硬盘必须有一个esp分区，esp分区装的是系统引导(windows就是boot64.efi这个文件),开机启动就是从这个分区开始的</p>
+<h3 id="MSR分区"><a href="#MSR分区" class="headerlink" title="MSR分区"></a>MSR分区</h3><p><strong>MSR的全称是Microsoft Reserved Partition（Microsoft 保留分区）</strong></p>
+<p>GPT上的 Windows操作系统（windows7以上）都要求有的分区。系统组件可以将 MSR 分区的部分分配到新的分区以供它们使用。</p>
+<h1 id="UEFI-BIOS"><a href="#UEFI-BIOS" class="headerlink" title="UEFI BIOS"></a>UEFI BIOS</h1><p><strong>UEFI的全称是Unified Extensible Firmware Interface（统一可扩展固件接口）</strong></p>
+<p>Windows Vista、7系统需要手动添加UEFI支持，可以找一份Windows 8或者10安装镜像，从安装文件中提取Bootmgfw.efi文件，重命名为BOOTX64.EFI，拷贝到win7安装文件的\EFI\Boot\下，如果没有BOOT文件夹就新建一个。</p>
+<h1 id="HFS"><a href="#HFS" class="headerlink" title="HFS"></a>HFS</h1><p><strong>HFS的全称Hierarchical File System（分层文件系统）</strong></p>
+<p>一种由苹果电脑开发，并使用在Mac OS上的文件系统。</p>
+<h1 id="黑苹果神器ThinkPad-t420"><a href="#黑苹果神器ThinkPad-t420" class="headerlink" title="黑苹果神器ThinkPad t420"></a>黑苹果神器ThinkPad t420</h1><p>折腾黑苹果系统一弄就要好几天，太伤神了。</p>
+<p>黑苹果神器ThinkPad t420 基本2个小时就可以搞定</p>
+<p>原机自带的无线网卡不能使用，要更换一张。或者可以通过USB把wifi共享给电脑使用（当然也可以共享手机流量上网，但这儿只说wifi）。horndis已经支持Sierra 10.12，可到官网下载</p>
+<p>带有双显卡的话只能驱动集成显卡或独立显卡的一个，不能实现自动切换（建议买集显版本）</p>
+<p>Yosemite和Windows的时钟问题，把OSX的时区改成北京，启动到Windows在注册表里添加RealTimeIsUniversal键值为1，这样两个系统的时钟就都正常了。原因似乎是MacOSX会把CMOS时钟看做国际标准时间，而Windows默认会看作本地时间。</p>
+<p>ThinkPad T系列经过好几代的发展，设计已经很成熟。</p>
+<ul>
+<li>常用的版本带2代的i5 CPU</li>
+<li>支持最多16G的DDR3内存</li>
+<li>支持mSATA接口固态硬盘</li>
+<li>如果光驱位换成硬盘，最多支持安装3个硬盘。</li>
+<li>可以支持3G移动上网卡。</li>
+<li>接口丰富<ul>
+<li>带有DisplayPort接口。我感觉DP比HDMI接口好太多了，可以方便支持2k高清显示器，hdmi的话情况会复杂很多。</li>
+<li>4个usb 2.0，1394火线接口。</li>
+<li>最大的缺点是没有USB3.0接口</li>
+<li>好在有一个eSATA接口，速度也很快。</li>
+<li>另有一个34mm的ExpressCard接口，可以接上usb 3.0的转接器。</li>
+<li>内置读卡器、摄像头和指纹识别。</li>
+<li>另有扩展底座接口，可以连接专用的扩展底座。</li>
+</ul>
+</li>
+</ul>
+<p>最大的优势之一还在于它的通用性。因为目前使用中的T420数量非常大，所以遇到什么问题，网上很多交流文章。</p>
+<p>现在二手的T420非常便宜，价格在1500左右。购买时注意，市场上好些高配的四核i7机器据说都是换cpu的，因为听说原装没有四核机器。</p>
+<h1 id="安装黑苹果"><a href="#安装黑苹果" class="headerlink" title="安装黑苹果"></a>安装黑苹果</h1><p>参考帖子：<a href="https://bbs.feng.com/forum.php?mod=viewthread&amp;tid=8854857&amp;extra=page%3D1&amp;mobile=no" target="_blank" rel="noopener">T420 UEFI+单硬盘GPT+Yosemite/El Capitan原版+clover基本完美</a></p>
+<p>UEFI only启动，一块硬盘GPT分区，C盘装win7 oem版本系统，D盘分出来60G装了win10，最后装的Yosemite（之前下载的10.10.1安装包懒得再重新下了，装好之后直接升级为10.10.2）</p>
+<p><a href="https://my.oschina.net/y010204025/blog/1499459" target="_blank" rel="noopener">link</a></p>
+<p><a href="http://bbs.pcbeta.com/viewthread-1542110-1-1.html" target="_blank" rel="noopener">【授人以渔】UEFI+GPT+Clover OS X Yosemite原版单、双系统双版教程(正式版)</a></p>
+<p><a href="http://bbs.pcbeta.com/viewthread-1599202-1-1.html" target="_blank" rel="noopener">【超级教程】黑苹果各个版本各种引导安装通用教材</a></p>
+<h2 id="BIOS设置"><a href="#BIOS设置" class="headerlink" title="BIOS设置"></a>BIOS设置</h2><p>将硬盘模式设为AHCI、EFI only引导、有独显的关闭一下。</p>
+<ul>
+<li>Recommend update to BIOS v1.46</li>
+<li>Recommend reset to defaults. Most defaults settings will work but check settings these:<ul>
+<li>Set Config / Serial ATA (SATA) / SATA = AHCI</li>
+<li>Set Security / Memory Protection / Execution Prevention = Enabled</li>
+</ul>
+</li>
+<li>Disable Discrete Nvidia/Optimus (use integrated HD 3000 only - unless you really know what you are doing!)</li>
+</ul>
+<h2 id="制作USB安装盘"><a href="#制作USB安装盘" class="headerlink" title="制作USB安装盘"></a>制作USB安装盘</h2><p>1、下载Mac OS 建议下载原版10.10X或者<a href="https://support.apple.com/kb/DL1845?locale=zh_CN" target="_blank" rel="noopener">10.11.x</a></p>
+<p>2、使用TransMac 11(试用版即可)将系统写入Ｕ盘</p>
+<pre><code>USB盘符 右键 Restore with Disk Image 选择下载好的dmg文件
+耐心等待写盘的完成
+写入完成，系统弹出将其格式化，点击取消
+cmd -- diskpart -- list disk 可以看到U盘已成GPT(GPT栏有星号)
+</code></pre><p>3、替换<a href="https://github.com/tluck/Lenovo-T420-Clover/" target="_blank" rel="noopener">EFI</a>。将EFI文件夹复制到U盘根目录，选择适合屏幕分辨率的config.plist文件，重命名为config.plist.</p>
+<p>(4)使用引导安装系统，(安装盘的ESP分区剩余容量必须大于200M，否则格式化磁盘的时候会提示空间不足，格式化失败)</p>
+<p>(5)安装完成后继续把EFI文件复制到本地硬盘的ESP，这时你的系统已经可以正常引导和运行</p>
+<h1 id="多系统引导解决方案"><a href="#多系统引导解决方案" class="headerlink" title="多系统引导解决方案"></a>多系统引导解决方案</h1><p>安装了4个os，分别是win10、Mac os、Ubuntu、凤凰os（android-x86）</p>
+<p>电脑是UEFI引导的，所以我选用的引导为：Clover，可以实现多系统的引导，传统方式要简单一些，直接使用easybcd编辑即可。</p>
+<p>Clover相当于是一个简单的系统了，从这个系统里面又引导其他系统，很高级，如果你足够厉害，可以自己去研究。</p>
+<p>好，进入正题，我的装系统的步骤依次是：win10-&gt;Mac os–&gt;Ubuntu-&gt;Android</p>
+<p>1、efi安装win10，引导会自动配置在esp分区。</p>
+<p>2、安装Mac os黑苹果，引导不会自动配置引导。需要手动操作：</p>
+<p>（1）将win10引导备份，esp分区内的/EFIMicrosoft文件夹，然后删除</p>
+<p>（2）将Clover引导放进esp，开机引导进入clover，选择mac进去，挂载esp分区，将win10文件夹放入/EFI文件夹</p>
+<p>（3）重启进入clover，你会发现win10和mac引导已经解决。</p>
+<p>3、安装Ubuntu，注意使用EFI引导进入安装，会自动在Efi文件夹新建Ubuntu文件夹，重启会自动进grub引导（也就是Ubuntu引导）在bios里面调节即可，将UEFI OS设置为第一项。此时可以引导3个系统。</p>
+<p>4、安装凤凰os，默认安装即可，他也会在EFI新建文件夹，但是开机引导到Clover看不到它，于是考虑使用Ubuntu的gurb引导将其添加进来。</p>
+<p>在安卓引导文件夹，找到配置文件，grub.cfg，将图片中的代码复制</p>
+<img src="/2018/05/18/电脑使用/mac/联想t420安装黑苹果/img.png">
+<p>凤凰os配置文件<br>进入ububun图系统，找到menuentry的位置，将上面的代码也粘贴过去，然后保存即可，重启进入Clover接着选择ubuntu引导，会看到多了凤凰os和windows的引导</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/科学上网/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/18/科学上网/" itemprop="url">科学上网</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-18T10:25:42+08:00">
+                2018-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="VPN"><a href="#VPN" class="headerlink" title="VPN"></a>VPN</h1><ul>
+<li>系统全局代理。系统中的软件，（无需配置）自动走 VPN 通道</li>
+<li>不方便共享 VPN 的翻墙通道给【其它系统】</li>
+<li>一般通过设置系统VPN或使用客户端软件(比如ShadowSocket)</li>
+</ul>
+<h2 id="Privoxy"><a href="#Privoxy" class="headerlink" title="Privoxy"></a>Privoxy</h2><p>跨系统共享 VPN 的翻墙通道</p>
+<p>Privoxy 跟 VPN 安装到同一个操作系统中。</p>
+<p>配置 Privoxy 的监听选项，把监听地址设置为 0.0.0.0（表示监听端口绑定到任意地址）</p>
+<p>支持转发HTTP 和 SOCKS 两种</p>
+<p>公司的共享服务器就是用这个辅助的</p>
+<p><a href="https://program-think.blogspot.com/2014/12/gfw-privoxy.html" target="_blank" rel="noopener">详细教程参考</a></p>
+<h1 id="代理式"><a href="#代理式" class="headerlink" title="代理式"></a>代理式</h1><ul>
+<li>容易跨系统共享翻墙通道</li>
+<li>一般都是通过设置浏览器代理或使用浏览器插件</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/18/电脑使用/科学上网/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1416,265 +1751,6 @@ KeyIdentifier [
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/电脑使用/windows工具/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/17/电脑使用/windows工具/" itemprop="url">windows工具</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-17T10:32:09+08:00">
-                2018-05-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="快速启动：WOX"><a href="#快速启动：WOX" class="headerlink" title="快速启动：WOX"></a>快速启动：WOX</h1><p>快速启动应用+文件搜索+各种实用插件（计算器、翻译、网页快速访问等）。我的最爱，没有它我几乎半残。<br>一开始从用altrun 然后试过Listary ，发现WOX  后，最为顺手，效率提升100%。</p>
-<h1 id="搜索工具：everything"><a href="#搜索工具：everything" class="headerlink" title="搜索工具：everything"></a>搜索工具：everything</h1><p>秒找电脑里的各种文件。与WOX完美集成。</p>
-<h1 id="下载：IDM"><a href="#下载：IDM" class="headerlink" title="下载：IDM"></a>下载：IDM</h1><p>多线程下载HTTP类文件下载利器，杠杠的。Chrome 内的下载都托管给了IDM，可下载百度云离线文件，突破下载速度限制。<br>做不到的BT 下载，使用迅雷下载或者Aria2 来配合处理即可。</p>
-<h1 id="截图：snipaste"><a href="#截图：snipaste" class="headerlink" title="截图：snipaste"></a>截图：snipaste</h1><p>开源、免费的国产截图神器。给我最大的感受是截图更方便，且比QQ截图工具清晰很多。</p>
-<h1 id="预览工具：QuickLook"><a href="#预览工具：QuickLook" class="headerlink" title="预览工具：QuickLook"></a>预览工具：QuickLook</h1><p>按下空格即可快速预览文件，微软商店内的免费应用。<br>之前用的seer，发现QuickLook 后，果断抛弃。</p>
-<h1 id="剪切板工具：Ditto"><a href="#剪切板工具：Ditto" class="headerlink" title="剪切板工具：Ditto"></a>剪切板工具：Ditto</h1><p>再也不用担心刚才复制的内容找不到了。</p>
-<h1 id="结构化笔记：workflowy"><a href="#结构化笔记：workflowy" class="headerlink" title="结构化笔记：workflowy"></a>结构化笔记：workflowy</h1><p>Make lists,not war.我常用于记录工作中的各种待办事项。</p>
-<h1 id="Markdown写作工具：Typora"><a href="#Markdown写作工具：Typora" class="headerlink" title="Markdown写作工具：Typora"></a>Markdown写作工具：Typora</h1><p>最好用的Markdown写作工具，所见即所得。</p>
-<h1 id="贴图工具：PicGo"><a href="#贴图工具：PicGo" class="headerlink" title="贴图工具：PicGo"></a>贴图工具：PicGo</h1><p>支持多种图床，功能强大。</p>
-<h1 id="看图工具：2345看图王"><a href="#看图工具：2345看图王" class="headerlink" title="看图工具：2345看图王"></a>看图工具：2345看图王</h1><p>虽然名字土鳖，国产软件，一贯的有流氓行为。但是看图是真好用，我能忍。233333.</p>
-<h1 id="压缩软件：BandZIP"><a href="#压缩软件：BandZIP" class="headerlink" title="压缩软件：BandZIP"></a>压缩软件：BandZIP</h1><h1 id="播放器：Splash"><a href="#播放器：Splash" class="headerlink" title="播放器：Splash"></a>播放器：Splash</h1><h1 id="录屏工具：LICEcap"><a href="#录屏工具：LICEcap" class="headerlink" title="录屏工具：LICEcap"></a>录屏工具：LICEcap</h1><p>比GifCam更好用。</p>
-<h1 id="数据库客户端：DataGrip"><a href="#数据库客户端：DataGrip" class="headerlink" title="数据库客户端：DataGrip"></a>数据库客户端：DataGrip</h1><p><a href=""></a><br>一个客户端全搞定主流数据库。不用再装Navicat、plsql了。</p>
-<p>ps:DataGrip其实是IDEA里一个集成功能，被单独抽离出来成了一个独立产品。</p>
-<h1 id="SSH客户端：MobaXterm"><a href="#SSH客户端：MobaXterm" class="headerlink" title="SSH客户端：MobaXterm"></a>SSH客户端：MobaXterm</h1><p>集成SSH、SFTP、FTP等，一个全搞定。还可分屏等功能，好用。</p>
-<h1 id="终端工具：Cmder"><a href="#终端工具：Cmder" class="headerlink" title="终端工具：Cmder"></a>终端工具：Cmder</h1><p>丢弃掉Windows自带cmd窗口吧。</p>
-<h1 id="API工具：Postman"><a href="#API工具：Postman" class="headerlink" title="API工具：Postman"></a>API工具：Postman</h1><p>强大的API调试、Http请求的工具 。可自动同步个人请求记录。</p>
-<h1 id="克隆自己声音的工具"><a href="#克隆自己声音的工具" class="headerlink" title="克隆自己声音的工具"></a><a href="https://lyrebird.ai/" target="_blank" rel="noopener">克隆自己声音的工具</a></h1><p>用长度为 1 分钟的音频即可生成与你语音特征高度相似的数字语音输出结果</p>
-<p>需要登录体验</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/17/RN/RN环境搭建/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/05/17/RN/RN环境搭建/" itemprop="url">RN环境搭建</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-17T10:25:12+08:00">
-                2018-05-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>参考官方文档即可</p>
-<p>模拟器调试菜单</p>
-<pre><code>adb shell input keyevent 82
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1729,7 +1805,7 @@ KeyIdentifier [
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-count">310</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

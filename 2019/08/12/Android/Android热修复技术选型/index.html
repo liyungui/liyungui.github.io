@@ -79,25 +79,25 @@
 
 
 
-<meta name="description" content="背景目前Android业内，热修复技术百花齐放，各大厂都推出了自己的热修复方案，使用的技术方案也各有所异，当然各个方案也都存在各自的局限性。在面对众多的方案，希望通过梳理这些热修复方案的对比及实现原理，掌握热修复技术的本质，同时也对项目接入做好准备。 什么是热修复技术？简单来说，就是通过下发补丁包，让已安装的客户端动态更新，让用户可以不用重新安装APP，就能够修复软件缺陷的一种技术。 随着热修复技">
+<meta name="description" content="背景目前Android业内，热修复技术百花齐放，各大厂都推出了自己的热修复方案，使用的技术方案也各有所异，当然各个方案也都存在各自的局限性。在面对众多的方案，希望通过梳理这些热修复方案的对比及实现原理，掌握热修复技术的本质，同时也对项目接入做好准备。 推荐 阿里《深入探索Android热修复技术原理》一书 什么是热修复技术？简单来说，就是通过下发补丁包，让已安装的客户端动态更新，让用户可以不用重新">
 <meta name="keywords" content="Android">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android热修复技术选型">
 <meta property="og:url" content="http://yoursite.com/2019/08/12/Android/Android热修复技术选型/index.html">
 <meta property="og:site_name" content="风">
-<meta property="og:description" content="背景目前Android业内，热修复技术百花齐放，各大厂都推出了自己的热修复方案，使用的技术方案也各有所异，当然各个方案也都存在各自的局限性。在面对众多的方案，希望通过梳理这些热修复方案的对比及实现原理，掌握热修复技术的本质，同时也对项目接入做好准备。 什么是热修复技术？简单来说，就是通过下发补丁包，让已安装的客户端动态更新，让用户可以不用重新安装APP，就能够修复软件缺陷的一种技术。 随着热修复技">
+<meta property="og:description" content="背景目前Android业内，热修复技术百花齐放，各大厂都推出了自己的热修复方案，使用的技术方案也各有所异，当然各个方案也都存在各自的局限性。在面对众多的方案，希望通过梳理这些热修复方案的对比及实现原理，掌握热修复技术的本质，同时也对项目接入做好准备。 推荐 阿里《深入探索Android热修复技术原理》一书 什么是热修复技术？简单来说，就是通过下发补丁包，让已安装的客户端动态更新，让用户可以不用重新">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="http://yoursite.com/2019/08/12/Android/Android热修复技术选型/热修复原理.png">
-<meta property="og:image" content="http://yoursite.com/2019/08/12/Android/Android热修复技术选型/底层替换.png">
+<meta property="og:image" content="http://yoursite.com/2019/08/12/Android/Android热修复技术选型/hotfix.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/12/Android/Android热修复技术选型/dex插入.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/12/Android/Android热修复技术选型/VM规则判断.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/12/Android/Android热修复技术选型/dex替换.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/12/Android/Android热修复技术选型/sophix-art.png">
 <meta property="og:image" content="http://yoursite.com/2019/08/12/Android/Android热修复技术选型/sophix-dalvik.png">
-<meta property="og:updated_time" content="2020-03-12T04:46:06.145Z">
+<meta property="og:updated_time" content="2020-03-28T10:45:01.440Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android热修复技术选型">
-<meta name="twitter:description" content="背景目前Android业内，热修复技术百花齐放，各大厂都推出了自己的热修复方案，使用的技术方案也各有所异，当然各个方案也都存在各自的局限性。在面对众多的方案，希望通过梳理这些热修复方案的对比及实现原理，掌握热修复技术的本质，同时也对项目接入做好准备。 什么是热修复技术？简单来说，就是通过下发补丁包，让已安装的客户端动态更新，让用户可以不用重新安装APP，就能够修复软件缺陷的一种技术。 随着热修复技">
+<meta name="twitter:description" content="背景目前Android业内，热修复技术百花齐放，各大厂都推出了自己的热修复方案，使用的技术方案也各有所异，当然各个方案也都存在各自的局限性。在面对众多的方案，希望通过梳理这些热修复方案的对比及实现原理，掌握热修复技术的本质，同时也对项目接入做好准备。 推荐 阿里《深入探索Android热修复技术原理》一书 什么是热修复技术？简单来说，就是通过下发补丁包，让已安装的客户端动态更新，让用户可以不用重新">
 <meta name="twitter:image" content="http://yoursite.com/2019/08/12/Android/Android热修复技术选型/热修复原理.png">
 
 
@@ -361,16 +361,21 @@
 
       
         <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>目前Android业内，热修复技术百花齐放，各大厂都推出了自己的热修复方案，使用的技术方案也各有所异，当然各个方案也都存在各自的局限性。在面对众多的方案，希望通过梳理这些热修复方案的对比及实现原理，掌握热修复技术的本质，同时也对项目接入做好准备。</p>
+<p>推荐 阿里《深入探索Android热修复技术原理》一书</p>
 <h1 id="什么是热修复技术？"><a href="#什么是热修复技术？" class="headerlink" title="什么是热修复技术？"></a>什么是热修复技术？</h1><p>简单来说，就是通过下发补丁包，让已安装的客户端动态更新，让用户可以不用重新安装APP，就能够修复软件缺陷的一种技术。</p>
-<p>随着热修复技术的发展，不仅可以修复代码，同时可以修复资源文件及SO库。</p>
+<h2 id="修复什么"><a href="#修复什么" class="headerlink" title="修复什么"></a>修复什么</h2><ul>
+<li>代码修复</li>
+<li>资源修复</li>
+<li>SO库修复</li>
+</ul>
 <h1 id="怎么选择热修复技术方案？"><a href="#怎么选择热修复技术方案？" class="headerlink" title="怎么选择热修复技术方案？"></a>怎么选择热修复技术方案？</h1><h2 id="国内主流的技术方案"><a href="#国内主流的技术方案" class="headerlink" title="国内主流的技术方案"></a>国内主流的技术方案</h2><table>
 <thead>
 <tr>
 <th></th>
 <th>Sophix 阿里</th>
-<th>Tinker 腾讯</th>
+<th>Tinker 腾讯微信</th>
 <th>nuwa 大众</th>
-<th>AndFix 阿里</th>
+<th>AndFix 阿里支付宝</th>
 <th>Robust 美团</th>
 <th>Amigo 饿了么</th>
 </tr>
@@ -565,63 +570,101 @@
 <p>如果考虑需要同时支持资源及so，使用Tinker。不建议使用，因为实现原理是 dex合成后替换，dex合成成功率不高(60%)</p>
 <p>如果公司综合实力强，可考虑自研，灵活性及可控制最强。</p>
 <p>从Github上的热度及提交记录上看，nuwa、AndFix、Amigo等的提交都是2 years ago。</p>
-<h1 id="内业主要热修复技术方案原理"><a href="#内业主要热修复技术方案原理" class="headerlink" title="内业主要热修复技术方案原理"></a>内业主要热修复技术方案原理</h1><img src="/2019/08/12/Android/Android热修复技术选型/热修复原理.png">
-<h1 id="代码热修复方案的两个方向"><a href="#代码热修复方案的两个方向" class="headerlink" title="代码热修复方案的两个方向"></a>代码热修复方案的两个方向</h1><p><strong>底层替换和类加载(dex插入/替换)</strong></p>
-<p>类加载有两种实现：dexElements和替换dex；所以又称三大流派</p>
+<h1 id="热修复技术方案原理"><a href="#热修复技术方案原理" class="headerlink" title="热修复技术方案原理"></a>热修复技术方案原理</h1><img src="/2019/08/12/Android/Android热修复技术选型/热修复原理.png">
+<h1 id="代码热修复方案的两个方向"><a href="#代码热修复方案的两个方向" class="headerlink" title="代码热修复方案的两个方向"></a>代码热修复方案的两个方向</h1><p><strong>native hook和类加载(插入dex/替换dex)</strong></p>
+<p>类加载有两种实现，所以又称三大流派</p>
 <p>美团 Robust 这种 java方法插桩hook的，只能实现代码修复，无法实现资源和so修复；所以不在常规讨论范围内。</p>
-<h2 id="底层替换方案"><a href="#底层替换方案" class="headerlink" title="底层替换方案"></a>底层替换方案</h2><p>代表：阿里系的 Andfix HotFix</p>
-<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><img src="/2019/08/12/Android/Android热修复技术选型/底层替换.png">
-<ul>
-<li>通过Andfix提供的工具对比出新旧apk 的 <code>classes.dex</code> 文件的差异，并生成patch压缩包(jar包)</li>
-<li>压缩包中比较关键的是 <code>PATCH.MF</code> (补丁类名)和 <code>diff.dex</code> (补丁方法)</li>
-<li>虚拟机通过 jar包 读取 补丁类名和补丁方法</li>
-<li>通过classLoader，找到要修复的bug类名及方法</li>
-<li>利用hook技术，在native修改指ArtMethod针变量，使其指向补丁方法，从而完成bug修复。</li>
+<h1 id="native-hook方案"><a href="#native-hook方案" class="headerlink" title="native hook方案"></a>native hook方案</h1><h2 id="阿里手淘Dexposed和支付宝Andfix"><a href="#阿里手淘Dexposed和支付宝Andfix" class="headerlink" title="阿里手淘Dexposed和支付宝Andfix"></a>阿里手淘Dexposed和支付宝Andfix</h2><ul>
+<li>基于Xposed框架改进，AOP实现对Java的hook</li>
+<li>定位：紧急bug修复（不重启即时生效）</li>
+<li>核心：在native层将虚拟机中的旧方法替换为新方法<br>  - </li>
+<li>优点：<ul>
+<li>即时生效</li>
+<li>没有插桩或代码改写，对正常运行不引入任何性能开销</li>
+<li>对所改写方法的性能开销也极低（微秒级），基本可以忽略不计；</li>
+<li>能hook同进程的所有Java代码（包括Android SDK）</li>
 </ul>
-<h3 id="优点-3"><a href="#优点-3" class="headerlink" title="优点"></a>优点</h3><p>在类加载后，动态修改native指针，修复即时生效，无需冷启动</p>
-<h3 id="缺点-2"><a href="#缺点-2" class="headerlink" title="缺点"></a>缺点</h3><ul>
-<li>类已经被加载，内存中方法描述符(结构体)已经固定，所以<strong>只能替换，不能做新增修复</strong>。</li>
-<li>在Native操作指针时，强转ArtMethod的类型是AndFix写死的，无法保证是运行时的ArtMethod结构，这会产生<strong>十分严重的兼容问题</strong><ul>
-<li>实践发现Andfix <strong>修复成功率非常低</strong> ，时常出现崩溃，补丁无效的现象</li>
+</li>
+<li>缺点：<ul>
+<li>Dexposed不支持ART（4.4以上不能用）</li>
+<li>不支持新增方法，新增类，新增field等<ul>
+<li>类已经被加载，内存中方法描述符(结构体)已经固定</li>
+</ul>
+</li>
+<li>最大挑战：稳定性与兼容性。<ul>
+<li>实践发现<strong>修复成功率非常低</strong> ，时常出现崩溃，补丁无效的现象</li>
+</ul>
+</li>
+<li>native异常排查困难     </li>
 </ul>
 </li>
 </ul>
-<h2 id="类加载方案"><a href="#类加载方案" class="headerlink" title="类加载方案"></a>类加载方案</h2><p>代表：腾讯系的 Qzone超级补丁(dex插入) Tinker(dex替换)</p>
-<h3 id="dex插入"><a href="#dex插入" class="headerlink" title="dex插入"></a>dex插入</h3><p>增量Dex</p>
-<h4 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h4><img src="/2019/08/12/Android/Android热修复技术选型/dex插入.png">
-<ul>
-<li>Hook ClassLoader.pathList.dexElements[]</li>
-<li>将补丁的dex插入到数组的最前端。</li>
-<li>ClassLoader的findClass是通过遍历dexElements[]中的dex来寻找类的。所以会优先查找到修复的类。从而达到修复的效果。</li>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">native</span> <span class="keyword">void</span> <span class="title">replaceMethod</span><span class="params">(Method dest, Method src)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>replaceMethod在dalvik和art（art每个版本都不同）上的调用不同，native hook这种解决方案兼容性差的问题在这里则体现得特别明显。但是原理类似，这里我们以6.0为例art_method_replace_6_0：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">replace_6_0</span><span class="params">(JNIEnv* env, jobject src, jobject dest)</span> </span>&#123;</span><br><span class="line">  <span class="comment">//通过Method对象得到底层Java函数对应ArtMethod的真实地址</span></span><br><span class="line">    art::mirror::ArtMethod* smeth = (art::mirror::ArtMethod*) env-&gt;FromReflectedMethod(src);</span><br><span class="line">    art::mirror::ArtMethod* dmeth = (art::mirror::ArtMethod*) env-&gt;FromReflectedMethod(dest);</span><br><span class="line"></span><br><span class="line">    dmeth-&gt;declaring_class_-&gt;class_loader_ =</span><br><span class="line">            smeth-&gt;declaring_class_-&gt;class_loader_; <span class="comment">//for plugin classloader</span></span><br><span class="line">    dmeth-&gt;declaring_class_-&gt;clinit_thread_id_ =</span><br><span class="line">            smeth-&gt;declaring_class_-&gt;clinit_thread_id_;</span><br><span class="line">    dmeth-&gt;declaring_class_-&gt;status_ = smeth-&gt;declaring_class_-&gt;status_<span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 把原方法的各种属性都改成补丁方法的</span></span><br><span class="line">    smeth-&gt;declaring_class_ = dmeth-&gt;declaring_class_;</span><br><span class="line">    smeth-&gt;dex_cache_resolved_types_ = dmeth-&gt;dex_cache_resolved_types_;</span><br><span class="line">    smeth-&gt;access_flags_ = dmeth-&gt;access_flags_;</span><br><span class="line">    smeth-&gt;dex_cache_resolved_methods_ = dmeth-&gt;dex_cache_resolved_methods_;</span><br><span class="line">    smeth-&gt;dex_code_item_offset_ = dmeth-&gt;dex_code_item_offset_;</span><br><span class="line">    smeth-&gt;method_index_ = dmeth-&gt;method_index_;</span><br><span class="line">    smeth-&gt;dex_method_index_ = dmeth-&gt;dex_method_index_;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 实现的指针也替换为新的</span></span><br><span class="line">    smeth-&gt;ptr_sized_fields_.entry_point_from_interpreter_ =</span><br><span class="line">            dmeth-&gt;ptr_sized_fields_.entry_point_from_interpreter_;</span><br><span class="line">    smeth-&gt;ptr_sized_fields_.entry_point_from_jni_ =</span><br><span class="line">            dmeth-&gt;ptr_sized_fields_.entry_point_from_jni_;</span><br><span class="line">    smeth-&gt;ptr_sized_fields_.entry_point_from_quick_compiled_code_ =</span><br><span class="line">            dmeth-&gt;ptr_sized_fields_.entry_point_from_quick_compiled_code_;</span><br><span class="line"></span><br><span class="line">    LOGD(<span class="string">"replace_6_0: %d , %d"</span>,</span><br><span class="line">            smeth-&gt;ptr_sized_fields_.entry_point_from_quick_compiled_code_,</span><br><span class="line">            dmeth-&gt;ptr_sized_fields_.entry_point_from_quick_compiled_code_);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 把方法都改成public</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">setFieldFlag_6_0</span><span class="params">(JNIEnv* env, jobject field)</span> </span>&#123;</span><br><span class="line">    art::mirror::ArtField* artField =</span><br><span class="line">            (art::mirror::ArtField*) env-&gt;FromReflectedField(field);</span><br><span class="line">    artField-&gt;access_flags_ = artField-&gt;access_flags_ &amp; (~<span class="number">0x0002</span>) | <span class="number">0x0001</span>;</span><br><span class="line">    LOGD(<span class="string">"setFieldFlag_6_0: %d "</span>, artField-&gt;access_flags_);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在dalvik上的实现略有不同，是通过jni bridge来指向补丁的方法。</p>
+<h2 id="兼容问题的根源"><a href="#兼容问题的根源" class="headerlink" title="兼容问题的根源"></a>兼容问题的根源</h2><p>Native层对方法的替换，都是以Android官方源码的结构定义为标准，很多手机ROM厂商是会修改这些结构的</p>
+<h2 id="阿里百川hotfix"><a href="#阿里百川hotfix" class="headerlink" title="阿里百川hotfix"></a>阿里百川hotfix</h2><img src="/2019/08/12/Android/Android热修复技术选型/hotfix.png">
+<h1 id="dex插入"><a href="#dex插入" class="headerlink" title="dex插入"></a>dex插入</h1><h2 id="腾讯QQ空间和大众Nuwa"><a href="#腾讯QQ空间和大众Nuwa" class="headerlink" title="腾讯QQ空间和大众Nuwa"></a>腾讯QQ空间和大众Nuwa</h2><ul>
+<li>基于multidex（安卓分包方）Hook ClassLoader.pathList.dexElements[]<ul>
+<li>一个ClassLoader可以包含多个dex文件</li>
+<li>每个dex文件是一个Element</li>
+<li>多个dex文件排列成一个有序的数组dexElements</li>
+<li>按dex顺序查找类，找到则返回</li>
 </ul>
-<h5 id="VM规则判断"><a href="#VM规则判断" class="headerlink" title="VM规则判断"></a>VM规则判断</h5><p>Vm的判定规则：“当一个类中引用了另外一个类，则一般要求两个类来自同一个Dex文件”。</p>
+</li>
+<li>核心：将修复类打包成dex，插入到dexElements最前面</li>
+</ul>
+<img src="/2019/08/12/Android/Android热修复技术选型/dex插入.png">
+<h2 id="CLASS-ISPREVERIFIED"><a href="#CLASS-ISPREVERIFIED" class="headerlink" title="CLASS_ISPREVERIFIED"></a><code>CLASS_ISPREVERIFIED</code></h2><p>为了提供性能，apk安装期间Dalvik会为已验证的类打上<code>CLASS_ISPREVERIFIED</code></p>
+<p>Vm的判定规则：“当一个类中引用了另外一个类，则一般要求两个类来自同一个Dex文件”。</p>
 <p><code>CLASS_ISPREVERIFIED</code> 是触发Vm判定规则的前提。</p>
 <img src="/2019/08/12/Android/Android热修复技术选型/VM规则判断.png">
 <p>增量方案为解决这个问题，需要进行“打桩”。</p>
 <p>打桩的目的就是防止类被打上 <code>CLASS_ISPREVERIFIED</code> 标签。</p>
 <p>打桩，就是在所有类中分别引用另外一个独立Dex文件(为了打桩特意封装的)中的类。通常做法是在每一个类中增加构造器并引用另外一个dex中的类。</p>
 <p>在类加载的最后阶段，虚拟机会对未打上 <code>CLASS_ISPREVERIFIED</code> 标签的类 再次进行 <strong>校验和优化</strong> ，如果在同一时间点加载大量类，那么就会出现严重的性能问题，如启动时白屏。</p>
-<h4 id="优点-4"><a href="#优点-4" class="headerlink" title="优点"></a>优点</h4><ul>
+<h2 id="优点-3"><a href="#优点-3" class="headerlink" title="优点"></a>优点</h2><ul>
 <li>不需要考虑对dalvik虚拟机和art虚拟机做适配</li>
 <li>代码是非侵入式的，对apk体积影响不大</li>
 </ul>
-<h4 id="缺点-3"><a href="#缺点-3" class="headerlink" title="缺点"></a>缺点</h4><ul>
+<h2 id="缺点-2"><a href="#缺点-2" class="headerlink" title="缺点"></a>缺点</h2><ul>
 <li>需要下次启动才修复</li>
-<li><strong>性能损耗大</strong>，为了避免类被加上 <code>CLASS_ISPREVERIFIED</code>，使用插桩，单独放一个帮助类在独立的dex中让其他类调用。可能导致严重的性能问题，如启动时白屏。</li>
+<li>最大挑战：<strong>性能损耗大</strong><ul>
+<li>Dalvik平台为了避免类被加上 <code>CLASS_ISPREVERIFIED</code>，使用插桩，单独放一个帮助类在独立的dex中让其他类调用。可能导致严重的性能问题，如启动时白屏。</li>
+<li>Art平台可能地址错乱</li>
 </ul>
-<h3 id="dex替换"><a href="#dex替换" class="headerlink" title="dex替换"></a>dex替换</h3><p>全量Dex替换</p>
-<h4 id="原理-2"><a href="#原理-2" class="headerlink" title="原理"></a>原理</h4><img src="/2019/08/12/Android/Android热修复技术选型/dex替换.png">
-<p>为了避免dex插桩带来的性能损耗，dex替换采取另外的方式(整体替换dex)。</p>
-<ul>
-<li>提供dex差量包(只包含patch代码的dex)</li>
-<li>将patch.dex与应用的classes.dex合并成一个完整的dex</li>
-<li>加载完整dex得到dexFile对象作为参数构建一个Element对象</li>
-<li>整体替换掉旧的dex-Elements数组</li>
+</li>
 </ul>
-<h4 id="优点-5"><a href="#优点-5" class="headerlink" title="优点"></a>优点</h4><p>相比 dex插入，dex替换的优点</p>
-<p>减少了dex插桩带来的性能损耗</p>
-<h4 id="缺点-4"><a href="#缺点-4" class="headerlink" title="缺点"></a>缺点</h4><p>Dex合并内存消耗在<strong>虚拟机堆内存</strong>(vm heap)上，容易OOM，最后导致合并失败</p>
-<h2 id="两种方案总结"><a href="#两种方案总结" class="headerlink" title="两种方案总结"></a>两种方案总结</h2><p>底层替换存在不同定制Rom的<strong>兼容性</strong>问题，同时<strong>不能做新增field</strong>的修复，但修复<strong>立即生效</strong>。</p>
+<h1 id="dex替换"><a href="#dex替换" class="headerlink" title="dex替换"></a>dex替换</h1><h2 id="微信Tinker"><a href="#微信Tinker" class="headerlink" title="微信Tinker"></a>微信Tinker</h2><ul>
+<li>基于Instant Run<ul>
+<li>全量替换dex </li>
+</ul>
+</li>
+<li>核心：合并补丁包生成全量新dex</li>
+<li>优点：<ul>
+<li>微信自研DexDiff/DexMerge算法，补丁包最小化</li>
+<li>避免dalvik 插桩带来的性能损耗和art地址错乱问题</li>
+</ul>
+</li>
+<li>缺点：<ul>
+<li>需要下次启动生效</li>
+<li>性能痛点<ul>
+<li>Dex合并内存消耗在vm head上，容易OOM，最后导致合并失败 </li>
+<li>如果本身app占用内存已经比较高，容易导致app被系统杀掉</li>
+<li>补丁影响启动时间。大补丁合并很耗时</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>已知问题：<ul>
+<li>不支持部分三星android-21机型，加载补丁时会主动抛出”TinkerRuntimeException:checkDexInstall failed”；</li>
+<li>对于资源替换，不支持修改remoteView。例如transition动画，notification icon以及桌面图标。</li>
+</ul>
+</li>
+</ul>
+<img src="/2019/08/12/Android/Android热修复技术选型/dex替换.png">
+<h1 id="两种方案总结"><a href="#两种方案总结" class="headerlink" title="两种方案总结"></a>两种方案总结</h1><p>底层替换存在不同定制Rom的<strong>兼容性</strong>问题，同时<strong>不能做新增field</strong>的修复，但修复<strong>立即生效</strong>。</p>
 <p>类加载方案在合成全量补丁的时候存在<strong>性能问题</strong>，修复需要<strong>重启</strong>应用(冷启动)，但是<strong>兼容性较好</strong>。</p>
 <h1 id="Sophix-代码热修复-双剑合璧"><a href="#Sophix-代码热修复-双剑合璧" class="headerlink" title="Sophix 代码热修复-双剑合璧"></a>Sophix 代码热修复-双剑合璧</h1><p>Sophix对类文件修复 采用底层替换方案为主，类加载方案为次(兜底策略)的模式，将二者结合起来，并对二者另辟蹊径，加以突破。</p>
 <h2 id="基于底层替换方案的突破"><a href="#基于底层替换方案的突破" class="headerlink" title="基于底层替换方案的突破"></a>基于底层替换方案的突破</h2><p>底层替换方案通过在运行时利用hook操作native指针实现“热”的特性。但这里有一个关键点，底层替换所操作的指针，实际上是 <code>ArtMethod</code> 。</p>
@@ -645,6 +688,8 @@
 <p>可以说Sophix吸取了百家之长，对问题的解决之法堪称巧妙，展现出底层技术的重要性，若没有对虚拟机等底层技术的深耕探索，在系统框架的纷繁规则面前，也只能至于庭前止步。</p>
 <h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
 <li><a href="https://www.jianshu.com/p/6ae1e09ebbf5" target="_blank" rel="noopener">Android热修复技术，你会怎么选？</a></li>
+<li><a href="https://www.cnblogs.com/popfisher/p/8543973.html" target="_blank" rel="noopener">Android热修复技术原理详解</a></li>
+<li><a href="https://www.cnblogs.com/aademeng/articles/6883861.html" target="_blank" rel="noopener">最全面的Android热修复技术——Tinker、nuwa、AndFix、Dexposed</a></li>
 <li><a href="https://www.jianshu.com/p/853dae4092d7" target="_blank" rel="noopener">两种热修复方案及Sophix原理</a></li>
 <li><a href="http://mp.weixin.qq.com/s/uY5N_PSny7_CHOgUA99UjA?spm=a2c4g.11186623.2.13.16023a3cQhCyHh" target="_blank" rel="noopener">Android热修复技术选型——三大流派解析</a></li>
 <li><a href="http://www.tinkerpatch.com/Docs/intro" target="_blank" rel="noopener">为什么使用 Tinker？</a></li>
@@ -775,7 +820,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-count">310</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -830,7 +875,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是热修复技术？"><span class="nav-number">2.</span> <span class="nav-text">什么是热修复技术？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#怎么选择热修复技术方案？"><span class="nav-number">3.</span> <span class="nav-text">怎么选择热修复技术方案？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#国内主流的技术方案"><span class="nav-number">3.1.</span> <span class="nav-text">国内主流的技术方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tinker"><span class="nav-number">3.2.</span> <span class="nav-text">Tinker</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优点"><span class="nav-number">3.2.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缺点"><span class="nav-number">3.2.2.</span> <span class="nav-text">缺点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#接入复杂"><span class="nav-number">3.2.2.1.</span> <span class="nav-text">接入复杂</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#打包复杂"><span class="nav-number">3.2.2.2.</span> <span class="nav-text">打包复杂</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#补丁激活成功率低"><span class="nav-number">3.2.2.3.</span> <span class="nav-text">补丁激活成功率低</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#补丁合成dex性能消耗大"><span class="nav-number">3.2.2.4.</span> <span class="nav-text">补丁合成dex性能消耗大</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#价格"><span class="nav-number">3.2.3.</span> <span class="nav-text">价格</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sophix"><span class="nav-number">3.3.</span> <span class="nav-text">Sophix</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优点-1"><span class="nav-number">3.3.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#价格-1"><span class="nav-number">3.3.2.</span> <span class="nav-text">价格</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Robust"><span class="nav-number">3.4.</span> <span class="nav-text">Robust</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优点-2"><span class="nav-number">3.4.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缺点-1"><span class="nav-number">3.4.2.</span> <span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.5.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内业主要热修复技术方案原理"><span class="nav-number">4.</span> <span class="nav-text">内业主要热修复技术方案原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#代码热修复方案的两个方向"><span class="nav-number">5.</span> <span class="nav-text">代码热修复方案的两个方向</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#底层替换方案"><span class="nav-number">5.1.</span> <span class="nav-text">底层替换方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原理"><span class="nav-number">5.1.1.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优点-3"><span class="nav-number">5.1.2.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缺点-2"><span class="nav-number">5.1.3.</span> <span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类加载方案"><span class="nav-number">5.2.</span> <span class="nav-text">类加载方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dex插入"><span class="nav-number">5.2.1.</span> <span class="nav-text">dex插入</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原理-1"><span class="nav-number">5.2.1.1.</span> <span class="nav-text">原理</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#VM规则判断"><span class="nav-number">5.2.1.1.1.</span> <span class="nav-text">VM规则判断</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#优点-4"><span class="nav-number">5.2.1.2.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#缺点-3"><span class="nav-number">5.2.1.3.</span> <span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dex替换"><span class="nav-number">5.2.2.</span> <span class="nav-text">dex替换</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#原理-2"><span class="nav-number">5.2.2.1.</span> <span class="nav-text">原理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#优点-5"><span class="nav-number">5.2.2.2.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#缺点-4"><span class="nav-number">5.2.2.3.</span> <span class="nav-text">缺点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#两种方案总结"><span class="nav-number">5.3.</span> <span class="nav-text">两种方案总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Sophix-代码热修复-双剑合璧"><span class="nav-number">6.</span> <span class="nav-text">Sophix 代码热修复-双剑合璧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基于底层替换方案的突破"><span class="nav-number">6.1.</span> <span class="nav-text">基于底层替换方案的突破</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#另辟蹊径的冷启动修复"><span class="nav-number">6.2.</span> <span class="nav-text">另辟蹊径的冷启动修复</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Art虚拟机"><span class="nav-number">6.2.1.</span> <span class="nav-text">Art虚拟机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dalvik虚拟机"><span class="nav-number">6.2.2.</span> <span class="nav-text">Dalvik虚拟机</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结-1"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">8.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#什么是热修复技术？"><span class="nav-number">2.</span> <span class="nav-text">什么是热修复技术？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#修复什么"><span class="nav-number">2.1.</span> <span class="nav-text">修复什么</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#怎么选择热修复技术方案？"><span class="nav-number">3.</span> <span class="nav-text">怎么选择热修复技术方案？</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#国内主流的技术方案"><span class="nav-number">3.1.</span> <span class="nav-text">国内主流的技术方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tinker"><span class="nav-number">3.2.</span> <span class="nav-text">Tinker</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优点"><span class="nav-number">3.2.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缺点"><span class="nav-number">3.2.2.</span> <span class="nav-text">缺点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#接入复杂"><span class="nav-number">3.2.2.1.</span> <span class="nav-text">接入复杂</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#打包复杂"><span class="nav-number">3.2.2.2.</span> <span class="nav-text">打包复杂</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#补丁激活成功率低"><span class="nav-number">3.2.2.3.</span> <span class="nav-text">补丁激活成功率低</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#补丁合成dex性能消耗大"><span class="nav-number">3.2.2.4.</span> <span class="nav-text">补丁合成dex性能消耗大</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#价格"><span class="nav-number">3.2.3.</span> <span class="nav-text">价格</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sophix"><span class="nav-number">3.3.</span> <span class="nav-text">Sophix</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优点-1"><span class="nav-number">3.3.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#价格-1"><span class="nav-number">3.3.2.</span> <span class="nav-text">价格</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Robust"><span class="nav-number">3.4.</span> <span class="nav-text">Robust</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#优点-2"><span class="nav-number">3.4.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#缺点-1"><span class="nav-number">3.4.2.</span> <span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">3.5.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#热修复技术方案原理"><span class="nav-number">4.</span> <span class="nav-text">热修复技术方案原理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#代码热修复方案的两个方向"><span class="nav-number">5.</span> <span class="nav-text">代码热修复方案的两个方向</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#native-hook方案"><span class="nav-number">6.</span> <span class="nav-text">native hook方案</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#阿里手淘Dexposed和支付宝Andfix"><span class="nav-number">6.1.</span> <span class="nav-text">阿里手淘Dexposed和支付宝Andfix</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#兼容问题的根源"><span class="nav-number">6.2.</span> <span class="nav-text">兼容问题的根源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#阿里百川hotfix"><span class="nav-number">6.3.</span> <span class="nav-text">阿里百川hotfix</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#dex插入"><span class="nav-number">7.</span> <span class="nav-text">dex插入</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#腾讯QQ空间和大众Nuwa"><span class="nav-number">7.1.</span> <span class="nav-text">腾讯QQ空间和大众Nuwa</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CLASS-ISPREVERIFIED"><span class="nav-number">7.2.</span> <span class="nav-text">CLASS_ISPREVERIFIED</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优点-3"><span class="nav-number">7.3.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缺点-2"><span class="nav-number">7.4.</span> <span class="nav-text">缺点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#dex替换"><span class="nav-number">8.</span> <span class="nav-text">dex替换</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#微信Tinker"><span class="nav-number">8.1.</span> <span class="nav-text">微信Tinker</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#两种方案总结"><span class="nav-number">9.</span> <span class="nav-text">两种方案总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Sophix-代码热修复-双剑合璧"><span class="nav-number">10.</span> <span class="nav-text">Sophix 代码热修复-双剑合璧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基于底层替换方案的突破"><span class="nav-number">10.1.</span> <span class="nav-text">基于底层替换方案的突破</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#另辟蹊径的冷启动修复"><span class="nav-number">10.2.</span> <span class="nav-text">另辟蹊径的冷启动修复</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Art虚拟机"><span class="nav-number">10.2.1.</span> <span class="nav-text">Art虚拟机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dalvik虚拟机"><span class="nav-number">10.2.2.</span> <span class="nav-text">Dalvik虚拟机</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结-1"><span class="nav-number">11.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">12.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
             
 
           </div>

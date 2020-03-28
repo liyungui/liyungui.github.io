@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="RN," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="官方metro分包方案本文RN版本是 0.61.2，使用基于metro分包的三方框架 react-native-multibundler 优势：  稳定 灵活 支持debug 支持远程加载 可以每个页面作为一个业务包 可选模块路径或者递增id作为模块id    加载bundle基础包123456ReactInstanceManagerBuilder builder = ReactInstanceM">
+<meta name="keywords" content="RN">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RN分包和热更">
+<meta property="og:url" content="http://yoursite.com/2020/03/20/RN/RN分包和热更/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="官方metro分包方案本文RN版本是 0.61.2，使用基于metro分包的三方框架 react-native-multibundler 优势：  稳定 灵活 支持debug 支持远程加载 可以每个页面作为一个业务包 可选模块路径或者递增id作为模块id    加载bundle基础包123456ReactInstanceManagerBuilder builder = ReactInstanceM">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-03-28T10:45:01.524Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RN分包和热更">
+<meta name="twitter:description" content="官方metro分包方案本文RN版本是 0.61.2，使用基于metro分包的三方框架 react-native-multibundler 优势：  稳定 灵活 支持debug 支持远程加载 可以每个页面作为一个业务包 可选模块路径或者递增id作为模块id    加载bundle基础包123456ReactInstanceManagerBuilder builder = ReactInstanceM">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/03/20/RN/RN分包和热更/"/>
+
+
+
+
+
+  <title>RN分包和热更 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/20/RN/RN分包和热更/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">RN分包和热更</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-20T17:41:12+08:00">
+                2020-03-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="官方metro分包方案"><a href="#官方metro分包方案" class="headerlink" title="官方metro分包方案"></a>官方metro分包方案</h1><p>本文RN版本是 <code>0.61.2</code>，使用基于metro分包的三方框架 <code>react-native-multibundler</code></p>
+<p>优势：</p>
+<ul>
+<li>稳定</li>
+<li>灵活<ul>
+<li>支持debug</li>
+<li>支持远程加载</li>
+<li>可以每个页面作为一个业务包</li>
+<li>可选模块路径或者递增id作为模块id</li>
+</ul>
+</li>
+</ul>
+<h1 id="加载bundle"><a href="#加载bundle" class="headerlink" title="加载bundle"></a>加载bundle</h1><h2 id="基础包"><a href="#基础包" class="headerlink" title="基础包"></a>基础包</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ReactInstanceManagerBuilder builder = ReactInstanceManager.builder()</span><br><span class="line"><span class="keyword">if</span> (jsBundleFile != <span class="keyword">null</span>) &#123;<span class="comment">//本地文件存在</span></span><br><span class="line">	builder.setJSBundleFile(jsBundleFile);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	builder.setBundleAssetName(getBundleAssetName());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="业务包"><a href="#业务包" class="headerlink" title="业务包"></a>业务包</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">loadScriptAsync</span><span class="params">(<span class="keyword">final</span> ReactRootView reactRootView, <span class="keyword">final</span> String moduleName)</span> </span>&#123;</span><br><span class="line">	String moduleFileName = getModuleFileNameByModuleName(moduleName);</span><br><span class="line">	<span class="keyword">if</span> (sd卡的版本最新) &#123;</span><br><span class="line">	    String rnBundleFilePath = getRNBundleFilePath(moduleFileName);</span><br><span class="line">	    loadScriptFromFile(mReactInstanceManager, rnBundleFilePath, rnBundleFilePath);</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">	    String moduleBundleAssertsPath = getRNBundleAssertsPath(moduleFileName);</span><br><span class="line">	    loadScriptFromAssets(mReactInstanceManager, getAssetManager(), moduleBundleAssertsPath);</span><br><span class="line">	&#125;</span><br><span class="line">                        </span><br><span class="line">	<span class="comment">//切换到UI线程，展示业务页面</span></span><br><span class="line">	reactRootView.startReactApplication(mReactInstanceManager, moduleName, <span class="keyword">null</span>);                      </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@WorkerThread</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">loadScriptFromFile</span><span class="params">(ReactInstanceManager reactInstanceManager, String fileName, String sourceURL)</span> </span>&#123;</span><br><span class="line">    CatalystInstance catalystInstance = reactInstanceManager.getCurrentReactContext().getCatalystInstance();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        Method method = CatalystInstanceImpl.class.getDeclaredMethod(<span class="string">"loadScriptFromFile"</span>,</span><br><span class="line">            String.class,</span><br><span class="line">            String.class, <span class="keyword">boolean</span>.class);</span><br><span class="line">        method.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">        method.invoke(catalystInstance, fileName, sourceURL, <span class="keyword">false</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@WorkerThread</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">loadScriptFromAssets</span><span class="params">(ReactInstanceManager reactInstanceManager, AssetManager assetManager, String assetName)</span> </span>&#123;</span><br><span class="line">    CatalystInstance catalystInstance = reactInstanceManager.getCurrentReactContext().getCatalystInstance();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        String source = <span class="string">"assets://"</span> + assetName;</span><br><span class="line">        Method method = CatalystInstanceImpl.class.getDeclaredMethod(<span class="string">"loadScriptFromAssets"</span>,</span><br><span class="line">            AssetManager.class,</span><br><span class="line">            String.class, <span class="keyword">boolean</span>.class);</span><br><span class="line">        method.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">        method.invoke(catalystInstance, assetManager, source, <span class="keyword">false</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="代码bundle热更"><a href="#代码bundle热更" class="headerlink" title="代码bundle热更"></a>代码bundle热更</h1><p>有两种方案：</p>
+<ul>
+<li>重启<ul>
+<li>重新初始化ReactInstanceManager </li>
+</ul>
+</li>
+<li>反射修改ReactInstanceManager的JSBundleLoader，然后重建ReactContext<ul>
+<li>recreateReactContextInBackground不行<ul>
+<li>因为里面的JSBundleLoader已经初始化好了</li>
+<li>没有开放更新的方法，所以只能用反射了</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//反射重新设置BundleLoader</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    JSBundleLoader jSBundleLoader;</span><br><span class="line">    <span class="keyword">if</span> (jSBundleFile.toLowerCase().startsWith(<span class="string">"assets://"</span>)) &#123;</span><br><span class="line">        jSBundleLoader = JSBundleLoader.createAssetLoader(getReactApplicationContext(), jSBundleFile, <span class="keyword">false</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        jSBundleLoader = JSBundleLoader.createFileLoader(jSBundleFile);</span><br><span class="line">    &#125;</span><br><span class="line">    Field bundleLoaderField = instanceManager.getClass().getDeclaredField(<span class="string">"mBundleLoader"</span>);</span><br><span class="line">    bundleLoaderField.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">    bundleLoaderField.set(instanceManager, jSBundleLoader);</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    Log.i(<span class="string">"lyg"</span>, <span class="string">"Could not setJSBundle"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//重新创建</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">	instanceManager.recreateReactContextInBackground();</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    <span class="comment">// 重新创建失败；尝试重启Activity</span></span><br><span class="line">    currentActivity.runOnUiThread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">	    <span class="meta">@Override</span></span><br><span class="line">	    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	        currentActivity.recreate();</span><br><span class="line">	    &#125;</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//或者直接反射调用带参的recreateReactContextInBackground</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    Class&lt;?&gt; RIManagerClazz = mReactInstanceManager.getClass();</span><br><span class="line">    Method method = RIManagerClazz.getDeclaredMethod(<span class="string">"recreateReactContextInBackground"</span>,</span><br><span class="line">            JavaScriptExecutorFactory.class,</span><br><span class="line">            JSBundleLoader.class);</span><br><span class="line">    method.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">    method.invoke(mReactInstanceManager,</span><br><span class="line">            <span class="keyword">new</span> JSCJavaScriptExecutorFactory(<span class="string">""</span>, <span class="string">""</span>),</span><br><span class="line">            JSBundleLoader.createFileLoader(JS_BUNDLE_LOCAL_PATH));</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="图片资源热更"><a href="#图片资源热更" class="headerlink" title="图片资源热更"></a>图片资源热更</h1><p>RN热更必不可少的要面对RN中图片的热更新</p>
+<p>先探究一下React-Native中图片是如何加载的，搞懂了这个问题，图片的热更新问题也就迎刃而解</p>
+<h2 id="Image设置图片"><a href="#Image设置图片" class="headerlink" title="Image设置图片"></a>Image设置图片</h2><p>RN中图片一般是这样使用的</p>
+<p><code>&lt;Image source={require(&#39;js/assets/common/ic_phone_kefu.png&#39;);} /&gt;</code></p>
+<p>重点关注Image控件属性source，所谓的图片热更新也就是更换source的地址</p>
+<h2 id="图片资源打包"><a href="#图片资源打包" class="headerlink" title="图片资源打包"></a>图片资源打包</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">react-native/Libraries/Image/assetPathUtils.js</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getAndroidResourceIdentifier</span>(<span class="params">asset: PackagerAsset</span>): <span class="title">string</span> </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> folderPath = getBasePath(asset); <span class="comment">//去掉/(如果以/打头)</span></span><br><span class="line">  <span class="keyword">return</span> (folderPath + <span class="string">'/'</span> + asset.name)</span><br><span class="line">    .toLowerCase()</span><br><span class="line">    .replace(<span class="regexp">/\//g</span>, <span class="string">'_'</span>) <span class="comment">// Encode folder structure in file name</span></span><br><span class="line">    .replace(<span class="regexp">/([^a-z0-9_])/g</span>, <span class="string">''</span>) <span class="comment">// Remove illegal chars</span></span><br><span class="line">    .replace(<span class="regexp">/^assets_/</span>, <span class="string">''</span>); <span class="comment">// Remove "assets_" prefix</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>打包处理：转小写，文件路径用 <code>_</code>连接，去除非法字符，去除开头 <code>assets_</code>(如果是这个开头)</p>
+<p>图片被处理成了 <code>js_assets_common_ic_phone_kefu.png</code></p>
+<h2 id="加载过程分析"><a href="#加载过程分析" class="headerlink" title="加载过程分析"></a>加载过程分析</h2><h3 id="Image-android-js"><a href="#Image-android-js" class="headerlink" title="Image.android.js"></a>Image.android.js</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">react-native/Libraries/Image/Image.android.js</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> Image = (</span><br><span class="line">  props: ImagePropsType,</span><br><span class="line">  forwardedRef: ?React.Ref&lt;<span class="string">'RCTTextInlineImage'</span> | <span class="string">'ImageViewNativeComponent'</span>&gt;,</span><br><span class="line">) =&gt; &#123;</span><br><span class="line">  <span class="comment">//设置source；重点关注，图片路径处理逻辑在里面完成</span></span><br><span class="line">  <span class="keyword">let</span> source = resolveAssetSource(props.source);</span><br><span class="line">  <span class="keyword">const</span> defaultSource = resolveAssetSource(props.defaultSource);</span><br><span class="line">  <span class="keyword">const</span> loadingIndicatorSource = resolveAssetSource(</span><br><span class="line">    props.loadingIndicatorSource,</span><br><span class="line">  );</span><br><span class="line">  ...检查source、props.src属性...</span><br><span class="line">  <span class="keyword">if</span> (source &amp;&amp; !source.uri &amp;&amp; !<span class="built_in">Array</span>.isArray(source)) &#123;</span><br><span class="line">    source = <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//根据source.uri 设置sources</span></span><br><span class="line">  <span class="keyword">let</span> style;</span><br><span class="line">  <span class="keyword">let</span> sources;</span><br><span class="line">  <span class="keyword">if</span> (source?.uri != <span class="literal">null</span>) &#123;</span><br><span class="line">    sources = [&#123;<span class="attr">uri</span>: source.uri&#125;];</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    style = flattenStyle([styles.base, props.style]);</span><br><span class="line">    sources = source;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//合并属性</span></span><br><span class="line">  <span class="keyword">const</span> &#123;onLoadStart, onLoad, onLoadEnd, onError&#125; = props;</span><br><span class="line">  <span class="keyword">const</span> nativeProps = merge(props, &#123;</span><br><span class="line">    style,</span><br><span class="line">    shouldNotifyLoadEvents: !!(onLoadStart || onLoad || onLoadEnd || onError),</span><br><span class="line">    src: sources,</span><br><span class="line">    headers: source?.headers,</span><br><span class="line">    defaultSrc: defaultSource ? defaultSource.uri : <span class="literal">null</span>,</span><br><span class="line">    loadingIndicatorSrc: loadingIndicatorSource</span><br><span class="line">      ? loadingIndicatorSource.uri</span><br><span class="line">      : <span class="literal">null</span>,</span><br><span class="line">    ref: forwardedRef,</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  <span class="comment">//返回真正的图片实现类</span></span><br><span class="line">  <span class="keyword">return</span> (</span><br><span class="line">    &lt;TextAncestor.Consumer&gt;</span><br><span class="line">      &#123;hasTextAncestor =&gt;</span><br><span class="line">        hasTextAncestor ? (</span><br><span class="line">          &lt;TextInlineImageNativeComponent &#123;...nativeProps&#125; /&gt;</span><br><span class="line">        ) : (</span><br><span class="line">          &lt;ImageViewNativeComponent &#123;...nativeProps&#125; /&gt;</span><br><span class="line">        )</span><br><span class="line">      &#125;</span><br><span class="line">    &lt;<span class="regexp">/TextAncestor.Consumer&gt;</span></span><br><span class="line"><span class="regexp">  );</span></span><br><span class="line"><span class="regexp">&#125;;</span></span><br></pre></td></tr></table></figure>
+<h3 id="ImageViewNativeComponent-js"><a href="#ImageViewNativeComponent-js" class="headerlink" title="ImageViewNativeComponent.js"></a>ImageViewNativeComponent.js</h3><p>通过上面的分析可知，如果父路径没有文本，Image真正的图片实现类是 ImageViewNativeComponent </p>
+<p>合并属性后生成nativeProps对象，传递给了 ImageViewNativeComponent</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">react-native/Libraries/Image/ImageViewNativeComponent.js</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> ImageViewNativeComponent: string = requireNativeComponent(<span class="string">'RCTImageView'</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="ReactImageManager-java"><a href="#ReactImageManager-java" class="headerlink" title="ReactImageManager.java"></a>ReactImageManager.java</h3><p>继续跟踪，通过 <code>ReactImageManager.java</code>，可知 <code>RCTImageView</code> 对应的是 <code>ReactImageView</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ReactImageView.java</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> ReactImageView <span class="title">createViewInstance</span><span class="params">(ThemedReactContext context)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ReactImageView(</span><br><span class="line">        context, getDraweeControllerBuilder(), mGlobalImageLoadListener, getCallerContext());</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// In JS this is Image.props.source</span></span><br><span class="line">  <span class="meta">@ReactProp</span>(name = <span class="string">"src"</span>)</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSource</span><span class="params">(ReactImageView view, @Nullable ReadableArray sources)</span> </span>&#123;</span><br><span class="line">    view.setSource(sources);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>setSource的文档说明，这里是原封不动的传递了JS中<code>Image.props.source</code> 属性，我们<strong>需要回头到JS代码中去分析图片路径的处理逻辑</strong></p>
+<h3 id="resolveAssetSource-js"><a href="#resolveAssetSource-js" class="headerlink" title="resolveAssetSource.js"></a>resolveAssetSource.js</h3><p>现在我们回头分析 resolveAssetSource</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">react-native/Libraries/Image/resolveAssetSource.js</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">resolveAssetSource</span>(<span class="params">source: any</span>): ?<span class="title">ResolvedAssetSource</span> </span>&#123;</span><br><span class="line">  <span class="comment">//已经处理成对象了，直接返回</span></span><br><span class="line">  <span class="keyword">if</span> (<span class="keyword">typeof</span> source === <span class="string">'object'</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> source;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  <span class="comment">//获取图片id，rn会对所有图片编码索引</span></span><br><span class="line">  <span class="keyword">const</span> asset = AssetRegistry.getAssetByID(source);</span><br><span class="line">  <span class="keyword">if</span> (!asset) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//关注核心代码</span></span><br><span class="line">  <span class="keyword">const</span> resolver = <span class="keyword">new</span> AssetSourceResolver(</span><br><span class="line">    getDevServerURL(),</span><br><span class="line">    getScriptURL(),</span><br><span class="line">    asset,</span><br><span class="line">  );</span><br><span class="line">  <span class="keyword">if</span> (_customSourceTransformer) &#123;</span><br><span class="line">    <span class="keyword">return</span> _customSourceTransformer(resolver);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> resolver.defaultAsset();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="获取当前js源码路径地址"><a href="#获取当前js源码路径地址" class="headerlink" title="获取当前js源码路径地址"></a>获取当前js源码路径地址</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> _sourceCodeScriptURL: ?string;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getSourceCodeScriptURL</span>(<span class="params"></span>): ?<span class="title">string</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (_sourceCodeScriptURL) &#123;</span><br><span class="line">    <span class="keyword">return</span> _sourceCodeScriptURL;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">let</span> sourceCode =</span><br><span class="line">    global.nativeExtensions &amp;&amp; global.nativeExtensions.SourceCode;</span><br><span class="line">  <span class="keyword">if</span> (!sourceCode) &#123;</span><br><span class="line">    sourceCode = <span class="built_in">require</span>(<span class="string">'../NativeModules/specs/NativeSourceCode'</span>).default;</span><br><span class="line">  &#125;</span><br><span class="line">  _sourceCodeScriptURL = sourceCode.getConstants().scriptURL;</span><br><span class="line">  <span class="keyword">return</span> _sourceCodeScriptURL;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过 <code>NativeSourceCode.js</code> 获取到当前js源码路径地址</p>
+<h4 id="服务器地址父路径"><a href="#服务器地址父路径" class="headerlink" title="服务器地址父路径"></a>服务器地址父路径</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getDevServerURL</span>(<span class="params"></span>): ?<span class="title">string</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (_serverURL === <span class="literal">undefined</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> sourceCodeScriptURL = getSourceCodeScriptURL();</span><br><span class="line">    <span class="keyword">const</span> match =</span><br><span class="line">      sourceCodeScriptURL &amp;&amp; sourceCodeScriptURL.match(<span class="regexp">/^https?:\/\/.*?\//</span>);</span><br><span class="line">    <span class="keyword">if</span> (match) &#123;</span><br><span class="line">      <span class="comment">// jsBundle was loaded from network</span></span><br><span class="line">      _serverURL = match[<span class="number">0</span>];</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// jsBundle was loaded from file</span></span><br><span class="line">      _serverURL = <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> _serverURL;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过js源码路径地址判断js是来自网络还是本地，网络返回网络地址父路径，本地返回null</p>
+<h4 id="js脚本地址父路径"><a href="#js脚本地址父路径" class="headerlink" title="js脚本地址父路径"></a>js脚本地址父路径</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> _coerceLocalScriptURL(<span class="params">scriptURL: ?string</span>): ?<span class="title">string</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (scriptURL) &#123;</span><br><span class="line">    <span class="keyword">if</span> (scriptURL.startsWith(<span class="string">'assets://'</span>)) &#123;</span><br><span class="line">      <span class="comment">// android: running from within assets, no offline path to use</span></span><br><span class="line">      <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    scriptURL = scriptURL.substring(<span class="number">0</span>, scriptURL.lastIndexOf(<span class="string">'/'</span>) + <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (!scriptURL.includes(<span class="string">'://'</span>)) &#123;</span><br><span class="line">      <span class="comment">// Add file protocol in case we have an absolute file path and not a URL.</span></span><br><span class="line">      <span class="comment">// This shouldn't really be necessary. scriptURL should be a URL.</span></span><br><span class="line">      scriptURL = <span class="string">'file://'</span> + scriptURL;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> scriptURL;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getScriptURL</span>(<span class="params"></span>): ?<span class="title">string</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (_scriptURL === <span class="literal">undefined</span>) &#123;</span><br><span class="line">    _scriptURL = _coerceLocalScriptURL(getSourceCodeScriptURL());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> _scriptURL;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>通过js源码路径地址判断js是否来自assets目录，是返回null，否返回js上级目录地址（没有<code>file://</code>前缀，代码会补上）</p>
+<h3 id="AssetSourceResolver-js"><a href="#AssetSourceResolver-js" class="headerlink" title="AssetSourceResolver.js"></a>AssetSourceResolver.js</h3><p>真正处理图片地址 </p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">react-native/Libraries/Image/AssetSourceResolver.js</span><br><span class="line"></span><br><span class="line">  defaultAsset(): ResolvedAssetSource &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>.isLoadedFromServer()) &#123;<span class="comment">//服务器地址不为空</span></span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">this</span>.assetServerURL();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//Android，js从assets加载，返回R文件中图片</span></span><br><span class="line">    <span class="comment">//js从本地加载，使用drawableFolderInBundle从bundle目录下获取图片</span></span><br><span class="line">    <span class="keyword">if</span> (Platform.OS === <span class="string">'android'</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">this</span>.isLoadedFromFileSystem()</span><br><span class="line">        ? <span class="keyword">this</span>.drawableFolderInBundle()</span><br><span class="line">        : <span class="keyword">this</span>.resourceIdentifierWithoutScale();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">this</span>.scaledAssetURLNearBundle();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">//从本地bundle目录下获取图片</span></span><br><span class="line">  drawableFolderInBundle(): ResolvedAssetSource &#123;</span><br><span class="line">    <span class="keyword">const</span> path = <span class="keyword">this</span>.jsbundleUrl || <span class="string">'file://'</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.fromSource(path + getAssetPathInDrawableFolder(<span class="keyword">this</span>.asset));</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>如果是从本地文件加载的js代码(例如 <code>/sdcard/rn/LiveShoppingMall.js</code>)，那么加载图片的地址就是 <strong>js文件同级目录下</strong> <code>/sdcard/rn/drawable-xhpi/js_assets_common_ic_phone_kefu.png</code></p>
+<h2 id="SmartAssets对图片路径的hook"><a href="#SmartAssets对图片路径的hook" class="headerlink" title="SmartAssets对图片路径的hook"></a>SmartAssets对图片路径的hook</h2><p><code>react-native-smartassets</code></p>
+<h3 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h3><p>上面的图片处理过程有个缺陷（不够<strong>高效和灵活</strong>），就是如果js代码同级目录下找不到目标图片，是展示不出来的。这就意味着，一个页面如果热更，需要把这个页面所有图片都拷贝js文件同级目录下。如果每个业务包都有独立文件夹（方便配置版本控制和安全策略），这个重复拷贝工作量很恐怖的</p>
+<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>通过hook上面的 <code>AssetSourceResolver.js</code> 获取图片路径的方法，判断js代码父路径下是否存在目标图片，不存在(表示图片不需要更新)则使用R文件中的图片，完美</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line">react-native-smartassets/index.js</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> SmartAssets= &#123;</span><br><span class="line">	initSmartAssets()&#123;</span><br><span class="line">		<span class="keyword">var</span> initialize = _.once(<span class="keyword">this</span>.initSmartAssetsInner);</span><br><span class="line">		initialize();</span><br><span class="line">	&#125;,</span><br><span class="line">	initSmartAssetsInner() &#123;</span><br><span class="line">		<span class="keyword">let</span> drawablePathInfos = [];</span><br><span class="line">		<span class="comment">//getSourceCodeScriptURL()获取js文件地址</span></span><br><span class="line">		<span class="comment">//完全复制resolveAssetSource.js. </span></span><br><span class="line">		<span class="comment">//调用Java方法遍历js文件同级的图片文件，存入数组</span></span><br><span class="line">		Smartassets.travelDrawable(getSourceCodeScriptURL(),</span><br><span class="line">			(retArray)=&gt;&#123;</span><br><span class="line">				drawablePathInfos = drawablePathInfos.concat(retArray);</span><br><span class="line">			&#125;);</span><br><span class="line">		</span><br><span class="line">		<span class="comment">//核心，hook AssetSourceResolver.defaultAsset方法</span></span><br><span class="line">		AssetSourceResolver.prototype.defaultAsset=_.wrap(AssetSourceResolver.prototype.defaultAsset, <span class="function"><span class="keyword">function</span> (<span class="params">func, ...args</span>) </span>&#123;</span><br><span class="line">			<span class="keyword">if</span> (<span class="keyword">this</span>.isLoadedFromServer()) &#123;</span><br><span class="line">				<span class="keyword">return</span> <span class="keyword">this</span>.assetServerURL();</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span> (Platform.OS === <span class="string">'android'</span>) &#123;</span><br><span class="line">				<span class="keyword">if</span>(<span class="keyword">this</span>.isLoadedFromFileSystem()||bundlePath!=<span class="literal">null</span>)&#123;<span class="comment">//begin assets ios begin drawable android</span></span><br><span class="line">					<span class="keyword">this</span>.jsbundleUrl = bundlePath;</span><br><span class="line">					<span class="keyword">let</span> resolvedAssetSource = <span class="keyword">this</span>.drawableFolderInBundle();</span><br><span class="line">					<span class="keyword">let</span> resPath = resolvedAssetSource.uri;</span><br><span class="line">					<span class="keyword">if</span>(drawablePathInfos.includes(resPath))&#123;<span class="comment">//已经在bundle目录中有</span></span><br><span class="line">						<span class="keyword">return</span> resolvedAssetSource;</span><br><span class="line">					&#125;</span><br><span class="line">					<span class="keyword">let</span> isFileExist =  Smartassets.isFileExist(resPath);</span><br><span class="line">					<span class="keyword">if</span>(isFileExist===<span class="literal">true</span>)&#123;<span class="comment">//文件存在</span></span><br><span class="line">						<span class="keyword">return</span> resolvedAssetSource;</span><br><span class="line">					&#125;<span class="keyword">else</span> &#123;<span class="comment">//不存在，使用R文件的图片</span></span><br><span class="line">						<span class="keyword">return</span> <span class="keyword">this</span>.resourceIdentifierWithoutScale();</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">					<span class="keyword">return</span> <span class="keyword">this</span>.resourceIdentifierWithoutScale();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;<span class="comment">//ios的处理</span></span><br><span class="line">				<span class="keyword">if</span>(bundlePath!=<span class="literal">null</span>)&#123;</span><br><span class="line">					<span class="keyword">this</span>.jsbundleUrl = bundlePath;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">let</span> iOSAsset = <span class="keyword">this</span>.scaledAssetURLNearBundle();</span><br><span class="line">				<span class="keyword">let</span> isFileExist =  Smartassets.isFileExist(iOSAsset.uri);</span><br><span class="line">				<span class="keyword">if</span>(isFileExist) &#123;</span><br><span class="line">					<span class="keyword">return</span> iOSAsset;</span><br><span class="line">				&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">					<span class="keyword">let</span> oriJsBundleUrl = <span class="string">'file://'</span>+defaultMainBundePath+<span class="string">'/'</span>+iOSRelateMainBundlePath;</span><br><span class="line">					iOSAsset.uri = iOSAsset.uri.replace(<span class="keyword">this</span>.jsbundleUrl, oriJsBundleUrl);</span><br><span class="line">					<span class="keyword">return</span> iOSAsset;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">	&#125;,</span><br><span class="line">	<span class="comment">//必须传入js文件的父路径</span></span><br><span class="line">	<span class="comment">//否则会导致一个图片路径bug</span></span><br><span class="line">	setBundlePath(bundlePathNew)&#123;</span><br><span class="line">		bundlePath = bundlePathNew;</span><br><span class="line">	&#125;,</span><br><span class="line">	setiOSRelateMainBundlePath(relatePath)&#123;</span><br><span class="line">		iOSRelateMainBundlePath = relatePath;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="setBundlePath传参"><a href="#setBundlePath传参" class="headerlink" title="setBundlePath传参"></a>setBundlePath传参</h3><p><strong>特别注意</strong> setBundlePath传参形式不当，会导致图片路径bug</p>
+<p>js文件地址：<code>/sdcard/rn/LiveShoppingMall.js</code></p>
+<p>setBundlePath <strong>唯一标准参数</strong>：<code>file:///sdcard/rn/</code>（js文件父路径，必须file://前缀，以/结尾）</p>
+<p>如果setBundlePath传入js文件的路径(而不是期望的js文件父路径，并以/结尾)，那么加载图片的地址就是 <strong>js文件 + 图片地址</strong> <code>/sdcard/rn/LiveShoppingMall.jsdrawable-xhpi/js_assets_common_ic_phone_kefu.png</code></p>
+<p>setBundlePath是怎么调用的呢</p>
+<p>在框架提供的基础包打包入口文件 <code>platformDep.js</code>中，监听了 <code>sm-bundle-changed</code> 事件来触发调用</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; SmartAssets &#125; <span class="keyword">from</span> <span class="string">'react-native-smartassets'</span>;</span><br><span class="line">SmartAssets.initSmartAssets();</span><br><span class="line">DeviceEventEmitter.addListener(<span class="string">'sm-bundle-changed'</span>, </span><br><span class="line">    bundlePath =&gt; &#123;</span><br><span class="line">        SmartAssets.setBundlePath(bundlePath);</span><br><span class="line">    &#125;);</span><br><span class="line"><span class="string">``</span><span class="string">`    </span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">所以，我们需要在java代码中发送这个事件</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">`</span><span class="string">``</span>java</span><br><span class="line"><span class="keyword">if</span>(scriptPath!=<span class="literal">null</span>)&#123;<span class="comment">//scriptPath是js完整路径</span></span><br><span class="line">    scriptPath = <span class="string">"file://"</span>+scriptPath.substring(<span class="number">0</span>,scriptPath.lastIndexOf(File.separator)+<span class="number">1</span>);</span><br><span class="line">reactContext</span><br><span class="line">        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)</span><br><span class="line">        .emit(<span class="string">"sm-bundle-changed"</span>, bundleAssetPath);    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/smallnew/react-native-multibundler" target="_blank" rel="noopener">react-native-multibundler</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/RN/" rel="tag"><i class="fa fa-tag"></i> RN</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/06/Android/latex公式/" rel="next" title="latex公式">
+                <i class="fa fa-chevron-left"></i> latex公式
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">310</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#官方metro分包方案"><span class="nav-number">1.</span> <span class="nav-text">官方metro分包方案</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#加载bundle"><span class="nav-number">2.</span> <span class="nav-text">加载bundle</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基础包"><span class="nav-number">2.1.</span> <span class="nav-text">基础包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#业务包"><span class="nav-number">2.2.</span> <span class="nav-text">业务包</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#代码bundle热更"><span class="nav-number">3.</span> <span class="nav-text">代码bundle热更</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#图片资源热更"><span class="nav-number">4.</span> <span class="nav-text">图片资源热更</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Image设置图片"><span class="nav-number">4.1.</span> <span class="nav-text">Image设置图片</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#图片资源打包"><span class="nav-number">4.2.</span> <span class="nav-text">图片资源打包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#加载过程分析"><span class="nav-number">4.3.</span> <span class="nav-text">加载过程分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Image-android-js"><span class="nav-number">4.3.1.</span> <span class="nav-text">Image.android.js</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ImageViewNativeComponent-js"><span class="nav-number">4.3.2.</span> <span class="nav-text">ImageViewNativeComponent.js</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReactImageManager-java"><span class="nav-number">4.3.3.</span> <span class="nav-text">ReactImageManager.java</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#resolveAssetSource-js"><span class="nav-number">4.3.4.</span> <span class="nav-text">resolveAssetSource.js</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#获取当前js源码路径地址"><span class="nav-number">4.3.4.1.</span> <span class="nav-text">获取当前js源码路径地址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#服务器地址父路径"><span class="nav-number">4.3.4.2.</span> <span class="nav-text">服务器地址父路径</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#js脚本地址父路径"><span class="nav-number">4.3.4.3.</span> <span class="nav-text">js脚本地址父路径</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AssetSourceResolver-js"><span class="nav-number">4.3.5.</span> <span class="nav-text">AssetSourceResolver.js</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">4.3.6.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SmartAssets对图片路径的hook"><span class="nav-number">4.4.</span> <span class="nav-text">SmartAssets对图片路径的hook</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#缺陷"><span class="nav-number">4.4.1.</span> <span class="nav-text">缺陷</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解决方案"><span class="nav-number">4.4.2.</span> <span class="nav-text">解决方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#setBundlePath传参"><span class="nav-number">4.4.3.</span> <span class="nav-text">setBundlePath传参</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">5.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

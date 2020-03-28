@@ -262,6 +262,182 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/19/直播/播放器技术/三、音画同步/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/19/直播/播放器技术/三、音画同步/" itemprop="url">播放器技术三-音画同步</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-19T16:12:14+08:00">
+                2019-09-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="音画同步的概念"><a href="#音画同步的概念" class="headerlink" title="音画同步的概念"></a>音画同步的概念</h1><p>音画同步是指播放器正在渲染的每一帧画面和正在播放的每一段声音都是严格对应起来的，不存在<strong>人耳和肉眼可以分辨的偏差</strong>。</p>
+<h1 id="音画同步的标准"><a href="#音画同步的标准" class="headerlink" title="音画同步的标准"></a>音画同步的标准</h1><h2 id="时间戳"><a href="#时间戳" class="headerlink" title="时间戳"></a>时间戳</h2><p>机器如何去感知视频文件中的某一帧视频数据跟某一帧音频数据是属于 同一时间 的呢 ？</p>
+<p>现实生活中，判断两件事情是否同一时刻发生的方法就是记录并且比较事件发生的日期时间，同样，音视频在采集（生产）的时候，就给每一帧都打上 “时间戳”（注意，音视频的时间戳需要使用一个共同的时间戳基准），代表着它的出生时间。由此，播放器就可以通过附加在音频和视频帧上的时间戳信息，感知到音频帧和视频帧的 “相对关系”，实现音画同步就轻而易举了</p>
+<img src="/2019/09/19/直播/播放器技术/三、音画同步/音画同步-时间戳.png">
+<p>视频帧和音频帧的时间戳大致的递增规律为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">视频帧：10，43，76，109，142，……</span><br><span class="line">音频帧：0，20，40，60，80，120，……</span><br></pre></td></tr></table></figure>
+<p>音视频是分开采集的，所以它们的时间戳不可能完全对应得上，因此，只要在一个合理的 “阈值” 范围内即可认为是同步的。</p>
+<p><strong>音画同步的方法</strong>：判断视频与音频帧的<strong>时间戳差值</strong>，是不是在一定的 “阈值” 范围内，如果是，则可以渲染/播放，否则就 “等” 到合适的时间。</p>
+<h2 id="时间戳偏移的-“阈值”"><a href="#时间戳偏移的-“阈值”" class="headerlink" title="时间戳偏移的 “阈值”"></a>时间戳偏移的 “阈值”</h2><p>音频和视频的时间戳差值 “阈值”，国际标准 “RFC-1359” 定义了：</p>
+<ol>
+<li><strong>无法察觉</strong>：(-100ms ~ +25ms)。 </li>
+<li><strong>可以接受</strong>：(-185ms ~ +90ms)。</li>
+</ol>
+<p>负数表示音频滞后；正数表示音频超前。（<strong>人类对音频滞后有更高的兼容性</strong>）</p>
+<img src="/2019/09/19/直播/播放器技术/三、音画同步/音画同步-时间戳差值阈值.png">
+<h1 id="音画同步的实现"><a href="#音画同步的实现" class="headerlink" title="音画同步的实现"></a>音画同步的实现</h1><p>音画同步的<strong>实现策略</strong>一般有 3 种：</p>
+<ol>
+<li><p>视频同步到音频。<strong>最常用</strong></p>
+</li>
+<li><p>音频同步到视频</p>
+</li>
+<li><p>音视频同步到外部时钟</p>
+</li>
+</ol>
+<h2 id="视频同步到音频"><a href="#视频同步到音频" class="headerlink" title="视频同步到音频"></a>视频同步到音频</h2><p>最常用。</p>
+<p>因为</p>
+<ul>
+<li>人对声音敏感度高于图像</li>
+<li><p>视频播放速率更好控制。</p>
+<p>  <strong>音频是流式</strong>的，按照规律<strong>匀速播放</strong>，才能显得更加 “平滑”，而视频的播放其实是一张一张图片进行刷新显示，它的刷新时间的调整相对而言更容易一些，用户肉眼的敏感度也更弱一些。</p>
+</li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.51cto.com/ticktick/2328003" target="_blank" rel="noopener">播放器技术分享（3）：音画同步</a> 七牛-卢俊</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/17/直播/播放器技术/二、缓冲区管理/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1966,187 +2142,6 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/视频/Android视频录制app解决方案汇总/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/视频/Android视频录制app解决方案汇总/" itemprop="url">Android视频录制app解决方案汇总</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="https://www.zybuluo.com/lichangadd/note/148109" target="_blank" rel="noopener">Android视频录制app解决方案汇总</a></p>
-<p>现在视频App很多：蝌蚪音客、美拍、小影、还有最近火起来的小咖秀。</p>
-<p>这类App的技术难点基本都是在音视频处理这一块</p>
-<p>iOS对多媒体处理的支持还算比较丰富，Android差很多。</p>
-<p>这里总结蝌蚪音客在多媒体处理上遇到的问题，供大家参考下。</p>
-<h1 id="一、录制方视频-1：1"><a href="#一、录制方视频-1：1" class="headerlink" title="一、录制方视频(1：1)"></a>一、录制方视频(1：1)</h1><p>现在市面上的视频应用的视频尺基本全部都是1：1的，这对于Android开发者来说就是一个比较棘手的问题，Android原生Recorder类并不支持视频比例的设置。</p>
-<p>所以只能想其他办法，目前常用的办法大致可以分为2种：</p>
-<h2 id="a-摒弃原生接口，使用FFmpeg或OpenCV等方式进行录制"><a href="#a-摒弃原生接口，使用FFmpeg或OpenCV等方式进行录制" class="headerlink" title="a. 摒弃原生接口，使用FFmpeg或OpenCV等方式进行录制"></a>a. 摒弃原生接口，使用FFmpeg或OpenCV等方式进行录制</h2><ul>
-<li><p><strong>缺点</strong></p>
-<p>  对开发者技术要求较高，FFmpeg和OpenCV<strong>移植麻烦</strong>，<strong>多机型兼容复杂</strong> 并且要求开发者一定程度的<strong>C语言功底</strong></p>
-</li>
-<li><p><strong>最难解决的问题是性能问题</strong></p>
-<p>  FFmeg和OpenCV都是开源方案，如果要真正达实用级别往往还<strong>需要优化定制</strong>，这对于熟练于做Android展现的开发者来说完全就是一个新的领域。蝌蚪音客就尝试过这种方案，结果视频的码率只能做到15fps左右，这明显是不够的。</p>
-</li>
-</ul>
-<h2 id="b-使用原生API录制，遮罩1：1视觉效果"><a href="#b-使用原生API录制，遮罩1：1视觉效果" class="headerlink" title="b. 使用原生API录制，遮罩1：1视觉效果"></a>b. 使用原生API录制，遮罩1：1视觉效果</h2><ul>
-<li><p>在录制界面使用遮罩的方式给用户一种1：1的错觉。</p>
-</li>
-<li><p>在预览视频时，使用FFmpeg进行视频裁剪。</p>
-</li>
-</ul>
-<p><strong>如果团队没有驾驭FFmpeg的能力，个人建议使用这种方式。</strong></p>
-<p>视频录制功能来说相对简单，而且裁剪命令优化后基本可以可以做到视频预览一遍也就基本裁剪完毕(<strong>耗时&gt;=视频时长</strong>，真心伤)。</p>
-<h1 id="二、本地视频压缩"><a href="#二、本地视频压缩" class="headerlink" title="二、本地视频压缩"></a>二、本地视频压缩</h1><p><strong>本地视频压缩除了FFmpeg之外目前还没有了解到有其他方案</strong></p>
-<p>但是压缩命令的优化可是一门学问，使用 <code>x264</code> 还是 <code>mpeg4</code>，<code>码率</code>，<code>分辨率</code>，<code>帧频</code>，<code>文件大小</code> 等都会影响到 <code>压缩速度</code> 而且差别相当大。</p>
-<p>在android平台运行效率实在蛋疼，测试压缩一个mp4，<strong>耗时&gt;=视频时长x6</strong>。网络说在CentOS服务器上跑都是 耗时=视频时长</p>
-<h1 id="三、m3u8解决方案"><a href="#三、m3u8解决方案" class="headerlink" title="三、m3u8解决方案"></a>三、m3u8解决方案</h1><p>绝对不建议创业公司<strong>自己编写播放器，绝对无底洞</strong>，还不如直接使用MP4文件格式。</p>
-<p>m3u8国内比较出名的是 <strong>vitamio</strong>，还有一些韩国人的技术方案。但是vitamio的<strong>开源版本感觉很久没有更新</strong>，而且商业版本的授权动则几十万</p>
-<p><strong>推荐使用百度媒体云的m3u8的解决方案</strong>，代码家的AnimeTaste使用的就是这个，完全免费，项目质量还算稳定。但是<strong>只能做成单例</strong>，如果想集成到listview中，需要费点事。</p>
-<h1 id="四、视频滤镜、水印"><a href="#四、视频滤镜、水印" class="headerlink" title="四、视频滤镜、水印"></a>四、视频滤镜、水印</h1><ul>
-<li><p>水印 </p>
-<p>  <strong>FFmpeg</strong> 在视频处理的过程中可以并行处理水印。</p>
-</li>
-<li><p>视频滤镜</p>
-<p>  赶紧花钱招大牛吧。</p>
-<p>  据说小影的开发Leader在视频处理领域里沉浸了20多年。</p>
-<p>  目前这部分笔者还是在了解阶段，目前看到的方案有使用GPUImage进行处理的，但是无奈对图像处理的知识掌握的太少，迟迟没有动手。</p>
-</li>
-</ul>
-<h1 id="五、趣拍云"><a href="#五、趣拍云" class="headerlink" title="五、趣拍云"></a>五、<a href="https://www.qupaicloud.com/" target="_blank" rel="noopener">趣拍云</a></h1><p>阿里百川和趣拍合作推出，包括 短视频sdk 和 直播sdk。收费不便宜</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2201,7 +2196,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-count">310</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

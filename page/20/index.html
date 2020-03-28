@@ -262,6 +262,674 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/web/php/CodeIgniter框架使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/web/php/CodeIgniter框架使用/" itemprop="url">CodeIgniter框架使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T16:08:25+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web/" itemprop="url" rel="index">
+                    <span itemprop="name">Web</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>小巧简单，上手容易，适用于小项目敏捷开发</p>
+<p>MVC架构</p>
+<h1 id="快速上手"><a href="#快速上手" class="headerlink" title="快速上手"></a>快速上手</h1><h2 id="安装配置"><a href="#安装配置" class="headerlink" title="安装配置"></a>安装配置</h2><ol>
+<li><a href="https://codeigniter.org.cn/" target="_blank" rel="noopener">下载解压</a></li>
+<li>配置。<ul>
+<li>全局配置 <code>application/config/config.php</code> </li>
+<li>数据库配置 <code>application/config/database.php</code></li>
+</ul>
+</li>
+</ol>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><p><img src="https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=206154531,2389930621&amp;fm=173&amp;s=00B0EC339E80BE01958CE540030070B2&amp;w=639&amp;h=188&amp;img.JPEG" alt=""></p>
+<ul>
+<li>index.php 文件作为前端控制器，初始化运行 CodeIgniter 所需的基本资源； </li>
+<li>Router 检查 HTTP 请求，以确定如何处理该请求； 如果存在缓存文件，将直接输出到浏览器，不用走下面正常的系统流程； 在加载应用程序控制器之前，对 HTTP 请求以及任何用户提交的数据进行安全检查； 控制器加载模型、核心类库、辅助函数以及其他所有处理请求所需的资源； 最后一步，渲染视图并发送至浏览器，如果开启了缓存，视图被会先缓存起来用于 后续的请求。</li>
+</ul>
+<h2 id="两个主要目录"><a href="#两个主要目录" class="headerlink" title="两个主要目录"></a>两个主要目录</h2><ul>
+<li>application目录：用于开发者编写相应的配置以及逻辑处理，开发者只需在这个目录下添加自己需要的开发文件。 </li>
+<li>system目录：框架的系统库，里面包括核心库，类库，辅助类库，数据库等，这些文件，开发者最好不要擅自修改。</li>
+</ul>
+<h2 id="CI框架的MVC和数据库辅助类"><a href="#CI框架的MVC和数据库辅助类" class="headerlink" title="CI框架的MVC和数据库辅助类"></a>CI框架的MVC和数据库辅助类</h2><h3 id="控制器"><a href="#控制器" class="headerlink" title="控制器"></a>控制器</h3><p>application/controller 目录</p>
+<p>开发者添加自己的controller 控制器控制器都要继承核心库里的基类 CI_Controller，它已获取到整个框架的核心类库对象，通过它基本可以调用CI框架下的核心方法。 </p>
+<h3 id="模型"><a href="#模型" class="headerlink" title="模型"></a>模型</h3><p>application/models 目录</p>
+<p>专门用来和数据库打交道的 PHP 类，开发者定义自己的模型类都要继承 模型基类 CI_Mode。当你在控制下调用模型，只需要下面一行代码就实例化了：$this-&gt;load-&gt;model(‘model_name’); </p>
+<h3 id="视图"><a href="#视图" class="headerlink" title="视图"></a>视图</h3><p>application/controller 目录</p>
+<p>视图用于显示在浏览器中</p>
+<h3 id="辅助函数"><a href="#辅助函数" class="headerlink" title="辅助函数"></a>辅助函数</h3><p>application/helpers 目录</p>
+<p>开发者可以创建自己的辅助类，调用的方式与系统的辅助类一致。</p>
+<h3 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h3><p>CI框架封装了多种数据库驱动与连接方法，让你轻松配置就能连接上，且封装了一些查询构造器与生成查询结果，让代码看起来方便简洁</p>
+<h2 id="API快速冒烟"><a href="#API快速冒烟" class="headerlink" title="API快速冒烟"></a>API快速冒烟</h2><p>分页获取用户列表，包含id，username,password</p>
+<h3 id="创建数据库和表"><a href="#创建数据库和表" class="headerlink" title="创建数据库和表"></a>创建数据库和表</h3><p>创建test库user表</p>
+<p>create table user(<br>    id int primary key auto_increment,<br>    username varchar(20),<br>    password varchar(20)<br>);</p>
+<h3 id="创建控制类"><a href="#创建控制类" class="headerlink" title="创建控制类"></a>创建控制类</h3><p>创建文件 <code>application/controllers/Test.php</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span></span>&#123;</span><br><span class="line">	<span class="keyword">public</span> $id;</span><br><span class="line">	<span class="keyword">public</span> $username;</span><br><span class="line">	<span class="keyword">public</span> $password;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">CI_Controller</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">getUsers</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">'page_size'</span>]))&#123;</span><br><span class="line">			$pageSize = $_GET[<span class="string">'page_size'</span>];</span><br><span class="line">		&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">			$pageSize = <span class="number">10</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">'page'</span>]))&#123;</span><br><span class="line">			$page = $_GET[<span class="string">'page'</span>];</span><br><span class="line">		&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">			$page = <span class="number">0</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		$startIndex = $page*$pageSize;</span><br><span class="line">		<span class="keyword">$this</span>-&gt;load-&gt;database(); <span class="comment">//加载数据库类</span></span><br><span class="line">		$sql = <span class="string">"SELECT * FROM user limit $startIndex, $pageSize"</span>;</span><br><span class="line">		$query = <span class="keyword">$this</span>-&gt;db-&gt;query($sql); <span class="comment">//执行sql语句</span></span><br><span class="line">		$rows = $query-&gt;custom_result_object(<span class="string">'User'</span>); <span class="comment">//转换成数组</span></span><br><span class="line">		$viewArray = <span class="keyword">array</span>(<span class="string">"jsonArray"</span> =&gt; $rows);</span><br><span class="line">		ob_start(); <span class="comment">//开启缓存</span></span><br><span class="line">		<span class="keyword">$this</span>-&gt;load-&gt;view(<span class="string">'json'</span>, $viewArray); <span class="comment">//输出信息到json.php视图</span></span><br><span class="line">		ob_end_flush(); <span class="comment">//关闭缓存</span></span><br><span class="line">		<span class="keyword">exit</span>(); <span class="comment">//退出</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="创建View视图"><a href="#创建View视图" class="headerlink" title="创建View视图"></a>创建View视图</h3><p>创建文件 <code>application/views/json.php</code></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">header(<span class="string">'Content-type: application/json'</span>);<span class="comment">//通信头设置</span></span><br><span class="line">$outputarray = <span class="keyword">array</span>(<span class="string">'status'</span> =&gt; <span class="string">'OK'</span>, <span class="string">'data'</span> =&gt; $jsonArray);</span><br><span class="line"><span class="keyword">echo</span> json_encode($outputarray);<span class="comment">//数组转json，然后echo输出</span></span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="URL访问接口"><a href="#URL访问接口" class="headerlink" title="URL访问接口"></a>URL访问接口</h3><p>CodeIgniter框架URL规则，上面接口的访问方法为<br><code>http://localhost:8888/index.php/test/getusers?page=1</code></p>
+<p>规则 <code>host/index.php/controller/method?param</code></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/Android/retrofit使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/12/20/Android/retrofit使用/" itemprop="url">retrofit使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T15:47:53+08:00">
+                2018-12-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="OkHttp"><a href="#OkHttp" class="headerlink" title="OkHttp"></a>OkHttp</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><p><strong>OkHttp</strong> 是基于http协议封装的一套请求客户端，虽然它也可以开线程，但根本上它更偏向真正的请求，跟<strong>HttpClient</strong>, <strong>HttpUrlConnection</strong>的职责是一样的</p>
+<p>Android 4.4后，HttpURLConnection底层实现已被OkHttp替换。可见OkHttp的性能已经被Google认同</p>
+<p>volley, retrofit, android-async-http 帮你封装了具体的请求，线程切换以及数据转换</p>
+<p>android-async-http内部实现是基于HttpClient, 6.0之后系统不再自带HttpClient，在最近的更新中将HttpClient的所有代码copy了一份进来，所以还能使用</p>
+<p>Volley是官方出的，可以支持HttpUrlConnection, HttpClient, OkHttp，如果习惯使用Volley，直接写个OkHttp扩展就行了。</p>
+<h2 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h2><ul>
+<li>支持HTTP2.0/SPDY</li>
+<li>socket自动选择最好路线，并支持自动重连</li>
+<li>拥有自动维护的socket连接池，减少握手次数</li>
+<li>拥有队列线程池，轻松写并发</li>
+<li>拥有Interceptors轻松处理请求与响应（比如GZIP压缩,LOG打印请求日志等）</li>
+<li>实现基于Headers的缓存策略</li>
+</ul>
+<h2 id="OkHttp-发送HTTP请求的初步分析"><a href="#OkHttp-发送HTTP请求的初步分析" class="headerlink" title="OkHttp 发送HTTP请求的初步分析"></a>OkHttp 发送HTTP请求的初步分析</h2><p>Dispatcher类 中有两个集合分别为：runningAsyncCalls、readyAsyncCalls分别存放正在执行的请求，等待执行的请求</p>
+<p>该类中有一个ThreadPoolExecutor线程池(核心线程0，最大线程Integer.MAX_VALUE，队列Integer.MAX_VALUE，保活60秒)执行器，利用该执行器来执行<strong>异步请求</strong>的execute方法。异步请求发送在非当前工作线程，即创建异步请求的线程，而是从线程池中获取一条线程执行网络请求。同步请求则直接是在当前工作线程中执行。</p>
+<p>该类对<strong>异步请求</strong>的管理是通过maxRequests、maxRequestsPerHost进行控制的，前者控制线程池中同时运行的最大请求数，防止同时运行线程过多，造成OOM。后者限制了同一hostname下的请求数，防止一个应用占用的网络资源过多，优化用户体验。</p>
+<h2 id="设置最大并发数"><a href="#设置最大并发数" class="headerlink" title="设置最大并发数"></a>设置最大并发数</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient().dispatcher(). maxRequests(<span class="number">8</span>);</span><br><span class="line">OkHttpClient().dispatcher().setMaxRequestsPerHost(<span class="number">8</span>);</span><br></pre></td></tr></table></figure>
+<h1 id="一、应用示例–get请求"><a href="#一、应用示例–get请求" class="headerlink" title="一、应用示例–get请求"></a>一、应用示例–get请求</h1><p>下面以聚合数据平台的免费的一个笑话的接口为例 </p>
+<pre><code>接口文档地址：https://www.juhe.cn/docs/api/id/95。 
+接口地址：http://japi.juhe.cn/joke/content/list.from。
+请求参数说明：
+    sort    string    是    类型，desc:指定时间之前发布的，asc:指定时间之后发布的
+     page    int    否    当前页数,默认1
+     pagesize    int    否    每次返回条数,默认1,最大20
+     time    string    是    时间戳（10位），如：1418816972
+     key    string    是    您申请的key
+</code></pre><p><strong>添加依赖</strong></p>
+<pre><code>compile &apos;com.squareup.retrofit2:retrofit:2.0.2&apos;
+compile &apos;com.squareup.retrofit2:converter-gson:2.0.0&apos;  
+compile &apos;com.google.code.gson:gson:2.3&apos;
+</code></pre><p><strong>根据返回json数据建立自己的javabean</strong></p>
+<p>JokeInfo</p>
+<p><strong>定义服务接口 –retrofit把API请求转为接口</strong></p>
+<pre><code>public interface JokeService {
+    @GET(&quot;/joke/content/list.from&quot;)
+    Call&lt;JokeInfo&gt; getJokeInfoList(@Query(&quot;sort&quot;) String sort, @Query(&quot;page&quot;) int page, @Query(&quot;pagesize&quot;) int pagesize, @Query(&quot;time&quot;) String time, @Query(&quot;key&quot;) String key);
+}
+</code></pre><p><strong>封装retrofit的包装类（单例模式）</strong></p>
+<pre><code>public class RetrofitWrapper {
+    private static RetrofitWrapper instance;
+    private Context mContext;
+    private Retrofit retrofit;
+
+    private RetrofitWrapper() {
+        retrofit = new Retrofit.Builder().baseUrl(Constant.BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
+    }
+
+    public static RetrofitWrapper getInstance() {
+        if (instance == null) {
+            synchronized (RetrofitWrapper.class) {
+                if (instance == null) {
+                    instance = new RetrofitWrapper();
+                }
+            }
+        }
+        return instance;
+    }
+
+    public &lt;T&gt; T create(Class&lt;T&gt; service) {
+        return retrofit.create(service);
+    }
+
+    public class Constant {
+        public static final String BASE_URL = &quot;http://api2.juheapi.com&quot;;
+    }
+}
+</code></pre><p><strong>调用接口（Activity中）</strong></p>
+<pre><code>JokeService jokeService = RetrofitWrapper.getInstance().create(JokeService.class); //RetrofitWrapper.getInstance()就是获取一个retrofit对象
+Call&lt;JokeInfo&gt; call = jokeService.getJokeInfoList(&quot;desc&quot;, 1, 2, &quot;1418816972&quot;, &quot;eb46c85bea73462583e38b84c3a25c4b&quot;);
+call.enqueue(new Callback&lt;JokeInfo&gt;() {
+    @Override
+    public void onResponse(Call&lt;JokeInfo&gt; call, Response&lt;JokeInfo&gt; response) {
+        JokeInfo ji = response.body();
+        //这里显示了列表中的第一条的内容，所以get(0)
+        Toast.makeText(MainActivity.this, ji.getResult().getData().get(0).getContent(), Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onFailure(Call&lt;JokeInfo&gt; call, Throwable t) {
+        Toast.makeText(MainActivity.this, t.getMessage(), Toast.LENGTH_LONG).show();
+    }
+});
+</code></pre><h1 id="超时时间"><a href="#超时时间" class="headerlink" title="超时时间"></a>超时时间</h1><p>默认超时时间，10秒</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OkHttpClient</span> <span class="keyword">implements</span> <span class="title">Cloneable</span>, <span class="title">Call</span>.<span class="title">Factory</span>, <span class="title">WebSocket</span>.<span class="title">Factory</span> </span>&#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">		connectTimeout = <span class="number">10_000</span>;</span><br><span class="line">      	readTimeout = <span class="number">10_000</span>;</span><br><span class="line">      	writeTimeout = <span class="number">10_000</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>自定义</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient.Builder httpClientBuilder = <span class="keyword">new</span> OkHttpClient.Builder();</span><br><span class="line">httpClientBuilder</span><br><span class="line">		.connectTimeout(<span class="number">60</span>, TimeUnit.SECONDS)</span><br><span class="line">    	.readTimeout(<span class="number">60</span>, TimeUnit.SECONDS)</span><br><span class="line">    	.writeTimeout(<span class="number">60</span>, TimeUnit.SECONDS);<span class="comment">//设置超时时间</span></span><br><span class="line">httpClientBuilder.hostnameVerifier(<span class="keyword">new</span> HostnameVerifier() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">verify</span><span class="params">(String hostname, SSLSession session)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line">SSLSocketFactory sslSocketFactory = createSSLSocketFactory();</span><br><span class="line"><span class="keyword">if</span> (sslSocketFactory != <span class="keyword">null</span>) &#123;</span><br><span class="line">    httpClientBuilder.sslSocketFactory(sslSocketFactory);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="二、概念描述"><a href="#二、概念描述" class="headerlink" title="二、概念描述"></a>二、概念描述</h1><h2 id="请求URL"><a href="#请求URL" class="headerlink" title="请求URL"></a>请求URL</h2><p><code>@Url</code></p>
+<pre><code>@GET
+public Call&lt;ResponseBody&gt; profilePicture(@Url String url);
+</code></pre><h3 id="How-Urls-Resolve-Against-Your-Base-Url"><a href="#How-Urls-Resolve-Against-Your-Base-Url" class="headerlink" title="How Urls Resolve Against Your Base Url"></a>How Urls Resolve Against Your Base Url</h3><p>完整url（包括 scheme）–不管baseUrl，直接访问</p>
+<pre><code>Retrofit retrofit = Retrofit.Builder()  
+    .baseUrl(&quot;https://your.api.url/&quot;);
+    .build();
+
+UserService service = retrofit.create(UserService.class);  
+service.profilePicture(&quot;https://s3.amazon.com/profile-picture/path&quot;);
+
+// request url results in:
+// https://s3.amazon.com/profile-picture/path
+</code></pre><p>非完整url（不包括 scheme）–拼接到baseUrl后访问</p>
+<pre><code>Retrofit retrofit = Retrofit.Builder()  
+    .baseUrl(&quot;https://your.api.url/&quot;);
+    .build();
+
+UserService service = retrofit.create(UserService.class);  
+service.profilePicture(&quot;profile-picture/path&quot;);
+
+// request url results in:
+// https://your.api.url/profile-picture/path
+</code></pre><p>非完整url（不包括 scheme）且以 <code>/</code>开头 –拼接到baseUrl中的 <code>host</code> 后访问。  urls that start with a <code>leading slash</code> will be appended to only the <code>base url’s host</code> url</p>
+<pre><code>Retrofit retrofit = Retrofit.Builder()  
+    .baseUrl(&quot;https://your.api.url/v2/&quot;); //升级了接口，v2版本
+    .build();
+
+UserService service = retrofit.create(UserService.class);  
+service.profilePicture(&quot;/profile-picture/path&quot;);
+
+// request url results in:
+// https://your.api.url/profile-picture/path
+</code></pre><h2 id="请求路径-Path-Parameters"><a href="#请求路径-Path-Parameters" class="headerlink" title="请求路径 Path Parameters"></a>请求路径 Path Parameters</h2><p><code>@Path</code> </p>
+<pre><code>@GET(&quot;group/{id}/users&quot;)
+Call&lt;List&lt;User&gt;&gt; groupList(@Path(&quot;id&quot;) int groupId);
+
+@GET(&quot;group/{id}/users&quot;)
+Call&lt;List&lt;User&gt;&gt; groupList(@Path(&quot;id&quot;) int groupId, @Query(&quot;sort&quot;) String sort); 
+
+@GET(&quot;group/{id}/users&quot;)
+Call&lt;List&lt;User&gt;&gt; groupList(@Path(&quot;id&quot;) int groupId, @QueryMap Map&lt;String, String&gt; options);
+</code></pre><h2 id="请求方法"><a href="#请求方法" class="headerlink" title="请求方法"></a>请求方法</h2><p><code>GET, POST, PUT, DELETE, HEAD</code></p>
+<h2 id="请求参数-Query-Parameters"><a href="#请求参数-Query-Parameters" class="headerlink" title="请求参数 Query Parameters"></a>请求参数 Query Parameters</h2><p><code>@Query()</code> ，如果传入 <code>null</code> ，retrofit 会自动忽略改参数</p>
+<pre><code>public interface FutureStudioClient {  
+    @GET(&quot;/tutorials&quot;)
+    Call&lt;List&lt;Tutorial&gt;&gt; getTutorials(
+        @Query(&quot;page&quot;) Integer page
+    );
+
+    @GET(&quot;/tutorials&quot;)
+    Call&lt;List&lt;Tutorial&gt;&gt; getTutorials(
+            @Query(&quot;page&quot;) Integer page,
+            @Query(&quot;order&quot;) String order,
+            @Query(&quot;author&quot;) String author,
+            @Query(&quot;published_at&quot;) Date date
+    );
+} 
+方法2，如果后面三个参数传null，效果和方法1一样
+</code></pre><p><code>@QueryMap</code></p>
+<pre><code>Call&lt;List&lt;News&gt;&gt; getNews(@QueryMap Map&lt;String, String&gt; options);
+</code></pre><h2 id="请求体"><a href="#请求体" class="headerlink" title="请求体"></a>请求体</h2><ul>
+<li><code>@RequestBody</code></li>
+<li><p><code>@Body</code> <strong>自定义请求体格式</strong></p>
+<ul>
+<li>使用创建Retrofit对象时定义的转换器。没有定义转换器只能用 <code>@RequestBody</code></li>
+<li>json格式请求体： {“passWord”:”134”,”userName”:”lili”}</li>
+</ul>
+</li>
+<li><p><code>@FormUrlEncoded 和 @Field/@FieldMap</code> <strong>Url编码</strong></p>
+<ul>
+<li>userName=lili&amp;passWord=123</li>
+</ul>
+</li>
+<li><p><code>@Multipart 和 @Part</code> 分割线分割</p>
+</li>
+</ul>
+<p>示例：</p>
+<pre><code>@POST(&quot;users/new&quot;)
+Call&lt;User&gt; createUser(@Body User user);
+    Caused by: java.lang.IllegalArgumentException: Unable to create @Body converter for class com.xuehu365.xuehu.User (parameter #1)
+    Caused by: java.lang.IllegalArgumentException: Could not locate RequestBody converter for class com.xuehu365.xuehu.User.
+        Tried:
+            * retrofit2.BuiltInConverters
+            * retrofit2.GsonConverterFactory
+    出现这个错误的原因是retrofit版本太低，2.0.0-beta版本不支持@body，升级最新版本即可解决
+
+@FormUrlEncoded
+@POST(&quot;user/edit&quot;)
+Call&lt;User&gt; updateUser(@Field(&quot;first_name&quot;) String first, @Field(&quot;last_name&quot;) String last);
+
+@Headers({&quot;Content-type:application/json;charset=UTF-8&quot;})
+@POST(&quot;auth/update_user_info&quot;)
+   Call&lt;UserInfoResultBean&gt; updateUserBirthday(@Body RequestBody body);       
+    HashMap&lt;String, Long&gt; map = new HashMap&lt;&gt;();
+    map.put(&quot;birthday&quot;, date);
+    String json = new Gson().toJson(map);
+    RequestBody body = RequestBody.create(MediaType.parse(&quot;application/json;charset=UTF-8&quot;), json);
+    NetService.getInstance().getService().updateUserBirthday(body)
+
+Call&lt;User&gt; update(@FieldMap Map&lt;String, String&gt; fields);
+
+@Multipart
+@PUT(&quot;user/photo&quot;)
+Call&lt;User&gt; updateUser(@Part(&quot;photo&quot;) RequestBody photo, @Part(&quot;description&quot;) RequestBody description);
+</code></pre><h2 id="请求头操作-HEADER-MANIPULATION"><a href="#请求头操作-HEADER-MANIPULATION" class="headerlink" title="请求头操作 HEADER MANIPULATION"></a>请求头操作 HEADER MANIPULATION</h2><ul>
+<li><p>静态</p>
+<pre><code>@Headers(&quot;Cache-Control: max-age=640000&quot;)
+@GET(&quot;widget/list&quot;)
+Call&lt;List&lt;Widget&gt;&gt; widgetList();
+
+@Headers({
+    &quot;Accept: application/vnd.github.v3.full+json&quot;,
+    &quot;User-Agent: Retrofit-Sample-App&quot;
+})
+@GET(&quot;users/{username}&quot;)
+Call&lt;User&gt; getUser(@Path(&quot;username&quot;) String username);
+</code></pre></li>
+<li><p>动态</p>
+<pre><code>@GET(&quot;user&quot;)
+Call&lt;User&gt; getUser(@Header(&quot;Authorization&quot;) String authorization)
+</code></pre></li>
+<li><p>OkHttp interceptor</p>
+<p>  Headers that need to be added to every request can be specified using an OkHttp interceptor.</p>
+</li>
+</ul>
+<h2 id="返回体转换器"><a href="#返回体转换器" class="headerlink" title="返回体转换器"></a>返回体转换器</h2><pre><code>Gson: com.squareup.retrofit2:converter-gson  
+Jackson: com.squareup.retrofit2:converter-jackson  
+Moshi: com.squareup.retrofit2:converter-moshi  
+Protobuf: com.squareup.retrofit2:converter-protobuf  
+Wire: com.squareup.retrofit2:converter-wire  
+Simple XML: com.squareup.retrofit2:converter-simplexml  
+Scalars (primitives, boxed, and String): com.squareup.retrofit2:converter-scalars 
+
+自定义转换器，需要继承Converter.Factory，在build adapter时传入我们自定义转换器即可使用
+</code></pre><h2 id="Interceptor"><a href="#Interceptor" class="headerlink" title="Interceptor"></a>Interceptor</h2><pre><code>httpClient.addInterceptor(new Interceptor()
+</code></pre><h3 id="开启OkHttp自带Interceptor-打印请求和响应log"><a href="#开启OkHttp自带Interceptor-打印请求和响应log" class="headerlink" title="开启OkHttp自带Interceptor 打印请求和响应log"></a>开启OkHttp自带Interceptor 打印请求和响应log</h3><p>Since logging isn’t integrated by default anymore in Retrofit 2, we need to add a logging interceptor for OkHttp. </p>
+<p>Luckily OkHttp already ships with this interceptor and you only need to activate it for your OkHttpClient.</p>
+<p>The developers of OkHttp have released a separate logging interceptor project, which implements logging for OkHttp.</p>
+<ol>
+<li><p>You can add it to your project with a quick edit of your <code>build.gradle</code>:</p>
+<pre><code>compile &apos;com.squareup.okhttp3:logging-interceptor:3.3.1&apos;  
+</code></pre></li>
+<li><p><code>your OkHttpClient class</code>:</p>
+<pre><code>OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+
+// add your other interceptors …
+
+// add logging as last interceptor
+HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+// set your desired log level
+logging.setLevel(Level.BODY);
+httpClientBuilder.addInterceptor(logging);  // &lt;-- this is the important line!
+</code></pre></li>
+<li><p><code>your retrofit use your custom OkHttpClient defined above</code></p>
+<pre><code>new Retrofit.Builder().client(BaseOkHttpClient.getInstance())...
+</code></pre></li>
+</ol>
+<h3 id="Log-Levels"><a href="#Log-Levels" class="headerlink" title="Log Levels"></a>Log Levels</h3><p>Logging too much information will blow up your Android monitor, that’s why OkHttp’s logging interceptor has four log levels: <code>NONE</code>, <code>BASIC</code>, <code>HEADERS</code>, <code>BODY</code>. </p>
+<h3 id="遇到的问题：NoClassDefFoundError-Failed-resolution-of-Lokhttp3-internal-Platform"><a href="#遇到的问题：NoClassDefFoundError-Failed-resolution-of-Lokhttp3-internal-Platform" class="headerlink" title="遇到的问题：NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;"></a>遇到的问题：NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;</h3><pre><code>java.lang.NoClassDefFoundError: Failed resolution of: Lokhttp3/internal/Platform;
+    at okhttp3.logging.HttpLoggingInterceptor$Logger$1.log(HttpLoggingInterceptor.java:112)
+    at okhttp3.logging.HttpLoggingInterceptor.intercept(HttpLoggingInterceptor.java:160)
+    at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.java:92)
+    at okhttp3.internal.http.RealInterceptorChain.proceed(RealInterceptorChain.java:67)
+</code></pre><ul>
+<li><p><a href="http://stackoverflow.com/questions/39545629/noclassdeffounderror-failed-resolution-of-lokhttp3-internal-platform" target="_blank" rel="noopener">版本一致</a>，<strong>没有解决</strong></p>
+<pre><code>compile &apos;com.squareup.okhttp3:logging-interceptor:3.4.1&apos;
+compile &apos;com.squareup.okhttp3:okhttp:3.4.1&apos;
+
+甚至让retrofit 移除okhttp 
+compile (&apos;com.squareup.retrofit2:retrofit:2.1.0&apos;) {
+    // exclude Retrofit’s OkHttp peer-dependency module and define your own module import
+    exclude module: &apos;okhttp&apos;
+}
+</code></pre></li>
+<li><p><a href="http://stackoverflow.com/questions/35578135/noclassdeffounderror-for-okhttpclient" target="_blank" rel="noopener">方法数超限，开启 multiDex</a>，<strong>搞定</strong></p>
+<pre><code>defaultConfig {
+    ...
+    multiDexEnabled true
+}
+
+dependencies {
+    compile &apos;com.android.support:multidex:1.0.0&apos;
+}
+</code></pre></li>
+<li><p>总结</p>
+<p>  retrofit2 升级到2.1.0，okhttp3 升级到3.4.1 开启multiDex</p>
+<pre><code>compile &apos;com.squareup.retrofit2:retrofit:2.1.0&apos;
+compile &apos;com.squareup.retrofit2:converter-gson:2.1.0&apos;
+compile &apos;com.squareup.okhttp3:logging-interceptor:3.4.1&apos;
+compile &apos;com.squareup.okhttp3:okhttp:3.4.1&apos;    
+
+compile &apos;com.android.support:multidex:1.0.0&apos;
+</code></pre></li>
+</ul>
+<h3 id="自定义Interceptor实现-添加get方法通用查询参数-优雅log"><a href="#自定义Interceptor实现-添加get方法通用查询参数-优雅log" class="headerlink" title="自定义Interceptor实现 添加get方法通用查询参数 + 优雅log"></a>自定义Interceptor实现 添加get方法通用查询参数 + 优雅log</h3><pre><code>http://blog.yzapp.cn/Retrofit1.html
+
+OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+httpClientBuilder.addInterceptor(new Interceptor() {
+    @Override
+    public Response intercept(Chain chain) throws IOException {
+        Request originalRequest = chain.request();
+        HttpUrl originalHttpUrl = originalRequest.url();
+
+        HttpUrl url = originalHttpUrl.newBuilder()
+                .addQueryParameter(&quot;appId&quot;, &quot;xuehu&quot;)
+                .addQueryParameter(&quot;clientType&quot;, &quot;3&quot;)
+                .addQueryParameter(&quot;version&quot;, &quot;v1.0&quot;)
+                .addQueryParameter(&quot;clientVersion&quot;, App.getAppVsersion())
+                .build();
+
+        Request.Builder requestBuilder = originalRequest.newBuilder()
+                .url(url)
+                .method(originalRequest.method(), originalRequest.body());
+
+        Request request = requestBuilder.build();
+        Response response = chain.proceed(request);
+
+        MediaType contentType = null;
+        String bodyString = null;
+        if (response.body() != null) {
+            contentType = response.body().contentType();
+            bodyString = response.body().string();
+        }
+        LogHelp.d(&quot;lyg&quot;, &quot;request: &quot; + request.method() + request.url());
+        LogHelp.d(&quot;lyg&quot;, &quot;response: &quot; + response.code() + &quot;\n&quot; + bodyString);
+        if (response.body() != null) {// 深坑！打印body后原ResponseBody会被清空，需要重新设置body
+            ResponseBody body = ResponseBody.create(contentType, bodyString);
+            return response.newBuilder().body(body).build();
+        } else {
+            return response;
+        }
+    }
+});
+</code></pre><h2 id="泛型封装的失败"><a href="#泛型封装的失败" class="headerlink" title="泛型封装的失败"></a>泛型封装的失败</h2><p>尝试封装一个通用的请求方法</p>
+<pre><code>public class PostAPI&lt;B, T&gt; {
+    public void post(String url, B body, BaseCallBack&lt;Response&lt;T&gt;&gt; callBack) {
+        PostService service = BaseRetrofit.getInstance().create(PostService.class);
+        Call&lt;Response&lt;T&gt;&gt; call = service.post(url, body);
+        call.enqueue(callBack);
+    }
+}
+
+public interface PostService {
+    @POST
+    &lt;B, T&gt; Call&lt;Response&lt;T&gt;&gt; post(@Url String url, B b);
+}
+</code></pre><p>报错</p>
+<pre><code>java.lang.IllegalArgumentException: Method return type must not include a type variable or wildcard: retrofit2.Call&lt;com.xuehu365.xuehu.model.response.Response&lt;T&gt;&gt;
+</code></pre><h1 id="结合rxjava"><a href="#结合rxjava" class="headerlink" title="结合rxjava"></a>结合rxjava</h1><p>不结合rxjava</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//定义接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BusinessService</span> </span>&#123;</span><br><span class="line">	<span class="meta">@GET</span>(<span class="string">"nats/info"</span>)</span><br><span class="line">	<span class="function">Call&lt;NatsInfoBean&gt; <span class="title">getNatsConfig</span><span class="params">(@Query(<span class="string">"clazz_plan_id"</span>)</span> String clazz_plan_id)</span>;</span><br><span class="line">	<span class="comment">//rxjava</span></span><br><span class="line">	<span class="meta">@GET</span>(<span class="string">"nats/info"</span>)</span><br><span class="line">    <span class="function">Observable&lt;NatsInfoBean&gt; <span class="title">getNatsConfig</span><span class="params">(@Query(<span class="string">"clazz_plan_id"</span>)</span> String clazz_plan_id)</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NetService</span> </span>&#123;	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> BusinessService <span class="title">getBusinessService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (mBusinessService == <span class="keyword">null</span>) &#123;</span><br><span class="line">            mBusinessService = getRetrofit().create(BusinessService.class);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mBusinessService;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> Retrofit <span class="title">getRetrofit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (mRetrofit == <span class="keyword">null</span>) &#123;</span><br><span class="line">            mRetrofit = <span class="keyword">new</span> Retrofit.Builder()</span><br><span class="line">                    .client(getBaseOkHttpClientBuilder().build())</span><br><span class="line">                    .addConverterFactory(GsonConverterFactory.create(CustomGson.getsInstance().getGson()))</span><br><span class="line">                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())<span class="comment">//rxjava才需要</span></span><br><span class="line">                    .baseUrl(ConstDef.BASE_URL)</span><br><span class="line">                    .build();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mRetrofit;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//使用接口</span></span><br><span class="line">NetService.getInstance().getBusinessService()</span><br><span class="line">	.enqueue(<span class="keyword">new</span> Callback&lt;NatsInfoBean&gt;()&#123;&#125;);</span><br><span class="line"><span class="comment">//使用接口,rxjava</span></span><br><span class="line">NetService.getInstance().getBusinessService()</span><br><span class="line">	.subscribe(<span class="keyword">new</span> Subscriber&lt;OrderStatusBean&gt;()&#123;&#125;)</span><br></pre></td></tr></table></figure>
+<p><strong>总结：</strong></p>
+<ul>
+<li>定义接口返回值为 <code>Observable</code>。原来为 <code>Call</code></li>
+<li>创建 <code>Retrofit实例</code>时额外 <code>addCallAdapterFactory(RxJavaCallAdapterFactory.create())</code></li>
+<li>调用接口获取返回值改为 <code>观察者模式</code>。原来是 <code>Callback</code></li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><p><a href="http://www.jianshu.com/p/77d418e7b5d6" target="_blank" rel="noopener">OkHttp, Retrofit, Volley应该选择哪一个？</a> </p>
+<p><a href="http://www.jianshu.com/p/45cb536be2f4" target="_blank" rel="noopener">Retrofit分析-漂亮的解耦套路</a> </p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MjM5NDkxMTgyNw==&amp;mid=2653057382&amp;idx=2&amp;sn=68c882cc9fc197f67ad7caba80630314#wechat_redirect" target="_blank" rel="noopener">Retrofit初探和简单使用</a> </p>
+<p><a href="https://github.com/square/retrofit" target="_blank" rel="noopener">github地址</a> </p>
+<p><a href="http://square.github.io/retrofit/" target="_blank" rel="noopener">文档地址</a> </p>
+<p><a href="https://futurestud.io/blog/retrofit-2-upgrade-guide-from-1-9" target="_blank" rel="noopener">用法详解系列</a> </p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/数据库/sql/sql使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1863,298 +2531,6 @@ Filesnarf
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/arpspoof/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/arpspoof/" itemprop="url">Kali arpspoof</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:10:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>spoof    英[spu:f] n.    哄骗; 讽刺; 戏弄; （进行） 滑稽的模仿;</p>
-<h1 id="arpspoof使用"><a href="#arpspoof使用" class="headerlink" title="arpspoof使用"></a>arpspoof使用</h1><p>启用IP转发(不转发会导致受害者主机无法访问网络)</p>
-<pre><code>echo 1 &gt;&gt; /proc/sys/net/ipv4/ip_forward
-</code></pre><p>启动arpspoof。Usage: arpspoof [-i interface] [-t target] host(网关ip)</p>
-<pre><code>arpspoof -i eth0 -t 192.168.1.5 192.168.1.1
-</code></pre><p>捕获图片请求(另开一个终端)</p>
-<pre><code>driftnet -i eth0
-</code></pre><p>也可以使用tcpdump或Wireshark工具截获所有流量</p>
-<p>说明：可以通过 <code>arp</code> 命令分别查看攻击者和受害者主机的arp缓存表来理解arp欺骗</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/20/电脑使用/linux/Kali/中间人攻击/中间人攻击/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/12/20/电脑使用/linux/Kali/中间人攻击/中间人攻击/" itemprop="url">Kali中间人攻击</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T09:09:53+08:00">
-                2018-12-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
-                    <span itemprop="name">电脑使用</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><strong>中间人攻击，Man-in-the-Middle Attack，简称“MITM攻击”</strong></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2209,7 +2585,7 @@ Filesnarf
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-count">310</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

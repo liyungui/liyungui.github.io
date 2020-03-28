@@ -262,6 +262,195 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/17/CocosCreator/第二次运行游戏崩溃问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/10/17/CocosCreator/第二次运行游戏崩溃问题/" itemprop="url">第二次运行游戏崩溃问题</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-17T15:08:53+08:00">
+                2019-10-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/游戏/" itemprop="url" rel="index">
+                    <span itemprop="name">游戏</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="表现"><a href="#表现" class="headerlink" title="表现"></a>表现</h1><p>运行游戏 – 关闭游戏（没有退出进程，官方demo是杀进程退出游戏）– 再次运行游戏 – 崩溃</p>
+<h1 id="定位崩溃"><a href="#定位崩溃" class="headerlink" title="定位崩溃"></a>定位崩溃</h1><p>崩溃的准确位置是在</p>
+<p><code>cocos2d-x/cocos/scripting/js-bindings/jswrapper/v8/ScriptEngine.cpp</code>中的<br><code>se::ScriptEngine::init()</code>这个方法中的<br><code>isolate = v8::Isolate::New(createParams);</code></p>
+<h1 id="官方论坛issues"><a href="#官方论坛issues" class="headerlink" title="官方论坛issues"></a>官方论坛issues</h1><h2 id="issues-1"><a href="#issues-1" class="headerlink" title="issues 1"></a>issues 1</h2><p><a href="https://forum.cocos.com/t/cocos-creator-2-0-6/72105" target="_blank" rel="noopener">cocos creator 2.0.6 版本在安卓中退出后再重新进入游戏时崩溃</a></p>
+<pre><code>目前我使用的是cocos creator 2.0.6 版本 关闭游戏时，调用了一个在v2.0.0版本时在jnilmp.cpp中的这个方法，当时v2.0.0时是可以的。但更新到2.0.6版本后这个方法不存在了。我就复制了一下。
+JNIEXPORT void JNICALL Java_org_cocos2dx_lib_Cocos2dxRenderer_nativeFinish(JNIEnv* env, jobject thiz)
+{
+g_isGameFinished = true;
+
+    g_app-&gt;getScheduler()-&gt;removeAllFunctionsToBePerformedInCocosThread();
+    EventDispatcher::destroy();
+    se::ScriptEngine::getInstance()-&gt;cleanup();
+    cocos2d::experimental::AudioEngine::end();
+}
+但调用后，再次进入游戏就会出现崩溃。
+</code></pre><p>官方没有回复，提问者使用多进程解决</p>
+<h2 id="issues-2"><a href="#issues-2" class="headerlink" title="issues 2"></a>issues 2</h2><p><a href="https://forum.cocos.com/t/topic/37679" target="_blank" rel="noopener">安卓游戏退出</a></p>
+<pre><code>游戏退出 cc.director.end();
+到安卓java代码，一定会调用这个结束方法，
+public static void terminateProcess() {
+android.os.Process.killProcess(android.os.Process.myPid());
+}，
+如果只是关闭Cocos2dxActivity
+下次进来会奔溃，怎么正确处理关闭AppActivity
+</code></pre><p>官方回复</p>
+<pre><code>minggo引擎开发团队：引擎的设计没有支持这种情况。也就说目前director是不可重入的
+</code></pre><p>官方回复提到的 director 位于 <code>JavaScript引擎/cocos2d/core/CCDirector.js</code> <a href="https://github.com/cocos-creator/engine/blob/79b9133d6e/cocos2d/core/CCDirector.js" target="_blank" rel="noopener">github文件链接</a></p>
+<p>c++层的 <code>cocos/base/CCDirector.cpp</code>  <a href="https://github.com/cocos-creator/cocos2d-x-lite/blob/1.6.1/cocos/base/CCDirector.cpp" target="_blank" rel="noopener">Github链接</a> 查看发版记录可知是2.0版本移除了这个文件</p>
+
+<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><h2 id="已知信息"><a href="#已知信息" class="headerlink" title="已知信息"></a>已知信息</h2><h3 id="V8引擎关闭后不可再次初始化"><a href="#V8引擎关闭后不可再次初始化" class="headerlink" title="V8引擎关闭后不可再次初始化"></a>V8引擎关闭后不可再次初始化</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Releases any resources used by v8 and stops any utility threads</span></span><br><span class="line"><span class="comment">   * that may be running.  Note that disposing v8 is permanent, it</span></span><br><span class="line"><span class="comment">   * cannot be reinitialized.</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * It should generally not be necessary to dispose v8 before exiting</span></span><br><span class="line"><span class="comment">   * a process, this should happen automatically.  It is only necessary</span></span><br><span class="line"><span class="comment">   * to use if the process needs the resources taken up by v8.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">static</span> <span class="keyword">bool</span> <span class="title">Dispose</span><span class="params">()</span></span>;</span><br><span class="line">```  </span><br><span class="line"></span><br><span class="line">## 彻底回收引擎</span><br><span class="line"></span><br><span class="line">彻底回收引擎，恢复到第一次运行的干净环境</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## 复用引擎</span><br><span class="line"></span><br><span class="line">不回收引擎，第二次游戏不初始化引擎，复用之前引擎</span><br><span class="line"></span><br><span class="line">```cpp</span><br><span class="line"><span class="keyword">bool</span> AppDelegate::applicationDidFinishLaunching()</span><br><span class="line">&#123;</span><br><span class="line">    se::ScriptEngine *se = se::ScriptEngine::getInstance();</span><br><span class="line">    </span><br><span class="line">    jsb_set_xxtea_key(<span class="string">""</span>);</span><br><span class="line">    jsb_init_file_operation_delegate();</span><br><span class="line">    </span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> defined(COCOS2D_DEBUG) &amp;&amp; (COCOS2D_DEBUG &gt; 0)</span></span><br><span class="line">    <span class="comment">// Enable debugger here</span></span><br><span class="line">    jsb_enable_debugger(<span class="string">"0.0.0.0"</span>, <span class="number">6086</span>, <span class="literal">false</span>);</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">    </span><br><span class="line">    se-&gt;setExceptionCallback([](<span class="keyword">const</span> <span class="keyword">char</span> *location, <span class="keyword">const</span> <span class="keyword">char</span> *message, <span class="keyword">const</span> <span class="keyword">char</span> *<span class="built_in">stack</span>) &#123;</span><br><span class="line">        <span class="comment">// Send exception information to server like Tencent Bugly.</span></span><br><span class="line">    &#125;);</span><br><span class="line">    </span><br><span class="line">    jsb_register_all_modules();</span><br><span class="line">    </span><br><span class="line">    se-&gt;start();</span><br><span class="line">    </span><br><span class="line">    se::AutoHandleScope hs;</span><br><span class="line">    jsb_run_script(<span class="string">"jsb-adapter/jsb-builtin.js"</span>);</span><br><span class="line">    jsb_run_script(<span class="string">"main.js"</span>);</span><br><span class="line">    </span><br><span class="line">    se-&gt;addAfterCleanupHook([]() &#123;</span><br><span class="line">        JSBClassType::destroy();</span><br><span class="line">    &#125;);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>崩溃在 <code>se::AutoHandleScope hs;</code></p>
+<p>se::AutoHandleScope 是 解决 V8 的兼容问题而引入的概念</p>
+<p>V8 强制要求在调用这些操作前必须存在一个 v8::HandleScope 作用域，否则会引发程序崩溃。</p>
+<p>CPP 函数中需要触发 JS 相关操作，需要先声明一个 se::AutoHandleScope</p>
+<p>其只在 V8 上有实现，其他 JS 引擎目前都只是空实现。</p>
+<p><a href="https://docs.cocos.com/creator/manual/zh/advanced-topics/jsb/JSB2.0-learning.html" target="_blank" rel="noopener">文档</a></p>
+<h2 id="热更新方案"><a href="#热更新方案" class="headerlink" title="热更新方案"></a>热更新方案</h2><p><a href="https://docs.cocos.com/creator/manual/zh/advanced-topics/hot-update.html" target="_blank" rel="noopener">资源热更新教程</a></p>
+<p>可以更新后热重启游戏（不重启进程）</p>
+<h2 id="替换V8"><a href="#替换V8" class="headerlink" title="替换V8"></a>替换V8</h2><p><code>cocos/scripting/js-bindings/jswrapper/v8</code></p>
+<p>同目录下还有jsc 等js引擎</p>
+<p><code>jswrapper/config.hpp</code>用宏定义了使用jsc还是v8引擎</p>
+<p>替换成jsc编译无法通过。有ios专有文件</p>
+<p><a href="https://www.tianyancha.com/patent/bc683b415e6a88226c965dcbeecf8ead" target="_blank" rel="noopener">支持多个原生Cocos游戏接入到安卓应用平台的方法</a></p>
+<p><a href="https://forum.cocos.com/t/topic/53484" target="_blank" rel="noopener">如果要把游戏嵌入另一个应用，会崩溃！</a> director 崩溃</p>
+<p><a href="https://blog.csdn.net/mu_cjgm/article/details/52372089" target="_blank" rel="noopener">cocosjs与安卓原生集成</a> 修改 ScriptingCore 和 CCDirector</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://docs.cocos.com/creator/manual/zh/advanced-topics/engine-customization.html" target="_blank" rel="noopener">引擎定制工作流程</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/17/CocosCreator/CocosCreator引擎定制/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1977,182 +2166,6 @@ g<br><br>- 左侧是可以添加到菜单的内容<br>- 右侧顶部是菜单的
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/19/直播/播放器技术/三、音画同步/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/19/直播/播放器技术/三、音画同步/" itemprop="url">播放器技术三-音画同步</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-19T16:12:14+08:00">
-                2019-09-19
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="音画同步的概念"><a href="#音画同步的概念" class="headerlink" title="音画同步的概念"></a>音画同步的概念</h1><p>音画同步是指播放器正在渲染的每一帧画面和正在播放的每一段声音都是严格对应起来的，不存在<strong>人耳和肉眼可以分辨的偏差</strong>。</p>
-<h1 id="音画同步的标准"><a href="#音画同步的标准" class="headerlink" title="音画同步的标准"></a>音画同步的标准</h1><h2 id="时间戳"><a href="#时间戳" class="headerlink" title="时间戳"></a>时间戳</h2><p>机器如何去感知视频文件中的某一帧视频数据跟某一帧音频数据是属于 同一时间 的呢 ？</p>
-<p>现实生活中，判断两件事情是否同一时刻发生的方法就是记录并且比较事件发生的日期时间，同样，音视频在采集（生产）的时候，就给每一帧都打上 “时间戳”（注意，音视频的时间戳需要使用一个共同的时间戳基准），代表着它的出生时间。由此，播放器就可以通过附加在音频和视频帧上的时间戳信息，感知到音频帧和视频帧的 “相对关系”，实现音画同步就轻而易举了</p>
-<img src="/2019/09/19/直播/播放器技术/三、音画同步/音画同步-时间戳.png">
-<p>视频帧和音频帧的时间戳大致的递增规律为：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">视频帧：10，43，76，109，142，……</span><br><span class="line">音频帧：0，20，40，60，80，120，……</span><br></pre></td></tr></table></figure>
-<p>音视频是分开采集的，所以它们的时间戳不可能完全对应得上，因此，只要在一个合理的 “阈值” 范围内即可认为是同步的。</p>
-<p><strong>音画同步的方法</strong>：判断视频与音频帧的<strong>时间戳差值</strong>，是不是在一定的 “阈值” 范围内，如果是，则可以渲染/播放，否则就 “等” 到合适的时间。</p>
-<h2 id="时间戳偏移的-“阈值”"><a href="#时间戳偏移的-“阈值”" class="headerlink" title="时间戳偏移的 “阈值”"></a>时间戳偏移的 “阈值”</h2><p>音频和视频的时间戳差值 “阈值”，国际标准 “RFC-1359” 定义了：</p>
-<ol>
-<li><strong>无法察觉</strong>：(-100ms ~ +25ms)。 </li>
-<li><strong>可以接受</strong>：(-185ms ~ +90ms)。</li>
-</ol>
-<p>负数表示音频滞后；正数表示音频超前。（<strong>人类对音频滞后有更高的兼容性</strong>）</p>
-<img src="/2019/09/19/直播/播放器技术/三、音画同步/音画同步-时间戳差值阈值.png">
-<h1 id="音画同步的实现"><a href="#音画同步的实现" class="headerlink" title="音画同步的实现"></a>音画同步的实现</h1><p>音画同步的<strong>实现策略</strong>一般有 3 种：</p>
-<ol>
-<li><p>视频同步到音频。<strong>最常用</strong></p>
-</li>
-<li><p>音频同步到视频</p>
-</li>
-<li><p>音视频同步到外部时钟</p>
-</li>
-</ol>
-<h2 id="视频同步到音频"><a href="#视频同步到音频" class="headerlink" title="视频同步到音频"></a>视频同步到音频</h2><p>最常用。</p>
-<p>因为</p>
-<ul>
-<li>人对声音敏感度高于图像</li>
-<li><p>视频播放速率更好控制。</p>
-<p>  <strong>音频是流式</strong>的，按照规律<strong>匀速播放</strong>，才能显得更加 “平滑”，而视频的播放其实是一张一张图片进行刷新显示，它的刷新时间的调整相对而言更容易一些，用户肉眼的敏感度也更弱一些。</p>
-</li>
-</ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.51cto.com/ticktick/2328003" target="_blank" rel="noopener">播放器技术分享（3）：音画同步</a> 七牛-卢俊</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2207,7 +2220,7 @@ g<br><br>- 左侧是可以添加到菜单的内容<br>- 右侧顶部是菜单的
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-count">310</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>

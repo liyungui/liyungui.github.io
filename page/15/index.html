@@ -262,6 +262,223 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/线程锁/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/线程锁/" itemprop="url">线程锁</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:44:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://www.cnblogs.com/qifengshi/p/6831055.html" target="_blank" rel="noopener">Java中锁分类</a></p>
+<h1 id="乐观锁-悲观锁"><a href="#乐观锁-悲观锁" class="headerlink" title="乐观锁/悲观锁"></a>乐观锁/悲观锁</h1><p>区别在于看待并发同步的角度/态度。</p>
+<p><strong>悲观锁</strong>认为对于同一个数据的并发操作，一定是会发生修改的，不加锁的并发操作一定会出问题。</p>
+<ul>
+<li>适合写操作非常多的场景</li>
+<li>悲观锁在Java中的使用，就是利用各种锁。</li>
+</ul>
+<p><strong>乐观锁</strong>则认为对于同一个数据的并发操作，是不会发生修改的，不加锁的并发操作是没有问题的。</p>
+<ul>
+<li>适合读操作非常多的场景</li>
+<li>乐观锁在Java中的使用，是无锁编程，常常采用的是CAS算法，典型的例子就是原子类，通过CAS自旋实现原子操作的更新。</li>
+</ul>
+<h1 id="公平锁-非公平锁"><a href="#公平锁-非公平锁" class="headerlink" title="公平锁/非公平锁"></a>公平锁/非公平锁</h1><p><strong>公平锁</strong>是指多个线程按照申请锁的顺序来获取锁。</p>
+<p><strong>非公平锁</strong>是指多个线程获取锁的顺序并不是按照申请锁的顺序，有可能后申请的线程比先申请的线程优先获取锁。有可能，会造成优先级反转或者饥饿现象。</p>
+<p><code>ReentrantLock(Re entrant Lock)</code>，通过构造函数指定该锁是否是公平锁，默认是非公平锁。非公平锁的优点在于吞吐量比公平锁大。通过AQS(AbstractQueuedSynchronizer)实现线程调度</p>
+<p><code>Synchronized</code>，非公平锁。</p>
+<h1 id="可重入锁"><a href="#可重入锁" class="headerlink" title="可重入锁"></a>可重入锁</h1><p>又名递归锁，是指同一个线程在外层方法获取锁的时候，在进入内层方法会自动获取锁。</p>
+<p>可重入锁的一个好处是可一定程度避免死锁。</p>
+<p><code>ReentrantLock</code> <code>Synchronized</code>,都是可重入锁。</p>
+<pre><code>synchronized void setA() throws Exception{
+    Thread.sleep(1000);
+    setB();
+}
+
+synchronized void setB() throws Exception{
+    Thread.sleep(1000);
+}
+
+如果不是可重入锁的话，setB可能不会被当前线程执行，可能造成死锁。
+</code></pre><h1 id="独享锁-共享锁"><a href="#独享锁-共享锁" class="headerlink" title="独享锁/共享锁"></a>独享锁/共享锁</h1><p><strong>独享锁</strong>是指该锁一次只能被一个线程所持有。</p>
+<p><strong>共享锁</strong>是指该锁可被多个线程所持有。</p>
+<p>独享锁与共享锁也是通过AQS来实现的，通过实现不同的方法，来实现独享或者共享。</p>
+<p><code>ReentrantLock</code>，独享锁。</p>
+<p><code>Synchronized</code>，独享锁。</p>
+<p><code>ReadWriteLock</code>，读锁是共享锁，写锁是独享锁。读锁的共享锁可保证并发读是非常高效的，读写，写读 ，写写的过程是互斥的。</p>
+<h1 id="互斥锁-同步锁-读写锁"><a href="#互斥锁-同步锁-读写锁" class="headerlink" title="互斥锁/同步锁/读写锁"></a>互斥锁/同步锁/读写锁</h1><p>上面讲的独享锁/共享锁就是一种广义的说法，互斥锁/读写锁就是具体的实现。</p>
+<p><strong>互斥锁</strong>：两个线程不能同时运行，一个线程运行完毕，另一个才能运行</p>
+<ul>
+<li>具有唯一性和排它性</li>
+<li>无序</li>
+</ul>
+<p><strong>同步锁</strong>：也是不能同时运行，但是必须安照某种次序来运行</p>
+<ul>
+<li>一种特殊互斥</li>
+<li>互斥的基础上</li>
+<li>有序访问</li>
+</ul>
+<p><strong>读写锁</strong>:</p>
+<p>1）多个读者可以同时进行读<br>2）写者必须互斥（只允许一个写者写，也不能读者写者同时进行）<br>3）写者优先于读者（一旦有写者，则后续读者必须等待，唤醒时优先考虑写者）  </p>
+<h1 id="分段锁"><a href="#分段锁" class="headerlink" title="分段锁"></a>分段锁</h1><p>其实是一种锁的设计，并不是具体的一种锁，对于ConcurrentHashMap而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。<br>我们以ConcurrentHashMap来说一下分段锁的含义以及设计思想，ConcurrentHashMap中的分段锁称为Segment，它即类似于HashMap（JDK7与JDK8中HashMap的实现）的结构，即内部拥有一个Entry数组，数组中的每个元素又是一个链表；同时又是一个ReentrantLock（Segment继承了ReentrantLock)。<br>当需要put元素的时候，并不是对整个hashmap进行加锁，而是先通过hashcode来知道他要放在那一个分段中，然后对这个分段进行加锁，所以当多线程put的时候，只要不是放在一个分段中，就实现了真正的并行的插入。<br>但是，在统计size的时候，可就是获取hashmap全局信息的时候，就需要获取所有的分段锁才能统计。<br>分段锁的设计目的是细化锁的粒度，当操作不需要更新整个数组的时候，就仅仅针对数组中的一项进行加锁操作。</p>
+<h1 id="偏向锁-轻量级锁-重量级锁"><a href="#偏向锁-轻量级锁-重量级锁" class="headerlink" title="偏向锁/轻量级锁/重量级锁"></a>偏向锁/轻量级锁/重量级锁</h1><p>这三种锁是指锁的状态，并且是针对Synchronized。</p>
+<p>Java 5通过引入锁升级的机制来实现高效Synchronized。</p>
+<p>这三种锁的状态是通过 <code>对象监视器在对象头中的字段</code> 来表明的。</p>
+<p><strong>偏向锁</strong>是指一段同步代码一直被一个线程所访问，那么该线程会自动获取锁。降低获取锁的代价。</p>
+<p><strong>轻量级锁</strong>是指当锁是偏向锁的时候，被另一个线程所访问，偏向锁就会升级为轻量级锁，其他线程会通过自旋的形式尝试获取锁，不会阻塞，提高性能。</p>
+<p><strong>重量级锁</strong>是指当锁为轻量级锁的时候，另一个线程虽然是自旋，但自旋不会一直持续下去，当自旋一定次数的时候，还没有获取到锁，就会进入阻塞，该锁膨胀为重量级锁。重量级锁会让其他申请的线程进入阻塞，性能降低。</p>
+<h1 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h1><p>自旋锁是指尝试获取锁的线程不会立即阻塞，而是采用循环(jvm默认是10次)的方式去尝试获取锁，这样的好处是减少线程上下文切换的消耗，缺点是循环会消耗CPU。</p>
+<p>自旋锁是采用让当前线程不停地的在循环体内执行实现的，当循环的条件被其他线程改变时 才能进入临界区。如下</p>
+<pre><code>public class SpinLock {
+
+  private AtomicReference&lt;Thread&gt; sign =new AtomicReference&lt;&gt;();
+
+  public void lock(){
+    Thread current = Thread.currentThread();
+    while(!sign .compareAndSet(null, current)){
+    }
+  }
+
+  public void unlock (){
+    Thread current = Thread.currentThread();
+    sign .compareAndSet(current, null);
+  }
+}
+</code></pre><p>使用了CAS原子操作，lock函数将owner设置为当前线程，并且预测原来的值为空。unlock函数将owner设置为null，并且预测值为当前线程。</p>
+<p>当有第二个线程调用lock操作时由于owner值不为空，导致循环一直被执行，直至第一个线程调用unlock函数将owner设置为null，第二个线程才能进入临界区。</p>
+<p>由于自旋锁只是将当前线程不停地执行循环体，不进行线程状态的改变，所以响应速度更快。但当线程数不停增加时，性能下降明显，因为每个线程都需要执行，占用CPU时间。如果线程竞争不激烈，并且保持锁的时间短，适合使用自旋锁。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/如何正确停止线程/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2192,159 +2409,6 @@ Object object = list.get(0);//取出来的是Object，毫无意义
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/25/Android/Android异常捕获/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/25/Android/Android异常捕获/" itemprop="url">Android 异常捕获</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-25T17:15:53+08:00">
-                2019-03-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>参考</p>
-<ul>
-<li><a href="https://www.jianshu.com/p/bb658019f97b" target="_blank" rel="noopener">安卓捕获RuntimeException,ANR,Native信号异常</a></li>
-<li><a href="https://blog.csdn.net/yeyuwuhen1203/article/details/73556813" target="_blank" rel="noopener">Android端线上NativeCrash收集的两种方法(上)</a></li>
-</ul>
-<h1 id="Java-crash"><a href="#Java-crash" class="headerlink" title="Java crash"></a>Java crash</h1><p>Uncaught异常发生时会终止线程，调用 <code>UncaughtExceptionHandler.uncaughtException()</code></p>
-<p>如果该handler没有被显式设置，则会调用对应线程组的默认handler。</p>
-<p><code>Thread.setDefaultUncaughtExceptionHandler(myCrashHandler);</code></p>
-<h1 id="ANR"><a href="#ANR" class="headerlink" title="ANR"></a>ANR</h1><p>收听ANR的广播 <code>String ACTION_ANR = &quot;android.intent.action.ANR&quot;</code></p>
-<h1 id="NativeCrash"><a href="#NativeCrash" class="headerlink" title="NativeCrash"></a>NativeCrash</h1><p>Native崩溃日志存储在手机的 <code>/data/tombstones</code> 目录下，需要root权限</p>
-<h1 id="三方"><a href="#三方" class="headerlink" title="三方"></a>三方</h1><h2 id="buglyg"><a href="#buglyg" class="headerlink" title="buglyg"></a>buglyg</h2><p>Java crash 和 ANR</p>
-<h1 id="google-breakpad"><a href="#google-breakpad" class="headerlink" title="google-breakpad"></a>google-breakpad</h1><p>NativeCrash</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2399,7 +2463,7 @@ Object object = list.get(0);//取出来的是Object，毫无意义
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">308</span>
+                  <span class="site-state-item-count">310</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
