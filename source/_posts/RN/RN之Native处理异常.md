@@ -197,5 +197,4 @@ private ReactApplicationContext createReactContext(
 
 # 参考&扩展
 
-- 
-[React Native for Android 异常处理概览](https://mp.weixin.qq.com/s/aWuenpGOKug4fovT5uKXTQ?)
+- [React Native for Android 异常处理概览](https://mp.weixin.qq.com/s/aWuenpGOKug4fovT5uKXTQ?)

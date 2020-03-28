@@ -11,17 +11,23 @@ tags:
 
 目前Android业内，热修复技术百花齐放，各大厂都推出了自己的热修复方案，使用的技术方案也各有所异，当然各个方案也都存在各自的局限性。在面对众多的方案，希望通过梳理这些热修复方案的对比及实现原理，掌握热修复技术的本质，同时也对项目接入做好准备。
 
+推荐 阿里《深入探索Android热修复技术原理》一书
+
 # 什么是热修复技术？
 
 简单来说，就是通过下发补丁包，让已安装的客户端动态更新，让用户可以不用重新安装APP，就能够修复软件缺陷的一种技术。
 
-随着热修复技术的发展，不仅可以修复代码，同时可以修复资源文件及SO库。
+## 修复什么
+
+- 代码修复
+- 资源修复
+- SO库修复
 
 # 怎么选择热修复技术方案？
 
 ## 国内主流的技术方案
 
-||Sophix 阿里|Tinker 腾讯|nuwa 大众|AndFix 阿里|Robust 美团|Amigo 饿了么|
+||Sophix 阿里|Tinker 腾讯微信|nuwa 大众|AndFix 阿里支付宝|Robust 美团|Amigo 饿了么|
 |---|---|---|---|---|---|---|
 |类替换|yes|yes|yes|no|no|yes|
 |So替换|yes|yes|no|no|no|yes|
@@ -114,59 +120,115 @@ java hook 插桩
 
 从Github上的热度及提交记录上看，nuwa、AndFix、Amigo等的提交都是2 years ago。
 
-# 内业主要热修复技术方案原理
+# 热修复技术方案原理
 
 {% asset_img 热修复原理.png %}
 
 # 代码热修复方案的两个方向
 
-**底层替换和类加载(dex插入/替换)**
+**native hook和类加载(插入dex/替换dex)**
 
-类加载有两种实现：dexElements和替换dex；所以又称三大流派
+类加载有两种实现，所以又称三大流派
 
 美团 Robust 这种 java方法插桩hook的，只能实现代码修复，无法实现资源和so修复；所以不在常规讨论范围内。
 
-## 底层替换方案
+# native hook方案
 
-代表：阿里系的 Andfix HotFix
+## 阿里手淘Dexposed和支付宝Andfix
 
-### 原理
+- 基于Xposed框架改进，AOP实现对Java的hook
+- 定位：紧急bug修复（不重启即时生效）
+- 核心：在native层将虚拟机中的旧方法替换为新方法
+	- 
+- 优点：
+	- 即时生效
+	- 没有插桩或代码改写，对正常运行不引入任何性能开销
+	- 对所改写方法的性能开销也极低（微秒级），基本可以忽略不计；
+	- 能hook同进程的所有Java代码（包括Android SDK）
+- 缺点：
+	- Dexposed不支持ART（4.4以上不能用）
+	- 不支持新增方法，新增类，新增field等
+		- 类已经被加载，内存中方法描述符(结构体)已经固定
+	- 最大挑战：稳定性与兼容性。
+		- 实践发现**修复成功率非常低** ，时常出现崩溃，补丁无效的现象
+	- native异常排查困难	 
+	
+```java
+private static native void replaceMethod(Method dest, Method src);
+```
 
-{% asset_img 底层替换.png %}
+replaceMethod在dalvik和art（art每个版本都不同）上的调用不同，native hook这种解决方案兼容性差的问题在这里则体现得特别明显。但是原理类似，这里我们以6.0为例art_method_replace_6_0：
 
-- 通过Andfix提供的工具对比出新旧apk 的 `classes.dex` 文件的差异，并生成patch压缩包(jar包)
-- 压缩包中比较关键的是 `PATCH.MF` (补丁类名)和 `diff.dex` (补丁方法)
-- 虚拟机通过 jar包 读取 补丁类名和补丁方法
-- 通过classLoader，找到要修复的bug类名及方法
-- 利用hook技术，在native修改指ArtMethod针变量，使其指向补丁方法，从而完成bug修复。
+```cpp
+void replace_6_0(JNIEnv* env, jobject src, jobject dest) {
+  //通过Method对象得到底层Java函数对应ArtMethod的真实地址
+    art::mirror::ArtMethod* smeth = (art::mirror::ArtMethod*) env->FromReflectedMethod(src);
+    art::mirror::ArtMethod* dmeth = (art::mirror::ArtMethod*) env->FromReflectedMethod(dest);
 
-### 优点
+    dmeth->declaring_class_->class_loader_ =
+            smeth->declaring_class_->class_loader_; //for plugin classloader
+    dmeth->declaring_class_->clinit_thread_id_ =
+            smeth->declaring_class_->clinit_thread_id_;
+    dmeth->declaring_class_->status_ = smeth->declaring_class_->status_-1;
 
-在类加载后，动态修改native指针，修复即时生效，无需冷启动
+  // 把原方法的各种属性都改成补丁方法的
+    smeth->declaring_class_ = dmeth->declaring_class_;
+    smeth->dex_cache_resolved_types_ = dmeth->dex_cache_resolved_types_;
+    smeth->access_flags_ = dmeth->access_flags_;
+    smeth->dex_cache_resolved_methods_ = dmeth->dex_cache_resolved_methods_;
+    smeth->dex_code_item_offset_ = dmeth->dex_code_item_offset_;
+    smeth->method_index_ = dmeth->method_index_;
+    smeth->dex_method_index_ = dmeth->dex_method_index_;
 
-### 缺点
+  // 实现的指针也替换为新的
+    smeth->ptr_sized_fields_.entry_point_from_interpreter_ =
+            dmeth->ptr_sized_fields_.entry_point_from_interpreter_;
+    smeth->ptr_sized_fields_.entry_point_from_jni_ =
+            dmeth->ptr_sized_fields_.entry_point_from_jni_;
+    smeth->ptr_sized_fields_.entry_point_from_quick_compiled_code_ =
+            dmeth->ptr_sized_fields_.entry_point_from_quick_compiled_code_;
 
-- 类已经被加载，内存中方法描述符(结构体)已经固定，所以**只能替换，不能做新增修复**。
-- 在Native操作指针时，强转ArtMethod的类型是AndFix写死的，无法保证是运行时的ArtMethod结构，这会产生**十分严重的兼容问题**
-	- 实践发现Andfix **修复成功率非常低** ，时常出现崩溃，补丁无效的现象
+    LOGD("replace_6_0: %d , %d",
+            smeth->ptr_sized_fields_.entry_point_from_quick_compiled_code_,
+            dmeth->ptr_sized_fields_.entry_point_from_quick_compiled_code_);
+}
 
-## 类加载方案
+// 把方法都改成public
+void setFieldFlag_6_0(JNIEnv* env, jobject field) {
+    art::mirror::ArtField* artField =
+            (art::mirror::ArtField*) env->FromReflectedField(field);
+    artField->access_flags_ = artField->access_flags_ & (~0x0002) | 0x0001;
+    LOGD("setFieldFlag_6_0: %d ", artField->access_flags_);
+}
+```
 
-代表：腾讯系的 Qzone超级补丁(dex插入) Tinker(dex替换)
+在dalvik上的实现略有不同，是通过jni bridge来指向补丁的方法。
 
-### dex插入
+## 兼容问题的根源
 
-增量Dex
+Native层对方法的替换，都是以Android官方源码的结构定义为标准，很多手机ROM厂商是会修改这些结构的
 
-#### 原理
+## 阿里百川hotfix
+
+{% asset_img hotfix.png %}
+
+# dex插入
+
+## 腾讯QQ空间和大众Nuwa
+
+- 基于multidex（安卓分包方）Hook ClassLoader.pathList.dexElements[]
+	- 一个ClassLoader可以包含多个dex文件
+	- 每个dex文件是一个Element
+	- 多个dex文件排列成一个有序的数组dexElements
+	- 按dex顺序查找类，找到则返回
+- 核心：将修复类打包成dex，插入到dexElements最前面
 
 {% asset_img dex插入.png %}
 
-- Hook ClassLoader.pathList.dexElements[]
-- 将补丁的dex插入到数组的最前端。
-- ClassLoader的findClass是通过遍历dexElements[]中的dex来寻找类的。所以会优先查找到修复的类。从而达到修复的效果。
 
-##### VM规则判断
+## `CLASS_ISPREVERIFIED`
+
+为了提供性能，apk安装期间Dalvik会为已验证的类打上`CLASS_ISPREVERIFIED`
 
 Vm的判定规则：“当一个类中引用了另外一个类，则一般要求两个类来自同一个Dex文件”。
 
@@ -182,42 +244,41 @@ Vm的判定规则：“当一个类中引用了另外一个类，则一般要求
 
 在类加载的最后阶段，虚拟机会对未打上 `CLASS_ISPREVERIFIED` 标签的类 再次进行 **校验和优化** ，如果在同一时间点加载大量类，那么就会出现严重的性能问题，如启动时白屏。
 
-#### 优点
+## 优点
 
 - 不需要考虑对dalvik虚拟机和art虚拟机做适配
 - 代码是非侵入式的，对apk体积影响不大
 
-#### 缺点
+## 缺点
 
 - 需要下次启动才修复
-- **性能损耗大**，为了避免类被加上 `CLASS_ISPREVERIFIED`，使用插桩，单独放一个帮助类在独立的dex中让其他类调用。可能导致严重的性能问题，如启动时白屏。
+- 最大挑战：**性能损耗大**
+	- Dalvik平台为了避免类被加上 `CLASS_ISPREVERIFIED`，使用插桩，单独放一个帮助类在独立的dex中让其他类调用。可能导致严重的性能问题，如启动时白屏。
+	- Art平台可能地址错乱
 
-### dex替换
+# dex替换
 
-全量Dex替换
+## 微信Tinker
 
-#### 原理
+- 基于Instant Run
+	- 全量替换dex 
+- 核心：合并补丁包生成全量新dex
+- 优点：
+	- 微信自研DexDiff/DexMerge算法，补丁包最小化
+	- 避免dalvik 插桩带来的性能损耗和art地址错乱问题
+- 缺点：
+	- 需要下次启动生效
+	- 性能痛点
+		- Dex合并内存消耗在vm head上，容易OOM，最后导致合并失败 
+		- 如果本身app占用内存已经比较高，容易导致app被系统杀掉
+		- 补丁影响启动时间。大补丁合并很耗时
+- 已知问题：
+	- 不支持部分三星android-21机型，加载补丁时会主动抛出"TinkerRuntimeException:checkDexInstall failed"；
+	- 对于资源替换，不支持修改remoteView。例如transition动画，notification icon以及桌面图标。
 
 {% asset_img dex替换.png %}
 
-为了避免dex插桩带来的性能损耗，dex替换采取另外的方式(整体替换dex)。
-
-- 提供dex差量包(只包含patch代码的dex)
-- 将patch.dex与应用的classes.dex合并成一个完整的dex
-- 加载完整dex得到dexFile对象作为参数构建一个Element对象
-- 整体替换掉旧的dex-Elements数组
-
-#### 优点
-
-相比 dex插入，dex替换的优点
-
-减少了dex插桩带来的性能损耗
-
-#### 缺点
-
-Dex合并内存消耗在**虚拟机堆内存**(vm heap)上，容易OOM，最后导致合并失败
-
-## 两种方案总结
+# 两种方案总结
 
 底层替换存在不同定制Rom的**兼容性**问题，同时**不能做新增field**的修复，但修复**立即生效**。
 
@@ -279,6 +340,8 @@ tinker采用自主研发的dexDiff技术，从方法和指令的维度进行dex*
 # 参考&扩展
 
 - [Android热修复技术，你会怎么选？](https://www.jianshu.com/p/6ae1e09ebbf5)
+- [Android热修复技术原理详解](https://www.cnblogs.com/popfisher/p/8543973.html)
+- [最全面的Android热修复技术——Tinker、nuwa、AndFix、Dexposed](https://www.cnblogs.com/aademeng/articles/6883861.html)
 - [两种热修复方案及Sophix原理](https://www.jianshu.com/p/853dae4092d7)
 - [Android热修复技术选型——三大流派解析](http://mp.weixin.qq.com/s/uY5N_PSny7_CHOgUA99UjA?spm=a2c4g.11186623.2.13.16023a3cQhCyHh)
 - [为什么使用 Tinker？](http://www.tinkerpatch.com/Docs/intro)
