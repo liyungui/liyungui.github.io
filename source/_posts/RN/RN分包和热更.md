@@ -416,7 +416,7 @@ react-native/Libraries/Image/AssetSourceResolver.js
 ```js
 react-native-smartassets/index.js
 
-var SmartAssets= {
+	var SmartAssets= {
 	initSmartAssets(){
 		var initialize = _.once(this.initSmartAssetsInner);
 		initialize();
@@ -501,7 +501,7 @@ DeviceEventEmitter.addListener('sm-bundle-changed',
     bundlePath => {
         SmartAssets.setBundlePath(bundlePath);
     });
-```    
+```
 
 所以，我们需要在java代码中发送这个事件
 
