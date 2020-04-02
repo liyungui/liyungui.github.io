@@ -262,6 +262,896 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/27/Flutter/Android内嵌混合Flutter-跨平台的渐进式解决方案/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/27/Flutter/Android内嵌混合Flutter-跨平台的渐进式解决方案/" itemprop="url">Android内嵌混合Flutter-跨平台的渐进式解决方案</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-27T11:00:04+08:00">
+                2018-09-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>Flutter工程只作为一个module引入工程，代码入侵极小，Android工程和Flutter工程都可以独立运行。</p>
+<p>可以只从一个view/一个页面开始来让Flutter参与到项目中去</p>
+<p>写此文时，GDD 2018已经结束，使用的是会上发布的preview 2版本，即<code>Flutter 0.8.2 • channel beta •</code></p>
+<h1 id="创建工程"><a href="#创建工程" class="headerlink" title="创建工程"></a>创建工程</h1><h2 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h2><pre><code>项目根目录
+    ├── 原生安卓工程 (android) AS打开此工程，可独立运行
+        ├── app module
+        ├── 其他 module
+    └── Flutter module (flutter_lib) AS打开此工程，可独立运行
+        ├── .android (纯Flutter工程flutter_app 没有.前缀)
+            ├── app 
+            ├── Flutter (纯Flutter工程flutter_app 没有该module)
+        ├── lib
+            ├── main.dart
+        ├── .ios (纯Flutter工程flutter_app 没有.前缀)
+</code></pre><table>
+<thead>
+<tr>
+<th>区别</th>
+<th>Flutter module工程中的Android工程</th>
+<th>纯Flutter应用工程中的Android工程</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文件夹名称</td>
+<td>.android</td>
+<td>android</td>
+</tr>
+<tr>
+<td>包含的module</td>
+<td>app和Flutter</td>
+<td>app</td>
+</tr>
+<tr>
+<td>说明</td>
+<td>app只提供了入口Activity，Flutter包含了插件扩展及原生工程调用的接口</td>
+<td>app包含入口Activity及插件扩展</td>
+</tr>
+<tr>
+<td>说明</td>
+<td>app供Flutter自身开发调试，Flutter作为module供Android原生调用</td>
+<td>app作为Android工程运行及打包</td>
+</tr>
+</tbody>
+</table>
+<h2 id="创建Android工程"><a href="#创建Android工程" class="headerlink" title="创建Android工程"></a>创建Android工程</h2><p>这里勾选上kotlin支持。准备用kotlin实现Android原生</p>
+<h2 id="创建Flutter-module"><a href="#创建Flutter-module" class="headerlink" title="创建Flutter module"></a>创建Flutter module</h2><p>flutter create -t module flutter_lib</p>
+<h2 id="引用Flutter-module"><a href="#引用Flutter-module" class="headerlink" title="引用Flutter module"></a>引用Flutter module</h2><p>android根目录 setting.gradle</p>
+<pre><code> //加入下面配置
+setBinding(new Binding([gradle: this]))
+evaluate(new File(
+        settingsDir.parentFile,
+        &apos;flutter_lib/.android/include_flutter.groovy&apos;
+))
+</code></pre><p>app的 build.gradle</p>
+<pre><code>...
+dependencies {
+    ...
+    // 加入下面配置
+    implementation project(&apos;:flutter&apos;)
+}    
+</code></pre><p>AS打开android工程，重新构建项目，即可成功的将Flutter加入Android工程(即生成 <code>根目录/flutter_lib/.android/Flutter</code>)。    </p>
+<h1 id="Android工程中使用Flutter组件"><a href="#Android工程中使用Flutter组件" class="headerlink" title="Android工程中使用Flutter组件"></a>Android工程中使用Flutter组件</h1><p>Flutter提供了两种方式让Android工程来引用组件</p>
+<ul>
+<li><p>一种是View</p>
+<p>  <code>FlutterView createView(Activity activity, final Lifecycle lifecycle, final String initialRoute)</code></p>
+</li>
+<li><p>一种是Fragment</p>
+<p>  <code>FlutterFragment createFragment(String initialRoute)</code></p>
+</li>
+</ul>
+<h2 id="实例：作为页面的根View"><a href="#实例：作为页面的根View" class="headerlink" title="实例：作为页面的根View"></a>实例：作为页面的根View</h2><pre><code>class MainActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        val flutterView = Flutter.createView(this@MainActivity, lifecycle, &quot;route1&quot;)
+        val layout = FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        val layout = FrameLayout.LayoutParams(600, 1200)
+        addContentView(flutterView, layout)
+    }
+}
+</code></pre><h3 id="setContentView然后addContentView的原因–防止启动黑屏"><a href="#setContentView然后addContentView的原因–防止启动黑屏" class="headerlink" title="setContentView然后addContentView的原因–防止启动黑屏"></a>setContentView然后addContentView的原因–防止启动黑屏</h3><p><strong>设置FlutterView加载完成之前展示给用户的界面。</strong> 当然大部分情况下用户根本感知不到这个界面Flutter就已经加载完成了，但我们仍需要它</p>
+<ul>
+<li>虽然FLutter的加载速度非常快，但是这个过程依然存在</li>
+<li>如果没有这个界面的话在Activity的加载过程会出现一个黑色的闪屏，用户体验差</li>
+<li>debug模式下Flutter的加载速度并不是非常快，这个界面可以给开发人员看<ul>
+<li>实际测试发现，即使这样处理，在测试机上debug有黑色闪屏，release正常<ul>
+<li>可能测试机太渣，直接新建一个helloworld工程(kotlin)冷启动都会有明显白屏</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="Flutter工程中根据route创建组件"><a href="#Flutter工程中根据route创建组件" class="headerlink" title="Flutter工程中根据route创建组件"></a>Flutter工程中根据route创建组件</h1><p>可以通过window的全局变量中获取到当前的routeName，这个值正是上面通过原生工程传给Flutter的标识，有了这个标识就可以简单的做判断来进行不同的组件创建了：<br>import ‘dart:ui’;<br>import ‘package:flutter/material.dart’;</p>
+<p>void main() =&gt; runApp(_widgetForRoute(window.defaultRouteName));</p>
+<p>//根据不同的标识创建不同的组件给原生工程调用<br>Widget _widgetForRoute(String route) {<br>  switch (route) {<br>    case ‘route1’:<br>      return SomeWidget(…);<br>    case ‘route2’:<br>      return SomeOtherWidget(…);<br>    default:<br>      return Center(<br>        child: Text(‘Unknown route: $route’, textDirection: TextDirection.ltr),<br>      );<br>  }<br>}</p>
+<h1 id="让Flutter模块支持热加载"><a href="#让Flutter模块支持热加载" class="headerlink" title="让Flutter模块支持热加载"></a>让Flutter模块支持热加载</h1><p>项目根目录/flutter_lib下执行</p>
+<pre><code>flutter attach
+</code></pre><p>代码执行后，监听服务会等待并监听debug应用中flutter的状态</p>
+<p>然后AS中以正常方式调试运行android，当flutter的view或Fragment激活时会触发文件同步。</p>
+<p>终端输出如下</p>
+<pre><code>Waiting for a connection from Flutter on Le X620...
+Done.
+Syncing files to device Le X620...                           2.3s
+🔥  To hot reload changes while running, press &quot;r&quot;. To hot restart (and rebuild state), press &quot;R&quot;.
+An Observatory debugger and profiler on Le X620 is available at: http://127.0.0.1:61500/
+For a more detailed help message, press &quot;h&quot;. To detach, press &quot;d&quot;; to quit, press &quot;q&quot;.
+</code></pre><p>修改flutter工程中的dart代码文件，保存后在<strong>终端中</strong>点击r键即可进行热加载，R键进行热重启。</p>
+<h1 id="签名打包"><a href="#签名打包" class="headerlink" title="签名打包"></a>签名打包</h1><p>常规打包操作即可</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/13/Android/Travis-CI-使用/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/13/Android/Travis-CI-使用/" itemprop="url">Travis CI 使用</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-13T11:31:14+08:00">
+                2018-09-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="关于"><a href="#关于" class="headerlink" title="关于"></a>关于</h1><p>新兴的开源持续集成构建项目，与jenkins，GO的明显的特点在于</p>
+<ul>
+<li><p>采用yaml格式，简洁清新独树一帜。</p>
+</li>
+<li><p>在线环境，不用本地部署</p>
+</li>
+</ul>
+<p>目前大多数的github项目都已经移入到Travis CI的构建队列中</p>
+<h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><h2 id="GitHub-生成供Travis使用的token"><a href="#GitHub-生成供Travis使用的token" class="headerlink" title="GitHub 生成供Travis使用的token"></a>GitHub 生成供Travis使用的token</h2><ul>
+<li><p>Settings – Developer settings – Personal access tokens</p>
+</li>
+<li><p>填写token的描述，如hexoblog</p>
+</li>
+<li><p>选择repo</p>
+</li>
+<li><p>Generate token</p>
+</li>
+<li><p>复制生成的token(只允许看见一次)</p>
+</li>
+</ul>
+<h2 id="Travis-设置集成仓库"><a href="#Travis-设置集成仓库" class="headerlink" title="Travis 设置集成仓库"></a>Travis 设置集成仓库</h2><ul>
+<li><p>使用GitHub账号登录 <a href="https://travis-ci.org" target="_blank" rel="noopener">Travis 免费网站</a>(com是付费私有仓库)</p>
+</li>
+<li><p>Settings – 打开需要集成的仓库 – Settings 页面</p>
+<ul>
+<li><p>Environment Variables 新增一个变量记录token(变量名HEXO_TOKEN)</p>
+<p>  <code>如果有仓库未同步过来，手动同步 Sync account</code></p>
+</li>
+<li><p>Cron Jobs 设置需要构建的分支名</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="配置-travis-yml"><a href="#配置-travis-yml" class="headerlink" title="配置 .travis.yml"></a>配置 <code>.travis.yml</code></h2><p>项目根目录下新建 <code>.travis.yml</code> 文件</p>
+<h3 id="hexo-博客构建"><a href="#hexo-博客构建" class="headerlink" title="hexo 博客构建"></a>hexo 博客构建</h3><p>node_js 实现的md生成静态博客系统</p>
+<pre><code>language: node_js
+node_js: stable
+cache:
+  apt: true
+  directories:
+  - node_modules
+before_install:
+- export TZ=&apos;Asia/Shanghai&apos;
+install:
+- npm install
+script:
+- hexo clean
+- hexo g &amp;&amp; gulp
+after_script:
+- git clone https://${GH_REF} .deploy_git
+- cd .deploy_git
+- git checkout master
+- cd ../
+- mv .deploy_git/.git/ ./public/
+- cd ./public
+- git config user.name &quot;lyg&quot;
+- git config user.email &quot;liyungui@163.com&quot;
+- git add .
+- git commit -m &quot;Travis CI Auto Builder at `date +&quot;%Y-%m-%d %H:%M&quot;`&quot;
+- git push --force --quiet &quot;https://${HEXO_TOKEN}@${GH_REF}&quot; master:master
+branches:
+  only:
+  - master
+env:
+  global:
+  - GH_REF: github.com/liyungui/liyungui.github.io.git
+notifications:
+  email:
+  - liyungui89@163.com
+  on_success: change
+  on_failure: always
+</code></pre><ul>
+<li>HEXO_TOKEN：集成配置的token变量名</li>
+<li>GH_REF：GitHub仓库地址(不要https://前缀)</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/06/Android/动画库Lottie/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/09/06/Android/动画库Lottie/" itemprop="url">动画库Lottie</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-09-06T16:18:53+08:00">
+                2018-09-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>Lottie 是一个可以解析AE( Adobe After Effects )上的插件Bodymovin导出的json文件(依赖png文件)实现在移动设备上渲染的动画库。</p>
+<p>优点：</p>
+<p><strong>开发高效，文件体积小，展示效果好，性能消耗小，控制灵活，服务器更新动画，跨平台</strong>。比gif体积小，效果好(AE导出gif有白边)，可以重复播放指定帧指定次数</p>
+<p>缺陷：</p>
+<p>系统版本有要求。支持 Android(Jellybean/API16 及以上)，ios(8.0)，RN</p>
+<p>不支持交互动画。只能播放类型动画</p>
+<p><a href="https://github.com/airbnb/lottie-android" target="_blank" rel="noopener">github</a></p>
+<p><a href="http://airbnb.io/lottie/android/android.html" target="_blank" rel="noopener">官方文档</a></p>
+<h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><h2 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h2><pre><code>compile &apos;com.airbnb.android:lottie:2.6.0&apos;
+</code></pre><h2 id="xml"><a href="#xml" class="headerlink" title="xml"></a>xml</h2><pre><code>&lt;com.airbnb.lottie.LottieAnimationView
+ android:id=&quot;@+id/animation_view&quot;
+ android:layout_width=&quot;wrap_content&quot;
+ android:layout_height=&quot;wrap_content&quot;
+ app:lottie_fileName=&quot;hello-world.json&quot;
+ app:lottie_loop=&quot;true&quot;
+ app:lottie_autoPlay=&quot;true&quot; /&gt;
+</code></pre><h2 id="资源目录"><a href="#资源目录" class="headerlink" title="资源目录"></a>资源目录</h2><p> Lottie animations can load animations from:</p>
+<ul>
+<li>A json animation in src/main/res/raw.</li>
+<li>A json file in src/main/assets.</li>
+<li>A zip file in src/main/assets. See images docs for more info.</li>
+<li>A url to a json or zip file.</li>
+<li>A json string. The source can be from anything including your own network stack.</li>
+<li>An InputStream to either a json file or a zip file.</li>
+</ul>
+<p>依赖图片存放目录</p>
+<ul>
+<li>src/main/assets/image. image可以是其他名字</li>
+</ul>
+<p>示例json文件放于 raw 目录，图片放于 assets/image</p>
+<h2 id="设置依赖图片目录"><a href="#设置依赖图片目录" class="headerlink" title="设置依赖图片目录"></a>设置依赖图片目录</h2><p><strong>必须设置</strong>，否则报错</p>
+<pre><code>LottieAnimationView.setImageAssetsFolder(&quot;image/&quot;);
+</code></pre><p>至此，动画<strong>成功显示</strong>在界面上了</p>
+<h2 id="API控制"><a href="#API控制" class="headerlink" title="API控制"></a>API控制</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">LottieAnimationView.setMinAndMaxFrame(<span class="number">0</span>, <span class="number">34</span>);</span><br><span class="line"></span><br><span class="line">LottieAnimationView.setRepeatMode(LottieDrawable.RESTART);</span><br><span class="line">LottieAnimationView.setRepeatCount(<span class="number">0</span>);</span><br><span class="line">	<span class="comment">//0，表示不重复</span></span><br><span class="line">	<span class="comment">//LottieDrawable.INFINITE，无限重复</span></span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">LottieAnimationView.playAnimation();<span class="comment">//播放动画</span></span><br><span class="line"></span><br><span class="line">LottieAnimationView.addAnimatorListener(Animator.AnimatorListener）<span class="comment">//监听动画状态</span></span><br><span class="line">LottieAnimationView.removeAllAnimatorListeners();</span><br><span class="line"></span><br><span class="line">LottieAnimationView.addAnimatorUpdateListener(ValueAnimator.AnimatorUpdateListener)<span class="comment">//监听播放进度</span></span><br><span class="line">LottieAnimationView.removeAllUpdateListeners() <span class="comment">//慎用，会导致动画无法播放</span></span><br><span class="line">LottieAnimationView.removeUpdateListener(ValueAnimator.AnimatorUpdateListener)</span><br><span class="line"></span><br><span class="line"><span class="comment">//播放进度回调中</span></span><br><span class="line">animation.getAnimatedValue() 返回进度[<span class="number">0</span>,<span class="number">1</span>]</span><br><span class="line">animation.getAnimatedFraction() 返回进度[minFrame,maxFrame]。如果没设置，也是返回[<span class="number">0</span>,<span class="number">1</span>]</span><br></pre></td></tr></table></figure>
+<h1 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h1><ul>
+<li><p>可能会v4包冲突</p>
+<p>  移除lottie的v4包</p>
+<pre><code>compile (&quot;com.airbnb.android:lottie:2.6.1&quot;){exclude group: &quot;com.android.support.v4&quot;}
+</code></pre></li>
+<li><p>保持v7依赖的版本为27</p>
+<p>  v7的24版本带的v4包，找不到 android.support.v4.util.ArraySet</p>
+</li>
+</ul>
+<h1 id="缩放"><a href="#缩放" class="headerlink" title="缩放"></a>缩放</h1><p>会自动将AE中的px转为dp，大部分都能保持一致</p>
+<p>如果尺寸不是很合适，有两个解决方案</p>
+<h2 id="scaleType"><a href="#scaleType" class="headerlink" title="scaleType"></a>scaleType</h2><p><code>LottieAnimationView</code> 继承了ImageView scaleType</p>
+<h2 id="Scaling-Up-Down"><a href="#Scaling-Up-Down" class="headerlink" title="Scaling Up/Down"></a>Scaling Up/Down</h2><p><code>LottieAnimationView</code> 和 <code>LottieDrawable</code> 支持<code>setScale(float)</code> 按比例缩放</p>
+<p><strong>注意：不要重复调用</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lottieAnimationView.setScale(<span class="number">1</span> / mContext.getResources().getDisplayMetrics().density);</span><br></pre></td></tr></table></figure>
+<h1 id="卡顿问题"><a href="#卡顿问题" class="headerlink" title="卡顿问题"></a>卡顿问题</h1><p>全屏动画卡顿问题特别严重</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//硬件加速，开启之后瞬间丝滑</span></span><br><span class="line">animationView.useHardwareAcceleration(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//合并路径 默认是关闭的，根据自己需求调整</span></span><br><span class="line">animationView.enableMergePathsForKitKatAndAbove(<span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
+<h1 id="回收图片资源的时机"><a href="#回收图片资源的时机" class="headerlink" title="回收图片资源的时机"></a>回收图片资源的时机</h1><ul>
+<li>设置图片资源</li>
+<li>onDetachedFromWindow；即设置可见性为gone，且把view remove</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">---LottieAnimationView---</span><br><span class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onDetachedFromWindow</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (isAnimating()) &#123;</span><br><span class="line">    cancelAnimation();</span><br><span class="line">    wasAnimatingWhenDetached = <span class="keyword">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  recycleBitmaps();</span><br><span class="line">  <span class="keyword">super</span>.onDetachedFromWindow();</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setImageResource</span><span class="params">(<span class="keyword">int</span> resId)</span> </span>&#123;</span><br><span class="line">  recycleBitmaps();</span><br><span class="line">  cancelLoaderTask();</span><br><span class="line">  <span class="keyword">super</span>.setImageResource(resId);</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="meta">@VisibleForTesting</span> <span class="function"><span class="keyword">void</span> <span class="title">recycleBitmaps</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="comment">// AppCompatImageView constructor will set the image when set from xml</span></span><br><span class="line">  <span class="comment">// before LottieDrawable has been initialized</span></span><br><span class="line">  <span class="keyword">if</span> (lottieDrawable != <span class="keyword">null</span>) &#123;</span><br><span class="line">    lottieDrawable.recycleBitmaps();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">---LottieDrawable---</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">recycleBitmaps</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (imageAssetManager != <span class="keyword">null</span>) &#123;</span><br><span class="line">    imageAssetManager.recycleBitmaps();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">--ImageAssetManager</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">recycleBitmaps</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">synchronized</span> (bitmapHashLock) &#123;</span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;String, LottieImageAsset&gt; entry : imageAssets.entrySet()) &#123;</span><br><span class="line">      LottieImageAsset asset = entry.getValue();</span><br><span class="line">      Bitmap bitmap = asset.getBitmap();</span><br><span class="line">      <span class="keyword">if</span> (bitmap != <span class="keyword">null</span>) &#123;</span><br><span class="line">        bitmap.recycle();</span><br><span class="line">        asset.setBitmap(<span class="keyword">null</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/31/Android/Java代码设置margin/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/31/Android/Java代码设置margin/" itemprop="url">Java代码设置margin</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-31T18:22:53+08:00">
+                2018-08-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>api</p>
+<pre><code>ViewGroup.MarginLayoutParams.setMargins(left, top, right, bottom)
+
+直接的子类有: 
+    FrameLayout.LayoutParams,         
+    LinearLayout.LayoutParams and 
+    RelativeLayout.LayoutParams.
+</code></pre><p>创建一个MarginLayoutParams时,需要以View本身的布局参数对象为基础,否则可能丢失一些原本的布局属性. </p>
+<pre><code>/**
+ * 设置某个View的margin
+ *
+ * @param view
+ * @param leftPx
+ * @param rightPx
+ * @param topPx
+ * @param bottomPx
+ * @return
+ */
+public static boolean setViewMargin(View view, int leftPx, int rightPx, int topPx, int bottomPx) {
+    if (view == null) {
+        return false;
+    }
+
+    ViewGroup.MarginLayoutParams marginParams = null;
+
+    //获取view的margin设置参数
+    ViewGroup.LayoutParams params = view.getLayoutParams();
+    if (params instanceof ViewGroup.MarginLayoutParams) {
+        marginParams = (ViewGroup.MarginLayoutParams) params;
+    } else {
+        //不存在时创建一个新的参数
+        marginParams = new ViewGroup.MarginLayoutParams(params);
+    }
+
+    //设置margin
+    marginParams.setMargins(leftPx, topPx, rightPx, bottomPx);
+    view.setLayoutParams(marginParams);
+
+    return true;
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/31/Android/Linux命令行更新SDK/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/08/31/Android/Linux命令行更新SDK/" itemprop="url">Linux命令行更新SDK</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-31T18:22:53+08:00">
+                2018-08-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>cd ~/android-sdk-linux/tools/
+./android list sdk --extended
+    输出
+        Packages available for installation or update: 11
+        ----------
+        id: 1 or &quot;android-28&quot;
+             Type: Platform
+             Desc: Android SDK Platform 28
+                   Revision 6
+        ----------
+        id: 2 or &quot;android-27&quot;
+             Type: Platform
+             Desc: Android SDK Platform 27
+                   Revision 3
+./android update sdk -u -f --filter android-27
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/24/Android/X5内核使用/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1176,1801 +2066,11 @@ var icon = this.props.active
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/06/JS/ES6-Module/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/06/JS/ES6-Module/" itemprop="url">ES6-Module</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-06T10:41:20+08:00">
-                2018-08-06
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="模块"><a href="#模块" class="headerlink" title="模块"></a>模块</h1><p>ES6 模块的设计思想是尽量的<strong>静态化</strong>，使得<strong>编译时</strong>就能确定模块的依赖关系，以及输入和输出的变量。</p>
-<ul>
-<li>ES6 <strong>模块不是对象</strong></li>
-<li>通过export命令显式指定输出的代码，再通过import命令输入</li>
-</ul>
-<p>“<strong>编译时加载</strong>”或者静态加载，即 ES6 可以在编译时就完成模块加载</p>
-<h2 id="严格模式"><a href="#严格模式" class="headerlink" title="严格模式"></a>严格模式</h2><p>严格模式主要有以下限制。</p>
-<ul>
-<li>变量必须声明后再使用</li>
-<li>函数的参数不能有同名属性，否则报错</li>
-<li>不能使用with语句</li>
-<li>不能对只读属性赋值，否则报错</li>
-<li>不能使用前缀 0 表示八进制数，否则报错</li>
-<li>不能删除不可删除的属性，否则报错</li>
-<li>不能删除变量delete prop，会报错，只能删除属性delete global[prop]</li>
-<li>eval不会在它的外层作用域引入变量</li>
-<li>eval和arguments不能被重新赋值</li>
-<li>arguments不会自动反映函数参数的变化</li>
-<li>不能使用arguments.callee</li>
-<li>不能使用arguments.caller</li>
-<li>禁止this指向全局对象</li>
-<li>不能使用fn.caller和fn.arguments获取函数调用的堆栈</li>
-<li>增加了保留字（比如protected、static和interface）</li>
-</ul>
-<h1 id="export-命令"><a href="#export-命令" class="headerlink" title="export 命令"></a>export 命令</h1><ul>
-<li><strong>输出对外的接口</strong><ul>
-<li>必须与模块内部的变量建立一一对应关系<ul>
-<li>定义的时候直接export</li>
-<li>先定义，然后通过 <code>export {接口名}</code> 输出</li>
-</ul>
-</li>
-<li><strong>输出 变量、函数、类</strong></li>
-<li>对外接口名称<ul>
-<li>默认就是原来的名字</li>
-<li>可以使用as关键字重命名</li>
-</ul>
-</li>
-<li>接口与其对应的值是<strong>动态绑定关系</strong><ul>
-<li>即通过该接口，可以取到模块内部实时的值。</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>实例：export</p>
-<p>建议使用第二种写法。因为这样就可以在脚本尾部，一眼看清楚输出了哪些变量</p>
-<pre><code>// profile.js
-export var firstName = &apos;Michael&apos;;
-export var lastName = &apos;Jackson&apos;;
-export var year = 1958;
-
-// profile.js
-var firstName = &apos;Michael&apos;;
-var lastName = &apos;Jackson&apos;;
-var year = 1958;
-export {firstName, lastName, year};
-</code></pre><p>实例：export对外提供接口，必须与模块内部一一对应</p>
-<pre><code>// 报错
-export 1;
-
-// 报错
-var m = 1;
-export m;
-
-    输出 1。1只是一个值，不是接口
-
-正确写法
-
-// 写法一
-export var m = 1;
-
-// 写法二
-var m = 1;
-export {m};
-</code></pre><h1 id="import-命令"><a href="#import-命令" class="headerlink" title="import 命令"></a>import 命令</h1><ul>
-<li>输入对外的接口<ul>
-<li>通过 <code>import {接口名} from &#39;a.js&#39;</code> 输入<ul>
-<li>文件支持相对路径和绝对路径<ul>
-<li>不带路径，就必须有配置文件，告诉引擎如何取到模块</li>
-</ul>
-</li>
-<li>.js 后缀可以省略</li>
-</ul>
-</li>
-<li><strong>输入 变量、函数、类</strong><ul>
-<li>变量只读。<ul>
-<li>因为本质就是输入接口。在加载模块的脚本中不允许改写接口</li>
-<li>变量属性改写。<ul>
-<li>强烈建议不要改，很难差错</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>对外接口名称<ul>
-<li>默认就是原来的名字</li>
-<li>可以使用as关键字重命名</li>
-<li><strong>支持通配符 <code>*</code>，表示整体加载模块</strong><ul>
-<li>模块整体加载所在的那个对象，应该是可以静态分析的，所以<strong>不允许运行时改变</strong><ul>
-<li><strong>对象本身及对象属性，不允许赋值</strong></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>静态执行<ul>
-<li><strong>不能使用表达式和变量</strong><ul>
-<li>这些只有在运行时才能得到结果</li>
-</ul>
-</li>
-<li>具有提升效果<ul>
-<li>即使卸载文件末尾，也会提升到整个模块的头部，首先执行</li>
-</ul>
-</li>
-<li>会<strong>执行所加载的模块</strong><ul>
-<li>多次重复执行同一句import语句，只会执行一次</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>实例：import</p>
-<pre><code>// main.js
-import {firstName, lastName, year} from &apos;./profile.js&apos;;
-</code></pre><p>实例：输入变量只读</p>
-<pre><code>import {a} from &apos;./xxx.js&apos;
-a = {}; // Syntax Error : &apos;a&apos; is read-only;
-a.foo = &apos;hello&apos;; // 合法操作。强烈建议不要改
-</code></pre><p>实例：模块整体加载，所在对象不允许运行时修改</p>
-<pre><code>// circle.js
-export function area(radius) {
-  return Math.PI * radius * radius;
-}
-export function circumference(radius) {
-  return 2 * Math.PI * radius;
-}
-
-// main.js 加载模块：逐一指定要加载的方法，整体加载的写法如下。
-import { area, circumference } from &apos;./circle&apos;;
-console.log(&apos;圆面积：&apos; + area(4));
-console.log(&apos;圆周长：&apos; + circumference(14));
-
-// main.js 加载模块：整体加载模块
-import * as circle from &apos;./circle&apos;;
-console.log(&apos;圆面积：&apos; + circle.area(4));
-console.log(&apos;圆周长：&apos; + circle.circumference(14));
-// 下面两行都是不允许的
-circle.foo = &apos;hello&apos;;
-circle.area = function () {};
-    模块整体加载所在的那个对象（上例是circle），应该是可以静态分析的，
-    所以不允许运行时改变。下面的写法都是不允许的。
-</code></pre><h1 id="export-default-命令"><a href="#export-default-命令" class="headerlink" title="export default 命令"></a>export default 命令</h1><p><strong>为模块指定默认输出(唯一一个)</strong></p>
-<ul>
-<li>方便用户，不用阅读文档就能加载模块<ul>
-<li>import命令需要知道所要加载的变量名或函数名</li>
-<li>默认输出只有唯一一个，在输出和输入时<strong>接口名不需要大括号</strong></li>
-</ul>
-</li>
-<li>本质就是输出一个叫做default的接口。把default后面的值赋给default<ul>
-<li>跟常量值</li>
-<li>跟变量<ul>
-<li>不能跟变量声明</li>
-</ul>
-</li>
-<li>跟类</li>
-</ul>
-</li>
-</ul>
-<p>实例：</p>
-<pre><code>// export-default.js
-export default function () {
-  console.log(&apos;foo&apos;);
-}
-//第二种写法
-function foo() {
-  console.log(&apos;foo&apos;);
-}
-export default foo;
-
-// import-default.js
-import customName from &apos;./export-default&apos;;
-customName(); // &apos;foo&apos;
-</code></pre><p>实例：不能跟变量声明</p>
-<pre><code>// 正确
-export var a = 1;
-
-// 正确
-var a = 1;
-export default a;
-
-// 错误
-export default var a = 1;
-</code></pre><p>实例：一条import语句中，同时输入默认方法和其他接口</p>
-<pre><code>import _, { each, each as forEach } from &apos;lodash&apos;;
-</code></pre><h1 id="export-与-import-的复合写法"><a href="#export-与-import-的复合写法" class="headerlink" title="export 与 import 的复合写法"></a>export 与 import 的复合写法</h1><p>在一个模块之中，<strong>先输入后输出同一个模块</strong></p>
-<p>模块实际上并没有被导入当前模块，只是相当于<strong>对外转发</strong>了模块接口，导致当前模块不能直接使用改模块。</p>
-<pre><code>export { foo, bar } from &apos;my_module&apos;;
-
-// 可以简单理解为
-import { foo, bar } from &apos;my_module&apos;;
-export { foo, bar };
-</code></pre><p>实例：接口改名</p>
-<pre><code>// 接口改名
-export { foo as myFoo } from &apos;my_module&apos;;
-</code></pre><p>实例：整体输出</p>
-<pre><code>export * from &apos;my_module&apos;;
-</code></pre><p>实例：具名接口改为默认接口</p>
-<pre><code>export { es6 as default } from &apos;./someModule&apos;;
-
-// 等同于
-import { es6 } from &apos;./someModule&apos;;
-export default es6;
-</code></pre><p>实例：默认接口改名为具名接口</p>
-<pre><code>export { default as es6 } from &apos;./someModule&apos;;
-</code></pre><h1 id="模块的继承"><a href="#模块的继承" class="headerlink" title="模块的继承"></a>模块的继承</h1><p>模块之间也可以继承</p>
-<h1 id="跨模块常量"><a href="#跨模块常量" class="headerlink" title="跨模块常量"></a>跨模块常量</h1><pre><code>// constants.js 模块
-export const A = 1;
-export const B = 3;
-export const C = 4;
-
-// test1.js 模块
-import * as constants from &apos;./constants&apos;;
-console.log(constants.A); // 1
-console.log(constants.B); // 3
-
-// test2.js 模块
-import {A, B} from &apos;./constants&apos;;
-console.log(A); // 1
-console.log(B); // 3
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/02/JS/ES6-数组的扩展/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/02/JS/ES6-数组的扩展/" itemprop="url">ES6-数组的扩展</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-02T10:57:20+08:00">
-                2018-08-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="扩展运算符"><a href="#扩展运算符" class="headerlink" title="扩展运算符"></a>扩展运算符</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
-<li>三个点 <code>...</code></li>
-<li>rest 参数的逆运算</li>
-<li>将数组转为<strong>逗号分隔的参数序列</strong></li>
-</ul>
-<h2 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h2><h3 id="函数调用"><a href="#函数调用" class="headerlink" title="函数调用"></a>函数调用</h3><p>主要用于<strong>函数调用</strong>。 </p>
-<pre><code>function add(x, y) {
-  return x + y;
-}
-const numbers = [4, 38];
-add(...numbers) // 42
-</code></pre><p>扩展运算符与正常的函数参数结合使用，非常灵活。</p>
-<pre><code>console.log(1, ...[2, 3, 4], 5)
-// 1 2 3 4 5
-</code></pre><h3 id="表达式"><a href="#表达式" class="headerlink" title="表达式"></a>表达式</h3><p>扩展运算符后面还可以放置<strong>表达式</strong></p>
-<pre><code>const arr = [
-  ...(x &gt; 0 ? [&apos;a&apos;] : []),
-  &apos;b&apos;,
-];
-</code></pre><h3 id="替代函数的-apply-方法"><a href="#替代函数的-apply-方法" class="headerlink" title="替代函数的 apply 方法"></a>替代函数的 apply 方法</h3><p>不再需要apply方法，将数组转为函数的参数</p>
-<pre><code>// ES5 的写法
-function f(x, y, z) {
-  // ...
-}
-var args = [0, 1, 2];
-f.apply(null, args);
-
-// ES6的写法
-function f(x, y, z) {
-  // ...
-}
-let args = [0, 1, 2];
-f(...args);
-</code></pre><h3 id="复制数组和合并数组"><a href="#复制数组和合并数组" class="headerlink" title="复制数组和合并数组"></a>复制数组和合并数组</h3><p>实例：克隆数组a1</p>
-<pre><code>//ES5 只能用变通方法来复制数组。
-const a1 = [1, 2];
-const a2 = a1.concat();
-a2[0] = 2;
-a1 // [1, 2]
-
-//ES6简便写法
-const a1 = [1, 2];
-// 写法一
-const a2 = [...a1];
-// 写法二
-const [...a2] = a1;
-</code></pre><p>实例：合并数组</p>
-<pre><code>const arr1 = [&apos;a&apos;, &apos;b&apos;];
-const arr2 = [&apos;c&apos;];
-const arr3 = [&apos;d&apos;, &apos;e&apos;];
-
-// ES5 的合并数组
-arr1.concat(arr2, arr3);
-// [ &apos;a&apos;, &apos;b&apos;, &apos;c&apos;, &apos;d&apos;, &apos;e&apos; ]
-
-// ES6 的合并数组
-[...arr1, ...arr2, ...arr3]
-// [ &apos;a&apos;, &apos;b&apos;, &apos;c&apos;, &apos;d&apos;, &apos;e&apos; ]
-</code></pre><p><strong>注意</strong>：扩展运算符和concat都是<strong>浅拷贝</strong></p>
-<h3 id="与解构赋值结合"><a href="#与解构赋值结合" class="headerlink" title="与解构赋值结合"></a>与解构赋值结合</h3><p>实例：与解构赋值结合起来，用于生成数组</p>
-<pre><code>// ES5
-a = list[0], rest = list.slice(1)
-// ES6
-[a, ...rest] = list
-</code></pre><p>注意：<strong>扩展运算符用于数组赋值，只能放在参数的最后一位</strong>，否则会报错</p>
-<h3 id="将Iterator-接口对象转为真正的数组"><a href="#将Iterator-接口对象转为真正的数组" class="headerlink" title="将Iterator 接口对象转为真正的数组"></a>将Iterator 接口对象转为真正的数组</h3><p><strong>扩展运算符内部调用的是数据结构的 Iterator 接口</strong>，只要具有 Iterator 接口的对象，都可以使用扩展运算符</p>
-<h4 id="字符串"><a href="#字符串" class="headerlink" title="字符串"></a>字符串</h4><p><strong>能够正确识别四个字节的 Unicode 字符</strong></p>
-<pre><code>[...&apos;hello&apos;]
-// [ &quot;h&quot;, &quot;e&quot;, &quot;l&quot;, &quot;l&quot;, &quot;o&quot; ]
-</code></pre><h4 id="Map-和-Set-结构"><a href="#Map-和-Set-结构" class="headerlink" title="Map 和 Set 结构"></a>Map 和 Set 结构</h4><h4 id="Generator-函数"><a href="#Generator-函数" class="headerlink" title="Generator 函数"></a>Generator 函数</h4><h1 id="Array-from"><a href="#Array-from" class="headerlink" title="Array.from()"></a>Array.from()</h1><p><strong>将两类对象转为数组</strong>：</p>
-<ul>
-<li><strong>类似数组的对象</strong>(array-like object)<ul>
-<li>必须<strong>有length属性</strong></li>
-</ul>
-</li>
-<li><strong>可遍历的对象</strong>(iterable object)<ul>
-<li><strong>Iterator 接口对象</strong><ul>
-<li>包括 ES6 新增的数据结构 Set 和 Map</li>
-<li>扩展运算符只支持这一种对象转真正数组</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>实例：类似数组的对象转为真正的数组</p>
-<pre><code>let arrayLike = {
-    &apos;0&apos;: &apos;a&apos;,
-    &apos;1&apos;: &apos;b&apos;,
-    &apos;2&apos;: &apos;c&apos;,
-    length: 3
-};
-
-// ES5的写法
-var arr1 = [].slice.call(arrayLike); // [&apos;a&apos;, &apos;b&apos;, &apos;c&apos;]
-
-// ES6的写法
-let arr2 = Array.from(arrayLike); // [&apos;a&apos;, &apos;b&apos;, &apos;c&apos;]
-</code></pre><p><strong>第二个参数</strong>，作用类似于数组的<strong>map</strong>方法，用来对每个元素进行处理，将处理后的值放入返回的数组</p>
-<pre><code>Array.from([1, 2, 3], (x) =&gt; x * x)
-// [1, 4, 9]
-Array.from([1, 2, 3]).map((x) =&gt; x * x);
-</code></pre><p>如果map函数里面用到了this关键字，还可以传入Array.from的<strong>第三个参数</strong>，用来<strong>绑定this</strong>。</p>
-<h1 id="Array-of"><a href="#Array-of" class="headerlink" title="Array.of()"></a>Array.of()</h1><p><strong>将一组值转换为数组</strong>。主要目的：弥补数组构造函数行为差异问题，<strong>统一数组创建行为</strong></p>
-<pre><code>Array() // []
-Array(3) // [, , ,]
-Array(3, 11, 8) // [3, 11, 8]
-
-Array.of() // []
-Array.of(3) // [3]
-Array.of(3, 11, 8) // [3,11,8]
-</code></pre><h1 id="copyWithin"><a href="#copyWithin" class="headerlink" title="copyWithin()"></a>copyWithin()</h1><p>将指定位置的成员复制到其他位置(覆盖原有成员)，然后返回当前数组</p>
-<pre><code>copyWithin(target, start = 0, end = this.length)
-    负值，表示倒数。从-1开始
-    正值，顺数，从0开始
-    start,end是前开后闭区间。即最后位置=end位置-1
-</code></pre><p>实例：</p>
-<pre><code>[1, 2, 3, 4, 5].copyWithin(0, 3)
-// [4, 5, 3, 4, 5]
-
-// 将3号位复制到0号位
-[1, 2, 3, 4, 5].copyWithin(0, 3, 4)
-// [4, 2, 3, 4, 5]
-
-// -2相当于3号位，-1相当于4号位
-[1, 2, 3, 4, 5].copyWithin(0, -2, -1)
-// [4, 2, 3, 4, 5]
-</code></pre><h1 id="find-和-findIndex"><a href="#find-和-findIndex" class="headerlink" title="find() 和 findIndex()"></a>find() 和 findIndex()</h1><p>find()返回<strong>第一个</strong>符合条件的数组成员。没有符合条件的成员返回<strong>undefined</strong></p>
-<p>findIndex()返回<strong>第一个</strong>符合条件的数组成员的位置。没有符合条件的成员返回<strong>-1</strong>。</p>
-<p>这两个方法都<strong>可以发现NaN</strong>，弥补了数组的indexOf方法的不足</p>
-<ul>
-<li>两个参数<ul>
-<li>一个回调函数<ul>
-<li>可以接受三个参数(后两个可以省略)，依次为<ul>
-<li>当前的值</li>
-<li>当前的位置</li>
-<li>原数组。</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>一个对象。可省略<ul>
-<li>绑定回调函数的this对象</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>所有数组成员依次执行该回调函数</li>
-<li>直到找出第一个返回值为true的成员</li>
-<li>然后返回该成员/成员的位置</li>
-</ul>
-<p>实例：</p>
-<pre><code>[1, 4, -5, 10].find((n) =&gt; n &lt; 0)
-// -5
-
-[1, 5, 10, 15].find(function(value, index, arr) {
-  return value &gt; 9;
-}) // 10
-</code></pre><h1 id="fill"><a href="#fill" class="headerlink" title="fill()"></a>fill()</h1><p>使用给定值，填充一个数组</p>
-<pre><code>fill(target, start = 0, end = this.length)
-    前开后闭区间
-    如果填充的类型为对象，那么被赋值的是同一个内存地址的对象，而不是深拷贝对象
-</code></pre><p>实例</p>
-<pre><code>[&apos;a&apos;, &apos;b&apos;, &apos;c&apos;].fill(7)
-// [7, 7, 7]
-
-let arr = new Array(3).fill({name: &quot;Mike&quot;});
-arr[0].name = &quot;Ben&quot;;
-arr
-// [{name: &quot;Ben&quot;}, {name: &quot;Ben&quot;}, {name: &quot;Ben&quot;}]
-</code></pre><h1 id="entries-，keys-和-values"><a href="#entries-，keys-和-values" class="headerlink" title="entries()，keys() 和 values()"></a>entries()，keys() 和 values()</h1><p>返回一个<strong>遍历器对象</strong>，用于遍历数组</p>
-<p><strong>数组的键名就是索引值</strong></p>
-<h1 id="includes"><a href="#includes" class="headerlink" title="includes()"></a>includes()</h1><p>某个数组是否包含给定的值。</p>
-<p><strong>支持NaN</strong></p>
-<pre><code>includes(target, start = 0)
-    负数，倒数，从-1开始
-</code></pre><p>实例</p>
-<pre><code>[1, 2, 3].includes(2)     // true
-[1, 2, NaN].includes(NaN) // true
-</code></pre><h1 id="空位"><a href="#空位" class="headerlink" title="空位"></a>空位</h1><p><strong>空位，数组的某一个位置没有任何值(等于undefined，依然是有值的)</strong></p>
-<p>Array构造函数返回的数组都是空位</p>
-<pre><code>Array(3) // [, , ,]
-</code></pre><p><strong>空位的处理规则非常不统一，避免出现空位</strong></p>
-<p>遍历，查找等数组操作，对空位处理不统一，有跳过的，有转为undefined的</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/02/JS/ES6-class/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/02/JS/ES6-class/" itemprop="url">ES6-class</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-02T10:34:20+08:00">
-                2018-08-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="定义和使用"><a href="#定义和使用" class="headerlink" title="定义和使用"></a>定义和使用</h1><ul>
-<li><strong>语法糖</strong>。更像面向对象编程的语法而已</li>
-<li><strong>本质是函数</strong>。可以看作构造函数的另一种写法<ul>
-<li>但是<strong>只能通过new调用</strong></li>
-</ul>
-</li>
-<li>属性。<ul>
-<li>默认定义在原型上</li>
-<li>可以显式定义在其本身<ul>
-<li>即定义在this对象上</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>方法定义前不需要function关键字<ul>
-<li>类内定义的方法，都是不可枚举的</li>
-</ul>
-</li>
-<li><strong>constructor()</strong><ul>
-<li>类的默认方法<ul>
-<li>没有显式定义，自动生成一个空实现</li>
-</ul>
-</li>
-<li>new对象实例时，自动调用该方法</li>
-<li>默认返回实例对象。不需要显式返回<ul>
-<li>可以强制return其他对象</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>严格模式</strong><ul>
-<li>类和模块的内部，默认就是严格模式</li>
-<li>所有的代码，其实都是运行在模块之中，所以 ES6 实际上把整个语言升级到了严格模式。</li>
-</ul>
-</li>
-<li><strong>所有实例共享一个原型对象</strong></li>
-<li><strong>不存在变量提升</strong>。 先定义，后使用<ul>
-<li>此规定能保证子类在父类之后定义</li>
-</ul>
-</li>
-</ul>
-<p>实例：</p>
-<pre><code>class Point {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-  }
-  toString() {
-    return &apos;(&apos; + this.x + &apos;, &apos; + this.y + &apos;)&apos;;
-  }
-}
-
-typeof Point // &quot;function&quot;
-Point === Point.prototype.constructor // true
-
-Object.keys(Point.prototype)
-// []
-Object.getOwnPropertyNames(Point.prototype)
-// [&quot;constructor&quot;,&quot;toString&quot;]
-
-point.hasOwnProperty(&apos;x&apos;) // true
-point.hasOwnProperty(&apos;y&apos;) // true
-point.hasOwnProperty(&apos;toString&apos;) // false
-point.__proto__.hasOwnProperty(&apos;toString&apos;) // true
-</code></pre><p>实例：所有实例共享一个原型对象</p>
-<pre><code>var p1 = new Point(2,3);
-var p2 = new Point(3,2);
-p1.__proto__ === p2.__proto__
-//true
-</code></pre><h2 id="匿名类"><a href="#匿名类" class="headerlink" title="匿名类"></a>匿名类</h2><pre><code>let person = new class {
-  constructor(name) {
-    this.name = name;
-  }
-
-  sayName() {
-    console.log(this.name);
-  }
-}(&apos;张三&apos;);
-person.sayName(); // &quot;张三&quot;
-</code></pre><h2 id="私有属性"><a href="#私有属性" class="headerlink" title="私有属性"></a>私有属性</h2><p><strong>ES6 不支持私有属性</strong></p>
-<h3 id="现有方案"><a href="#现有方案" class="headerlink" title="现有方案"></a>现有方案</h3><h4 id="约定前缀下划线表示私有"><a href="#约定前缀下划线表示私有" class="headerlink" title="约定前缀下划线表示私有"></a>约定前缀下划线表示私有</h4><h4 id="将方法移出模块"><a href="#将方法移出模块" class="headerlink" title="将方法移出模块"></a>将方法移出模块</h4><p>因为模块内部的所有方法都是对外可见</p>
-<pre><code>class Widget {
-  foo (baz) {
-    bar.call(this, baz);
-  }
-}
-function bar(baz) {
-  return this.snaf = baz;
-}
-bar实际上成为了当前模块的私有方法
-</code></pre><h4 id="命名为一个Symbol值"><a href="#命名为一个Symbol值" class="headerlink" title="命名为一个Symbol值"></a>命名为一个Symbol值</h4><p>利用Symbol值的唯一性</p>
-<pre><code>const bar = Symbol(&apos;bar&apos;);
-const snaf = Symbol(&apos;snaf&apos;);
-export default class myClass{
-  [bar](baz) {
-    return this[snaf] = baz;
-  }
-};
-
-bar和snaf都是Symbol值，导致第三方无法获取到它们
-因此达到了私有方法和私有属性的效果
-</code></pre><h3 id="私有属性的提案"><a href="#私有属性的提案" class="headerlink" title="私有属性的提案"></a>私有属性的提案</h3><p><strong>使用#前缀表示私有属性</strong></p>
-<ul>
-<li>没有采用private关键字，是因为 JavaScript 是动态语言，使用独立的符号似乎是唯一的可靠方法</li>
-</ul>
-<p>实例</p>
-<pre><code>class Foo {
-  #a;
-  #b;
-  #sum() { return #a + #b; }
-  constructor(a, b) { #a = a; #b = b; }
-}
-</code></pre><h1 id="静态方法"><a href="#静态方法" class="headerlink" title="静态方法"></a>静态方法</h1><ul>
-<li>方法前，加上static关键字</li>
-<li>直接通过类来调用</li>
-<li>不会被实例继承<ul>
-<li>在实例上调用静态方法，会抛出一个不存在该方法错误</li>
-</ul>
-</li>
-<li>静态方法中this关键字指的是类</li>
-<li>可以被子类继承</li>
-</ul>
-<p>ES6 明确规定，Class 内部只有静态方法，<strong>没有静态属性</strong></p>
-<h1 id="new-target-属性"><a href="#new-target-属性" class="headerlink" title="new.target 属性"></a>new.target 属性</h1><p><strong>返回new命令作用于的构造函数</strong></p>
-<ul>
-<li><strong>返回值就是当前类</strong>。子类继承父类时，返回<strong>子类</strong><ul>
-<li><strong>类中</strong>调用：类严格等于构造函数。类本质是函数，是构造函数的另一种写法</li>
-<li><strong>函数中</strong>调用：函数也是对象。</li>
-</ul>
-</li>
-<li>构造函数不是通过new命令调用的，new.target会返回<strong>undefined</strong></li>
-</ul>
-<p>实例</p>
-<pre><code>function Person(name) {
-  if (new.target === Person) {
-    this.name = name;
-  } else {
-    throw new Error(&apos;必须使用 new 命令生成实例&apos;);
-  }
-}
-
-class Rectangle {
-  constructor(length, width) {
-    console.log(new.target === Rectangle); //true
-    this.length = length;
-    this.width = width;
-  }
-}
-
-class Square extends Rectangle {
-  constructor(length) { //false。返回的是子类
-    super(length, length);
-  }
-}    
-</code></pre><h1 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h1><h2 id="extends"><a href="#extends" class="headerlink" title="extends"></a>extends</h2><p><strong>通过extends关键字实现继承</strong></p>
-<ul>
-<li>必须在constructor()中调用super方法</li>
-<li>调用super之后，才可以使用this关键字</li>
-</ul>
-<h2 id="Object-getPrototypeOf"><a href="#Object-getPrototypeOf" class="headerlink" title="Object.getPrototypeOf()"></a>Object.getPrototypeOf()</h2><p><strong>获取父类</strong></p>
-<pre><code>Object.getPrototypeOf(ColorPoint) === Point
-// true
-</code></pre><h1 id="原生构造函数的继承"><a href="#原生构造函数的继承" class="headerlink" title="原生构造函数的继承"></a>原生构造函数的继承</h1><h2 id="原生构造函数"><a href="#原生构造函数" class="headerlink" title="原生构造函数"></a>原生构造函数</h2><p><strong>语言内置的构造函数，通常用来生成数据结构</strong></p>
-<p>大致有下面这些。</p>
-<ul>
-<li>Object()</li>
-<li>Boolean()</li>
-<li>Number()</li>
-<li>String()</li>
-<li>Array()</li>
-<li>Date()</li>
-<li>Function()</li>
-<li>RegExp()</li>
-<li>Error()</li>
-</ul>
-<h2 id="继承的实现"><a href="#继承的实现" class="headerlink" title="继承的实现"></a>继承的实现</h2><p>ES5 的继承，实质是<strong>先创造子类的实例对象this</strong>，然后再将父类的方法添加到this上面（Parent.apply(this)）。</p>
-<p>ES6 的继承机制完全不同，实质是<strong>新建父类的实例对象this</strong>（所以必须先调用super方法），然后再用子类的构造函数修改this</p>
-<h2 id="原生构造函数的继承-1"><a href="#原生构造函数的继承-1" class="headerlink" title="原生构造函数的继承"></a>原生构造函数的继承</h2><h3 id="ES5无法继承"><a href="#ES5无法继承" class="headerlink" title="ES5无法继承"></a>ES5无法继承</h3><p>子类无法获得原生构造函数的内部属性，通过Array.apply()或者分配给原型对象都不行。原生构造函数会忽略apply方法传入的this，也就是说，原生构造函数的this无法绑定，导致拿不到内部属性。</p>
-<p>ES5 是先新建子类的实例对象this，再将父类的属性添加到子类上，由于父类的内部属性无法获取，导致无法继承原生的构造函数。</p>
-<h3 id="ES6允许继承原生构造函数"><a href="#ES6允许继承原生构造函数" class="headerlink" title="ES6允许继承原生构造函数"></a>ES6允许继承原生构造函数</h3><p><strong>继承Object的子类，有一个行为差异。</strong></p>
-<p>ES6 改变了Object构造函数的行为，一旦发现Object方法不是通过new Object()这种形式调用，Object构造函数会忽略参数。</p>
-<pre><code>class NewObj extends Object{
-  constructor(){
-    super(...arguments);
-  }
-}
-var o = new NewObj({attr: true});
-o.attr === true  // false
-</code></pre><h1 id="Mixin-模式的实现"><a href="#Mixin-模式的实现" class="headerlink" title="Mixin 模式的实现"></a>Mixin 模式的实现</h1><p><strong>Mixin 指的是多个对象合成一个新的对象，新对象具有各个组成成员的接口</strong></p>
-<p>实例：最简单实现</p>
-<pre><code>const a = {
-  a: &apos;a&apos;
-};
-const b = {
-  b: &apos;b&apos;
-};
-const c = {...a, ...b}; // {a: &apos;a&apos;, b: &apos;b&apos;}
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/JS/ES6-字符串的扩展/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/01/JS/ES6-字符串的扩展/" itemprop="url">ES6-字符串的扩展</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-01T17:11:20+08:00">
-                2018-08-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Unicode-表示法"><a href="#Unicode-表示法" class="headerlink" title="Unicode 表示法"></a>Unicode 表示法</h1><p>JavaScript 内部，字符以 <strong>UTF-16</strong> 的格式储存，<strong>每个字符固定为2个字节</strong></p>
-<p>Unicode 码点大于0xFFFF的字符，需要4个字节储存，JavaScript 会认为它们是两个字符</p>
-<p>JavaScript</p>
-<ul>
-<li>用<strong>\uxxxx</strong>形式表示一个字符<ul>
-<li>只限于码点在\u0000~\uFFFF之间的字符。</li>
-</ul>
-</li>
-<li>超出范围的字符，必须用<strong>两个双字节</strong>的形式表示。</li>
-</ul>
-<p><strong>ES6将码点放入大括号，支持全码点</strong></p>
-<p><strong>大括号表示法与四字节的 UTF-16 编码是等价的</strong></p>
-<pre><code>&quot;\u0061&quot; // &quot;a&quot;
-
-&quot;\u20BB7&quot; // &quot; 7&quot;。 
-    JavaScript 会理解成\u20BB+7。
-    由于\u20BB是一个不可打印字符，所以只会显示一个空格，后面跟着一个7。
-
-&quot;\uD842\uDFB7&quot; // &quot;𠮷&quot;
-
-&quot;\u{20BB7}&quot; // &quot;𠮷&quot;
-
-&apos;\u{1F680}&apos; === &apos;\uD83D\uDE80&apos; // true
-    大括号表示法与四字节的 UTF-16 编码是等价的
-</code></pre><p>这样共有 6 种方法可以表示一个字符</p>
-<pre><code>&apos;\z&apos; === &apos;z&apos;  // true
-&apos;\172&apos; === &apos;z&apos; // true
-&apos;\x7A&apos; === &apos;z&apos; // true
-&apos;\u007A&apos; === &apos;z&apos; // true
-&apos;\u{7A}&apos; === &apos;z&apos; // true
-</code></pre><h1 id="codePointAt"><a href="#codePointAt" class="headerlink" title="codePointAt()"></a>codePointAt()</h1><p>对于这种4个字节的字符，JavaScript 不能正确处理</p>
-<ul>
-<li>字符串长度会误判为2</li>
-<li>charAt方法无法读取整个字符</li>
-<li>charCodeAt方法只能分别返回前两个字节和后两个字节的值</li>
-</ul>
-<p>ES6 提供了codePointAt方法，能够正确处理 4 个字节储存的字符，返回一个字符的十进制码点。</p>
-<pre><code>let s = &apos;𠮷a&apos;;
-s.codePointAt(0).toString(16) // &quot;20bb7&quot;
-s.codePointAt(2).toString(16) // &quot;61&quot;
-</code></pre><h1 id="String-fromCodePoint"><a href="#String-fromCodePoint" class="headerlink" title="String.fromCodePoint"></a>String.fromCodePoint</h1><p>弥补了String.fromCharCode方法的不足(不能识别大于0xFFFF的码点)。</p>
-<p>作用正好与codePointAt方法相反</p>
-<h1 id="字符串的遍历器接口"><a href="#字符串的遍历器接口" class="headerlink" title="字符串的遍历器接口"></a>字符串的遍历器接口</h1><p>ES6 为字符串添加了遍历器接口，使得字符串可以被 <code>for...of</code> 循环遍历</p>
-<p>最大的优点是可以识别大于0xFFFF的码点</p>
-<pre><code>for (let codePoint of &apos;foo&apos;) {
-  console.log(codePoint)
-}
-// &quot;f&quot;
-// &quot;o&quot;
-// &quot;o&quot;
-</code></pre><h1 id="at"><a href="#at" class="headerlink" title="at()"></a>at()</h1><p>charAt()不能识别码点大于0xFFFF的字符</p>
-<pre><code>&apos;𠮷&apos;.charAt(0) // &quot;\uD842&quot;
-&apos;𠮷&apos;.at(0) // &quot;𠮷&quot;
-</code></pre><h1 id="normalize"><a href="#normalize" class="headerlink" title="normalize()"></a>normalize()</h1><p>许多欧洲语言有<strong>语调符号和重音符号</strong>。</p>
-<p>为了表示它们，Unicode 提供了两种方法。在<strong>视觉和语义上都等价</strong></p>
-<ul>
-<li><strong>直接提供</strong>带重音符号的字符<ul>
-<li>比如Ǒ（\u01D1）。</li>
-</ul>
-</li>
-<li><strong>提供合成</strong>符号（combining character），即原字符与重音符号的合成，两个字符合成一个字符，<ul>
-<li>比如O（\u004F）和ˇ（\u030C）合成Ǒ（\u004F\u030C）</li>
-</ul>
-</li>
-</ul>
-<p>JavaScript不能识别，<strong>将合成字符视为两个字符</strong></p>
-<p>ES6 提供<strong>normalize()</strong>，用来将字符的不同表示方法统一为同样的形式，这称为 <strong>Unicode 正规化</strong></p>
-<ul>
-<li>目前不能识别三个或三个以上字符的合成<ul>
-<li>只能使用正则表达式，通过 Unicode 编号区间判断</li>
-</ul>
-</li>
-<li>接受一个参数来指定normalize的方式<ul>
-<li><strong>NFC</strong>，<strong>默认</strong>参数<ul>
-<li>“标准等价合成”（Normalization Form Canonical Composition）</li>
-<li>视觉和语义上等价。</li>
-</ul>
-</li>
-<li><strong>NFD</strong><ul>
-<li>“标准等价分解”（Normalization Form Canonical Decomposition）</li>
-</ul>
-</li>
-<li><strong>NFKC</strong><ul>
-<li>“兼容等价合成”（Normalization Form Compatibility Composition），</li>
-<li>语义上等价，但视觉上不等价，比如“囍”和“喜喜”。（这只是用来举例，normalize方法不能识别中文。）</li>
-</ul>
-</li>
-<li><strong>NFKD</strong><ul>
-<li>“兼容等价分解”（Normalization Form Compatibility Decomposition</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>canonical    英[kəˈnɒnɪkl] 权威的</p>
-<h1 id="includes-startsWith-endsWith"><a href="#includes-startsWith-endsWith" class="headerlink" title="includes(), startsWith(), endsWith()"></a>includes(), startsWith(), endsWith()</h1><p>第二个参数(可省略)，表示开始搜索的位置</p>
-<ul>
-<li>从第n个位置</li>
-<li>endsWith，前n个字符</li>
-</ul>
-<p>实例</p>
-<pre><code>let s = &apos;Hello world!&apos;;
-s.startsWith(&apos;world&apos;, 6) // true
-s.includes(&apos;Hello&apos;, 6) // false
-s.endsWith(&apos;Hello&apos;, 5) // true
-</code></pre><h1 id="repeat"><a href="#repeat" class="headerlink" title="repeat()"></a>repeat()</h1><p>将原字符串重复n次，返回一个新字符串</p>
-<pre><code>&apos;hello&apos;.repeat(2) // &quot;hellohello&quot;
-&apos;na&apos;.repeat(0) // &quot;&quot;
-</code></pre><h1 id="padStart-，padEnd"><a href="#padStart-，padEnd" class="headerlink" title="padStart()，padEnd()"></a>padStart()，padEnd()</h1><p>补全长度</p>
-<p>两个参数</p>
-<ul>
-<li>第一个参数用来指定字符串的<strong>最小长度</strong><ul>
-<li>原字符串的长度 &gt;= 最小长度，返回原字符串</li>
-<li>原字符串长度+补全字符串长度 &gt; 最小长度，截去超出位数的补全字符串</li>
-</ul>
-</li>
-<li>第二个参数是<strong>用来补全的字符串</strong><ul>
-<li>默认值为空格</li>
-</ul>
-</li>
-</ul>
-<p>实例</p>
-<pre><code>&apos;abc&apos;.padStart(10, &apos;0123456789&apos;)
-// &apos;0123456abc&apos;
-</code></pre><h1 id="matchAll"><a href="#matchAll" class="headerlink" title="matchAll()"></a>matchAll()</h1><p>返回一个正则表达式在当前字符串的所有匹配</p>
-<h1 id="模板字符串-template-string"><a href="#模板字符串-template-string" class="headerlink" title="模板字符串(template string)"></a>模板字符串(template string)</h1><p><strong>增强版</strong>的字符串，用<strong>反引号 `</strong> 标识。</p>
-<ul>
-<li>当作普通字符串</li>
-<li>定义多行字符串<ul>
-<li>所有的空格和缩进都会被保留在输出之中<ul>
-<li>不想要，可以使用trim方法消除</li>
-</ul>
-</li>
-</ul>
-</li>
-<li>在字符串中嵌入变量。<ul>
-<li>变量名写在 <code>${}</code> 之中</li>
-<li>变量可以是任意的 JavaScript 表达式。本质就是执行JavaScript代码<ul>
-<li>运算</li>
-<li>对象属性</li>
-<li>函数调用</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>在模板字符串中使用反引号，则前面要用反斜杠转义</p>
-<pre><code>`User ${user.name} is not authorized to do ${action}.`;
-
-`Hello ${&apos;World&apos;}`
-// &quot;Hello World&quot;
-    本质就是执行JavaScript代码。字符串，将会原样输出
-</code></pre><p><strong>模板字符串能嵌套</strong></p>
-<h1 id="标签模板-tagged-template"><a href="#标签模板-tagged-template" class="headerlink" title="标签模板(tagged template)"></a>标签模板(tagged template)</h1><ul>
-<li>其实不是模板</li>
-<li>而是<strong>函数调用</strong>的一种特殊形式。<ul>
-<li>“标签”指的就是函数</li>
-<li>紧跟在后面的模板字符串就是它的参数。<ul>
-<li>模板字符里面有变量，会将模板字符串先处理成多个参数，再调用函数</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><ul>
-<li><strong>过滤 HTML 字符串，防止用户输入恶意内容</strong></li>
-<li><strong>国际化</strong>处理。多语言转换</li>
-</ul>
-<p>实例</p>
-<pre><code>let a = 5;
-let b = 10;
-tag`Hello ${ a + b } world ${ a * b }`;
-// 等同于
-tag([&apos;Hello &apos;, &apos; world &apos;, &apos;&apos;], 15, 50);
-
-    第一个参数是一个数组
-        该数组的成员是模板字符串中那些没有变量替换的部分
-    其他参数
-        模板字符串各个变量被替换后的值
-</code></pre><h1 id="String-raw"><a href="#String-raw" class="headerlink" title="String.raw()"></a>String.raw()</h1><p>返回 <strong>斜杠都被转义</strong>和<strong>变量都被替换</strong>的模板字符串</p>
-<pre><code>String.raw`Hi\n${2+3}!`;
-// 返回 &quot;Hi\\n5!&quot;
-
-String.raw`Hi\u000A!`;
-// 返回 &quot;Hi\\u000A!&quot;
-
-String.raw`Hi\\n`
-// 返回 &quot;Hi\\\\n&quot;
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/08/01/JS/Redux教程/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/08/01/JS/Redux教程/" itemprop="url">Redux教程</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-01T15:41:20+08:00">
-                2018-08-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="基础使用"><a href="#基础使用" class="headerlink" title="基础使用"></a>基础使用</h1><h2 id="动机"><a href="#动机" class="headerlink" title="动机"></a>动机</h2><h3 id="让-state的变化变得可预测"><a href="#让-state的变化变得可预测" class="headerlink" title="让 state的变化变得可预测"></a>让 state的变化变得可预测</h3><p>随着 JavaScript 单页应用开发日趋复杂，JavaScript 需要管理比任何时候都要多的 state(状态)</p>
-<p>通过限制更新发生的时间和方式(三大原则)，让 state的变化变得可预测。</p>
-<h3 id="易于测试"><a href="#易于测试" class="headerlink" title="易于测试"></a>易于测试</h3><ul>
-<li>不需要模拟任何东西，因为它们都是纯函数。</li>
-<li>只需<strong>dispatch(action)，断言state变化</strong>，写测试就是这么简单</li>
-</ul>
-<h2 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h2><p>Redux核心概念没有任何魔法。两个普通JavaScript对象，一个普通JavaScript函数用来串联两个对象</p>
-<p>90% 的代码都是纯 JavaScript，没用 Redux、Redux API 和其它魔法。Redux 里有一些工具来简化这种模式，但是主要的想法是如何根据这些 action 对象来更新 state</p>
-<h3 id="state"><a href="#state" class="headerlink" title="state"></a>state</h3><p><strong>普通JavaScript对象，描述状态</strong></p>
-<p>实例：todo 应用的 state</p>
-<pre><code>{
-  todos: [{
-    id: 1
-    text: &apos;Eat food&apos;,
-    completed: true
-  }, {
-    id: 2
-    text: &apos;Exercise&apos;,
-    completed: false
-  }],
-  visibilityFilter: &apos;SHOW_COMPLETED&apos;
-}
-    visibilityFilter取值：SHOW_ALL,SHOW_ACTIVE
-</code></pre><h3 id="action"><a href="#action" class="headerlink" title="action"></a>action</h3><p><strong>普通JavaScript对象，描述已发生事件</strong></p>
-<ul>
-<li>必须使用一个字符串类型的 <code>type</code> 字段来表示将要执行的动作<ul>
-<li>实际开发中，type 会被定义成<strong>字符串常量</strong></li>
-</ul>
-</li>
-<li>大型应用建议使用单独的模块或文件来存放 action</li>
-<li><strong>尽量减少在 action 中传递的数据</strong></li>
-</ul>
-<p>实例</p>
-<pre><code>{ type: &apos;ADD_TODO&apos;, text: &apos;Go to swimming pool&apos; }
-{ type: &apos;TOGGLE_TODO&apos;, id: 1 }
-{ type: &apos;SET_VISIBILITY_FILTER&apos;, filter: &apos;SHOW_ALL&apos; }
-</code></pre><p>实例</p>
-<pre><code>const ADD_TODO = &apos;ADD_TODO&apos;
-
-import { ADD_TODO, REMOVE_TODO } from &apos;../actionTypes&apos;
-{ type: ADD_TODO, text: &apos;Build my first Redux app&apos; }
-</code></pre><h4 id="action-创建函数"><a href="#action-创建函数" class="headerlink" title="action 创建函数"></a>action 创建函数</h4><p>生成 action 的方法</p>
-<pre><code>let nextTodoId = 0
-export const addTodo = text =&gt; ({
-  type: &apos;ADD_TODO&apos;,
-  id: nextTodoId++,
-  text
-})
-</code></pre><h3 id="reducers"><a href="#reducers" class="headerlink" title="reducers"></a>reducers</h3><p><strong>普通JavaScript函数，描述action如何改变state</strong></p>
-<p><strong>接收 state 和 action，并返回新的 state</strong></p>
-<p><strong>是纯函数</strong>。保持 reducer 纯净非常重要，只单纯执行计算</p>
-<ul>
-<li><strong>相同的输入必须产生相同的输出</strong><ul>
-<li>只要传入参数相同，每次返回计算得到的 state 就一定相同</li>
-</ul>
-</li>
-<li><strong>不修改传入参数</strong></li>
-<li>不执行有副作用的操作<ul>
-<li>如 API 请求和路由跳转；<ul>
-<li>这些应该在 dispatch action 前发生</li>
-</ul>
-</li>
-</ul>
-</li>
-<li><strong>不调用非纯函数</strong><ul>
-<li>如 Date.now() 或 Math.random()。不能保证每次输出一致</li>
-</ul>
-</li>
-</ul>
-<p><strong>Redux 首次执行时，state 为 undefined，此时我们可借机设置并返回应用的初始 state</strong></p>
-<h4 id="根reducer"><a href="#根reducer" class="headerlink" title="根reducer"></a>根reducer</h4><ul>
-<li>调用你的一系列 reducer</li>
-<li>每个 reducer 处理 根据 key 筛选出 state 中的那部分数据</li>
-<li>将所有 reducer 的结果合并成一个大的对象 返回</li>
-</ul>
-<p>实际开发中，一般编写很多小reducer函数来分别管理 state 的一部分，再开发一个 根reducer 调用这些 reducer，实现管理整个应用的 state</p>
-<pre><code>function visibilityFilter(state = &apos;SHOW_ALL&apos;, action) {
-  switch (action.type) {
-    case &apos;SET_VISIBILITY_FILTER&apos;:
-      return action.filter
-    default:
-      return state
-  }
-}
-
-function todos(state = [], action) {
-    switch (action.type) {
-        case &apos;ADD_TODO&apos;:
-          return [
-            ...state,
-            {
-              id: action.id,
-              text: action.text,
-              completed: false
-            }
-          ]
-        case &apos;TOGGLE_TODO&apos;:
-          return state.map(todo =&gt;
-            (todo.id === action.id)
-              ? {...todo, completed: !todo.completed}
-              : todo
-          )
-        default:
-          return state
-      }
-}
-
-const initialState = {
-  visibilityFilter: VisibilityFilters.SHOW_ALL,
-  todos: []
-};
-
-function todoApp(state = initialState, action) {
-  return {
-    todos: todos(state.todos, action),
-    visibilityFilter: visibilityFilter(state.visibilityFilter, action)
-  };
-}
-</code></pre><h4 id="combineReducers-reducers"><a href="#combineReducers-reducers" class="headerlink" title="combineReducers(reducers)"></a>combineReducers(reducers)</h4><p><strong>生成一个根reducer函数</strong></p>
-<p>完全等价上面的todoApp()。</p>
-<pre><code>import { combineReducers } from &apos;redux&apos;
-const todoApp = combineReducers({
-  visibilityFilter,
-  todos
-})
-    使用了简写，因为键值对同名，省略key
-</code></pre><h5 id="最简洁写法"><a href="#最简洁写法" class="headerlink" title="最简洁写法"></a>最简洁写法</h5><p><strong>不推荐</strong>。会造成 reducer 爆炸，而且不合符开闭原则。</p>
-<p><strong>推荐每个reducer一个单独文件</strong></p>
-<ul>
-<li>将所有顶级的 reducer 放到一个独立的文件中</li>
-<li>通过 export 暴露出每个 reducer 函数</li>
-<li>使用 import * as reducers 得到一个以它们名字作为 key 的 object，可以直接传给combineReducers()</li>
-</ul>
-<p>实例：</p>
-<pre><code>import { combineReducers } from &apos;redux&apos;
-import * as reducers from &apos;./reducers&apos;
-
-const todoApp = combineReducers(reducers)
-</code></pre><h3 id="store"><a href="#store" class="headerlink" title="store"></a>store</h3><p><strong>Redux对象，联系Action和Reducer</strong></p>
-<ul>
-<li><strong>单一store</strong></li>
-<li><strong>单一 state tree</strong></li>
-</ul>
-<h4 id="store职责"><a href="#store职责" class="headerlink" title="store职责"></a>store职责</h4><ul>
-<li><strong>管理 state</strong>；<ul>
-<li>获取 state，getState()</li>
-<li>更新 state，dispatch(action)</li>
-</ul>
-</li>
-<li><strong>管理 state监听器</strong> 状态有更新，回调监听器<ul>
-<li>注册监听器，subscribe(listener)</li>
-<li>注销监听器，通过 subscribe(listener) 返回的函数来注销</li>
-</ul>
-</li>
-</ul>
-<h4 id="创建-store"><a href="#创建-store" class="headerlink" title="创建 store"></a>创建 store</h4><p><strong>createStore(reducer, [preloadedState], enhancer)</strong></p>
-<ul>
-<li>reducer<ul>
-<li>function，使用 combineReducers() 将多个 reducer 合并成为一个。</li>
-</ul>
-</li>
-<li>preloadedState<ul>
-<li>可选。 设置 state 初始状态</li>
-</ul>
-</li>
-<li>enhancer <ul>
-<li>可选。 function，是一个组合 store creator 的高阶函数，返回一个新的强化过的 store creator</li>
-</ul>
-</li>
-</ul>
-<p>实例：监听器管理</p>
-<pre><code>// subscribe() 返回一个函数用来注销监听器
-const unsubscribe = store.subscribe(() =&gt;
-  console.log(store.getState())
-)
-
-// 停止监听 state 更新
-unsubscribe();
-</code></pre><h3 id="严格的单向数据流"><a href="#严格的单向数据流" class="headerlink" title="严格的单向数据流"></a>严格的单向数据流</h3><p><strong>意味着数据都遵循相同的生命周期</strong></p>
-<h4 id="调用-store-dispatch-action"><a href="#调用-store-dispatch-action" class="headerlink" title="调用 store.dispatch(action)"></a>调用 store.dispatch(action)</h4><h4 id="Redux-store-调用传入的根-reducer-函数"><a href="#Redux-store-调用传入的根-reducer-函数" class="headerlink" title="Redux store 调用传入的根 reducer 函数"></a>Redux store 调用传入的根 reducer 函数</h4><p>createStore(reducer)时传入的，是根 reducer</p>
-<h4 id="Redux-store-保存了根-reducer-返回的完整-state-树"><a href="#Redux-store-保存了根-reducer-返回的完整-state-树" class="headerlink" title="Redux store 保存了根 reducer 返回的完整 state 树"></a>Redux store 保存了根 reducer 返回的完整 state 树</h4><p>现在，可以应用新的 state 来更新 UI</p>
-<p>如果你使用了 React Redux 这类的绑定库，这时就应该调用 component.setState(newState) 来更新 UI</p>
-<p>所有注册的监听器都将被调用</p>
-<h2 id="三大原则"><a href="#三大原则" class="headerlink" title="三大原则"></a>三大原则</h2><h3 id="单一数据源"><a href="#单一数据源" class="headerlink" title="单一数据源"></a>单一数据源</h3><p><strong>单一的 state tree: 整个应用的 state 被储存在一棵 object tree 中，并且这个 object tree 只存在于唯一一个 store 中。</strong></p>
-<pre><code>store.getState()
-</code></pre><h3 id="State-是只读的"><a href="#State-是只读的" class="headerlink" title="State 是只读的"></a>State 是只读的</h3><p><strong>唯一改变 state 的方法就是触发 action</strong></p>
-<pre><code>store.dispatch({
-  type: &apos;SET_VISIBILITY_FILTER&apos;,
-  filter: &apos;SHOW_COMPLETED&apos;
-})
-</code></pre><ul>
-<li>确保了视图和网络请求都不能直接修改 state<ul>
-<li>视图和网络请求只能表达想要修改的意图</li>
-</ul>
-</li>
-<li>所有的修改都被集中化处理，且严格按照一个接一个的顺序执行</li>
-<li><strong>action是store数据的唯一来源</strong></li>
-</ul>
-<h3 id="使用纯函数来执行修改"><a href="#使用纯函数来执行修改" class="headerlink" title="使用纯函数来执行修改"></a>使用纯函数来执行修改</h3><p><strong>编写 reducers 描述 action 如何改变 state tree </strong></p>
-<h2 id="搭配-React"><a href="#搭配-React" class="headerlink" title="搭配 React"></a>搭配 React</h2><p>Redux 和 React 之间没有关系。</p>
-<p>Redux 支持 React、Angular、Ember、jQuery 甚至纯 JavaScript。</p>
-<p>尽管如此，Redux 还是和 React 和 Deku 这类库搭配起来用最好</p>
-<ul>
-<li>这类库允许你以 state 函数的形式来描述界面</li>
-<li>Redux 通过 action 的形式来发起 state 变化。</li>
-</ul>
-<h3 id="安装-React-Redux"><a href="#安装-React-Redux" class="headerlink" title="安装 React Redux"></a>安装 React Redux</h3><p>Redux 默认并不包含 React 绑定库，需要单独安装</p>
-<pre><code>npm install --save react-redux
-</code></pre><h3 id="容器组件和展示组件"><a href="#容器组件和展示组件" class="headerlink" title="容器组件和展示组件"></a>容器组件和展示组件</h3><p><strong>将组件分为两类，更易于复用和维护</strong></p>
-<ul>
-<li>Container和Presentational Components</li>
-<li>Fat和Skinny</li>
-<li>Smart和Dumb</li>
-<li>Stateful和Pure</li>
-</ul>
-<p>甚至直接称为：</p>
-<ul>
-<li>Screens和Components</li>
-</ul>
-<table>
-<thead>
-<tr>
-<th></th>
-<th>展示组件</th>
-<th>容器组件</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>作用</td>
-<td>描述如何展现（骨架、样式）</td>
-<td>描述如何运行（数据来源获取、状态更新）</td>
-</tr>
-<tr>
-<td>状态</td>
-<td>一般没有。有UI状态而不是数据</td>
-<td>有。往往充当数据源，给其他组件提供数据和行为</td>
-</tr>
-<tr>
-<td>直接使用Redux</td>
-<td>否</td>
-<td>是</td>
-</tr>
-<tr>
-<td>数据来源</td>
-<td>props</td>
-<td>监听 Redux state</td>
-</tr>
-<tr>
-<td>数据修改</td>
-<td>从 props 调用回调函数</td>
-<td>向 Redux 派发 actions</td>
-</tr>
-<tr>
-<td>创建方式</td>
-<td>手动，一般常用函数式无状态组件实现</td>
-<td>通常用 React Redux的connect() 生成</td>
-</tr>
-<tr>
-<td>示例</td>
-<td>Page，Sidebar，Story，List</td>
-<td>UserPage，FollowersSidebar，StoryContainer，FollowedUserList</td>
-</tr>
-</tbody>
-</table>
-<p><strong>展示组件只定义外观并不关心数据来源和如何改变。传入什么就渲染什么</strong></p>
-<p><strong>大部分的组件都应该是展示型的，但需要少数的几个容器组件把它们和 Redux store 连接起来</strong></p>
-<p><strong>有时偶尔混用 容器和展示。</strong> 比如 含有“Add”按钮的输入框</p>
-<h3 id="传入-Store"><a href="#传入-Store" class="headerlink" title="传入 Store"></a>传入 Store</h3><p><strong>容器组件需要使用store来获取state</strong>。有两种方法</p>
-<ul>
-<li>把store以 props 的形式传入到所有容器组件中。<ul>
-<li>太麻烦</li>
-<li>必须要用 store 把展示组件包裹一层</li>
-</ul>
-</li>
-<li><strong>使用 React Redux 组件 <code>&lt;Provider&gt;</code></strong> <ul>
-<li>不必显示地传递store，只需要在渲染根组件时使用即可</li>
-<li>让Provider内所有容器组件都可以访问 store</li>
-</ul>
-</li>
-</ul>
-<p>实例：index.js</p>
-<pre><code>let store = createStore(todoApp)
-
-render(
-  &lt;Provider store={store}&gt;
-    &lt;App /&gt;
-  &lt;/Provider&gt;,
-  document.getElementById(&apos;root&apos;)
-)
-
-    API：render(element,container)。实例是获取首页id为root的div
-</code></pre><h3 id="React-Redux的connect"><a href="#React-Redux的connect" class="headerlink" title="React Redux的connect()"></a>React Redux的connect()</h3><p><strong>容器组件 通常用 React Redux的connect() 生成</strong></p>
-<ul>
-<li><p>这个方法做了性能优化来避免很多不必要的重复渲染。</p>
-<ul>
-<li>不必为了性能而手动实现 React 性能优化建议 中的 shouldComponentUpdate()。</li>
-</ul>
-</li>
-<li><p>实现原理：使用 store.subscribe() 从 Redux state 树中读取部分数据，并通过 props 把这些数据提供给要渲染的组件</p>
-</li>
-</ul>
-<h3 id="实现容器组件"><a href="#实现容器组件" class="headerlink" title="实现容器组件"></a>实现容器组件</h3><p>容器组件管理数据(state)，涉及到<strong>读取和修改</strong></p>
-<ul>
-<li>读取数据后，需要把state映射到展示组件的props中<ul>
-<li>定义 <code>mapStateToProps()</code> 指定映射规则</li>
-</ul>
-</li>
-<li>修改数据是通过dispatch(action)实现，需要把action映射为期望注入展示组件的props中的回调方法<ul>
-<li>定义 <code>mapDispatchToProps()</code></li>
-</ul>
-</li>
-</ul>
-<h4 id="实例：FilterLink"><a href="#实例：FilterLink" class="headerlink" title="实例：FilterLink"></a>实例：FilterLink</h4><ul>
-<li><strong>FilterLink</strong> 得到当前过滤器并渲染 Link<ul>
-<li><strong>Link</strong> 带有 callback 回调功能的链接<ul>
-<li>onClick() 当点击链接时会触发</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>代码</p>
-<pre><code>import { connect } from &apos;react-redux&apos;
-import { setVisibilityFilter } from &apos;../actions&apos;
-import Link from &apos;../components/Link&apos;
-
-const mapStateToProps = (state, ownProps) =&gt; ({
-  active: ownProps.filter === state.visibilityFilter
-})
-
-const mapDispatchToProps = (dispatch, ownProps) =&gt; ({
-  onClick: () =&gt; dispatch(setVisibilityFilter(ownProps.filter))
-})//点击发送SET_VISIBILITY_FILTER的action
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(Link)
-</code></pre><h4 id="实例：VisibleTodoList"><a href="#实例：VisibleTodoList" class="headerlink" title="实例：VisibleTodoList"></a>实例：VisibleTodoList</h4><ul>
-<li><strong>VisibleTodoList</strong> 根据当前显示的状态来对 todo 列表进行过滤，并渲染 TodoList<ul>
-<li><strong>TodoList</strong> 用于显示 todos 列表。<ul>
-<li>todos: Array 以 { text, completed } 形式显示的 todo 项数组。</li>
-<li>onTodoClick(index: number) 当 todo 项被点击时调用的回调函数。</li>
-</ul>
-</li>
-<li><strong>Todo</strong> 一个 todo 项。<ul>
-<li>text: string 显示的文本内容。</li>
-<li>completed: boolean todo 项是否显示删除线。</li>
-<li>onClick() 当 todo 项被点击时调用的回调函数。</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>代码</p>
-<pre><code>import { connect } from &apos;react-redux&apos;
-import { toggleTodo } from &apos;../actions&apos;
-import TodoList from &apos;../components/TodoList&apos;
-import { VisibilityFilters } from &apos;../actions&apos;
-
-const getVisibleTodos = (todos, filter) =&gt; {
-  switch (filter) {
-    case VisibilityFilters.SHOW_ALL:
-      return todos
-    case VisibilityFilters.SHOW_COMPLETED:
-      return todos.filter(t =&gt; t.completed)
-    case VisibilityFilters.SHOW_ACTIVE:
-      return todos.filter(t =&gt; !t.completed)
-    default:
-      throw new Error(&apos;Unknown filter: &apos; + filter)
-  }
-}
-
-const mapStateToProps = state =&gt; ({
-  todos: getVisibleTodos(state.todos, state.visibilityFilter)
-})
-
-const mapDispatchToProps = dispatch =&gt; ({
-  toggleTodo: id =&gt; dispatch(toggleTodo(id))
-})//点击发送TOGGLE_TODO的action
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(TodoList)
-</code></pre><h4 id="reselect计算衍生数据"><a href="#reselect计算衍生数据" class="headerlink" title="reselect计算衍生数据"></a>reselect计算衍生数据</h4><p>如果你担心 mapStateToProps 创建新对象太过频繁，可以学习如何使用 reselect 来 计算衍生数据</p>
-<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><h3 id="Todos"><a href="#Todos" class="headerlink" title="Todos"></a>Todos</h3><pre><code>git clone https://github.com/reactjs/redux.git
-
-cd redux/examples/todos
-npm install
-npm start
-
-open http://localhost:3000/
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/24/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><span class="page-number current">25</span><a class="page-number" href="/page/26/">26</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="extend next" rel="next" href="/page/26/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/24/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><span class="page-number current">25</span><a class="page-number" href="/page/26/">26</a><span class="space">&hellip;</span><a class="page-number" href="/page/32/">32</a><a class="extend next" rel="next" href="/page/26/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -3020,7 +2120,7 @@ open http://localhost:3000/
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">310</span>
+                  <span class="site-state-item-count">315</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -3031,7 +2131,7 @@ open http://localhost:3000/
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-count">20</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -3042,7 +2142,7 @@ open http://localhost:3000/
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-count">72</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

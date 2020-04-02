@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="直播," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="install homebrew, git, yasm123ruby -e &amp;quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&amp;quot;brew install gitbrew install yasm 配置sdk和ndk nkd只支持r11到r14。ndk历史版本下载地址">
+<meta name="keywords" content="直播">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ijkplayer编译">
+<meta property="og:url" content="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer编译/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="install homebrew, git, yasm123ruby -e &amp;quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&amp;quot;brew install gitbrew install yasm 配置sdk和ndk nkd只支持r11到r14。ndk历史版本下载地址">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-04-02T08:17:30.828Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ijkplayer编译">
+<meta name="twitter:description" content="install homebrew, git, yasm123ruby -e &amp;quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&amp;quot;brew install gitbrew install yasm 配置sdk和ndk nkd只支持r11到r14。ndk历史版本下载地址">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer编译/"/>
+
+
+
+
+
+  <title>ijkplayer编译 | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/05/直播/ijkplayer/ijkplayer编译/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">ijkplayer编译</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-05T15:22:14+08:00">
+                2019-08-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="install-homebrew-git-yasm"><a href="#install-homebrew-git-yasm" class="headerlink" title="install homebrew, git, yasm"></a>install homebrew, git, yasm</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ruby -e &quot;$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)&quot;</span><br><span class="line">brew install git</span><br><span class="line">brew install yasm</span><br></pre></td></tr></table></figure>
+<h1 id="配置sdk和ndk"><a href="#配置sdk和ndk" class="headerlink" title="配置sdk和ndk"></a>配置sdk和ndk</h1><ul>
+<li>nkd只支持r11到r14。<a href="https://developer.android.google.cn/ndk/downloads/" target="_blank" rel="noopener">ndk历史版本下载地址</a></li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># add these lines to your ~/.bash_profile or ~/.profile</span><br><span class="line">vim ~/.bash_profile</span><br><span class="line"># 添加 export ANDROID_SDK=&lt;your sdk path&gt;</span><br><span class="line"># 添加 export ANDROID_NDK=&lt;your ndk path&gt;</span><br><span class="line"></span><br><span class="line"># 使 ~/.bash_profile 生效</span><br><span class="line">source ~/.bash_profile</span><br></pre></td></tr></table></figure>
+<h2 id="ndk版本检查"><a href="#ndk版本检查" class="headerlink" title="ndk版本检查"></a>ndk版本检查</h2><p>检查NDK版本，支持11 12 13 14版本，然而AS默认提供的NDK下载支持一般都比较新（18），不匹配报 <code>You need the NDKr10e or later</code></p>
+<p> <code>ijkplayer/android/contrib/tools/do-detect-env.sh</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">IJK_NDK_REL=$(grep -o &apos;^Pkg\.Revision.*=[0-9]*.*&apos; $ANDROID_NDK/source.properties 2&gt;/dev/null | sed &apos;s/[[:space:]]*//g&apos; | cut -d &quot;=&quot; -f 2)</span><br><span class="line">echo &quot;IJK_NDK_REL=$IJK_NDK_REL&quot;</span><br><span class="line">case &quot;$IJK_NDK_REL&quot; in</span><br><span class="line">    11*|12*|13*|14*)</span><br><span class="line">        if test -d $&#123;ANDROID_NDK&#125;/toolchains/arm-linux-androideabi-4.9</span><br><span class="line">        then</span><br><span class="line">            echo &quot;NDKr$IJK_NDK_REL detected&quot;</span><br><span class="line">        else</span><br><span class="line">            echo &quot;You need the NDKr10e or later&quot;</span><br><span class="line">            exit 1</span><br><span class="line">        fi</span><br><span class="line">    ;;</span><br><span class="line">    *)</span><br><span class="line">        echo &quot;You need the NDKr10e or later&quot;</span><br><span class="line">        exit 1</span><br><span class="line">    ;;</span><br><span class="line">```    </span><br><span class="line"># 克隆项目</span><br><span class="line"></span><br><span class="line">`git clone https://github.com/Bilibili/ijkplayer.git ijkplayer-android`</span><br><span class="line"></span><br><span class="line"># 下载并编译ffmpeg</span><br><span class="line"></span><br><span class="line">- 需要翻墙</span><br></pre></td></tr></table></figure>
+<h1 id="进入ijkplay-android目录"><a href="#进入ijkplay-android目录" class="headerlink" title="进入ijkplay-android目录"></a>进入ijkplay-android目录</h1><p>cd ijkplayer-android </p>
+<h1 id="下载安装ffmpeg"><a href="#下载安装ffmpeg" class="headerlink" title="下载安装ffmpeg"></a>下载安装ffmpeg</h1><h1 id="此处需要翻墙，下载时长较长。下载目录位于extra"><a href="#此处需要翻墙，下载时长较长。下载目录位于extra" class="headerlink" title="此处需要翻墙，下载时长较长。下载目录位于extra"></a>此处需要翻墙，下载时长较长。下载目录位于extra</h1><p>./init-android.sh</p>
+<h1 id="配置编译选项"><a href="#配置编译选项" class="headerlink" title="配置编译选项"></a>配置编译选项</h1><h1 id="进入config文件夹"><a href="#进入config文件夹" class="headerlink" title="进入config文件夹"></a>进入config文件夹</h1><p>cd config</p>
+<h1 id="移除默认的配置"><a href="#移除默认的配置" class="headerlink" title="移除默认的配置"></a>移除默认的配置</h1><p>rm module.sh</p>
+<p>#软链接module-default.sh为module.sh<br>ln -s module-default.sh module.sh</p>
+<h1 id="进入android-contrib目录"><a href="#进入android-contrib目录" class="headerlink" title="进入android/contrib目录"></a>进入android/contrib目录</h1><p>cd ..<br>cd android/contrib</p>
+<h1 id="清理ffmpeg的编译产物"><a href="#清理ffmpeg的编译产物" class="headerlink" title="清理ffmpeg的编译产物"></a>清理ffmpeg的编译产物</h1><p>./compile-ffmpeg.sh clean</p>
+<h1 id="编译ffmpeg的所有架构"><a href="#编译ffmpeg的所有架构" class="headerlink" title="编译ffmpeg的所有架构"></a>编译ffmpeg的所有架构</h1><p>./compile-ffmpeg.sh all<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## 编译脚本支持参数</span><br></pre></td></tr></table></figure></p>
+<p>echo_usage() {<br>    echo “Usage:”<br>    echo “  compile-ffmpeg.sh armv5|armv7a|arm64|x86|x86_64”<br>    echo “  compile-ffmpeg.sh all|all32”<br>    echo “  compile-ffmpeg.sh all64”<br>    echo “  compile-ffmpeg.sh clean”<br>    echo “  compile-ffmpeg.sh check”<br>    exit 1<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## 编译产物</span><br><span class="line"></span><br><span class="line">编译成功 会在 `android/contrib` 相应模块生成 `libijkffmpeg.so`</span><br><span class="line"></span><br><span class="line">比如 `android/contrib/build/ffmpeg-armv5/output/libijkffmpeg.so`</span><br><span class="line"></span><br><span class="line"># 编译ijkplayer</span><br></pre></td></tr></table></figure></p>
+<h1 id="进入android目录"><a href="#进入android目录" class="headerlink" title="进入android目录"></a>进入android目录</h1><p>cd ..</p>
+<h1 id="编译ijkplayer所有架构"><a href="#编译ijkplayer所有架构" class="headerlink" title="编译ijkplayer所有架构"></a>编译ijkplayer所有架构</h1><p>./compile-ijk.sh all<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">## 编译脚本支持参数</span><br></pre></td></tr></table></figure></p>
+<p>echo “Usage:”<br>echo “  compile-ijk.sh armv5|armv7a|arm64|x86|x86_64”<br>echo “  compile-ijk.sh all|all32”<br>echo “  compile-ijk.sh all64”<br>echo “  compile-ijk.sh clean”<br><code>`</code></p>
+<h2 id="编译产物"><a href="#编译产物" class="headerlink" title="编译产物"></a>编译产物</h2><p>编译成功 会在等相应模块生成三个so库</p>
+<ul>
+<li><code>libijkffmpeg.so</code></li>
+<li><code>libijkplayer.so</code></li>
+<li><code>libijksdl.so</code></li>
+</ul>
+<p>比如 模块目录 <code>android/ijkplayer/ijkplayer-armv5/src/main/libs/armeabi-v7a</code></p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/bilibili/ijkplayer" target="_blank" rel="noopener">ijkplayer</a></li>
+</ul>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/直播/" rel="tag"><i class="fa fa-tag"></i> 直播</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/08/05/直播/直播技术/直播技术七-现代播放器原理/" rel="next" title="直播技术七-现代播放器原理">
+                <i class="fa fa-chevron-left"></i> 直播技术七-现代播放器原理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/05/直播/ijkplayer/ijkplayer系列一-开篇/" rel="prev" title="ijkplayer系列一-开篇">
+                ijkplayer系列一-开篇 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">315</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#install-homebrew-git-yasm"><span class="nav-number">1.</span> <span class="nav-text">install homebrew, git, yasm</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置sdk和ndk"><span class="nav-number">2.</span> <span class="nav-text">配置sdk和ndk</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ndk版本检查"><span class="nav-number">2.1.</span> <span class="nav-text">ndk版本检查</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进入ijkplay-android目录"><span class="nav-number">3.</span> <span class="nav-text">进入ijkplay-android目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#下载安装ffmpeg"><span class="nav-number">4.</span> <span class="nav-text">下载安装ffmpeg</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#此处需要翻墙，下载时长较长。下载目录位于extra"><span class="nav-number">5.</span> <span class="nav-text">此处需要翻墙，下载时长较长。下载目录位于extra</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#配置编译选项"><span class="nav-number">6.</span> <span class="nav-text">配置编译选项</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进入config文件夹"><span class="nav-number">7.</span> <span class="nav-text">进入config文件夹</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#移除默认的配置"><span class="nav-number">8.</span> <span class="nav-text">移除默认的配置</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进入android-contrib目录"><span class="nav-number">9.</span> <span class="nav-text">进入android/contrib目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#清理ffmpeg的编译产物"><span class="nav-number">10.</span> <span class="nav-text">清理ffmpeg的编译产物</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#编译ffmpeg的所有架构"><span class="nav-number">11.</span> <span class="nav-text">编译ffmpeg的所有架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#进入android目录"><span class="nav-number">12.</span> <span class="nav-text">进入android目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#编译ijkplayer所有架构"><span class="nav-number">13.</span> <span class="nav-text">编译ijkplayer所有架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#编译产物"><span class="nav-number">13.1.</span> <span class="nav-text">编译产物</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考-amp-扩展"><span class="nav-number">14.</span> <span class="nav-text">参考&amp;扩展</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

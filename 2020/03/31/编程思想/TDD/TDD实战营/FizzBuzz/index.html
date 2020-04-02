@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="TDD," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="项目介绍FizzBuzz是个非常简单的数字游戏题。 通过对简单题目的多次练习，帮助学员逐渐养成正确的开发习惯，形成刻意练习的节奏。 教学目标 掌握测试驱动开发基本节奏 至少练习3遍FizzBuzz题目 能在10分钟内完成FizzBuzz题目  能力目标 键盘编程（不准动鼠标）。掌握IDE的快捷键操作，充分利用代码生成 用JUnit编写单元测试 测试驱动开发。编写失败的测试，驱动出产品代码 刻意练习">
+<meta name="keywords" content="TDD">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FizzBuzz">
+<meta property="og:url" content="http://yoursite.com/2020/03/31/编程思想/TDD/TDD实战营/FizzBuzz/index.html">
+<meta property="og:site_name" content="风">
+<meta property="og:description" content="项目介绍FizzBuzz是个非常简单的数字游戏题。 通过对简单题目的多次练习，帮助学员逐渐养成正确的开发习惯，形成刻意练习的节奏。 教学目标 掌握测试驱动开发基本节奏 至少练习3遍FizzBuzz题目 能在10分钟内完成FizzBuzz题目  能力目标 键盘编程（不准动鼠标）。掌握IDE的快捷键操作，充分利用代码生成 用JUnit编写单元测试 测试驱动开发。编写失败的测试，驱动出产品代码 刻意练习">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2020-04-02T08:17:30.884Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="FizzBuzz">
+<meta name="twitter:description" content="项目介绍FizzBuzz是个非常简单的数字游戏题。 通过对简单题目的多次练习，帮助学员逐渐养成正确的开发习惯，形成刻意练习的节奏。 教学目标 掌握测试驱动开发基本节奏 至少练习3遍FizzBuzz题目 能在10分钟内完成FizzBuzz题目  能力目标 键盘编程（不准动鼠标）。掌握IDE的快捷键操作，充分利用代码生成 用JUnit编写单元测试 测试驱动开发。编写失败的测试，驱动出产品代码 刻意练习">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2020/03/31/编程思想/TDD/TDD实战营/FizzBuzz/"/>
+
+
+
+
+
+  <title>FizzBuzz | 风</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">风</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">技术博客</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/03/31/编程思想/TDD/TDD实战营/FizzBuzz/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">FizzBuzz</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-31T22:36:53+08:00">
+                2020-03-31
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/TDD/" itemprop="url" rel="index">
+                    <span itemprop="name">TDD</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="项目介绍"><a href="#项目介绍" class="headerlink" title="项目介绍"></a>项目介绍</h1><p>FizzBuzz是个非常简单的数字游戏题。</p>
+<p>通过对简单题目的多次练习，帮助学员逐渐养成正确的开发习惯，形成刻意练习的节奏。</p>
+<h1 id="教学目标"><a href="#教学目标" class="headerlink" title="教学目标"></a>教学目标</h1><ul>
+<li>掌握测试驱动开发基本节奏</li>
+<li>至少练习3遍FizzBuzz题目</li>
+<li>能在10分钟内完成FizzBuzz题目</li>
+</ul>
+<h1 id="能力目标"><a href="#能力目标" class="headerlink" title="能力目标"></a>能力目标</h1><ul>
+<li>键盘编程（不准动鼠标）。掌握IDE的快捷键操作，充分利用代码生成</li>
+<li>用JUnit编写单元测试</li>
+<li>测试驱动开发。编写失败的测试，驱动出产品代码</li>
+<li>刻意练习的节奏</li>
+</ul>
+<h1 id="JUnit"><a href="#JUnit" class="headerlink" title="JUnit"></a>JUnit</h1><h2 id="Test"><a href="#Test" class="headerlink" title="Test"></a>Test</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testN</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    assertEquals(<span class="string">"1"</span>, FizzBuzz.printValue(<span class="number">1</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="测试异常"><a href="#测试异常" class="headerlink" title="测试异常"></a>测试异常</h2><h3 id="try-catch"><a href="#try-catch" class="headerlink" title="try-catch"></a><code>try-catch</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testN</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        FizzBuzz.printValue(<span class="number">0</span>);</span><br><span class="line">        fail(<span class="string">"No exception thrown."</span>);<span class="comment">//没有抛出异常，使测试失败</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">	 	<span class="comment">//断言异常类型</span></span><br><span class="line">        assertTrue(e <span class="keyword">instanceof</span> IllegalArgumentException);</span><br><span class="line">        <span class="comment">//断言异常message</span></span><br><span class="line">        assertTrue(e.getMessage().contains(<span class="string">"input must be &gt; 0"</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>缺陷</strong> ：给出的<strong>失败提示不够直接</strong>，需要分析堆栈，测试方法在哪一行失败了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">没有如预期抛出异常，提示信息：</span><br><span class="line">java.lang.AssertionError: No exception thrown.</span><br><span class="line">	at org.junit.Assert.fail(Assert.java:91)</span><br><span class="line">	at com.lyg.fizz.FizzBuzzTest.testN(FizzBuzzTest.java:13)</span><br><span class="line">------------------------</span><br><span class="line">异常的message 不符合预期，提示信息：</span><br><span class="line">java.lang.AssertionError: </span><br><span class="line">	at org.junit.Assert.fail(Assert.java:91)</span><br><span class="line">	at org.junit.Assert.assertTrue(Assert.java:43)</span><br><span class="line">	at org.junit.Assert.assertTrue(Assert.java:54)</span><br><span class="line">	at com.lyg.fizz.FizzBuzzTest.testN(FizzBuzzTest.java:16)</span><br></pre></td></tr></table></figure>
+<h3 id="Test-expected-异常类型"><a href="#Test-expected-异常类型" class="headerlink" title="Test expected 异常类型"></a>Test expected 异常类型</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span>(expected = IllegalArgumentException.class)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testN</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    FizzBuzz.printValue(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>报错很清晰 </p>
+<p><code>java.lang.AssertionError: Expected exception: java.lang.IllegalArgumentException</code></p>
+<p><strong>缺陷</strong> ：<strong>无法断言异常信息</strong> （即异常的message）</p>
+<h3 id="Rule-断言异常类型和异常信息"><a href="#Rule-断言异常类型和异常信息" class="headerlink" title="Rule 断言异常类型和异常信息"></a>Rule 断言异常类型和异常信息</h3><p>JUnit 4.7 新特性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FizzBuzzTest</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Rule</span></span><br><span class="line">    <span class="keyword">public</span> ExpectedException mExpectedException = ExpectedException.none();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testN</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        mExpectedException.expect(IllegalArgumentException.class);</span><br><span class="line">        mExpectedException.expectMessage(<span class="string">"input must be &gt; 0"</span>);</span><br><span class="line">        FizzBuzz.printValue(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">没有如预期抛出异常，提示信息：</span><br><span class="line">java.lang.AssertionError: </span><br><span class="line">Expected test to throw (exception with message a string containing &quot;input must be &gt; 0&quot; and an instance of java.lang.IllegalArgumentException)</span><br><span class="line">------------------------</span><br><span class="line">异常的message 不符合预期，提示信息：</span><br><span class="line">java.lang.AssertionError: </span><br><span class="line">Expected: (exception with message a string containing &quot;input must be &gt; 0&quot; and an instance of java.lang.IllegalArgumentException)</span><br><span class="line">     got: &lt;java.lang.IllegalArgumentException: input must be &gt; 1&gt;</span><br></pre></td></tr></table></figure>
+<h2 id="ParameterizedTest-和-CsvSource"><a href="#ParameterizedTest-和-CsvSource" class="headerlink" title="ParameterizedTest 和 CsvSource"></a>ParameterizedTest 和 CsvSource</h2><p>JUnit 5 新特性；Gradle 4.6 开始支持 JUnit 5</p>
+<p>AS 默认使用 JUnit 4</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ParameterizedTest</span></span><br><span class="line"><span class="meta">@CsvSource</span>(&#123;</span><br><span class="line">	<span class="string">"1,1"</span>,</span><br><span class="line">	<span class="string">"3,Fizz"</span>,</span><br><span class="line">	<span class="string">"5,Buzz"</span>,</span><br><span class="line">	<span class="string">"15,FizzBuzz"</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testN</span><span class="params">(<span class="keyword">int</span> number, String value)</span> </span>&#123;</span><br><span class="line">    assertEquals(value, FizzBuzz.printValue(number));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="任务"><a href="#任务" class="headerlink" title="任务"></a>任务</h1><p>写一个程序，打印出从1到100的数字，将其中3的倍数替换成“Fizz”，5的倍数替换成“Buzz”。既能被3整除、又能被5整除的数则替换成“FizzBuzz”。</p>
+<h1 id="TDD流程"><a href="#TDD流程" class="headerlink" title="TDD流程"></a>TDD流程</h1><ul>
+<li><strong>Red</strong>。write a test that fails</li>
+<li><strong>Green</strong>。make the code work</li>
+<li><strong>Refactor</strong>。eleminate redundancy [ɪˈlɪmɪneɪt rɪˈdʌndənsi] 消除重复</li>
+</ul>
+<h2 id="写测试"><a href="#写测试" class="headerlink" title="写测试"></a>写测试</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FizzBuzzTest</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testN</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        assertEquals(<span class="string">"1"</span>, FizzBuzz.printValue(<span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试报错找不到 <code>FizzBuzz.printValue</code> ，使用IDE自动生成</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FizzBuzz</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">printValue</span><span class="params">(<span class="keyword">int</span> input)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>试运行测试，不通过；预期返回1，实际返回null</p>
+<h2 id="使测试通过"><a href="#使测试通过" class="headerlink" title="使测试通过"></a>使测试通过</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FizzBuzz</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">printValue</span><span class="params">(<span class="keyword">int</span> input)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.valueOf(input);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>重复上面的步骤一和步骤二，逐个增加测试用例并使之通过</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FizzBuzzTest</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testN</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        assertEquals(<span class="string">"1"</span>, FizzBuzz.printValue(<span class="number">1</span>));</span><br><span class="line">        assertEquals(<span class="string">"Fizz"</span>, FizzBuzz.printValue(<span class="number">3</span>));</span><br><span class="line">        assertEquals(<span class="string">"Buzz"</span>, FizzBuzz.printValue(<span class="number">5</span>));</span><br><span class="line">        assertEquals(<span class="string">"FizzBuzz"</span>, FizzBuzz.printValue(<span class="number">15</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FizzBuzz</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">printValue</span><span class="params">(<span class="keyword">int</span> input)</span> </span>&#123;</span><br><span class="line">        String result = <span class="string">""</span>;</span><br><span class="line">        <span class="keyword">if</span> (input &lt; <span class="number">1</span>) <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">"input must be &gt; 0"</span>);</span><br><span class="line">        <span class="keyword">if</span> (input % <span class="number">3</span> == <span class="number">0</span>) result += <span class="string">"Fizz"</span>;</span><br><span class="line">        <span class="keyword">if</span> (input % <span class="number">5</span> == <span class="number">0</span>) result += <span class="string">"Buzz"</span>;</span><br><span class="line">        <span class="keyword">if</span> (result.isEmpty()) result += input;</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="重构，消除重复"><a href="#重构，消除重复" class="headerlink" title="重构，消除重复"></a>重构，消除重复</h2><p>使用 JUnit 5 新特性 ParameterizedTest 和 CsvSource，消除重复断言代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ParameterizedTest</span></span><br><span class="line"><span class="meta">@CsvSource</span>(&#123;</span><br><span class="line">	<span class="string">"1,1"</span>,</span><br><span class="line">	<span class="string">"3,Fizz"</span>,</span><br><span class="line">	<span class="string">"5,Buzz"</span>,</span><br><span class="line">	<span class="string">"15,FizzBuzz"</span></span><br><span class="line">&#125;)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testN</span><span class="params">(<span class="keyword">int</span> number, String value)</span> </span>&#123;</span><br><span class="line">    assertEquals(value, FizzBuzz.printValue(number));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/TDD/" rel="tag"><i class="fa fa-tag"></i> TDD</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/20/RN/RN分包和热更/" rel="next" title="RN分包和热更">
+                <i class="fa fa-chevron-left"></i> RN分包和热更
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/03/31/编程思想/TDD/TDD实战营/课程导论/" rel="prev" title="课程导论">
+                课程导论 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="风" />
+            
+              <p class="site-author-name" itemprop="name">风</p>
+              <p class="site-description motion-element" itemprop="description">随心而动，随刃而行</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">315</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#项目介绍"><span class="nav-number">1.</span> <span class="nav-text">项目介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#教学目标"><span class="nav-number">2.</span> <span class="nav-text">教学目标</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#能力目标"><span class="nav-number">3.</span> <span class="nav-text">能力目标</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JUnit"><span class="nav-number">4.</span> <span class="nav-text">JUnit</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Test"><span class="nav-number">4.1.</span> <span class="nav-text">Test</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试异常"><span class="nav-number">4.2.</span> <span class="nav-text">测试异常</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#try-catch"><span class="nav-number">4.2.1.</span> <span class="nav-text">try-catch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Test-expected-异常类型"><span class="nav-number">4.2.2.</span> <span class="nav-text">Test expected 异常类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Rule-断言异常类型和异常信息"><span class="nav-number">4.2.3.</span> <span class="nav-text">Rule 断言异常类型和异常信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ParameterizedTest-和-CsvSource"><span class="nav-number">4.3.</span> <span class="nav-text">ParameterizedTest 和 CsvSource</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#任务"><span class="nav-number">5.</span> <span class="nav-text">任务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TDD流程"><span class="nav-number">6.</span> <span class="nav-text">TDD流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#写测试"><span class="nav-number">6.1.</span> <span class="nav-text">写测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使测试通过"><span class="nav-number">6.2.</span> <span class="nav-text">使测试通过</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重构，消除重复"><span class="nav-number">6.3.</span> <span class="nav-text">重构，消除重复</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">风</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/three.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

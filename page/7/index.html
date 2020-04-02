@@ -262,6 +262,336 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/28/Android/性能优化/Android 8.0以后CPU使用率的方案研究/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/28/Android/性能优化/Android 8.0以后CPU使用率的方案研究/" itemprop="url">Android 8.0以后CPU使用率的方案研究</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-28T15:43:53+08:00">
+                2019-09-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>Android 8.0以后Google的权限限制，再也拿不到进程CPU的实时占用率，只能拿到自己本身进程的Jiffies，但是又拿不到系统整体Jiffies的情况下，就没办法衡量CPU当前的消耗状况了，也没办法根据当前CPU状态实时做一些策略调整。</p>
+<p>因此进行深入研究以后，给出Android 8.0以后判断CPU状态的几个参考方案（非标准答案）。</p>
+<h1 id="单位时间执行汇编指令数获取CPU频率"><a href="#单位时间执行汇编指令数获取CPU频率" class="headerlink" title="单位时间执行汇编指令数获取CPU频率"></a>单位时间执行汇编指令数获取CPU频率</h1><h2 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h2><h3 id="Jiffies"><a href="#Jiffies" class="headerlink" title="Jiffies"></a>Jiffies</h3><p>全局变量jiffies用来记录自系统启动以来产生的节拍的总数。</p>
+<p>启动时，内核将该变量初始化为0，此后，每次时钟中断处理程序都会增加该变量的值。</p>
+<p>一秒内时钟中断的次数等于Hz，所以jiffies一秒内增加的值也就是Hz。</p>
+<h3 id="Tick"><a href="#Tick" class="headerlink" title="Tick"></a>Tick</h3><p>HZ的倒数，意即timer interrupt每发生一次中断的时间。如HZ为250时，tick为4毫秒。</p>
+<h2 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h2><ul>
+<li>一条原子化操作汇编指令（比如 add），在任意型号CPU上是都是在一个时钟周期内完成的</li>
+<li>连续执行n条 add指令</li>
+<li>循环20次，取出花费时间最小的那轮时间 min_time_s<ul>
+<li>取最小值，而不是平均值；是因为CPU时刻在动态调整频率，各CPU调整策略各不相同。</li>
+<li>使用最小值，可以避免CPU调频导致的误差</li>
+<li>执行次数越多，CPU频率越准确，但也耗时越久。取一个平衡点</li>
+</ul>
+</li>
+<li>每条指令耗时 cos = min_time_s/n;</li>
+<li>cpu频率 freq = 1/cos;也就是单位时间（s）内执行cycles的数量</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>反应整机CPU繁忙程度；不能很好的反应当前应用APP所在CPU核心的繁忙程度</p>
+<h1 id="在代码内部执行TOP获取CPU占比"><a href="#在代码内部执行TOP获取CPU占比" class="headerlink" title="在代码内部执行TOP获取CPU占比"></a>在代码内部执行TOP获取CPU占比</h1><p>TOP本身是有权限拿到 <code>/proc/stat</code> 后统计的</p>
+<p>TOP整体来说是比较准确的，耗时太大，资源消耗也大；</p>
+<h1 id="读取-proc-pid-stat-的Jiffies值"><a href="#读取-proc-pid-stat-的Jiffies值" class="headerlink" title="读取/proc/$pid/stat 的Jiffies值"></a>读取<code>/proc/$pid/stat</code> 的Jiffies值</h1><p>准确判断当前进程的性能消耗；无法反应整机CPU繁忙程度</p>
+<h1 id="读取CPU各个核的当前频率"><a href="#读取CPU各个核的当前频率" class="headerlink" title="读取CPU各个核的当前频率"></a>读取CPU各个核的当前频率</h1><h2 id="思路-1"><a href="#思路-1" class="headerlink" title="思路"></a>思路</h2><p>CPU的频率档位是离散的(不连续)，Android为了Linux系统稳定运行，会对几个核锁频。</p>
+<p>计算CPU的频率有下面几个步骤：</p>
+<p>1）拿到各个核心的当前频率</p>
+<p>2）拿到CPU的频率档位</p>
+<p>3）解析当前进程/线程被系统分派到哪几个核上</p>
+<h2 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h2><p>可以实时反应当前设备以及进程所在CPU核的繁忙程度</p>
+<h1 id="任务调度延迟时间"><a href="#任务调度延迟时间" class="headerlink" title="任务调度延迟时间"></a>任务调度延迟时间</h1><h2 id="思路-2"><a href="#思路-2" class="headerlink" title="思路"></a>思路</h2><p>开个线程测试两次调度的延迟时间；这个相对指标用来反映系统的繁忙程度。这个值20ms以下，意味着较为流畅；80ms以上，非常繁忙；</p>
+<h2 id="延迟时间的计算"><a href="#延迟时间的计算" class="headerlink" title="延迟时间的计算"></a>延迟时间的计算</h2><p>比如一个每秒调度一次的线程；发现两次调度的时间差为1100ms，这个延迟即为100ms</p>
+<p>下面的日志是 80% cpu使用率时，延迟&gt;20ms的时间戳</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">2019-09-28 15:32:51.098 20418-20979/com.zy.course.dev I/time:  122</span><br><span class="line">2019-09-28 15:33:01.350 20418-20979/com.zy.course.dev I/time:  240</span><br><span class="line">2019-09-28 15:34:12.473 20418-20979/com.zy.course.dev I/time:  45</span><br><span class="line">2019-09-28 15:36:47.727 20418-20979/com.zy.course.dev I/time:  23</span><br><span class="line">2019-09-28 15:36:52.767 20418-20979/com.zy.course.dev I/time:  35</span><br><span class="line">2019-09-28 15:37:11.816 20418-20979/com.zy.course.dev I/time:  26</span><br><span class="line">2019-09-28 15:38:41.957 20418-20979/com.zy.course.dev I/time:  28</span><br><span class="line">2019-09-28 15:38:47.986 20418-20979/com.zy.course.dev I/time:  29</span><br><span class="line">2019-09-28 15:39:22.134 20418-20979/com.zy.course.dev I/time:  87</span><br><span class="line">2019-09-28 15:39:49.226 20418-20979/com.zy.course.dev I/time:  48</span><br><span class="line">2019-09-28 15:40:33.382 20418-20979/com.zy.course.dev I/time:  50</span><br><span class="line">2019-09-28 15:40:37.383 20418-20979/com.zy.course.dev I/time:  29</span><br><span class="line">2019-09-28 15:41:19.569 20418-20979/com.zy.course.dev I/time:  64</span><br><span class="line">2019-09-28 15:41:26.621 20418-20979/com.zy.course.dev I/time:  29</span><br></pre></td></tr></table></figure>
+<p>观察发现，并不是每次调度都会延迟，有可能2分钟内，调度延迟都是正常的</p>
+<p>所以，为了直观反映CPU繁忙程度，需要对延迟进行聚合，取最高的延迟值；</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://cloud.tencent.com/developer/article/1427843" target="_blank" rel="noopener">Android 8.0以后CPU使用率的方案研究</a> </li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/25/电脑使用/搜索引擎语法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/25/电脑使用/搜索引擎语法/" itemprop="url">搜索引擎语法</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-25T11:22:09+08:00">
+                2019-09-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/电脑使用/" itemprop="url" rel="index">
+                    <span itemprop="name">电脑使用</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="双引号"><a href="#双引号" class="headerlink" title="双引号"></a>双引号</h1><p><code>&quot;&quot;</code> 表示精确匹配。</p>
+<p>比如搜索 网站SEO技术 关键词；返回的结果可能包含只部分匹配关键词的结果；如果加上 双引号，就只返回完全匹配关键词的内容</p>
+<h1 id="减号"><a href="#减号" class="headerlink" title="减号"></a>减号</h1><p><code>-</code> 表示 排除包含减号后面关键词的结果</p>
+<h1 id="site"><a href="#site" class="headerlink" title="site"></a>site</h1><p>限定网址</p>
+<p>site:qq.com</p>
+<p>常用于查询域名下的网站收录情况</p>
+<h1 id="intitle"><a href="#intitle" class="headerlink" title="intitle"></a>intitle</h1><p>限定页面title中包含关键词</p>
+<h1 id="inurl"><a href="#inurl" class="headerlink" title="inurl"></a>inurl</h1><p>限定url中包含关键词</p>
+<h1 id="domain"><a href="#domain" class="headerlink" title="domain"></a>domain</h1><p>搜索包含指定域名字符串内容的网页</p>
+<p>很多站长用这个指令来查网站外链；其实并不准确</p>
+<h1 id="filetype"><a href="#filetype" class="headerlink" title="filetype"></a>filetype</h1><p>限定文件格式</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/19/直播/播放器技术/三、音画同步/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1815,338 +2145,11 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/" itemprop="url">直播疑难杂症二-卡顿</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T15:08:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="表现"><a href="#表现" class="headerlink" title="表现"></a>表现</h1><p>包括但不限于以下这些：</p>
-<ul>
-<li><p>频繁出现缓冲</p>
-</li>
-<li><p>播放不够流畅，画面声音一卡一卡的</p>
-</li>
-</ul>
-<p>从代码层面来说，<strong>帧率太低</strong></p>
-<h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><p>通常可能有如下几大类</p>
-<h2 id="网络带宽不足"><a href="#网络带宽不足" class="headerlink" title="网络带宽不足"></a>网络带宽不足</h2><p>一个完整的直播应用，简单来说数据流是这样的：<code>主播 -&gt; CDN -&gt; 观众</code></p>
-<p>因此，直播出现卡顿，三个端都可能是问题的源头：</p>
-<ul>
-<li>主播端的网络不好，导致推流上行不稳定</li>
-<li>服务端的线路质量不好，导致分发不稳定</li>
-<li>观众端的网络不好，导致拉流下行不稳定</li>
-</ul>
-<h3 id="如何判断网络不好"><a href="#如何判断网络不好" class="headerlink" title="如何判断网络不好"></a>如何判断网络不好</h3><ul>
-<li>宽度测速。是否低于推流码率所需宽带</li>
-<li>宽带稳定性。丢包率，延时</li>
-<li>SDK回调。推流/拉流 码率 帧率</li>
-</ul>
-<h2 id="播放设备性能不足"><a href="#播放设备性能不足" class="headerlink" title="播放设备性能不足"></a>播放设备性能不足</h2><p>设备性能不足，导致解码播放的帧率远小于视频码流的实际帧率，从而产生卡顿。</p>
-<p>解决方案：</p>
-<ul>
-<li>优先硬解，充分利用 GPU 加速</li>
-<li>低端机上优先选择非高清码流。越高清的码率，对解码的要求越高</li>
-<li>增大缓冲区，缓解卡顿</li>
-</ul>
-<h2 id="视频流时间戳问题"><a href="#视频流时间戳问题" class="headerlink" title="视频流时间戳问题"></a>视频流时间戳问题</h2><p>播放器一般是严格根据码流中的音视频的时间戳来做音画同步的，因此，如果码流中的音视频时间戳出现错误，肯定会影响到播放画面的渲染时机</p>
-<p>播放器一般 master 主时钟是单调递增的，当后来的视频帧小于了当前的主时钟，播放器就会做丢帧处理，从而导致播放的视频帧率远低于实际码流中的视频帧率，从而产生卡顿现象。</p>
-<img src="/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/stream_time.jpeg">
-<p>排查这个问题，可以把读取到的每一帧音频、视频的时间戳打印出来看看</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.qiniu.com/archives/8405" target="_blank" rel="noopener">《直播疑难杂症排查》之二：播放卡顿</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症-开篇/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/直播疑难杂症/直播疑难杂症-开篇/" itemprop="url">直播疑难杂症-开篇</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T15:02:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="直播疑难杂症大纲"><a href="#直播疑难杂症大纲" class="headerlink" title="直播疑难杂症大纲"></a>直播疑难杂症大纲</h1><p>（一）播放失败</p>
-<p>（二）直播卡顿</p>
-<p>（三）首开慢</p>
-<p>（四）延时高</p>
-<p>（五）音画不同步</p>
-<p>（六）马赛克严重</p>
-<p>（七）播放黑屏、花屏、绿屏</p>
-<p>（八）播放杂音、噪音、回声</p>
-<p>（九）点播拖动不准</p>
-<p>（十）直播发热问题</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/6/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="extend next" rel="next" href="/page/8/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/6/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/32/">32</a><a class="extend next" rel="next" href="/page/8/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2196,7 +2199,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">310</span>
+                  <span class="site-state-item-count">315</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2207,7 +2210,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-count">20</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2218,7 +2221,7 @@ scp /var/www/test.php root@192.168.0.101:/var/www/
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-count">72</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

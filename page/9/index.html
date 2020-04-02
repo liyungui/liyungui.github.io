@@ -262,6 +262,373 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/学乎录音实现方式/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音频/学乎录音实现方式/" itemprop="url">学乎录音实现方式</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>学乎录音实现</p>
+<h1 id="学乎录音实现方式探索历程"><a href="#学乎录音实现方式探索历程" class="headerlink" title="学乎录音实现方式探索历程"></a>学乎录音实现方式探索历程</h1><p>尝试过 MedicaRecord,AudioRecord录音，lame库编码为MP3(<a href="https://github.com/liyungui/MP3LameRecord" target="_blank" rel="noopener">MP3LameRecord</a>)，webrtc降噪(<a href="https://github.com/liyungui/PCMNoiseSupression" target="_blank" rel="noopener">PCMNoiseSupression</a>)</p>
+<p>经过实践测试，发现音效最好(音量大，噪音小)的实现方式是：AudioRecord录制，使用Android系统自带的pcm转arm</p>
+<h2 id="关键细节"><a href="#关键细节" class="headerlink" title="关键细节"></a>关键细节</h2><pre><code>AudioManager audioManager = (AudioManager) App.getApplication().getSystemService(Context.AUDIO_SERVICE);
+audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+audioManager.setSpeakerphoneOn(true);
+
+// 获得缓冲区字节大小
+bufferSizeInBytes = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE,
+        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+
+// 创建AudioRecord对象
+recorder = new AudioRecord(AUDIO_INPUT, AUDIO_SAMPLE_RATE,
+        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSizeInBytes);
+voiceFilePath = PathUtil.getInstance().getVoicePath() + File.separator + getPCMFileName(&quot;&quot;);
+file = new File(voiceFilePath);
+recorder.startRecording();
+isRecording = true;// 让录制状态为true
+// 开启音频文件写入线程
+new Thread(new AudioRecordThread()).start();
+
+private void writeDateTOFile(String AudioName) {
+    // new一个byte数组用来存一些字节数据，大小为缓冲区大小
+    byte[] audiodata = new byte[bufferSizeInBytes];
+    FileOutputStream fos = null;
+    int readsize = 0;
+    try {
+        File file = new File(AudioName);
+        if (file.exists()) {
+            file.delete();
+        }
+        fos = new FileOutputStream(file);// 建立一个可存取字节的文件
+
+        while (isRecording) {
+            readsize = recorder.read(audiodata, 0, bufferSizeInBytes);
+            if (AudioRecord.ERROR_INVALID_OPERATION != readsize &amp;&amp; fos != null) {
+                try {
+                    fos.write(audiodata);
+
+                    getVolumeDB(readsize, audiodata);
+                } catch (Exception e) {
+                    if (e != null) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        if (fos != null)
+            fos.close();// 关闭写入流
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+</code></pre><p>pcm 转 amr实现细节参考另一篇笔记。反射调用在华为机型上容易ANR，要把系统类文件复制到工程中使用，性能好</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/微信语音编码-silk/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音频/微信语音编码-silk/" itemprop="url">微信语音编码-silk</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Android微信语音聊天记录及文本聊天记录-数据库破解-silk-整理"><a href="#Android微信语音聊天记录及文本聊天记录-数据库破解-silk-整理" class="headerlink" title="Android微信语音聊天记录及文本聊天记录 数据库破解 silk 整理"></a><a href="http://blog.csdn.net/voler_HJL/article/details/53788126" target="_blank" rel="noopener">Android微信语音聊天记录及文本聊天记录 数据库破解 silk 整理</a></h1><p><strong>微信语音文件存储位置</strong></p>
+<pre><code>根目录 -》tencent -》MicroMsg -》名字很长又很乱的那个文件夹 -》voice2 
+</code></pre><p><strong>播放</strong></p>
+<p>.amr后缀，但它并不是真正的.amr文件，amr播放器是播放不了的 </p>
+<p>其实是silk v3格式，QQ的语音文件也是这种格式 </p>
+<h1 id="微信语音文件的格式转换"><a href="#微信语音文件的格式转换" class="headerlink" title="微信语音文件的格式转换"></a><a href="http://www.jianshu.com/p/71137d5acf78" target="_blank" rel="noopener">微信语音文件的格式转换</a></h1><p>起初，iOS 只是去掉了文件头的 amr，添上就能还原为 amr 了；Android 则是原生的 amr。</p>
+<p>微信6.0 之后开始采用 silk 编码来传输语音，必须用 slik v3 解码器</p>
+<p>这方面许多人做过工作，罗列一下：</p>
+<h2 id="个人"><a href="#个人" class="headerlink" title="个人"></a>个人</h2><p><strong>kn007</strong>: </p>
+<p><a href="https://kn007.net/topics/decoding-qq-wechat-silk-v3-encoded-audio-to-mp3-or-other-formats/" target="_blank" rel="noopener">解码转换QQ微信的SILK v3编码音频为MP3或其他格式</a></p>
+<p><a href="https://kn007.net/topics/batch-convert-silk-v3-audio-files-to-mp3-in-windows/" target="_blank" rel="noopener">Windows下批量转换Silk v3音频文件为MP3格式</a></p>
+<p><a href="https://kn007.net/topics/update-silk2mp3-to-official-version/" target="_blank" rel="noopener">更新了Silk2MP3</a></p>
+<p><strong>snakeninny</strong>：</p>
+<p><a href="http://bbs.iosre.com/t/topic/3199" target="_blank" rel="noopener">从微信中提取语音文件，并转换成文字的全自动化解决方案</a></p>
+<p><strong>hangcom</strong>：《iOS应用逆向工程》的作者，之前还开发了朋友圈导出。</p>
+<p><a href="https://zhuanlan.zhihu.com/p/21783890" target="_blank" rel="noopener">微信语音文件的解析</a></p>
+<p><strong>杨树下的狐狸</strong>：Android 方案</p>
+<p><a href="https://www.zhihu.com/question/19909162/answer/80640430" target="_blank" rel="noopener">微信的语音聊天记录可以从手机提取出来保存到PC上么？ - 知乎</a></p>
+<p><strong>cxun</strong>：整体解决方案</p>
+<p>（暂时失效）<a href="http://www.cnblogs.com/cxun/p/4338643.html" target="_blank" rel="noopener">微信聊天记录查看器（程序+源码）</a></p>
+<h2 id="商用"><a href="#商用" class="headerlink" title="商用"></a>商用</h2><p>iTools：可以转换 aud 到 wav</p>
+<p>楼月微信聊天记录导出恢复助手：同上</p>
+<p>其他还有：Silk 手机音频播放器、Silk 转换工具、WeBack 等等。</p>
+<h1 id="Skype-Silk-与Opus的关系"><a href="#Skype-Silk-与Opus的关系" class="headerlink" title="Skype Silk 与Opus的关系"></a><a href="http://tiger-beach.blogspot.com/2014/04/skype-silk-opus.html" target="_blank" rel="noopener">Skype Silk 与Opus的关系</a></h1><p>Skype自2009年1月以来一直采用自己的SILK音频编码解码器，但是从2012年起过渡到新的Opus标准。</p>
+<p>Opus标准已经获互联网工程任务组（IETF）批准，标准格式为RFC 6716。</p>
+<p>Opus支持6kbps到510kbps的可变比特率。</p>
+<p>它是一个有损声音编码的格式，适用于网络上的实时声音传输。</p>
+<p>由于是一个开放格式，Opus在使用上没有任何专利限制。</p>
+<p>Opus合并了Xiph.org的CELT低延时音频编解码器和Skype的SILK语音编解码器，专为互联网音频设计，可用于替代现有的私有音频编解码器</p>
+<p>由 Xiph.Org、Mozilla、微软、Broadcom、Octasic和Google联合开发。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/音频基础/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1666,307 +2033,11 @@ sensorManager.registerListener(new SensorEventListener() {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/15/电脑使用/SimpleUML使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/08/15/电脑使用/SimpleUML使用/" itemprop="url">SimpleUML使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-15T14:19:13+08:00">
-                2019-08-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/UML/" itemprop="url" rel="index">
-                    <span itemprop="name">UML</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="SimpleUML-是什么"><a href="#SimpleUML-是什么" class="headerlink" title="SimpleUML 是什么"></a>SimpleUML 是什么</h1><p>可以按照包名等条件设置过滤条件，显示自己关心的部分。</p>
-<p>根据源码自动生成UML 类图 包图 序列图</p>
-<p>复杂结构生成后几乎不可用，全靠手动调整依赖</p>
-<h1 id="AndroidStudio-中使用-SimpleUML"><a href="#AndroidStudio-中使用-SimpleUML" class="headerlink" title="AndroidStudio 中使用 SimpleUML"></a>AndroidStudio 中使用 SimpleUML</h1><ul>
-<li>AndroidStudio 安装 SimpleUML 插件</li>
-<li>重启</li>
-<li>某个 <code>包/类</code> 上右击，选择 <code>Add to simpleUML Diagram</code></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/15/编程思想/UML/SimpleUML使用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/08/15/编程思想/UML/SimpleUML使用/" itemprop="url">SimpleUML使用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-15T14:19:13+08:00">
-                2019-08-15
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/UML/" itemprop="url" rel="index">
-                    <span itemprop="name">UML</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="SimpleUML-是什么"><a href="#SimpleUML-是什么" class="headerlink" title="SimpleUML 是什么"></a>SimpleUML 是什么</h1><p>根据源码自动生成UML类图</p>
-<h1 id="AndroidStudio-中使用-SimpleUML"><a href="#AndroidStudio-中使用-SimpleUML" class="headerlink" title="AndroidStudio 中使用 SimpleUML"></a>AndroidStudio 中使用 SimpleUML</h1><ul>
-<li>AndroidStudio 安装 SimpleUML 插件</li>
-<li>重启</li>
-<li>某个 <code>包/类</code> 上右击，选择 <code>Add to simpleUML Diagram</code></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/8/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="extend next" rel="next" href="/page/10/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/8/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><span class="space">&hellip;</span><a class="page-number" href="/page/32/">32</a><a class="extend next" rel="next" href="/page/10/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2016,7 +2087,7 @@ sensorManager.registerListener(new SensorEventListener() {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">310</span>
+                  <span class="site-state-item-count">315</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2027,7 +2098,7 @@ sensorManager.registerListener(new SensorEventListener() {
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-count">20</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2038,7 +2109,7 @@ sensorManager.registerListener(new SensorEventListener() {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-count">72</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>

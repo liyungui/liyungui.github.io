@@ -262,6 +262,333 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/" itemprop="url">直播疑难杂症二-卡顿</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T15:08:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="表现"><a href="#表现" class="headerlink" title="表现"></a>表现</h1><p>包括但不限于以下这些：</p>
+<ul>
+<li><p>频繁出现缓冲</p>
+</li>
+<li><p>播放不够流畅，画面声音一卡一卡的</p>
+</li>
+</ul>
+<p>从代码层面来说，<strong>帧率太低</strong></p>
+<h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><p>通常可能有如下几大类</p>
+<h2 id="网络带宽不足"><a href="#网络带宽不足" class="headerlink" title="网络带宽不足"></a>网络带宽不足</h2><p>一个完整的直播应用，简单来说数据流是这样的：<code>主播 -&gt; CDN -&gt; 观众</code></p>
+<p>因此，直播出现卡顿，三个端都可能是问题的源头：</p>
+<ul>
+<li>主播端的网络不好，导致推流上行不稳定</li>
+<li>服务端的线路质量不好，导致分发不稳定</li>
+<li>观众端的网络不好，导致拉流下行不稳定</li>
+</ul>
+<h3 id="如何判断网络不好"><a href="#如何判断网络不好" class="headerlink" title="如何判断网络不好"></a>如何判断网络不好</h3><ul>
+<li>宽度测速。是否低于推流码率所需宽带</li>
+<li>宽带稳定性。丢包率，延时</li>
+<li>SDK回调。推流/拉流 码率 帧率</li>
+</ul>
+<h2 id="播放设备性能不足"><a href="#播放设备性能不足" class="headerlink" title="播放设备性能不足"></a>播放设备性能不足</h2><p>设备性能不足，导致解码播放的帧率远小于视频码流的实际帧率，从而产生卡顿。</p>
+<p>解决方案：</p>
+<ul>
+<li>优先硬解，充分利用 GPU 加速</li>
+<li>低端机上优先选择非高清码流。越高清的码率，对解码的要求越高</li>
+<li>增大缓冲区，缓解卡顿</li>
+</ul>
+<h2 id="视频流时间戳问题"><a href="#视频流时间戳问题" class="headerlink" title="视频流时间戳问题"></a>视频流时间戳问题</h2><p>播放器一般是严格根据码流中的音视频的时间戳来做音画同步的，因此，如果码流中的音视频时间戳出现错误，肯定会影响到播放画面的渲染时机</p>
+<p>播放器一般 master 主时钟是单调递增的，当后来的视频帧小于了当前的主时钟，播放器就会做丢帧处理，从而导致播放的视频帧率远低于实际码流中的视频帧率，从而产生卡顿现象。</p>
+<img src="/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/stream_time.jpeg">
+<p>排查这个问题，可以把读取到的每一帧音频、视频的时间戳打印出来看看</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.qiniu.com/archives/8405" target="_blank" rel="noopener">《直播疑难杂症排查》之二：播放卡顿</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症-开篇/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/直播疑难杂症/直播疑难杂症-开篇/" itemprop="url">直播疑难杂症-开篇</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T15:02:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="直播疑难杂症大纲"><a href="#直播疑难杂症大纲" class="headerlink" title="直播疑难杂症大纲"></a>直播疑难杂症大纲</h1><p>（一）播放失败</p>
+<p>（二）直播卡顿</p>
+<p>（三）首开慢</p>
+<p>（四）延时高</p>
+<p>（五）音画不同步</p>
+<p>（六）马赛克严重</p>
+<p>（七）播放黑屏、花屏、绿屏</p>
+<p>（八）播放杂音、噪音、回声</p>
+<p>（九）点播拖动不准</p>
+<p>（十）直播发热问题</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/视频/Android视频录制app解决方案汇总/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2127,378 +2454,11 @@ public void systemPcm2Amr(String inPath,String outPath){
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/学乎录音实现方式/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/音频/学乎录音实现方式/" itemprop="url">学乎录音实现方式</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>学乎录音实现</p>
-<h1 id="学乎录音实现方式探索历程"><a href="#学乎录音实现方式探索历程" class="headerlink" title="学乎录音实现方式探索历程"></a>学乎录音实现方式探索历程</h1><p>尝试过 MedicaRecord,AudioRecord录音，lame库编码为MP3(<a href="https://github.com/liyungui/MP3LameRecord" target="_blank" rel="noopener">MP3LameRecord</a>)，webrtc降噪(<a href="https://github.com/liyungui/PCMNoiseSupression" target="_blank" rel="noopener">PCMNoiseSupression</a>)</p>
-<p>经过实践测试，发现音效最好(音量大，噪音小)的实现方式是：AudioRecord录制，使用Android系统自带的pcm转arm</p>
-<h2 id="关键细节"><a href="#关键细节" class="headerlink" title="关键细节"></a>关键细节</h2><pre><code>AudioManager audioManager = (AudioManager) App.getApplication().getSystemService(Context.AUDIO_SERVICE);
-audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-audioManager.setSpeakerphoneOn(true);
-
-// 获得缓冲区字节大小
-bufferSizeInBytes = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE,
-        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
-
-// 创建AudioRecord对象
-recorder = new AudioRecord(AUDIO_INPUT, AUDIO_SAMPLE_RATE,
-        AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSizeInBytes);
-voiceFilePath = PathUtil.getInstance().getVoicePath() + File.separator + getPCMFileName(&quot;&quot;);
-file = new File(voiceFilePath);
-recorder.startRecording();
-isRecording = true;// 让录制状态为true
-// 开启音频文件写入线程
-new Thread(new AudioRecordThread()).start();
-
-private void writeDateTOFile(String AudioName) {
-    // new一个byte数组用来存一些字节数据，大小为缓冲区大小
-    byte[] audiodata = new byte[bufferSizeInBytes];
-    FileOutputStream fos = null;
-    int readsize = 0;
-    try {
-        File file = new File(AudioName);
-        if (file.exists()) {
-            file.delete();
-        }
-        fos = new FileOutputStream(file);// 建立一个可存取字节的文件
-
-        while (isRecording) {
-            readsize = recorder.read(audiodata, 0, bufferSizeInBytes);
-            if (AudioRecord.ERROR_INVALID_OPERATION != readsize &amp;&amp; fos != null) {
-                try {
-                    fos.write(audiodata);
-
-                    getVolumeDB(readsize, audiodata);
-                } catch (Exception e) {
-                    if (e != null) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-
-        if (fos != null)
-            fos.close();// 关闭写入流
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-</code></pre><p>pcm 转 amr实现细节参考另一篇笔记。反射调用在华为机型上容易ANR，要把系统类文件复制到工程中使用，性能好</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/微信语音编码-silk/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/音频/微信语音编码-silk/" itemprop="url">微信语音编码-silk</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Android微信语音聊天记录及文本聊天记录-数据库破解-silk-整理"><a href="#Android微信语音聊天记录及文本聊天记录-数据库破解-silk-整理" class="headerlink" title="Android微信语音聊天记录及文本聊天记录 数据库破解 silk 整理"></a><a href="http://blog.csdn.net/voler_HJL/article/details/53788126" target="_blank" rel="noopener">Android微信语音聊天记录及文本聊天记录 数据库破解 silk 整理</a></h1><p><strong>微信语音文件存储位置</strong></p>
-<pre><code>根目录 -》tencent -》MicroMsg -》名字很长又很乱的那个文件夹 -》voice2 
-</code></pre><p><strong>播放</strong></p>
-<p>.amr后缀，但它并不是真正的.amr文件，amr播放器是播放不了的 </p>
-<p>其实是silk v3格式，QQ的语音文件也是这种格式 </p>
-<h1 id="微信语音文件的格式转换"><a href="#微信语音文件的格式转换" class="headerlink" title="微信语音文件的格式转换"></a><a href="http://www.jianshu.com/p/71137d5acf78" target="_blank" rel="noopener">微信语音文件的格式转换</a></h1><p>起初，iOS 只是去掉了文件头的 amr，添上就能还原为 amr 了；Android 则是原生的 amr。</p>
-<p>微信6.0 之后开始采用 silk 编码来传输语音，必须用 slik v3 解码器</p>
-<p>这方面许多人做过工作，罗列一下：</p>
-<h2 id="个人"><a href="#个人" class="headerlink" title="个人"></a>个人</h2><p><strong>kn007</strong>: </p>
-<p><a href="https://kn007.net/topics/decoding-qq-wechat-silk-v3-encoded-audio-to-mp3-or-other-formats/" target="_blank" rel="noopener">解码转换QQ微信的SILK v3编码音频为MP3或其他格式</a></p>
-<p><a href="https://kn007.net/topics/batch-convert-silk-v3-audio-files-to-mp3-in-windows/" target="_blank" rel="noopener">Windows下批量转换Silk v3音频文件为MP3格式</a></p>
-<p><a href="https://kn007.net/topics/update-silk2mp3-to-official-version/" target="_blank" rel="noopener">更新了Silk2MP3</a></p>
-<p><strong>snakeninny</strong>：</p>
-<p><a href="http://bbs.iosre.com/t/topic/3199" target="_blank" rel="noopener">从微信中提取语音文件，并转换成文字的全自动化解决方案</a></p>
-<p><strong>hangcom</strong>：《iOS应用逆向工程》的作者，之前还开发了朋友圈导出。</p>
-<p><a href="https://zhuanlan.zhihu.com/p/21783890" target="_blank" rel="noopener">微信语音文件的解析</a></p>
-<p><strong>杨树下的狐狸</strong>：Android 方案</p>
-<p><a href="https://www.zhihu.com/question/19909162/answer/80640430" target="_blank" rel="noopener">微信的语音聊天记录可以从手机提取出来保存到PC上么？ - 知乎</a></p>
-<p><strong>cxun</strong>：整体解决方案</p>
-<p>（暂时失效）<a href="http://www.cnblogs.com/cxun/p/4338643.html" target="_blank" rel="noopener">微信聊天记录查看器（程序+源码）</a></p>
-<h2 id="商用"><a href="#商用" class="headerlink" title="商用"></a>商用</h2><p>iTools：可以转换 aud 到 wav</p>
-<p>楼月微信聊天记录导出恢复助手：同上</p>
-<p>其他还有：Silk 手机音频播放器、Silk 转换工具、WeBack 等等。</p>
-<h1 id="Skype-Silk-与Opus的关系"><a href="#Skype-Silk-与Opus的关系" class="headerlink" title="Skype Silk 与Opus的关系"></a><a href="http://tiger-beach.blogspot.com/2014/04/skype-silk-opus.html" target="_blank" rel="noopener">Skype Silk 与Opus的关系</a></h1><p>Skype自2009年1月以来一直采用自己的SILK音频编码解码器，但是从2012年起过渡到新的Opus标准。</p>
-<p>Opus标准已经获互联网工程任务组（IETF）批准，标准格式为RFC 6716。</p>
-<p>Opus支持6kbps到510kbps的可变比特率。</p>
-<p>它是一个有损声音编码的格式，适用于网络上的实时声音传输。</p>
-<p>由于是一个开放格式，Opus在使用上没有任何专利限制。</p>
-<p>Opus合并了Xiph.org的CELT低延时音频编解码器和Skype的SILK语音编解码器，专为互联网音频设计，可用于替代现有的私有音频编解码器</p>
-<p>由 Xiph.Org、Mozilla、微软、Broadcom、Octasic和Google联合开发。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/7/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="extend next" rel="next" href="/page/9/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/7/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/32/">32</a><a class="extend next" rel="next" href="/page/9/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2548,7 +2508,7 @@ private void writeDateTOFile(String AudioName) {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">310</span>
+                  <span class="site-state-item-count">315</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2559,7 +2519,7 @@ private void writeDateTOFile(String AudioName) {
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">19</span>
+                  <span class="site-state-item-count">20</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2570,7 +2530,7 @@ private void writeDateTOFile(String AudioName) {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">71</span>
+                  <span class="site-state-item-count">72</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
