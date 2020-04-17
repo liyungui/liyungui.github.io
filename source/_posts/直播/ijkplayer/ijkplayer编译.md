@@ -138,3 +138,5 @@ echo "  compile-ijk.sh clean"
 # 参考&扩展
 
 - [ijkplayer](https://github.com/bilibili/ijkplayer)
+-  [ijkplayer 编译详解](https://blog.csdn.net/Android_Programmer/article/details/81774732)
+-  [Android Mac下编译bilibili IjkPlayer以实现支持播放rtsp协议流资源](https://www.pianshen.com/article/390141993/)

@@ -90,7 +90,7 @@ GitHub Pages 可以被认为是用户编写的、托管在github上的静态网�
 
 - 目录文件结构
 
-	![](http://img2.tuicool.com/yIVFfaZ.png!web)
+	{% asset_img 目录.png %}
 
 	1、 scaffolds ：模板文件夹，新建文章时，Hexo 会根据 scaffold 来建立文件。
 
@@ -295,23 +295,25 @@ GitHub Pages 可以被认为是用户编写的、托管在github上的静态网�
 
 # 四、图片 #
 
-1. 放在 `source/images` 文件夹中，通过常规 markdown语法访问 `![](/images/image.jpg)
+1. 放在 `source/images` 文件夹中，通过常规 markdown语法访问 `![](/images/image.jpg)`
 	- 生成的html： `<img src="/images/image.jpg" alt="">`
-	- 生成时会将图片复制到 `public/images` 文件夹。博客图片太多的话，不利于管理
+	- 生成时会将图片复制到 `public/images` 文件夹。
+	- 博客图片太多的话，不利于管理
 2. 文章资源文件夹
 	- 开启文章资源文件夹
 		- 站点配置 `post_asset_folder` 选项设为 `true `
 		- 开启后，每次 `hexo new [layout] <title>` 都会生成与MD文件同名的文件夹
 		- 将图片放于文章资源文件夹
 	- 相对路径引用的标签插件
-		- 使用下列的标签插件而不是 markdown语法引用图片。确保图片能正确显示在文章和主页、归档页(md语法后两者无法显示)
+		- 使用下列的标签插件而不是 markdown语法引用图片。确保图片能正确显示在文章和主页、归档页(md语法引用在后两者无法显示图片)
 
 				{% asset_path slug %}
 				{% asset_img slug [title] %}
 				{% asset_link slug [title] %}
 				例如：{% asset_img example.jpg This is an example image %}
 		- 生成的html： `<img src="/2018/04/25/test/test.jpg">`
-		- 生成时会将图片复制到 `public/2018/04/25/test/test.jpg`。博客图片太多的话，不利于管理
+		- 生成时会将图片复制到 `public/2018/04/25/test/test.jpg`。
+		- 博客图片再多也能管理了
 
 # GithubPage展示多个项目
 

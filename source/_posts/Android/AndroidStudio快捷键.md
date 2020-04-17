@@ -21,8 +21,8 @@ keymap 是 Mac OS X 10.5+
 
 最近访问文件列表：cmd + e
 
-类/方法在全局引用：sft + fn + F7
-类/方法在当前文件引用：opt + fn + F7
+类/方法在当前文件引用：cmd + fn + F7
+类/方法在全局文件引用：opt + fn + F7
 
 列出方法被调用的层级结构：ctr + opt + h
 列出实现类：cmd + opt + b
