@@ -262,6 +262,612 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/无源码调试Android dex/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/12/06/逆向/Android/动态调试/无源码调试Android dex/" itemprop="url">无源码调试Android dex</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T13:41:53+08:00">
+                2019-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>标 题: 【原创】阿里聚安全技术分享之APK无源码调试<br>作 者: alimobsec<br>时 间: 2014-12-18,14:42:14<br>链 接: <a href="http://bbs.pediy.com/showthread.php?t=195660" target="_blank" rel="noopener">http://bbs.pediy.com/showthread.php?t=195660</a><br>这年头，apk全都是加密啊，加壳啊，反调试啊，小伙伴们表示已经不能愉快的玩耍了。静态分析越来越不靠谱了<br>我们的目标是——“debug apk step by step”。</p>
+<p>那些不靠谱的工具<br>    IDA pro<br>    触发断点，在watch view和Locals窗口都能看到内存变量的值<br>    仔细观察下，就算你勾选了“Hex display”，你还是无法看到变量的值<br>    WTF！我特么忙活了半天居然还不如直接logcat来得痛快！</p>
+<pre><code>apktool+eclipse
+debug窗口表示命中第30行的断点
+variables窗口没有任何本地变量的值，寄存器的值也没有
+单步步入、单步步过等调试按钮都是灰色的，快捷键F5678都没反应
+测试失败
+
+apktool+android studio
+可以看到现在程序停在哪一行，虽然不明显
+本地变量能看到，但是寄存器还是木有啊
+单步按钮还有单步快捷键都能用了，看起来好多了啊
+我还是想说，问题是寄存器的值还是没法直观的看到啊
+测试失败
+</code></pre><p>apktool+idea 正菜来了<br>    下断点<br>    新建远程调试：依次点击run-&gt; edit configuration-&gt;“＋”号-&gt;Remote，命名为mytest<br>    run-&gt;debug-&gt;mytest<br>    断下，按两次resume，apk才能跑起来<br>    测试成功</p>
+<p>另外，阿呆曾经提到一篇文章用jdb远程调试android程序的文章，<br>链接为：<a href="http://resources.infosecinstitute.com/android-hacking-security-part-6-exploiting-debuggable-android-applications/" target="_blank" rel="noopener">http://resources.infosecinstitute.com/android-hacking-security-part-6-exploiting-debuggable-android-applications/</a></p>
+<p><a href="http://www.kanxue.com/bbs/showthread.php?p=1338639" target="_blank" rel="noopener">http://www.kanxue.com/bbs/showthread.php?p=1338639</a></p>
+<hr>
+<p>下载<a href="http://ibotpeaches.github.io/Apktool/install/" target="_blank" rel="noopener">最新版Apktool</a>，按照教程操作</p>
+<pre><code>个人推荐下载bat。把apktool.jar和apktool.bat放到同一目录即可。
+    一是不用每次都敲 java -jar apktool.jar apktool
+    二是在编译回apk时，cmd会把 b 参数解析成文件名（一直报找不到文件错误）
+</code></pre><p>apktool 加-d参数反编译成java文件，全部拷贝到一个空java工程src目录下<br>    其实是伪java。每一行都是a=0;然后smali作为行注释<br>    -d的作用就是编译成 debug模式（.java，不加的话是.smali）<br>    apktool d -d test.apk -o test</p>
+<p>manifest 加入debuggable属性，重打包，安装<br>    android:debuggable=”true”</p>
+<p>使用-d选项重打包apk，签名(其他签名工具)，安装<br>    加-d才可以调试，否则断点无效<br>    apktool b -d test -o debug.apk</p>
+<p>am命令启动apk，停留在等待调试器界面<br>    adb shell am start -D -W -n com.snda.wifilocating/com.lantern.launcher.ui.MainActivity<br>        出现ddms自动附加调试的话，尝试先让app进入等待调试模式，再开idea</p>
+<p>eclipse调试按钮更多，远程调试，地址local，端口调试端口，附加上就可以断点调试了。<br>    一直没成功。<br>    附加不上，<br>    附加上是把原来的等待调试的杀死，启动了新进程<br>    附加上了，断不下来</p>
+<p>有文章说在入口类入口方法第一行加 等待调试器代码（有api可调），可以远程附加调试<br>    onCreate第一行（.prologue后面）<br>    invoke-static {}, Landroid/os/Debug;-&gt;waitForDebugger()V<br>    的确会等待调试器附加，但是附加上去还是无法断点调试（断不下）</p>
+<p>有文章甚至说反编译为jar包，加入一个空java工程中，就可以实现远程附加断点调试<br>    尝试失败</p>
+<p>后来尝试用idea，成功！！</p>
+<p>必须用另一个idea打开一个Android工程（上面我们是java工程），才能在tools–Android–Android device monitor 打开ddms，查看目标程序的调试端口（8700），同时防止adb掉线</p>
+<p>新建远程调试：依次点击run-&gt; edit configuration-&gt;“＋”号-&gt;Remote，host写localhost，端口写上面查到的</p>
+<p>点击run-&gt;debug-&gt;unnamed，其中unnamed是第9步中新建的远程调试的名字<br>    如果adb掉线，会出现连接拒绝，重连adb即可解决。 Unable to open debugger port (localhost:8700): java.net.ConnectException “Connection refused: connect”</p>
+<h1 id="Smalidea-IntelliJ-IDEA-Android-Studio无源码调试"><a href="#Smalidea-IntelliJ-IDEA-Android-Studio无源码调试" class="headerlink" title="Smalidea+IntelliJ IDEA/Android Studio无源码调试"></a><a href="https://bbs.pediy.com/thread-220743.htm" target="_blank" rel="noopener">Smalidea+IntelliJ IDEA/Android Studio无源码调试</a></h1><p><a href="https://github.com/JesusFreke/smali/wiki/smalidea" target="_blank" rel="noopener">smalidea</a>是一个IntelliJ IDEA/Android Studio smali语言插件，可实现动态调试smali代码。支持14.1或以上版本的IDEA</p>
+<h2 id="一、反编译apk为smali"><a href="#一、反编译apk为smali" class="headerlink" title="一、反编译apk为smali"></a>一、反编译apk为smali</h2><ul>
+<li><p>baksmail:</p>
+<pre><code>java -jar baksmali-2.2.1.jar  d myapp.apk -o ~/projects/myapp/src
+</code></pre></li>
+<li><p>apktool:</p>
+<pre><code>java -jar apktool.jar d myapp.apk -o ~/projects/myapp/src
+</code></pre></li>
+</ul>
+<h2 id="使apk可调试"><a href="#使apk可调试" class="headerlink" title="使apk可调试"></a>使apk可调试</h2><ul>
+<li>使用模拟器</li>
+<li>重打包apk。修改Manifest application 属性 android:debuggable=”true”</li>
+<li>编译一个debug版 的rom</li>
+<li>修改测试机的 /default.prop 文件的ro.debuggable=1。需root</li>
+</ul>
+<h2 id="开始调试"><a href="#开始调试" class="headerlink" title="开始调试"></a>开始调试</h2><hr>
+<p>来自 看雪 古河 使用AndBug调试Android Java Bytecode<br>    <a href="http://bbs.pediy.com/showthread.php?t=141995" target="_blank" rel="noopener">http://bbs.pediy.com/showthread.php?t=141995</a></p>
+<pre><code>附参考：看雪 anbn Android动态逆向分析工具（一）——Andbug之基本操作 系列。更加详细
+    http://bbs.pediy.com/showthread.php?t=183412
+</code></pre><p>AndBug的主页是：<a href="https://github.com/swdunlop/AndBug" target="_blank" rel="noopener">https://github.com/swdunlop/AndBug</a></p>
+<p>必须Linux环境（我是Ubuntu 14）。Python开发，需要python-dev，bottle库（Python Web Framework）</p>
+<p>github下载后解压，进入根目录，开启终端，make<br>    make 报错就是没有python-dev（Ubuntu自带Python，但没有python-dev）<br>        sudo apt-get install python-dev</p>
+<p>在模拟器中启动apk，在命令行下输入 adb shell ps，找到相应的进程pid，在这个例子中pid是243<br>    apk 必须debuggable，否则附加调试会出现 Connection reset by peer 错误</p>
+<pre><code>Ubuntu adb 问题。
+    sudo add-apt-repository ppa:nilarimogard/webupd8
+    sudo apt-get update
+    sudo apt-get install android-tools-adb
+
+安卓设备连接 adb 问题
+    lsusb 配合插拔usb设备，确定 USB设备。
+    发现usb口是当前使用的端口：Bus 002 Devices 004：ID 230b:0100        
+    ID 230b 就是idVendor ，0100就是 idProduct
+
+    新建并编辑一个文件
+    sudo vi /etc/udev/rules.d/70-android.rules
+    在里面写入：
+    SUBSYSTEM==&quot;usb&quot;, ATTRS{idVendor}==&quot;230b&quot;, ATTRS{idProduct}==&quot;0100&quot;,MODE=&quot;0666&quot;
+        ID 230b 就是idVendor ，0100就是 idProduct
+        其实还应该写一个OWNER项，用来指定是哪个用户有权限操作
+        如果不写则是root（不是所有用户都可以访问）
+
+    保存退出，再设置一下权限
+    sudo chmod a+rx /etc/udev/rules.d/70-android.rules
+
+    向adb_usb.ini文件写入厂商id（注意加 0x前缀）
+    echo 0x230b &gt; ~/.android/adb_usb.ini
+        用户根目录下，ls -a 可以发现
+
+    重启USB服务
+    sudo service udev restart
+</code></pre><p>进入AndBug根目录，输入PYTHONPATH=lib ./andbug shell -p 8723，命令attach上目标进程<br>    andbug是Python脚本，andbug shell 附加调试命令<br>    adb shell ps | grep “com.yuki” 可以找到对应名字的pid</p>
+<pre><code>[Errno 104] Connection reset by peer 问题
+搜索了好久，包括原贴和官网上都没有解决。
+我尝试去attach其它进程，发现其它进程是可以成功的，
+继而我想到可能是debuggable的问题，逆向AndroidManifest添加 android:debuggable=true 成功。
+</code></pre><p>classes 命令，查看apk调用了哪些类<br>    classes java.net 查看调用的包含java.net的类</p>
+<p>methods 命令，查看apk调用了哪些类方法</p>
+<p>break java.net.URL 断点类调用。<br>    也可断点方法调用 break 类名 方法名（类名和方法名间空格）<br>    Android4.4.2上实际操作发现断java.net.URL会在触摸屏幕触发断点<br>         com.android.okhttp.Connection.connect 这个断点效果好<br>         break com.android.okhttp.Connection connect</p>
+<p>break-list命令查看断点设置情况<br>break-remove 536870916    删除已设置断点</p>
+<p>操作apk，触发断点</p>
+<p>navi命令，提示 server地址<a href="http://localhost:8080" target="_blank" rel="noopener">http://localhost:8080</a> 查看线程状态<br>    !! command not supported: “navi.”  问题<br>    这是需要 bottle库（Python Web Framework）<br>        apt-get install python-bottle</p>
+<pre><code>Error: 500 Internal Server Error 问题
+访问http://localhost:8080 错误。
+解释说是地址，或资源问题。没有搞定（rooted红米note1 Android4.4.2）
+后来过了很长一段时间，用华为 g521-L076 测试成功（rooted，Android4.3）
+</code></pre><p>resume 恢复运行</p>
+<p>suspend 进程暂停命令</p>
+<p>help 帮助命令</p>
+<p>class-trace 类跟踪命令<br>取消跟踪也可以使用break-remove命令实现。</p>
+<p>method-trace 方法跟踪命令</p>
+<p>列举当前线程信息<br>命令：threads 会列出函数调用的情况，参数，以及堆栈情况。</p>
+<p>示指定类中的静态变量的信息<br>命令：statics com.android.internal.view.menu.MenuBuilder</p>
+<p>查看对象信息<br>通过class-trace命令可以跟踪到目标函数中对象的Id信息，</p>
+<p>通过对象的Id使用inspect命令，可以查处该队形的详细信息。<br>由于在break命令设置断点后，触发断点时反馈的信息，没有包含Object Id的信息，导致inspect命令用起来不是很方便。</p>
+<p>19、源码关联命令<br>命令：source 与源代码关联起来，可以是smali代码。<br>命令：dump 展示指定方法的代码。</p>
+<p>20、Web输出命令<br>命令：navi<br>注：为了支持navi命令，需要安**ottle库。</p>
+<p>退出命令<br>命令：exit     </p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/jswat 无源码动态调试/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/12/06/逆向/Android/动态调试/jswat 无源码动态调试/" itemprop="url">jswat无源码动态调试</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T11:51:53+08:00">
+                2019-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://blog.csdn.net/douniwan5788/article/details/17657665" target="_blank" rel="noopener">Android 无源码动态调试</a> </p>
+<p><a href="http://bbs.pediy.com/showthread.php?p=1277276" target="_blank" rel="noopener">jswat无源码动态调试</a> </p>
+<h2 id="rooadb-jswat-AndBug-jdb"><a href="#rooadb-jswat-AndBug-jdb" class="headerlink" title="rooadb + jswat(AndBug,jdb)"></a>rooadb + jswat(AndBug,jdb)</h2><p>Android无原码动态调试无敌了！ </p>
+<p>rootadb 可以以root启动adbd并使用其自带工具setpropex修改ro.debuggable = 1。（droid4x海马玩模拟器自带调试属性也可以）</p>
+<p>jswat、andbug、jdb都是可以无源码调试java的debuger</p>
+<ol>
+<li>jswat有GUI，java写的跨平台</li>
+<li>AndBug Linux下编译比较方便，Windows要自己搭建mingw环境</li>
+<li><p>jdb最强大。而且是jdk的一部分，免费且跨平台。命令行操作</p>
+<pre><code>gdbserver在ndk目录下的prebuilt文件夹，选择对应cpu即可
+gdb是GNU开源组织发布的一个强大的UNIX下的程序调试工具。
+也可以自己下载编译，同时获得gdb的客户端和服务端。
+</code></pre></li>
+</ol>
+<p>链接</p>
+<p><a href="https://github.com/poliva/rootadb" target="_blank" rel="noopener">rootadb下载</a></p>
+<p><a href="https://drive.google.com/folderview?id=0B8-CbCFlTA3nOVhZREhIcXBvT2c&amp;usp=sharing" target="_blank" rel="noopener">jswat下载</a></p>
+<pre><code>google 编译好的版本：如果是windows建议下exe安装版本,jar安装版好像环境变量有点问题
+</code></pre><p><a href="https://github.com/swdunlop/AndBug" target="_blank" rel="noopener">AndBug下载</a></p>
+<h2 id="附加进程-session–attach"><a href="#附加进程-session–attach" class="headerlink" title="附加进程 session–attach"></a>附加进程 session–attach</h2><p>附加进程有多中方式，下面是最常用的两种</p>
+<ol>
+<li><p>attach by socket（默认）</p>
+<p> host： localhost</p>
+<p> port：运行端口。千万不要写调试端口（所有app调试端口默认8700，这样就会附加到第一个找到的进程上）</p>
+<pre><code>android device monitor 设备/进程为空，先打开monitor，再打开模拟器可解决
+</code></pre></li>
+<li><p>attach to process<br> process id填 pid。adb shell ps 可查到</p>
+</li>
+</ol>
+<h2 id="窗口"><a href="#窗口" class="headerlink" title="窗口"></a>窗口</h2><p>classes可以看到调用的所有类（混淆后的名字），可以直接展开在上面下类/方法断点</p>
+<p>variables可以看到断点方法的变量</p>
+<p>breakpoints可以查看所有断点</p>
+<p>callstack 调用堆栈</p>
+<p>debuggerConsole 控制台输出，包括断点、单步调用的方法过程（如果单步调试中的话）</p>
+<h2 id="断点"><a href="#断点" class="headerlink" title="断点"></a>断点</h2><h3 id="方法断点"><a href="#方法断点" class="headerlink" title="方法断点"></a>方法断点</h3><pre><code>android.view.View.setOnClickListener(android.view.View$OnClickListener)断点
+package: android.view
+class: View
+method: setOnClickListener
+parameters: android.view.View$OnClickListener 参数不填也可以（系统补*表示任意参数类型）
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/06/逆向/Android/动态调试/快速定位关键代码的方法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/12/06/逆向/Android/动态调试/快速定位关键代码的方法/" itemprop="url">快速定位关键代码的方法</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-06T11:51:53+08:00">
+                2019-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/逆向/" itemprop="url" rel="index">
+                    <span itemprop="name">逆向</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <ol>
+<li>特征字符串</li>
+<li>特征API</li>
+<li>代码注入    <ul>
+<li>logcat输出信息</li>
+<li>logcat输出栈跟踪</li>
+<li>Method Profiling </li>
+</ul>
+</li>
+</ol>
+<h2 id="logcat输出信息"><a href="#logcat输出信息" class="headerlink" title="logcat输出信息"></a>logcat输出信息</h2><pre><code>const-string v9, &quot;lyg&quot;
+const-string v8, &quot;you message&quot;  
+invoke-static {v9, v8}, Landroid/util/Log;-&gt;v(Ljava/lang/String;Ljava/lang/String;)I
+
+const-string v3, &quot;lyg&quot;
+invoke-static {v1}, Ljava/lang/Integer;-&gt;toString(I)Ljava/lang/String;
+move-result-object v4
+invoke-static {v3, v4}, Landroid/util/Log;-&gt;v(Ljava/lang/String;Ljava/lang/String;)I
+</code></pre><p>从以上代码看出，logcat调用需要操作寄存器，更改.locals，容易出错</p>
+<p>所以，应该自己写一个LogUtils反编译成smali。用的时候直接把smali拷贝到工程即可。</p>
+<h2 id="logcat输出栈跟踪"><a href="#logcat输出栈跟踪" class="headerlink" title="logcat输出栈跟踪"></a>logcat输出栈跟踪</h2><pre><code>Log.e(&quot;lyg&quot;, Log.getStackTraceString(new Exception(&quot;lyg2&quot;)));
+
+new Exception(&quot;lyg&quot;).printStackTrace(); tag是System.err 级别为Warn
+</code></pre><h2 id="Method-Profiling"><a href="#Method-Profiling" class="headerlink" title="Method Profiling"></a>Method Profiling</h2><ul>
+<li><p>DDMS中选中进程，点击右上角的start method Profiling，操作app，点击stop method Profiling，自动弹出traceView</p>
+</li>
+<li><p>手动灵活调用Method Profiling（Android SDK提供的调试支持，在android.os.Debug类）</p>
+<p>  android.os.Debug.startMethodTracing(“123”); </p>
+<p>  android.os.Debug.stopMethodTracing();</p>
+<p>  123为trace文件名，在sd卡根目录，所以记得申请sd卡读写权限</p>
+<p>  将123.trace pull 到计算机， 用Android SDK tools目录的traceview打开，跟DDMS效果一样</p>
+<pre><code>traceview 123.trace
+</code></pre></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/04/直播/视频/FLV解析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1498,498 +2104,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/11/01/CocosCreator/CocosCreator优化/Android原生启动黑屏优化/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/11/01/CocosCreator/CocosCreator优化/Android原生启动黑屏优化/" itemprop="url">Android原生启动黑屏优化</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-11-01T11:30:53+08:00">
-                2019-11-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/游戏/" itemprop="url" rel="index">
-                    <span itemprop="name">游戏</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>Cocos Creator 的打包出来的原生项目（即便是一个空白项目），打开应用后，「黑屏」一段时间才能进入到场景</p>
-<p>视乎机型与Android系统版本，这个「黑屏」时长可能会持续不同时间，但是实际测试这个持续最短可能也要1秒，需要优化改进</p>
-<h1 id="黑屏原因"><a href="#黑屏原因" class="headerlink" title="黑屏原因"></a>黑屏原因</h1><p>分析 <code>Cocos2dxActivity.onCreate</code> 启动流程</p>
-<h2 id="Activity-setContentView前"><a href="#Activity-setContentView前" class="headerlink" title="Activity.setContentView前"></a>Activity.setContentView前</h2><p>引擎启动耗时长</p>
-<h2 id="Activity-setContentView后"><a href="#Activity-setContentView后" class="headerlink" title="Activity.setContentView后"></a>Activity.setContentView后</h2><p>setContentView并没有设置任何有颜色的组件，还是黑屏状态</p>
-<h2 id="加载场景"><a href="#加载场景" class="headerlink" title="加载场景"></a>加载场景</h2><p>加载场景（main.js）需要一定时间</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><img src="/2019/11/01/CocosCreator/CocosCreator优化/Android原生启动黑屏优化/CocosCreator启动黑屏优化.png">
-<p>主场景JS的优化方案，在 一定程度上 都是属于弱优化，因为黑屏大头在前面两个阶段，场景JS优化只能优化第三阶段的黑屏。这也是为什么空白项目打包也会出现黑屏的原因，问题不在于场景大小，js脚本复杂度，而在于 原生启动阶段</p>
-<p>因此为了减少可变因子，我们直接以一个简单场景作为第三阶段要加载的场景</p>
-<p>还特别需要注意一点：因为我们是探索测试，所以强烈建议采用基于 default 模板去进行操作</p>
-<p>default 和 link 的区别：</p>
-<ul>
-<li>default，使用默认的 cocos2d-x 源码版引擎构建项目</li>
-<li>link，不会拷贝 cocos2d-x 源码到构建目录下，而是使用共享的 cocos2d-x 源码。这样可以有效减少构建目录占用空间，以及对 cocos2d-x 源码的修改可以得到共享。</li>
-</ul>
-<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><h2 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h2><h3 id="设置Activity背景"><a href="#设置Activity背景" class="headerlink" title="设置Activity背景"></a>设置Activity背景</h3><p>解决第一阶段的黑屏，进入第二个阶段(setContentView)后回再次触发黑屏</p>
-<p>通过给Activity设置主题样式，可以在样式中 <code>android:windowBackground</code>属性指定背景（纯色或者图片）</p>
-<h3 id="添加背景到contentView"><a href="#添加背景到contentView" class="headerlink" title="添加背景到contentView"></a>添加背景到contentView</h3><p>解决第二阶段的黑屏</p>
-<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> ImageView sSplashBgImageView = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * oncreate 调用 显示原生开屏背景的方法</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">showSplash</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    sSplashBgImageView = <span class="keyword">new</span> ImageView(sCocos2dxActivity);</span><br><span class="line">    sSplashBgImageView.setImageResource(R.drawable.splash);</span><br><span class="line">    sSplashBgImageView.setScaleType(ImageView.ScaleType.FIT_XY);</span><br><span class="line">    sCocos2dxActivity.addContentView(sSplashBgImageView,</span><br><span class="line">            <span class="keyword">new</span> WindowManager.LayoutParams(</span><br><span class="line">                    FrameLayout.LayoutParams.MATCH_PARENT,</span><br><span class="line">                    FrameLayout.LayoutParams.MATCH_PARENT</span><br><span class="line">            )</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 这是给 JS 调用的隐藏原生开屏背景的方法</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">hideSplash</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    sCocos2dxActivity.runOnUiThread(<span class="keyword">new</span> Runnable() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (sSplashBgImageView != <span class="keyword">null</span>) &#123;</span><br><span class="line">                sSplashBgImageView.setVisibility(View.GONE);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">@ccclass</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="class"><span class="keyword">class</span> <span class="title">MainSceneCtrl</span> <span class="keyword">extends</span> <span class="title">cc</span>.<span class="title">Component</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    start() &#123;</span><br><span class="line">        <span class="comment">// 场景加载之后，隐藏原生纯色背景View</span></span><br><span class="line">        <span class="comment">// 这里延迟1秒是为了更好的体验，实际可以不用</span></span><br><span class="line">        <span class="keyword">this</span>.scheduleOnce(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>._hideNativeSplash();</span><br><span class="line">        &#125;, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private _hideNativeSplash() &#123;</span><br><span class="line">        <span class="keyword">if</span> (CC_JSB) &#123;</span><br><span class="line">            <span class="keyword">if</span> (cc.sys.os == cc.sys.OS_ANDROID) &#123;</span><br><span class="line">                <span class="comment">// 反射调用原生的隐藏方法</span></span><br><span class="line">                jsb.reflection.callStaticMethod(</span><br><span class="line">                    <span class="string">"org/cocos2dx/javascript/AppActivity"</span>,</span><br><span class="line">                    <span class="string">"hideSplash"</span>,</span><br><span class="line">                    <span class="string">"()V"</span></span><br><span class="line">                );</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="图片的屏幕适配问题"><a href="#图片的屏幕适配问题" class="headerlink" title="图片的屏幕适配问题"></a>图片的屏幕适配问题</h2><p>上面两个阶段都是设置了一张图片作为背景</p>
-<p>Activity主题背景是通过拉升图片的方式去屏幕适配，第二阶段我们可以自定义 <code>ImageView.ScaleType</code> 来屏幕适配</p>
-<p>然后Activity启动后进入游戏一般就会隐藏底部虚拟按键，屏幕宽高比会发生变化，只用一张固定尺寸的图片，肯定会出现适配问题</p>
-<p>这或许就是大部分游戏开屏不设置图片的原因，而是设置 Slogan图片 + 背景色 作为启动页</p>
-<h2 id="Slogan图片-背景色"><a href="#Slogan图片-背景色" class="headerlink" title="Slogan图片 + 背景色"></a>Slogan图片 + 背景色</h2><p>创建一个DrawableXML文件 <code>app/res/drawable/splash_slogan_with_bg.xml</code></p>
-<p>使用 Android 的图层列表 LayerList生成一个 Drawable：一个纯色的矩形，在这之上放置一个 Slogan 的 Bitmap 图片</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span><br><span class="line"><span class="tag">&lt;<span class="name">layer-list</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span> &gt;</span></span><br><span class="line">    <span class="comment">&lt;!--矩形 黄色作为背景色--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> &gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">shape</span> <span class="attr">android:shape</span>=<span class="string">"rectangle"</span> &gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">solid</span> <span class="attr">android:color</span>=<span class="string">"@color/splash_slogan_bg"</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">shape</span> &gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">item</span> &gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!--单独的slogan图片居中显示--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">item</span> &gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">bitmap</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:gravity</span>=<span class="string">"center"</span></span></span><br><span class="line"><span class="tag">            <span class="attr">android:src</span>=<span class="string">"@drawable/splash_slogan_small"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">item</span> &gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">layer-list</span> &gt;</span></span><br></pre></td></tr></table></figure>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.jianshu.com/p/2df139d48539" target="_blank" rel="noopener">Cocos Creator Android 原生启动优化系列 1 —— 黑屏原因分析</a></li>
-<li><a href="https://www.jianshu.com/p/21d269c8ef09" target="_blank" rel="noopener">Cocos Creator Android 原生启动优化系列 2 —— 自定义启动页</a></li>
-<li><a href="https://blog.csdn.net/aa464971/article/details/86692198" target="_blank" rel="noopener">Splash适配解决启动图拉伸的问题</a></li>
-<li><a href="https://www.jianshu.com/p/662274d5d637" target="_blank" rel="noopener">Android启动页优化，去黑屏实现秒启动</a></li>
-<li><a href="https://juejin.im/post/5ce8daa95188250ae716e1c2" target="_blank" rel="noopener">Android性能优化之启动优化</a></li>
-<li><a href="https://mp.weixin.qq.com/s/OWImTj_4Ml1nmpN2v9mRAw" target="_blank" rel="noopener">Android 性能优化—— 启动优化提升60%</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/31/CocosCreator/CocosCreator技术攻坚总结/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/10/31/CocosCreator/CocosCreator技术攻坚总结/" itemprop="url">CocosCreator技术攻坚总结</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-31T14:30:53+08:00">
-                2019-10-31
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/游戏/" itemprop="url" rel="index">
-                    <span itemprop="name">游戏</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>cocos Creator 游戏打包成H5，用webview 加载；</p>
-<p>问题：</p>
-<ul>
-<li>性能。低端机帧率低</li>
-<li>兼容性。部分老机型，不支持x5内核</li>
-</ul>
-<p>于是决定把游戏编译成原生</p>
-<h1 id="挑战"><a href="#挑战" class="headerlink" title="挑战"></a>挑战</h1><h2 id="平台兼容性"><a href="#平台兼容性" class="headerlink" title="平台兼容性"></a>平台兼容性</h2><p>部分特性只支持H5；比如 <code>window.location</code>、<code>axios</code>(基于 promise 的 HTTP 库)只支持浏览器环境</p>
-<p>这部分需要改造，为了跨端，使用c++ HttpClient</p>
-<h2 id="以View的形式渲染游戏"><a href="#以View的形式渲染游戏" class="headerlink" title="以View的形式渲染游戏"></a>以View的形式渲染游戏</h2><p>项目中游戏只是直播间的一部分；玩游戏时还需要直播和互动</p>
-<p>官方demo是Activity形式</p>
-<p>分析源码，发现是用动态创建GlSurfaceView添加到Activity来展示游戏。</p>
-<p>封装成view即可满足项目需求</p>
-<h2 id="结束游戏"><a href="#结束游戏" class="headerlink" title="结束游戏"></a>结束游戏</h2><p>官方demo直接杀死进程，退出游戏。好暴力</p>
-<p>项目中不能杀死进程，游戏结束需要维持直播和互动</p>
-<p>官方文档提供了js方法结束游戏，分析源码发现最终调用的c++代码</p>
-<p>封装并使用jni技术提供方法给java层使用即可</p>
-<h2 id="多次运行游戏"><a href="#多次运行游戏" class="headerlink" title="多次运行游戏"></a>多次运行游戏</h2><p>因为结束游戏没有退出进程，游戏引擎官方架构是不支持重入的；</p>
-<p>由易到难的方案。团队信心，时间因素</p>
-<h3 id="热更新方案"><a href="#热更新方案" class="headerlink" title="热更新方案"></a>热更新方案</h3><p>官方提供了一个热更新重新开始游戏的方案，可以支持多次运行</p>
-<p>卡点：官方demo是大厅+子游戏模式；只有一个入口。项目是通过不同路径进入独立的子游戏模式，重新开始游戏永远是上一次运行的游戏</p>
-<p>应该是加载资源有问题；跟踪发现是搜索文件成功后回缓存文件完整路径。不同游戏的入口文件名一致。添加新搜索路径时，清空缓存即可</p>
-<h3 id="完全回收引擎方案"><a href="#完全回收引擎方案" class="headerlink" title="完全回收引擎方案"></a>完全回收引擎方案</h3><p>分析游戏启动流程，渲染原理，jsb原理。解决野指针，状态异常等问题</p>
-<h2 id="启动黑屏优化"><a href="#启动黑屏优化" class="headerlink" title="启动黑屏优化"></a>启动黑屏优化</h2><h1 id="沉淀"><a href="#沉淀" class="headerlink" title="沉淀"></a>沉淀</h1><h2 id="使用git记录引擎修改记录"><a href="#使用git记录引擎修改记录" class="headerlink" title="使用git记录引擎修改记录"></a>使用git记录引擎修改记录</h2><h2 id="原理分析，总结文档"><a href="#原理分析，总结文档" class="headerlink" title="原理分析，总结文档"></a>原理分析，总结文档</h2><h2 id="团队分享，侧重解决问题的方法论"><a href="#团队分享，侧重解决问题的方法论" class="headerlink" title="团队分享，侧重解决问题的方法论"></a>团队分享，侧重解决问题的方法论</h2>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/30/c++/C++之IDE/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/10/30/c++/C++之IDE/" itemprop="url">C++之IDE</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-10-30T22:12:53+08:00">
-                2019-10-30
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/c/" itemprop="url" rel="index">
-                    <span itemprop="name">c++</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Visual-Studio"><a href="#Visual-Studio" class="headerlink" title="Visual Studio"></a>Visual Studio</h1><p>无与伦比的 IDE, Community版免费, 其余付费</p>
-<p>总结: 非常智能, 拥有强大的功能, 可以完成基本上所有 C++ IDE 无法完成的任务</p>
-<p>优点: 支持远程合作 (Live Share), 智能化的代码补全, 具有很强的稳定性, 可以进行扩展与自定义, 完全支持中文</p>
-<p>缺点: 编译运行速度慢; 对程序的要求十分严格; 不适合初学者</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="在线安装"><a href="#在线安装" class="headerlink" title="在线安装"></a>在线安装</h3><p>官网下载，双击安装即可在线安装</p>
-<p>下载速度还是相对较慢的，900多MB</p>
-<h3 id="离线安装"><a href="#离线安装" class="headerlink" title="离线安装"></a>离线安装</h3><p>Mono Framework，Visual Studio for Mac 顺序安装即可</p>
-<h1 id="Visual-Studio-Code"><a href="#Visual-Studio-Code" class="headerlink" title="Visual Studio Code"></a>Visual Studio Code</h1><p>轻量级的 C++ 文件编辑和调试 IDE；如果想要更好的编程和调试体验，请使用 Visual Studio Community版本</p>
-<p><a href="https://code.visualstudio.com/docs/languages/cpp" target="_blank" rel="noopener">官方使用文档</a></p>
-<h2 id="C-C-扩展"><a href="#C-C-扩展" class="headerlink" title="C/C++ 扩展"></a>C/C++ 扩展</h2><p> 智能补全，调试</p>
-<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><p>配置较繁琐，参考官方文档</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2044,7 +2158,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">315</span>
+                  <span class="site-state-item-count">318</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2055,7 +2169,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2066,7 +2180,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-count">73</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2166,9 +2280,6 @@
 
 
 
-  
-  
-
 
 
 
@@ -2203,16 +2314,6 @@
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/three.min.js"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
   
 
 

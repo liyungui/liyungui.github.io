@@ -262,6 +262,725 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/02/直播/直播技术/直播技术四-编码和封装/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/02/直播/直播技术/直播技术四-编码和封装/" itemprop="url">直播技术四-编码和封装</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-02T10:26:14+08:00">
+                2019-08-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><strong>编码性能、编码速度和编码压缩比</strong>会直接影响整个流媒体传输的用户体验和传输成本。</p>
+<p>编码完成后需要把内容按照一定标准封装到一个多媒体容器</p>
+<h1 id="视频编码的意义"><a href="#视频编码的意义" class="headerlink" title="视频编码的意义"></a>视频编码的意义</h1><p>原始视频数据存储空间大，一个 1080P 50帧/秒 位宽(每个像素点位数)8bit 视频的码率为需要 937.5 Mbps，需要千兆上行宽带才能满足实时传输需求。而经过 H.264 编码压缩之后，视频码率只有 809 Kbps ,1 Mbps 的上行带宽就可以满足实时传输需求。所以从视频采集传感器采集来的原始视频势必要经过视频编码。</p>
+<h1 id="视频编码原理"><a href="#视频编码原理" class="headerlink" title="视频编码原理"></a>视频编码原理</h1><h2 id="编码原理"><a href="#编码原理" class="headerlink" title="编码原理"></a>编码原理</h2><p>核心思想就是<strong>去除冗余信息</strong></p>
+<p><strong>空间冗余</strong>：图像相邻像素之间有较强的相关性</p>
+<p><strong>时间冗余</strong>：视频序列的相邻图像之间内容相似</p>
+<p><strong>编码冗余</strong>：不同像素值出现的概率不同</p>
+<p><strong>视觉冗余</strong>：人的视觉系统对某些细节不敏感</p>
+<p><strong>知识冗余</strong>：规律性的结构可由先验知识和背景知识得到</p>
+<h2 id="帧内编码"><a href="#帧内编码" class="headerlink" title="帧内编码"></a>帧内编码</h2><p><strong>帧内编码</strong>：对每一帧图片进行压缩编码</p>
+<img src="/2019/08/02/直播/直播技术/直播技术四-编码和封装/帧内编码.png">
+<p> <strong>MJPEG</strong> 编码就是这种编码方式，这种编码方式只有帧内编码，利用<strong>空间上的取样预测</strong>来编码。去除 <strong>空间冗余</strong></p>
+<p>如图，绿色的部分就是当前待编码的区域，灰色就是尚未编码的区域，绿色区域可以根据已经编码的部分进行预测</p>
+<h2 id="帧间编码"><a href="#帧间编码" class="headerlink" title="帧间编码"></a>帧间编码</h2><p><strong>帧间编码</strong>：帧和帧之间有时间的相关性，通过搜索算法选定了帧上的某些区域，然后通过计算当前帧和前后参考帧的向量差进行编码</p>
+<img src="/2019/08/02/直播/直播技术/直播技术四-编码和封装/帧间编码.png">
+<p>通过上面两个图 连续帧我们可以看到，滑雪的同学是向前位移的，但实际上是<strong>雪景在向后位移</strong>，P 帧通过参考帧（I 或其他 P 帧）就可以进行编码了，编码之后的大小非常小，压缩比非常高</p>
+<p>上面两张图片的生成方式：</p>
+<ul>
+<li>生成带有移动矢量的视频</li>
+<li>把每一帧都输出成图片</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg  -flags2 +export_mvs -i tutu.mp4 -vf codecview=mv=pf+bf+bb tutudebug2.mp4</span><br><span class="line"></span><br><span class="line">ffmpeg -i tutudebug2.mp4 &apos;tutunormal-%03d.bmp&apos;</span><br></pre></td></tr></table></figure>
+<h2 id="编码流程"><a href="#编码流程" class="headerlink" title="编码流程"></a>编码流程</h2><img src="/2019/08/02/直播/直播技术/直播技术四-编码和封装/编码流程.png">
+<p>编码流程是把帧内编码和帧间编码结合在一起</p>
+<p>我们通常说的 I 帧和 P 帧就是分别采用了帧内编码和帧间编码</p>
+<h1 id="编码器的选择"><a href="#编码器的选择" class="headerlink" title="编码器的选择"></a>编码器的选择</h1><h2 id="H-264-AVC"><a href="#H-264-AVC" class="headerlink" title="H.264/AVC"></a>H.264/AVC</h2><h3 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h3><p>AVC（Advanced Video Coding）高级视频编码</p>
+<p>H.264/AVC <strong>低成本实现</strong>在<strong>更低带宽</strong>下提供优质视频（只有 MPEG-2，H.263 或 MPEG-4 第 2 部分的一半带宽或更少）</p>
+<ul>
+<li>不增加太多设计复杂度使得无法实现或实现成本过高</li>
+<li>提供足够的灵活性，以在各种应用、网络及系统中使用</li>
+</ul>
+<p>这样的技术基础让 H.264 成为包括 YouTube 在内的在线视频公司采用它作为主要的编解码器。</p>
+<h3 id="专利许可"><a href="#专利许可" class="headerlink" title="专利许可"></a>专利许可</h3><p>理论上讲使用 H.264 需要交纳不菲的专利费用。</p>
+<h3 id="开源实现"><a href="#开源实现" class="headerlink" title="开源实现"></a>开源实现</h3><p>OpenH264、x264</p>
+<h4 id="OpenH264"><a href="#OpenH264" class="headerlink" title="OpenH264"></a>OpenH264</h4><p>思科实现的开源 H.264 编码，思科把 OpenH264 实现的年度专利费交满后，OpenH264 事实上就可以免费自由的使用了。</p>
+<h4 id="x264"><a href="#x264" class="headerlink" title="x264"></a>x264</h4><p>采用 GPL 授权的视频编码自由软件。x264 的主要功能在于进行 H.264/MPEG-4 AVC 的视频编码，而不是作为解码器（decoder）之用。</p>
+<h4 id="比较"><a href="#比较" class="headerlink" title="比较"></a>比较</h4><p>OpenH264 CPU 的占用相对 x264低很多</p>
+<p>OpenH264 只支持 baseline profile，x264 支持更多 profile</p>
+<h2 id="HEVC-H-265"><a href="#HEVC-H-265" class="headerlink" title="HEVC/H.265"></a>HEVC/H.265</h2><h3 id="特性-1"><a href="#特性-1" class="headerlink" title="特性"></a>特性</h3><p>高效率视频编码（High Efficiency Video Coding，简称 HEVC）是 ITU-T H.264/MPEG-4 AVC 标准的<strong>继任者</strong>。</p>
+<ul>
+<li>提升视频质量</li>
+<li>同时能达到 H.264/MPEG-4 AVC <strong>两倍压缩率</strong>（等同于同样画面质量下比特率减少了 50%）</li>
+<li>可支持 <strong>4K</strong> 分辨率，最高分辨率可达到 8192×4320（8K 分辨率）。</li>
+</ul>
+<h3 id="专利许可-1"><a href="#专利许可-1" class="headerlink" title="专利许可"></a>专利许可</h3><p>要求所有使用 H.265 技术的支付专利使用费。包括</p>
+<ul>
+<li>内容制造商。<ul>
+<li>上缴内容收入的 0.5%作为技术使用费</li>
+<li>包括苹果、YouTube、Netflix、Facebook、亚马逊等</li>
+<li>整个流媒体市场每年达到约 1000 亿美元的规模，且不断增长中，</li>
+</ul>
+</li>
+<li>设备制造商。<ul>
+<li>按每台设备收费</li>
+<li>电视厂商、移动设备厂商、蓝光设备播放器、游戏机、录像机</li>
+<li>之前已经发售的产品依然要追缴费用</li>
+</ul>
+</li>
+</ul>
+<h3 id="开源实现-1"><a href="#开源实现-1" class="headerlink" title="开源实现"></a>开源实现</h3><p>libde265、x265</p>
+<h4 id="libde265-HEVC"><a href="#libde265-HEVC" class="headerlink" title="libde265 HEVC"></a>libde265 HEVC</h4><p>struktur 公司以开源许可证 GNU LesserGeneral Public License (LGPL) 提供，观众可以较慢的网速下欣赏到最高品质的影像。可以减少 50%流媒体播放所需要的带宽。高清或者 4K/8K 超高清流媒体播放，低延迟/低带宽视频会议，以及完整的移动设备覆盖。具有「拥塞感知」视频编码的稳定性，十分适合应用在 3/4G 和 LTE 网络。</p>
+<h4 id="x265"><a href="#x265" class="headerlink" title="x265"></a>x265</h4><p>MulticoreWare 开发，并开源。采用 GPL 协议，但是资助这个项目的几个公司组成了联盟可以在非 GPL 协议下使用这个软件。</p>
+<h2 id="VP8"><a href="#VP8" class="headerlink" title="VP8"></a>VP8</h2><h3 id="特性-2"><a href="#特性-2" class="headerlink" title="特性"></a>特性</h3><p>VP8 是一个开放的视频压缩格式，最早由 On2 Technologies 开发，随后由 Google 发布。</p>
+<p>目前支持 VP8 的网页浏览器有 Opera、Firefox 和 Chrome。</p>
+<h3 id="专利许可-2"><a href="#专利许可-2" class="headerlink" title="专利许可"></a>专利许可</h3><p>Google 获取 VP8 以及其之前的 VPx 等编码所可能侵犯的专利授权，然后无偿再次授权相关专利给 VP8 的用户。</p>
+<h3 id="开源实现-2"><a href="#开源实现-2" class="headerlink" title="开源实现"></a>开源实现</h3><h4 id="libvpx"><a href="#libvpx" class="headerlink" title="libvpx"></a>libvpx</h4><p>libvpx 是 VP8 的唯一开源实现，由 On2 Technologies 开发，Google 收购后将其开放源码，License 非常宽松可以自由使用。</p>
+<h2 id="VP9"><a href="#VP9" class="headerlink" title="VP9"></a>VP9</h2><h3 id="特性-3"><a href="#特性-3" class="headerlink" title="特性"></a>特性</h3><p>同画质下，比 VP8 编码减少 50% 的文件大小，在编码效率上超越 HEVC 编码。</p>
+<p>目前支持 VP8 的网页浏览器有 Chromium、Chrome、Firefox </p>
+<h3 id="专利许可-3"><a href="#专利许可-3" class="headerlink" title="专利许可"></a>专利许可</h3><p>VP9 是一个开放格式、无权利金的视频编码格式。</p>
+<h3 id="开源实现-3"><a href="#开源实现-3" class="headerlink" title="开源实现"></a>开源实现</h3><h4 id="libvpx-1"><a href="#libvpx-1" class="headerlink" title="libvpx"></a>libvpx</h4><p>libvpx是 VP9 的唯一开源实现，由 Google 开发维护，里面有部分代码是 VP8 和 VP9 公用的，其余分别是 VP8 和 VP9 的编解码实现。</p>
+<h1 id="FFmpeg"><a href="#FFmpeg" class="headerlink" title="FFmpeg"></a>FFmpeg</h1><p><a href="https://ffmpeg.org/download.html" target="_blank" rel="noopener">FFmpeg</a> 是一个自由软件，可以运行音频和视频多种格式的录影、转换、流功能.包含了 libavcodec -这是一个用于多个项目中音频和视频的解码器库，以及 libavformat -一个音频与视频格式转换库。</p>
+<p>FF 指的是 Fast Forward</p>
+<p>FFmpeg 是个优秀的工具，可以通过它完成很多日常的工作和实验，但是距离提供真正可用的流媒体服务、直播服务还有非常多的工作要做</p>
+<h1 id="封装"><a href="#封装" class="headerlink" title="封装"></a>封装</h1><p>封装就是把<strong>编码内容</strong>（视频，音频，字幕，章节信息等）按照一定<strong>标准</strong>封装一个容器。</p>
+<ul>
+<li>播放简单</li>
+<li>为媒体内容提供索引。可拖动</li>
+</ul>
+<h2 id="封装格式"><a href="#封装格式" class="headerlink" title="封装格式"></a>封装格式</h2><p>常见封装格式和音视频编码的组合方式</p>
+<table>
+<thead>
+<tr>
+<th>封装容器</th>
+<th>视频流编码格式</th>
+<th>音频流编码格式</th>
+<th>说明</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AVI (.avi)</td>
+<td>Xvid 或 Divx</td>
+<td>MP3</td>
+<td>Audio Video Interleaved 音频视频交错格式</td>
+<td>图像质量好，可以保持alpha通道</td>
+<td>体积过大，压缩标准不统一</td>
+</tr>
+<tr>
+<td>DV-AVI (.avi)</td>
+<td>Xvid 或 Divx</td>
+<td>MP3</td>
+<td>DV 是 Digital Video Format，数码摄像机使用这种格式</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Matroska (.mkv)</td>
+<td>Xvid</td>
+<td>MP3</td>
+<td>可把多种不同编码的视频及 16 条或以上不同格式的音频和语言不同的字幕封装到一个 Matroska Media 档内</td>
+<td>提供非常好的交互功能</td>
+<td></td>
+</tr>
+<tr>
+<td>Matroska (.mkv)</td>
+<td>Xvid</td>
+<td>AAC</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Matroska (.mkv)</td>
+<td>H264</td>
+<td>AAC</td>
+<td>mkv最常用组合，体积最小，清晰度最高</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>MP4</td>
+<td>Xvid</td>
+<td>MP3</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>MP4</td>
+<td>H.264</td>
+<td>AAC</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3GP</td>
+<td>H.263</td>
+<td>AAC</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>QuickTime File Format (.mov)</td>
+<td></td>
+<td></td>
+<td>苹果开发，默认的播放器是苹果的 QuickTime</td>
+<td>较高压缩比 较完美清晰度 可以保存 alpha 通道</td>
+<td></td>
+</tr>
+<tr>
+<td>MPEG (.mpg .mpeg .mpe .dat .vob .asf .3gp .mp4等)</td>
+<td></td>
+<td></td>
+<td>Moving Picture Experts Group 运动图像专家组格式</td>
+<td>MPEG－4 小体积 高质量</td>
+<td></td>
+</tr>
+<tr>
+<td>WMV 格式 (.wmv .asf)</td>
+<td></td>
+<td></td>
+<td>Windows Media Video 微软推出</td>
+<td>本地或网络播放,丰富的流间关系以及扩展性</td>
+<td>网站播放需要安装 Windows Media Player</td>
+</tr>
+<tr>
+<td>Real Video (.rm .rmvb)</td>
+<td></td>
+<td></td>
+<td>用户可以使用 RealPlayer 根据不同的网络传输速率制定出不同的压缩比率。rmvb是升级版</td>
+<td>低速网络实时播放</td>
+<td></td>
+</tr>
+<tr>
+<td>Flash Video (.flv)</td>
+<td></td>
+<td></td>
+<td>Adobe Flash 延伸出来的的一种流行网络视频封装格式</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>MPEG2-TS (.ts)</td>
+<td></td>
+<td></td>
+<td>Transport Stream「传输流」；又称 MTS、TS。用于数字电视广播系统</td>
+<td>传输和存储包含音效、视频与通信协议各种数据。Media Player Classic、VLC 等软件可以直接播放</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>目前，在流媒体传输，尤其是直播中主要采用的就是 FLV 和 MPEG2-TS 格式，分别用于 RTMP/HTTP-FLV 和 HLS 协议</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.qiniu.com/archives/6816" target="_blank" rel="noopener">《视频直播技术详解》之（四）：编码和封装</a></li>
+<li><a href="https://blog.csdn.net/wishfly/article/details/50921712" target="_blank" rel="noopener">常见视频文件的编码方式和封装格式</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/01/直播/直播技术/直播技术三-处理/" itemprop="url">直播技术三-处理</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-01T18:02:14+08:00">
+                2019-08-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="开放式设计"><a href="#开放式设计" class="headerlink" title="开放式设计"></a>开放式设计</h1><img src="/2019/08/01/直播/直播技术/直播技术三-处理/处理.png">
+<p>如上图所示，处理环节中分为<strong>音频和视频处理</strong></p>
+<p>音频处理中具体包含混音(声音混淆)、降噪和声音特效等处理。在主播和观众<strong>连麦</strong>场景中，主播需要和某个或者多个观众进行对话，并将对话结果实时分享给其他所有观众，连麦的处理也有部分工作在推流端完成</p>
+<p>视频处理中包含美颜、水印、以及各种自定义滤镜等处理。</p>
+<p>除了要提供这些「标准」处理功能之外，我们还需要将该模块设计成可自由接入自定义处理功能的方式</p>
+<h1 id="常见视频处理功能"><a href="#常见视频处理功能" class="headerlink" title="常见视频处理功能"></a>常见视频处理功能</h1><h2 id="美颜"><a href="#美颜" class="headerlink" title="美颜"></a>美颜</h2><p>美颜的主要原理是通过「磨皮+美白」来达到整体美颜的效果。</p>
+<p>磨皮的技术术语是「去噪」，也即对图像中的噪点进行去除或者模糊化处理，常见的去噪算法有均值模糊、高斯模糊和中值滤波等。对整张图像进行「去噪」处理的时候不需要将眼睛也去掉，因此这个环节中也涉及到人脸和皮肤检测技术。</p>
+<h2 id="视频水印"><a href="#视频水印" class="headerlink" title="视频水印"></a>视频水印</h2><p>用于简单是版权保护，或者进行广告设置。出于监管需求，相关部门也规定视频直播过程中必须打上水印，同时直播的视频必须录制存储下来保存一定的时间，并在录制的视频上打上水印。</p>
+<p>视频水印包括<strong>播放器水印和视频内嵌水印</strong>两种方式可供选择。综合考虑云端录制对于水印的需求，一般会选择「视频内嵌水印」的方式打水印。</p>
+<h2 id="滤镜"><a href="#滤镜" class="headerlink" title="滤镜"></a>滤镜</h2><p>iOS 端可以考虑使用 <a href="https://github.com/BradLarson/GPUImage" target="_blank" rel="noopener">GPUImage</a>，这是一个开源的基于GPU的图片或视频的处理框架，内置了多达120多种常见的滤镜效果。添加实时的滤镜只需要简单地添加几行代码，还可以基于这个库自己写算法实现更丰富端效果。</p>
+<p>Android 有 GPUImage 这个库的<a href="https://github.com/CyberAgent/android-gpuimage" target="_blank" rel="noopener">移植</a>。Google 官方也开源了一个伟大的库 <a href="https://github.com/google/grafika" target="_blank" rel="noopener">grafika</a>，覆盖了 Android 上面很多多媒体和图形图像相关的处理</p>
+<h2 id="连麦"><a href="#连麦" class="headerlink" title="连麦"></a>连麦</h2><img src="/2019/08/01/直播/直播技术/直播技术三-处理/连麦.png">
+<p>连麦是互动直播中常见的需求，其流程如上图所示。主播和部分观众之间可以进行实时互动，然后将互动结果实时播放给其他观众观看。</p>
+<p>基于以上业务需求，我们很容易想到基于单向直播原理，在主播端和连麦观众端进行<strong>双向推流和双向播流</strong>的方式互动，然后在<strong>服务端</strong>将两路推流<strong>合成</strong>一路推送给其他观众。但 RTMP 带来的延迟决定了这种方式无法做到用户可接受的互动直播。</p>
+<h3 id="互动直播的主要技术难点"><a href="#互动直播的主要技术难点" class="headerlink" title="互动直播的主要技术难点"></a>互动直播的主要技术难点</h3><h4 id="低延迟互动"><a href="#低延迟互动" class="headerlink" title="低延迟互动"></a>低延迟互动</h4><p>保证主播和互动观众之间能够实时互动，两者之间就像电话沟通，因此必须保证两者能在<strong>秒级</strong>以内听到对方的声音，看到对方的视频；</p>
+<h4 id="音画同步"><a href="#音画同步" class="headerlink" title="音画同步"></a>音画同步</h4><p>互动直播中对音画同步的需求比单向直播中更高，必须保证在音视频秒级传输情况下的<strong>秒级</strong>同步。</p>
+<h4 id="音视频实时合成"><a href="#音视频实时合成" class="headerlink" title="音视频实时合成"></a>音视频实时合成</h4><p>其他观众需要实时观看到对话结果，因此需要在客户端或者服务端将画面和声音实时合成，然后以低成本高品质的方式传输观众端。</p>
+<h3 id="互动直播的解决方案"><a href="#互动直播的解决方案" class="headerlink" title="互动直播的解决方案"></a>互动直播的解决方案</h3><h4 id="思科或者-WebEx"><a href="#思科或者-WebEx" class="headerlink" title="思科或者 WebEx"></a>思科或者 WebEx</h4><p>在视频和电话会议领域，目前比较成熟的方案是使用<strong>思科或者 WebEx</strong> 的方案，但这些商用的方案<strong>一不开源，二比较封闭，三成本比较高</strong>。</p>
+<h4 id="WebRTC"><a href="#WebRTC" class="headerlink" title="WebRTC"></a>WebRTC</h4><p>对于互动人数比较少的互动直播，目前市场上比较成熟的方案是使用基于 <strong>WebRTC</strong> 的实时通讯方案。</p>
+<p>基于该方案可以轻松实现多人（<strong>14 人以下</strong>）的多方实时通信</p>
+<img src="/2019/08/01/直播/直播技术/直播技术三-处理/webrtc.png">
+<p>上图是一个基于 WebRTC 协议实现多方实时通讯的示意图，本地用户（主播）和远程用户（连麦观众）之间的连接通过 RTCPeerConnection API 管理，这个 API 包装了底层流管理和信令控制相关的细节。</p>
+<p>基于该方案的多方实时通信，如下图所示：</p>
+<img src="/2019/08/01/直播/直播技术/直播技术三-处理/webrtc-network.png">
+<p>在通信人数少的情况下，其复杂度相对简单。如 2 人情况下，直接连接。人数增多至 4 人之后，其可选的网络结构就增多了，如上图所示，可以每个点之间形成<strong>自组织网络</strong>的方式通信，也可以以 1 人为中心形成<strong>星型</strong>通信网络，还可以让大家都通过一个<strong>集中式的服务端</strong>进行通信。</p>
+<p>为了提供 <strong>高性能、可伸缩</strong>的直播基础服务，七牛直播云经过评估选择了<strong>以主播为中心形成星形通信网络</strong>。同时，为了降低传输延迟，这里采用经过<strong>改造的 UDP 协议传输</strong>传输合成后的音视频实时传输到其他观众端</p>
+<img src="/2019/08/01/直播/直播技术/直播技术三-处理/互动直播连麦.png">
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.qiniu.com/archives/6795" target="_blank" rel="noopener">《视频直播技术详解》系列之三：处理</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/01/直播/直播技术/直播技术二-采集/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/01/直播/直播技术/直播技术二-采集/" itemprop="url">直播技术二-采集</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-01T16:52:14+08:00">
+                2019-08-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="采集内容"><a href="#采集内容" class="headerlink" title="采集内容"></a>采集内容</h1><p>视频的采集涉及两方面数据的采集：<strong>音频采集和图像采集</strong>，它们分别对应两种完全不同的输入源和数据格式。</p>
+<h2 id="音频采集"><a href="#音频采集" class="headerlink" title="音频采集"></a>音频采集</h2><p>音频数据既能与图像结合组合成视频数据，也能以纯音频的方式采集播放</p>
+<p>音频的采集过程主要通过设备将环境中的模拟信号采集成 <strong>PCM</strong> (脉冲编码调制 - Pulse Code Modulation)编码的原始数据，然后编码压缩成 MP3 等格式的数据分发出去。</p>
+<h3 id="常见的音频压缩格式"><a href="#常见的音频压缩格式" class="headerlink" title="常见的音频压缩格式"></a>常见的音频压缩格式</h3><p>有：MP3，AAC，HE-AAC，Opus，FLAC，Vorbis (Ogg)，Speex 和 AMR等。</p>
+<h3 id="挑战"><a href="#挑战" class="headerlink" title="挑战"></a>挑战</h3><p>音频采集和编码主要面临的挑战在于：延时敏感、卡顿敏感、噪声消除（Denoise）、回声消除（AEC）、静音检测（VAD）和各种混音算法等。</p>
+<h3 id="主要技术参数"><a href="#主要技术参数" class="headerlink" title="主要技术参数"></a>主要技术参数</h3><p>在音频采集阶段，参考的主要技术参数有 ：</p>
+<h4 id="采样率-采样频率（samplerate）"><a href="#采样率-采样频率（samplerate）" class="headerlink" title="采样率/采样频率（samplerate）"></a>采样率/采样频率（samplerate）</h4><p>采样就是把模拟信号数字化的过程</p>
+<p>采样频率越高，记录这一段音频信号所用的数据量就越大，同时音频质量也就越高。</p>
+<ul>
+<li>每秒的采样次数<ul>
+<li>单位 Hz。Hz 是频率的单位。即每秒的周期次数(周期/秒)。电，磁，声波和机械振动周期循环时频率的单位。</li>
+<li>声卡一般提供11.025kHz、22.05kHz和44.1kHz等不同的采样频率。</li>
+</ul>
+</li>
+</ul>
+<h4 id="位宽-采样位数"><a href="#位宽-采样位数" class="headerlink" title="位宽/采样位数"></a>位宽/采样位数</h4><ul>
+<li>每次采样值数值大小的位数。<ul>
+<li>单位 bit</li>
+<li>常用的有8bits或16bits两种</li>
+<li>采样位数越大，所能记录声音的变化度就越细腻，相应的数据量就越大。</li>
+</ul>
+</li>
+</ul>
+<h4 id="声道数（channels）"><a href="#声道数（channels）" class="headerlink" title="声道数（channels）"></a>声道数（channels）</h4><p>由于音频的采集和播放是可以叠加的，因此，可以同时从多个音频源采集声音，并分别输出到不同的扬声器，故声道数一般表示声音录制时的音源数量或回放时相应的扬声器数量。声道数为 1 和 2 分别称为单声道和双声道(立体声)，是比较常见的声道参数。</p>
+<h4 id="音频帧（frame）"><a href="#音频帧（frame）" class="headerlink" title="音频帧（frame）"></a>音频帧（frame）</h4><p>音频跟视频很不一样，视频每一帧就是一张图像，而音频数据是流式的，本身没有明确的一帧帧的概念，在实际的应用中，为了音频算法处理/传输的方便，一般约定俗成取 2.5ms~60ms 为单位的数据量为一帧音频。这个时间被称之为“采样时间”，其长度没有特别的标准，它是根据编解码器和具体应用的需求来决定的。</p>
+<h3 id="音频存储空间计算"><a href="#音频存储空间计算" class="headerlink" title="音频存储空间计算"></a>音频存储空间计算</h3><p><code>音频大小(bit/秒) = 采样频率(Hz,次数/秒) × 采样位数(bit) × 声道数</code></p>
+<p><code>音频帧大小(bit) = 每秒音频大小(bit/秒) x 音频帧采样时长(秒)</code></p>
+<p>假设某音频信号是采样率为 8kHz、双通道、位宽为 16bit，20ms 一帧</p>
+<p>每秒音频size = 8000 x 2 x 16bit = 256000 bit = 32000 byte = 31.25 Kb</p>
+<p>音频帧size = 32000 byte/s x 0.02s = 640 byte</p>
+<h2 id="图像采集"><a href="#图像采集" class="headerlink" title="图像采集"></a>图像采集</h2><p>图像采集的图片组合成一组连续播放的动画，即构成视频中可肉眼观看的内容。</p>
+<p>图像的采集过程主要由摄像头等设备拍摄成 <strong>YUV</strong> 编码的原始数据，然后经过编码压缩成 H.264 等格式的数据分发出去。</p>
+<p>YUV是一种<strong>颜色编码</strong>方法。常用在<strong>图片或视频</strong>编码时</p>
+<h3 id="常见的视频封装格式"><a href="#常见的视频封装格式" class="headerlink" title="常见的视频封装格式"></a>常见的视频封装格式</h3><p>有：MP4、3GP、AVI、MKV、WMV、MPG、VOB、FLV、SWF、MOV、RMVB 和 WebM 等。</p>
+<h3 id="挑战-1"><a href="#挑战-1" class="headerlink" title="挑战"></a>挑战</h3><p>图像由于其直观感受最强并且体积也比较大，构成了一个视频内容的主要部分。图像采集和编码面临的主要挑战在于：设备兼容性差、延时敏感、卡顿敏感以及各种对图像的处理操作如美颜和水印等。</p>
+<h3 id="主要技术参数-1"><a href="#主要技术参数-1" class="headerlink" title="主要技术参数"></a>主要技术参数</h3><p>在图像采集阶段，参考的主要技术参数有：</p>
+<h4 id="图像传输格式"><a href="#图像传输格式" class="headerlink" title="图像传输格式"></a>图像传输格式</h4><p>通用影像传输格式（Common Intermediate Format）是视讯会议（video conference）中常使用的影像传输格式。</p>
+<h4 id="图像格式"><a href="#图像格式" class="headerlink" title="图像格式"></a>图像格式</h4><p>通常采用 YUV 格式存储原始数据信息，其中包含用 8 位表示的黑白图像灰度值，以及可由 RGB 三种色彩组合成的彩色图像。</p>
+<h4 id="传输通道"><a href="#传输通道" class="headerlink" title="传输通道"></a>传输通道</h4><p>正常情况下视频的拍摄只需 1 路通道，随着 VR 和 AR 技术的日渐成熟，为了拍摄一个完整的 360° 视频，可能需要通过不同角度拍摄，然后经过多通道传输后合成。</p>
+<h4 id="分辨率"><a href="#分辨率" class="headerlink" title="分辨率"></a>分辨率</h4><p>随着设备屏幕尺寸的日益增多，视频采集过程中原始视频分辨率起着越来越重要的作用，后续处理环节中使用的所有视频分辨率的定义都以原始视频分辨率为基础。视频采集卡能支持的最大点阵反映了其分辨率的性能。</p>
+<h4 id="采样频率"><a href="#采样频率" class="headerlink" title="采样频率"></a>采样频率</h4><p>采样频率反映了采集卡处理图像的速度和能力。在进行高度图像采集时，需要注意采集卡的采样频率是否满足要求。采样率越高，图像质量越高，同时保存这些图像信息的数据量也越大。</p>
+<h3 id="视频存储空间计算"><a href="#视频存储空间计算" class="headerlink" title="视频存储空间计算"></a>视频存储空间计算</h3><h4 id="1080P、720P-像素"><a href="#1080P、720P-像素" class="headerlink" title="1080P、720P 像素"></a>1080P、720P 像素</h4><p>1080P的实际像素是 1920*1280, 相乘结果是 2073600，即有2073600个像素点， 也就是常说的 <strong>1080P为200万像素</strong></p>
+<p>720P实际像素是1280×720， 相乘结果921600，即有921600个像素点，也就是常说的 <strong>720P为100万像素</strong></p>
+<h4 id="视频存储空间"><a href="#视频存储空间" class="headerlink" title="视频存储空间"></a>视频存储空间</h4><p>1080P 50帧/秒 位宽(每个像素点位数)8bit。</p>
+<p><code>每秒视频size = 1920*1280*8*50/1024/1024 = 937.5 Mb</code></p>
+<h1 id="采集源"><a href="#采集源" class="headerlink" title="采集源"></a>采集源</h1><h2 id="摄像头采集"><a href="#摄像头采集" class="headerlink" title="摄像头采集"></a>摄像头采集</h2><p>对于视频内容的采集，目前摄像头采集是社交直播中最常见的采集方式，比如主播使用手机的前置和后置摄像头拍摄。在现场直播场景中，也有专业的摄影、摄像设备用来采集。安防监控场景中也有专业的摄像头进行监控采集。</p>
+<h2 id="屏幕录制"><a href="#屏幕录制" class="headerlink" title="屏幕录制"></a>屏幕录制</h2><p>手机屏幕录制采集的方式在手机游戏直播场景中非常常见，Android实现屏幕录制的功能比较简单。而 iOS 则由于系统本身没有开放屏幕录制的权限而没法直接操作，但对于 iOS 9 以上的版本，是有个取巧的办法，可以通过模拟一个 AirPlay 镜像连接到（当前 App）自身，这样就可以在软件上捕获到屏幕上的任何操作，达到录制屏幕的效果。</p>
+<p>在教育直播或者会场演讲场合，经常需要录制电脑桌面上 PPT，针对这种场景，目前市面上比较方便的方案是使用开源的桌面推流工具 <a href="https://obsproject.com/" target="_blank" rel="noopener">OBS：Open Broadcaster Software</a> 来进行屏幕录制和推流</p>
+<h2 id="从视频文件推流"><a href="#从视频文件推流" class="headerlink" title="从视频文件推流"></a>从视频文件推流</h2><p>除了从硬件设备采集视频进行推流之外，我们也可能需要将一个视频或者音频文件以直播流的形式实时传输给观众，比如在线电台或者电视节目，它们的输入可能直接来自于一些已经录制剪辑好的视频内容。</p>
+<h1 id="开放式设计"><a href="#开放式设计" class="headerlink" title="开放式设计"></a>开放式设计</h1><p>为了支持市场上所有采集源的接入，SDK 应该采用开放式的设计，只要采集源实现方遵循相应的接口，即可支持任意的采集源。</p>
+<img src="/2019/08/01/直播/直播技术/直播技术二-采集/source.jpeg">
+<p>图中我们把采集的内容分为图像和音频，其中图像的采集源包含摄像头、屏幕录制或者本地的视频文件，甚至是其它需要重新定义和实现的采集源。而音频的采集源包含麦克风、系统声音或者本地音频文件，当然也可以为它定义别的输入源。</p>
+<p>这样设计最大的好处在于，可以以轻量的设计方式支持丰富的采集源，而采集源的具体实现也可以交给使用者。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.qiniu.com/archives/6713" target="_blank" rel="noopener">《视频直播技术详解》系列之二：采集</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/01/直播/直播技术/直播技术一-开篇/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1685,484 +2404,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/10/Android/View.post不靠谱/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/10/Android/View.post不靠谱/" itemprop="url">View.post不靠谱</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-10T18:36:53+08:00">
-                2019-07-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>有时候，我们会用 View.post() 方法，来将一个 Runnable 发送到主线程去执行。这一切，看似很美好，它最终会通过一个 Handler.post() 方法去执行，又避免我们重新定义一个 Handler 对象。</p>
-<p>但是，在 Android 7.0（Api level 24） 上，View.post() 将不再那么靠谱了，你post() 出去的 Runnable ，可能永远也不会有机会得到执行。</p>
-<h1 id="post-在-7-0-的差异"><a href="#post-在-7-0-的差异" class="headerlink" title="post 在 7.0 的差异"></a>post 在 7.0 的差异</h1><p>在 Api23 及以下，<code>executeAction()</code> 是会被<strong>循环调用</strong>（一个 VSync 的间隔），基本上其内的 mActions 中，只要有未执行的 Runnable 立刻就会被消费掉</p>
-<p>在 Api24 及以上，<code>executeActions()</code> 只在 <code>dispatchAttachedToWindow()</code> 中才有机会被<strong>调用一次</strong>，而 <code>View.dispatchAttachedToWindow()</code> 只有在这个 View 通过 addView() 方法，或者原本写在页面布局的 xml 中（实际上也是调用的 addView()），加入到一个 ViewGroup 的时候，才会被调用到</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>View.post() 方法，在不同版本的差异，根本原因还是在于 Api23 和 Api24 中，<code>executeActions()</code> 方法的调用时机不同，导致 View 在没有 mAttachInfo 对象的时候，表现不一样了。</p>
-<p>所以我们在使用的过程中需要慎用，区分出实际使用的场景，一般规范自己的代码即可：</p>
-<ul>
-<li>动态创建的 View ，如果视条件去决定是否加入到根布局中，则不要使用它来调用 post() 方法。</li>
-<li>尽量避免使用 View.post() 方法，可以直接使用 Handler.post() 方法来替代。</li>
-</ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.cnblogs.com/plokmju/p/7481727.html" target="_blank" rel="noopener">View.post() 不靠谱的地方你知道吗？</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/10/Android/View 的可见性检查/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/10/Android/View 的可见性检查/" itemprop="url">View 的可见性检查</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-10T18:24:53+08:00">
-                2019-07-10
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <img src="/2019/07/10/Android/View%20的可见性检查/visibility.png">
-<p>四种方法获取的结果如下：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">View5.getVisibility() = View.VISIBLE;</span><br><span class="line">View5.isShown() = <span class="keyword">true</span>; </span><br><span class="line">View5.getGlobalVisibleRect() = <span class="keyword">false</span>;</span><br><span class="line">View5.getLocalVisibleRect() =  <span class="keyword">false</span>;</span><br></pre></td></tr></table></figure>
-<h1 id="View-getVisibility"><a href="#View-getVisibility" class="headerlink" title="View.getVisibility()"></a>View.getVisibility()</h1><p>最基本的检查View可见性的方法</p>
-<p>如果这个方法返回的是View.INVISIBLE或者View.GONE，那么这个View肯定是对用户不可见的。</p>
-<h1 id="View-isShown"><a href="#View-isShown" class="headerlink" title="View.isShown()"></a>View.isShown()</h1><ul>
-<li>递归</li>
-<li>检查View以及它的parentView的Visibility == View.VISIBLE，</li>
-<li>检查parentView == null<ul>
-<li>也就是说所有的parentView都不能为null。否则就说明这个View根本没有被addView过</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Returns the visibility of this view and all of its ancestors</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> True if this view and all of its ancestors are &#123;<span class="doctag">@link</span> #VISIBLE&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isShown</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    View current = <span class="keyword">this</span>;</span><br><span class="line">    <span class="comment">//noinspection ConstantConditions</span></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> ((current.mViewFlags &amp; VISIBILITY_MASK) != VISIBLE) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        ViewParent parent = current.mParent;</span><br><span class="line">        <span class="keyword">if</span> (parent == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>; <span class="comment">// We are not attached to the view root</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!(parent <span class="keyword">instanceof</span> View)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        current = (View) parent;</span><br><span class="line">    &#125; <span class="keyword">while</span> (current != <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="View-getGlobalVisibleRect"><a href="#View-getGlobalVisibleRect" class="headerlink" title="View.getGlobalVisibleRect()"></a>View.getGlobalVisibleRect()</h1><p>返回一个View是否可见的boolean值，同时还会将该View的可见区域left，top，right，bottom值保存在一个rect对象中</p>
-<p>获得的rect坐标系的原点是屏幕的左上角</p>
-<p>调用的是<code>getGlobalVisibleRect(Rect r, Point globalOffset)</code></p>
-<h1 id="View-getLocalVisibleRect"><a href="#View-getLocalVisibleRect" class="headerlink" title="View.getLocalVisibleRect()"></a>View.getLocalVisibleRect()</h1><p>获得的rect坐标系的原点是View自己的左上角</p>
-<p>其也会调用<code>getGlobalVisibleRect()</code></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">getLocalVisibleRect</span><span class="params">(Rect r)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Point offset = mAttachInfo != <span class="keyword">null</span> ? mAttachInfo.mPoint : <span class="keyword">new</span> Point();</span><br><span class="line">    <span class="keyword">if</span> (getGlobalVisibleRect(r, offset)) &#123;</span><br><span class="line">        r.offset(-offset.x, -offset.y); <span class="comment">// make r local</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<ul>
-<li>先获取View的offset point（相对屏幕或者ParentView的偏移坐标），</li>
-<li>再调用getGlobalVisibleRect(Rect r, Point globalOffset)方法来获取可见区域</li>
-<li>最后再把得到的GlobalVisibleRect和Offset坐标做一个加减法，转换坐标系原点</li>
-</ul>
-<p>View在屏幕中全部不可见时(图中view5)，两者的visibility都为false，且两者获取的rect值相同。由源码可以知道，getLocalVisibleRect()最终调用的是getGlobalVisibleRect()方法，并会减去View自身的便偏移坐标offset point，但只有当View可见时才会减去这个偏移坐标，要是不可见就直接返回了，所以此时两者获取出的rect值是相同的</p>
-<h1 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h1><ul>
-<li><code>getGlobalVisibleRect()</code> <code>getLocalVisibleRect()</code>判断View的可见性时，一定要等View绘制完成后，再去调用这两个方法，否则无法得到对的结果，返回值的rect值都是0，visibility为false。这和获取View的宽高原理是一样的，如果View没有被绘制完成，那么View.getWidth和View.getHeight一定是等于0的</li>
-<li><code>getGlobalVisibleRect()</code>只能检查出这个View在手机屏幕（或者说是相对它的父View）的位置，而不能检查出与其他兄弟View的相对位置:<br>比如有一个ViewGroup，下面有View1、View2这两个子View，View1和View2是平级关系。此时如果View2盖住了View1，那么用getGlobalVisibleRect方法检查View1的可见性，得到的返回值依然是true，得到的可见矩形区域rect也是没有任何变化的。</li>
-</ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.jianshu.com/p/30b0ae304518" target="_blank" rel="noopener">View 的可见性检查还可以这样</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/07/04/Android/setVisibility不起作用/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/07/04/Android/setVisibility不起作用/" itemprop="url">setVisibility不起作用</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-07-04T17:40:53+08:00">
-                2019-07-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="控件本身正在执行动画"><a href="#控件本身正在执行动画" class="headerlink" title="控件本身正在执行动画"></a>控件本身正在执行动画</h1><p>解决方案：view.clearAnimation()</p>
-<h1 id="控件还在使用当中"><a href="#控件还在使用当中" class="headerlink" title="控件还在使用当中"></a>控件还在使用当中</h1><p>比如设置点击某个ViewGroup的子View后，让改ViewGroup 消失。就极有可能导致setVisibility 无效</p>
-<p>解决方案：利用Handler.post()发送 setVisibility任务</p>
-<h1 id="设备性能问题"><a href="#设备性能问题" class="headerlink" title="设备性能问题"></a>设备性能问题</h1><p>方案一：</p>
-<p>利用Handler.post()发送 setVisibility任务</p>
-<p>这个方法同样适用于<strong>动画不生效等其他UI异常</strong></p>
-<p>方案二：重新加载，即重新构造。</p>
-<p>setVisibility 后 调用view.invalidate()或者view.postinvalidate()；</p>
-<p>如果也不行，直接调用自身的requestLayout或者其父容器的requestLayout()进行强制的界面即时刷新重构;</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2217,7 +2458,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">315</span>
+                  <span class="site-state-item-count">318</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2228,7 +2469,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2239,7 +2480,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-count">73</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2339,9 +2580,6 @@
 
 
 
-  
-  
-
 
 
 
@@ -2376,16 +2614,6 @@
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/three.min.js"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
   
 
 

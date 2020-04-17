@@ -262,6 +262,906 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/PCM音频降噪/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音频/PCM音频降噪/" itemprop="url">PCM音频降噪</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://www.jianshu.com/p/77a363960711" target="_blank" rel="noopener">PCM音频处理</a></p>
+<p>对于降噪前后的对比，从三个方面进行评价：<strong>时域，频域，个人听觉感受</strong>。</p>
+<p>音频处理软件：<strong>Audacity</strong>（简单分析降噪效果）</p>
+<h1 id="Speex音频降噪模块"><a href="#Speex音频降噪模块" class="headerlink" title="Speex音频降噪模块"></a>Speex音频降噪模块</h1><p>Speex是很强大的开源编解码库，也包含一些降噪，自动增益，回音消除等模块功能</p>
+<p>Opus是Speex的更优替代方案，但是Opus没有降噪去噪模块</p>
+<p>支持的采样率有3种：<strong>8K，16K，44K</strong></p>
+<p>采样送进去降噪的数据需要控制在<strong>20ms</strong>，也就是（20*采样率/1000）个采样点。</p>
+<p>Speex的降噪原理：设置音频数据的阀值，过滤掉低于阀值分贝的声音</p>
+<ul>
+<li>优点：简单，使用Speex编解码库时可以直接使用</li>
+<li>缺点：会把声音细节抹掉</li>
+<li>效果：<ul>
+<li>时域，效果不明显</li>
+<li>频域，效果不明显</li>
+<li>实际听的效果，降噪后，背景的沙沙声有所减弱，但是总体效果还是不佳</li>
+</ul>
+</li>
+</ul>
+<h1 id="WebRTC音频降噪模块"><a href="#WebRTC音频降噪模块" class="headerlink" title="WebRTC音频降噪模块"></a>WebRTC音频降噪模块</h1><p>谷歌出品，必属精品</p>
+<p>webrtc的音频处理模块分为降噪ns和nsx，回音消除aec，回声控制acem，音频增益agc，静音检测部分</p>
+<p>支持三种采样率，<strong>8K，16K和32K</strong>，如果超过32K，则需要重采样成符合要求的采样率</p>
+<p>采样送进去降噪的数据需要控制在<strong>10ms</strong>，也就是（10*采样率/1000）个采样点。</p>
+<pre><code>根据前辈的说法
+    32K数据需要使用滤波函数将音频数据分为高频和低频两个部分进行降噪，降噪后再合并为降噪后数据
+    8K和16K数据，不需要分为高频低频这个步骤，作为低频数据输入，输出也是通过低频数据返回
+</code></pre><ul>
+<li>效果：<ul>
+<li>时域，音量较低的数据基本被抹平，但是不影响波形清晰</li>
+<li>频域，频率峰值明显加强，1500Hz到3500Hz区域，能量普遍下降</li>
+<li>实际听的效果的，降噪后，背景的沙沙声基本没有，但是音量也有所下降，直观感觉上比Speex好一些</li>
+</ul>
+</li>
+</ul>
+<h1 id="根据PCM文件的音量进行阀值限制"><a href="#根据PCM文件的音量进行阀值限制" class="headerlink" title="根据PCM文件的音量进行阀值限制"></a>根据PCM文件的音量进行阀值限制</h1><p>以二进制方式打开，PCM数据其实就是音量数据</p>
+<p>如果把音量小的声音默认为噪声，则可以通过把音量小的数值替换为0，来实现降噪。但是这个方法的缺点也是明显的，会把很多的比较小的细节声音直接去掉了。</p>
+<p><strong>音量计算公式dB = 20×log(data)</strong></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/android录音和播放/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音频/android录音和播放/" itemprop="url">android录音和播放</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="录音"><a href="#录音" class="headerlink" title="录音"></a>录音</h1><p> 必须在AndroidManifest中设置相应的权限：android:name=”android.permission.RECORD_AUDIO” </p>
+<p> Android提供了两个API用于实现录音功能</p>
+<h2 id="AudioRecord"><a href="#AudioRecord" class="headerlink" title="AudioRecord"></a>AudioRecord</h2><pre><code>主要是实现边录边播（AudioRecord+AudioTrack）以及对音频的实时处理（如会说话的汤姆猫、语音）
+优点：语音的实时处理，可以用代码实现各种音频的封装
+缺点：输出是PCM语音数据，如果保存成音频文件，是不能够被播放器播放的，所以必须先写代码实现数据编码以及压缩
+示例：使用AudioRecord类录音，并实现WAV格式封装。录音20s，输出的音频文件大概为3.5M左右（已写测试代码）
+    主要api：audioRecord.startRecording()，audioRecord.read，audioRecord.stop()，audioRecord.release()
+    开始录制
+    int sampleRateInHz= 44100;  //44.1KHz,普遍使用的频率   
+    int channelConfig = AudioFormat.CHANNEL_IN_STEREO;
+    int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+     // 获得缓冲区字节大小  
+    int bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
+    int audioSource = MediaRecorder.AudioSource.MIC;
+    // 创建AudioRecord对象  
+    audioRecord = new AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes);
+    audioRecord.startRecording();
+    // 开启线程将音频流写入文件  
+    new Thread(new AudioRecordThread()).start();  
+
+    class AudioRecordThread implements Runnable {  
+        @Override 
+        public void run() {  
+            writeDateTOFile();//往文件中写入裸数据  
+            copyWaveFile(AudioName, NewAudioName);//给裸数据加上头文件  
+        }  
+    } 
+    private void writeDateTOFile() {  
+        // new一个byte数组用来存一些字节数据，大小为前面获得的缓冲区大小  
+        byte[] audiodata = new byte[bufferSizeInBytes];  
+        FileOutputStream fos = null;  
+        int readsize = 0;  
+        try {  
+            File file = new File(AudioName);  //AudioName为sd卡根目录下test.raw
+            if (file.exists()) {  
+                file.delete();  
+            }  
+            fos = new FileOutputStream(file);// 建立一个可存取字节的文件  
+        } catch (Exception e) {  
+            e.printStackTrace();  
+        }  
+        while (isRecord == true) {  
+            readsize = audioRecord.read(audiodata, 0, bufferSizeInBytes);  
+            if (AudioRecord.ERROR_INVALID_OPERATION != readsize &amp;&amp; fos != null) {  
+                try {  
+                    fos.write(audiodata);  
+                } catch (IOException e) {  
+                    e.printStackTrace();  
+                }  
+            }  
+        }  
+        try {
+            if(fos != null)
+                fos.close();// 关闭写入流  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
+    } 
+    private void copyWaveFile(String inFilename, String outFilename) {  
+        FileInputStream in = null;  
+        FileOutputStream out = null;  
+        long totalAudioLen = 0;  
+        long totalDataLen = totalAudioLen + 36;  //wave头44字节，36实在不懂
+        long longSampleRate = sampleRateInHz;  //上面的44100
+        int channels = 2;  
+        long byteRate = 16 * sampleRateInHz * channels / 8;  
+        byte[] data = new byte[bufferSizeInBytes];  
+        try {  
+            in = new FileInputStream(inFilename);  
+            out = new FileOutputStream(outFilename);  
+            totalAudioLen = in.getChannel().size();  
+            totalDataLen = totalAudioLen + 36;  
+            WriteWaveFileHeader(out, totalAudioLen, totalDataLen,  
+                    longSampleRate, channels, byteRate);  
+            while (in.read(data) != -1) {  
+                out.write(data);  
+            }  
+            in.close();  
+            out.close();  
+        } catch (FileNotFoundException e) {  
+            e.printStackTrace();  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
+    }  
+    private void WriteWaveFileHeader(FileOutputStream out, long totalAudioLen,  
+        long totalDataLen, long longSampleRate, int channels, long byteRate)  
+        throws IOException {  
+        byte[] header = new byte[44];  //wave文件头44字节
+        header[0] = &apos;R&apos;; // RIFF/WAVE header  
+        header[1] = &apos;I&apos;;  
+        header[2] = &apos;F&apos;;  
+        header[3] = &apos;F&apos;;  
+        header[4] = (byte) (totalDataLen &amp; 0xff);  
+        header[5] = (byte) ((totalDataLen &gt;&gt; 8) &amp; 0xff);  
+        header[6] = (byte) ((totalDataLen &gt;&gt; 16) &amp; 0xff);  
+        header[7] = (byte) ((totalDataLen &gt;&gt; 24) &amp; 0xff);  
+        header[8] = &apos;W&apos;;  
+        header[9] = &apos;A&apos;;  
+        header[10] = &apos;V&apos;;  
+        header[11] = &apos;E&apos;;  
+        header[12] = &apos;f&apos;; // &apos;fmt &apos; chunk  
+        header[13] = &apos;m&apos;;  
+        header[14] = &apos;t&apos;;  
+        header[15] = &apos; &apos;;  
+        header[16] = 16; // 4 bytes: size of &apos;fmt &apos; chunk  
+        header[17] = 0;  
+        header[18] = 0;  
+        header[19] = 0;  
+        header[20] = 1; // format = 1  
+        header[21] = 0;  
+        header[22] = (byte) channels;  
+        header[23] = 0;  
+        header[24] = (byte) (longSampleRate &amp; 0xff);  
+        header[25] = (byte) ((longSampleRate &gt;&gt; 8) &amp; 0xff);  
+        header[26] = (byte) ((longSampleRate &gt;&gt; 16) &amp; 0xff);  
+        header[27] = (byte) ((longSampleRate &gt;&gt; 24) &amp; 0xff);  
+        header[28] = (byte) (byteRate &amp; 0xff);  
+        header[29] = (byte) ((byteRate &gt;&gt; 8) &amp; 0xff);  
+        header[30] = (byte) ((byteRate &gt;&gt; 16) &amp; 0xff);  
+        header[31] = (byte) ((byteRate &gt;&gt; 24) &amp; 0xff);  
+        header[32] = (byte) (2 * 16 / 8); // block align  
+        header[33] = 0;  
+        header[34] = 16; // bits per sample  
+        header[35] = 0;  
+        header[36] = &apos;d&apos;;  
+        header[37] = &apos;a&apos;;  
+        header[38] = &apos;t&apos;;  
+        header[39] = &apos;a&apos;;  
+        header[40] = (byte) (totalAudioLen &amp; 0xff);  
+        header[41] = (byte) ((totalAudioLen &gt;&gt; 8) &amp; 0xff);  
+        header[42] = (byte) ((totalAudioLen &gt;&gt; 16) &amp; 0xff);  
+        header[43] = (byte) ((totalAudioLen &gt;&gt; 24) &amp; 0xff);  
+        out.write(header, 0, 44);  
+    } 
+    停止录制
+    audioRecord.stop();  
+    audioRecord.release();//释放资源  
+    audioRecord = null;  
+</code></pre><h2 id="MediaRecorder"><a href="#MediaRecorder" class="headerlink" title="MediaRecorder"></a>MediaRecorder</h2><pre><code>已经集成了录音、录像、编码、压缩等，支持少量的录音音频格式，大概有.aac（API = 16以上） .amr .3gp
+优点：大部分已经集成，直接调用相关接口即可，代码量小
+缺点：无法实时处理音频；输出的音频格式不是很多，例如没有输出mp3格式文件
+示例：使用MediaRecorder类录音，输出amr格式文件。录音20s，输出的音频文件大概为33K（已写测试代码）
+    开始录制
+    mRecorder = new MediaRecorder();
+    mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+    mRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);//Android默认就是amr
+    mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+    mRecorder.setOutputFile(outputFilePath);
+    try {
+        mRecorder.prepare();
+    } catch (Exception e) {
+        e.printStackTrace();
+    } 
+    mRecorder.start();
+    停止录制
+    mRecorder.stop();
+    mRecorder.release();
+    mRecorder = null;
+
+    开始播放
+    mPlayer = new MediaPlayer();
+    try {
+        mPlayer.setDataSource(fileName);
+        mPlayer.prepare();
+        mPlayer.start();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    停止播放
+    mPlayer.stop();
+    mPlayer.release();
+    mPlayer = null;
+</code></pre><h1 id="播放"><a href="#播放" class="headerlink" title="播放"></a>播放</h1><h2 id="MediaPlayer音频视频播放"><a href="#MediaPlayer音频视频播放" class="headerlink" title="MediaPlayer音频视频播放"></a>MediaPlayer音频视频播放</h2><p>MediaPlayer支持：AAC、AMR、FLAC、MP3、MIDI、OGG、PCM、WAV等格式 </p>
+<p>资源占用量较高、延迟时间较长、不支持多个音频同时播放等</p>
+<h3 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h3><pre><code>public void startPlay(String fileName) {
+    mPlayer = new MediaPlayer();
+    try {
+        mPlayer.setDataSource(fileName);
+        mPlayer.prepare();
+        mPlayer.start();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+public void stopPlay() {
+    mPlayer.stop();
+    mPlayer.release();
+    mPlayer = null;
+}
+</code></pre><h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><pre><code>MediaPlayer 的使用介绍（翻译官方文档，详细） http://blog.csdn.net/songshizhuyuan/article/details/32900965
+</code></pre><h4 id="MediaPlayer"><a href="#MediaPlayer" class="headerlink" title="MediaPlayer"></a>MediaPlayer</h4><pre><code>这个类包含用于播放声音和视频的主要API
+</code></pre><p>Raw下的元数据</p>
+<pre><code>//直接创建，不需要设置setDataSource
+mMediaPlayer=MediaPlayer.create(this, R.raw.audio);
+mMediaPlayer.start();
+</code></pre><h4 id="AudioManager"><a href="#AudioManager" class="headerlink" title="AudioManager"></a>AudioManager</h4><pre><code>这个类用于管理音源，并在设备上的音频输出。
+</code></pre><h4 id="处理音频焦点"><a href="#处理音频焦点" class="headerlink" title="处理音频焦点"></a>处理音频焦点</h4><p>音频焦点是合作性。也就是说，应用程序应该尽量配合，以符合音频焦点的指引，但规则不是由系统执行。如果应用程序失去音讯焦点后，大声播放音乐，系统也不会阻止。</p>
+<pre><code>http://blog.csdn.net/dadoneo/article/details/8252933
+</code></pre><p>AudioFocus的申请与释放</p>
+<p>安卓2.2(api8)开始 新增 <code>AudioManager.requestAudioFocus（）</code></p>
+<p>AudioFocus被抢占与重新获得</p>
+<pre><code>http://www.android100.org/html/201510/08/188724.html
+</code></pre><h4 id="外放、听筒、耳机-模式切换"><a href="#外放、听筒、耳机-模式切换" class="headerlink" title="外放、听筒、耳机 模式切换"></a>外放、听筒、耳机 模式切换</h4><pre><code>AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+audioManager.setMicrophoneMute(false);
+audioManager.setSpeakerphoneOn(true);//使用扬声器外放，即使已经插入耳机
+audioManager.setMode(AudioManager.STREAM_MUSIC);
+</code></pre><h2 id="SoundPool"><a href="#SoundPool" class="headerlink" title="SoundPool"></a>SoundPool</h2><p>支持多个音频文件同时播放(组合音频也是有上限的)，延时短，比较适合短促、密集的场景，是游戏开发中音效播放的福音。</p>
+<p><code>SoundPool(int maxStreams, int streamType, int srcQuality)</code></p>
+<p>区分2个概念</p>
+<ol>
+<li>soundID：加载音乐资源时的返回值，int load(String path, int priority),这个int返回值就是soundID </li>
+<li>streamID：播放时返回的值，即play()方法的返回值</li>
+</ol>
+<p>这两个值都很重要，需要缓存下来</p>
+<p>某些采样频率会导致播放错误(不能播放，只能播放部分)</p>
+<h2 id="AsyncPlayer"><a href="#AsyncPlayer" class="headerlink" title="AsyncPlayer"></a>AsyncPlayer</h2><p>AsyncPlayer就是对MediaPlayer的一次简单的封装，对MediaPlaer所有的操作都在新开线程中执行。不影响调用线程任何操作。</p>
+<p>AsyncPlayer只适合简单的异步播放，不能控制进度，只能开始或停止播放。如果再次调用play()方法，AsyncPlayer会停止当前播放，开始新的播放。</p>
+<h2 id="AudioTrack播放音频"><a href="#AudioTrack播放音频" class="headerlink" title="AudioTrack播放音频"></a>AudioTrack播放音频</h2><p>AudioTrack属于更偏底层的音频播放，MediaPlayerService的内部就是使用了AudioTrack。</p>
+<p>AudioTrack用于单个音频播放和管理，相比于MediaPlayer具有：精炼、高效的优点。</p>
+<p>更适合实时产生播放数据的情况，如加密的音频，<br>MediaPlayer是束手无策的，AudioTrack却可以。</p>
+<p>AudioTrack用于播放PCM(PCM无压缩的音频格式)音乐流的回放，<br>如果需要播放其它格式音频，需要响应的解码器，<br>这也是AudioTrack用的比较少的原因，需要自己解码音频。</p>
+<h3 id="AudioTreack的2种播放模式"><a href="#AudioTreack的2种播放模式" class="headerlink" title="AudioTreack的2种播放模式"></a>AudioTreack的2种播放模式</h3><h4 id="静态模式—static"><a href="#静态模式—static" class="headerlink" title="静态模式—static"></a>静态模式—static</h4><p>数据一次性交付给接收方。好处是简单高效，只需要进行一次操作就完成了数据的传递;缺点当然也很明显，对于数据量较大的音频回放，显然它是无法胜任的，因而通常只用于播放铃声、系统提醒等对内存小的操作</p>
+<h4 id="流模式streaming"><a href="#流模式streaming" class="headerlink" title="流模式streaming"></a>流模式streaming</h4><p>流模式和网络上播放视频是类似的，即数据是按照一定规律不断地传递给接收方的。理论上它可用于任何音频播放的场景，不过我们一般在以下情况下采用：</p>
+<ul>
+<li><p>音频文件过大</p>
+</li>
+<li><p>音频属性要求高，比如采样率高、深度大的数据</p>
+</li>
+<li><p>音频数据是实时产生的，这种情况就只能用流模式了</p>
+</li>
+</ul>
+<p>通过write(byte[], int, int), write(short[], int, int)<br>write(float[], int, int, int)等方法推送解码数据到AudioTrack</p>
+<h2 id="Ringtone和RingtoneManager"><a href="#Ringtone和RingtoneManager" class="headerlink" title="Ringtone和RingtoneManager"></a>Ringtone和RingtoneManager</h2><p>Ringtone为铃声、通知和其他类似声音提供快速播放的方法</p>
+<p>RingtoneManager提供系统铃声列表检索方法，Ringtone实例需要从RingtoneManager获取</p>
+<h3 id="RingtoneManager"><a href="#RingtoneManager" class="headerlink" title="RingtoneManager"></a>RingtoneManager</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>. <span class="comment">// 两个构造方法</span></span><br><span class="line">RingtoneManager(Activity activity)</span><br><span class="line">RingtoneManager(Context context)</span><br><span class="line"></span><br><span class="line"><span class="number">2</span>. <span class="comment">// 获取指定声音类型(铃声、通知、闹铃等)的默认声音的Uri</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> Uri <span class="title">getDefaultUri</span><span class="params">(<span class="keyword">int</span> type)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">3. <span class="comment">// 获取系统所有Ringtone的cursor</span></span></span><br><span class="line"><span class="function">Cursor <span class="title">getCursor</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">4. <span class="comment">// 获取cursor指定位置的Ringtone uri</span></span></span><br><span class="line"><span class="function">Uri <span class="title">getRingtoneUri</span><span class="params">(<span class="keyword">int</span> position)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">5. <span class="comment">// 判断指定Uri是否为默认铃声</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isDefault</span><span class="params">(Uri ringtoneUri)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">6. <span class="comment">//获取指定uri的所属类型</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">getDefaultType</span><span class="params">(Uri defaultRingtoneUri)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">7. <span class="comment">//将指定Uri设置为指定声音类型的默认声音</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">setActualDefaultRingtoneUri</span><span class="params">(Context context, <span class="keyword">int</span> type, Uri ringtoneUri)</span></span></span><br></pre></td></tr></table></figure>
+<h2 id="JetPlayer播放音频"><a href="#JetPlayer播放音频" class="headerlink" title="JetPlayer播放音频"></a>JetPlayer播放音频</h2><p>用于播放 ”.jet”文件</p>
+<p>JET常用于控制游戏的声音特效，采用MIDI（Musical Instrument Digital Interface）格式。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><pre><code>对于延迟度要求不高，并且希望能够更全面的控制音乐的播放，MediaPlayer比较适合
+
+声音短小，延迟度小，并且需要几种声音同时播放的场景，适合使用SoundPool
+
+对于简单的播放，不需要复杂控制的播放，可以给使用AsyncPlayer，所有操作均在子线程不阻塞UI
+
+播放大文件音乐，如WAV无损音频和PCM无压缩音频，可使用更底层的播放方式AudioTrack。它支持流式播放，可以读取(可来自本地和网络)音频流，却播放延迟较小。 
+ps：据我测试AudioTrack直接支持WAV和PCM，其他音频需要解码成PCM格式才能播放。(其他无损格式没有尝试，有兴趣可以使本文提供的例子测试一下)
+
+.jet的音频比较少见(有的游戏中在使用)，可使用专门的播放器JetPlayer播放
+
+对于系统类声音的播放和操作，Ringtone更适合(RingtoneManager)
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/pcm 转 amr/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/音频/pcm 转 amr/" itemprop="url">pcm 转 amr</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="http://blog.csdn.net/honeybaby201314/article/details/50379040" target="_blank" rel="noopener">pcm 转 amr</a></p>
+<p><a href="https://www.zybuluo.com/DevWiki/note/115307" target="_blank" rel="noopener">Android中Pcm文件转Amr文件</a></p>
+<p>Android系统自带的AmrInputStream类可以转换pcm到amr</p>
+<h1 id="思路一、反射调用"><a href="#思路一、反射调用" class="headerlink" title="思路一、反射调用"></a>思路一、反射调用</h1><ul>
+<li>通过Android系统自带的AmrInputStream类转换，因为它被隐藏了，只有通过反射来操作。</li>
+<li>手动加上 <code>amr文件头</code>，<code>byte[] header = new byte[]{0x23, 0x21, 0x41, 0x4D, 0x52, 0x0A};</code></li>
+</ul>
+<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><pre><code> /**
+ * 通过反射调用android系统自身AmrInputStream类进行转换
+ * @param inPath 源文件
+ * @param outPath 目标文件
+ */
+public void systemPcm2Amr(String inPath,String outPath){
+    try {
+        FileInputStream fileInputStream = new FileInputStream(inPath);
+        FileOutputStream fileoutputStream = new FileOutputStream(outPath);
+        // 获得Class
+        Class&lt;?&gt; cls = Class.forName(&quot;android.media.AmrInputStream&quot;);
+        // 通过Class获得所对应对象的方法
+        Method[] methods = cls.getMethods();
+        // 输出每个方法名
+        byte[] header = new byte[]{0x23, 0x21, 0x41, 0x4D, 0x52, 0x0A};
+        fileoutputStream.write(header);
+        Constructor&lt;?&gt; con = cls.getConstructor(InputStream.class);
+        Object obj = con.newInstance(fileInputStream);
+        for (Method method : methods) {
+            Class&lt;?&gt;[] parameterTypes = method.getParameterTypes();
+            if (&quot;read&quot;.equals(method.getName())
+                    &amp;&amp; parameterTypes.length == 3) {
+                byte[] buf = new byte[1024];
+                int len = 0;
+                while ((len = (int) method.invoke(obj, buf, 0, 1024)) &gt; 0) {
+                    fileoutputStream.write(buf, 0, len);
+                }
+                break;
+            }
+        }
+        for (Method method : methods) {
+            if (&quot;close&quot;.equals(method.getName())) {
+                method.invoke(obj);
+                break;
+            }
+        }
+        fileoutputStream.close();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+</code></pre><h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>查看源码可知，AmrInputStream 转码默认 PCM 的采样率是 8000 Hz，所以要<strong>保证录制时采样率是8000Hz</strong>，否则amr音频会有快放和慢放的效果</p>
+<pre><code>public class AmrInputStream extends InputStream {      
+    ... 
+    // frame is 20 msec at 8.000 khz  
+    private final static int SAMPLES_PER_FRAME = 8000 * 20 / 1000;  
+</code></pre><p>在华为机型上，反射调用特别的慢，容易AR</p>
+<h1 id="思路二、复制类文件到工程"><a href="#思路二、复制类文件到工程" class="headerlink" title="思路二、复制类文件到工程"></a>思路二、复制类文件到工程</h1><p>不用反射，更加高效</p>
+<p>工程下新建包 <code>android.media</code>。因为调用Android自带的Pcm转amr的库:media_jni.so需要这个包名</p>
+<p>复制AmrInputStream类到该包下</p>
+<pre><code>public final class AmrInputStream extends InputStream {
+    static {
+        System.loadLibrary(&quot;media_jni&quot;);
+    }
+    private final static String TAG = &quot;AmrInputStream&quot;;
+    // frame is 20 msec at 8.000 khz
+    private final static int SAMPLES_PER_FRAME = 8000 * 20 / 1000;
+    // pcm input stream
+    private InputStream mInputStream;
+    // native handle
+    private int mGae;
+    // result amr stream
+    private byte[] mBuf = new byte[SAMPLES_PER_FRAME * 2];
+    private int mBufIn = 0;
+    private int mBufOut = 0;
+    // helper for bytewise read()
+    private byte[] mOneByte = new byte[1];
+    /**
+     * Create a new AmrInputStream, which converts 16 bit PCM to AMR
+     * @param inputStream InputStream containing 16 bit PCM.
+     */
+    public AmrInputStream(InputStream inputStream) {
+        mInputStream = inputStream;
+        mGae = GsmAmrEncoderNew();
+        GsmAmrEncoderInitialize(mGae);
+    }
+    @Override
+    public int read() throws IOException {
+        int rtn = read(mOneByte, 0, 1);
+        return rtn == 1 ? (0xff &amp; mOneByte[0]) : -1;
+    }
+    @Override
+    public int read(byte[] b) throws IOException {
+        return read(b, 0, b.length);
+    }
+    @Override
+    public int read(byte[] b, int offset, int length) throws IOException {
+        if (mGae == 0) throw new IllegalStateException(&quot;not open&quot;);
+        // local buffer of amr encoded audio empty
+        if (mBufOut &gt;= mBufIn) {
+            // reset the buffer
+            mBufOut = 0;
+            mBufIn = 0;
+            // fetch a 20 msec frame of pcm
+            for (int i = 0; i &lt; SAMPLES_PER_FRAME * 2; ) {
+                int n = mInputStream.read(mBuf, i, SAMPLES_PER_FRAME * 2 - i);
+                if (n == -1) return -1;
+                i += n;
+            }
+            // encode it
+            mBufIn = GsmAmrEncoderEncode(mGae, mBuf, 0, mBuf, 0);
+        }
+        // return encoded audio to user
+        if (length &gt; mBufIn - mBufOut) length = mBufIn - mBufOut;
+        System.arraycopy(mBuf, mBufOut, b, offset, length);
+        mBufOut += length;
+        return length;
+    }
+    @Override
+    public void close() throws IOException {
+        try {
+            if (mInputStream != null) mInputStream.close();
+        } finally {
+            mInputStream = null;
+            try {
+                if (mGae != 0) GsmAmrEncoderCleanup(mGae);
+            } finally {
+                try {
+                    if (mGae != 0) GsmAmrEncoderDelete(mGae);
+                } finally {
+                    mGae = 0;
+                }
+            }
+        }
+   }
+    @Override
+    protected void finalize() throws Throwable {
+        if (mGae != 0) {
+            close();
+            throw new IllegalStateException(&quot;someone forgot to close AmrInputStream&quot;);
+        }
+    }
+    //
+    // AudioRecord JNI interface
+    //
+    private static native int GsmAmrEncoderNew();
+    private static native void GsmAmrEncoderInitialize(int gae);
+    private static native int GsmAmrEncoderEncode(int gae,
+           byte[] pcm, int pcmOffset, byte[] amr, int amrOffset) throws IOException;
+    private static native void GsmAmrEncoderCleanup(int gae);
+    private static native void GsmAmrEncoderDelete(int gae);
+}
+</code></pre><p>复制AmrEncoder类</p>
+<pre><code>public class AmrEncoder {
+    public static void pcm2Amr(String pcmPath , String amrPath) {
+        FileInputStream fis;
+        try {
+            fis = new FileInputStream(pcmPath);
+            pcm2Amr(fis, amrPath);
+            fis.close();
+        } catch (FileNotFoundException e1) {
+            e1.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static void pcm2Amr(InputStream pcmStream, String amrPath) {
+        try {
+            AmrInputStream ais = new AmrInputStream(pcmStream);
+            OutputStream out = new FileOutputStream(amrPath);
+            byte[] buf = new byte[4096];
+            int len = -1;
+            /*
+             * 下面的AMR的文件头,缺少这几个字节是不行的
+             */
+            out.write(0x23);
+            out.write(0x21);
+            out.write(0x41);
+            out.write(0x4D);
+            out.write(0x52);
+            out.write(0x0A);   
+            while((len = ais.read(buf)) &gt;0){
+                out.write(buf,0,len);
+            }
+            out.close();
+            ais.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }       
+    }
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/学乎录音实现方式/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1484,555 +2384,6 @@ sensorManager.registerListener(new SensorEventListener() {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/29/Android/APP弱网络测试工具/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/08/29/Android/APP弱网络测试工具/" itemprop="url">APP弱网络测试工具</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-29T15:40:53+08:00">
-                2019-08-29
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>弱网络专项测试的方案主要有</p>
-<h1 id="PC上使用抓包工具设置延时模拟弱网"><a href="#PC上使用抓包工具设置延时模拟弱网" class="headerlink" title="PC上使用抓包工具设置延时模拟弱网"></a>PC上使用抓包工具设置延时模拟弱网</h1><ul>
-<li>在PC上的Fiddler在设置延时</li>
-<li>将Android设备的网络代理到PC上</li>
-</ul>
-<h1 id="专有服务器上构建弱网络Wi-Fi"><a href="#专有服务器上构建弱网络Wi-Fi" class="headerlink" title="专有服务器上构建弱网络Wi-Fi"></a>专有服务器上构建弱网络Wi-Fi</h1><ul>
-<li>在专有服务器上构建弱网络Wi-Fi</li>
-<li>移动设备连接该Wi-Fi进行弱网络测试</li>
-</ul>
-<p>相关的技术方案有Facebook的ATC和腾讯的Wetest-WiFi;</p>
-<h1 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h1><ul>
-<li>需要额外的PC或者服务器，弱网环境构建成本高；</li>
-<li>需要安装、部署额外的工具，并且弱网络环境需要在PC上或者Web上进行配置，使用成本高；</li>
-<li>弱网络环境功能并不完善，比如Fiddler不支持丢包、抖动等弱网环境；</li>
-</ul>
-<h1 id="QNET"><a href="#QNET" class="headerlink" title="QNET"></a>QNET</h1><ul>
-<li>无需ROOT手机，只需安装一个独立app</li>
-<li>弱网模拟功能强大。2G，3G，4G，丢包，抖动</li>
-<li>支持 TCP/UDP网络协议抓包，导出为Pcap文件</li>
-</ul>
-<h2 id="已知问题"><a href="#已知问题" class="headerlink" title="已知问题"></a>已知问题</h2><p>引起APP频繁刷新，某些生命周期相关的方法会频繁回调，可能引起ANR</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://www.520mwx.com/view/53152" target="_blank" rel="noopener">QNET，一款给力的APP弱网络测试工具</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/20/web/Chrome诊断网页打开慢的原因/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/08/20/web/Chrome诊断网页打开慢的原因/" itemprop="url">Chrome诊断网页打开慢的原因</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-20T09:05:14+08:00">
-                2019-08-20
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web/" itemprop="url" rel="index">
-                    <span itemprop="name">web</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h1><ul>
-<li>打开目标网页</li>
-<li>打开开发者模式</li>
-<li>右键浏览器的刷新按钮，选择 <code>清空缓存并硬性重新加载</code><ul>
-<li>正常重新加载 Ctrl+R：正常重新加载。 </li>
-<li>硬性重新加载：Ctrl+Shift+R:浅层次的清除历史记录，但不一定缓存完全清除。(Ctrl+F5)同理。 </li>
-<li>清空缓存并硬性重新加载：可以深层次的清除所有的缓存。(建议用这个) </li>
-</ul>
-</li>
-</ul>
-<h1 id="诊断"><a href="#诊断" class="headerlink" title="诊断"></a>诊断</h1><p>上面流程加载完成后，开发者工具 <code>network</code> 标签如下</p>
-<img src="/2019/08/20/web/Chrome诊断网页打开慢的原因/chrome-network.png"> 
-<h2 id="重要指标"><a href="#重要指标" class="headerlink" title="重要指标"></a>重要指标</h2><p>底部展示了几个重要的指标</p>
-<ul>
-<li>请求成功数量/请求总数量</li>
-<li>网页加载成功体积/网页总体积</li>
-<li>资源加载成功体积/资源总体积</li>
-<li>耗时</li>
-</ul>
-<h2 id="时间线-详细耗时信息"><a href="#时间线-详细耗时信息" class="headerlink" title="时间线-详细耗时信息"></a>时间线-详细耗时信息</h2><p>网记请求列表，默认是按时间顺序排序(waterfall瀑布)</p>
-<p>找到耗时最长的几个请求</p>
-<p>鼠标悬停某个请求的waterfall会弹窗展示耗时的详细信息，如下</p>
-<img src="/2019/08/20/web/Chrome诊断网页打开慢的原因/time-detail.png"> 
-<img src="/2019/08/20/web/Chrome诊断网页打开慢的原因/time-detail-2.png"> 
-<h2 id="时间线各阶段指标"><a href="#时间线各阶段指标" class="headerlink" title="时间线各阶段指标"></a>时间线各阶段指标</h2><h3 id="Queueing-排队时间"><a href="#Queueing-排队时间" class="headerlink" title="Queueing(排队时间)"></a>Queueing(排队时间)</h3><p>如果某个请求正在排队，则指示：</p>
-<ul>
-<li>请求已被渲染引擎推迟<ul>
-<li>因为该请求的优先级被视为低于关键资源（例如脚本/样式）的优先级。 </li>
-<li>图像经常发生这种情况。</li>
-</ul>
-</li>
-<li>请求已被暂停，以等待可复用的TCP连接。<ul>
-<li>因为在 HTTP 1 上，浏览器仅允许每个源拥有六个 TCP 连接。</li>
-</ul>
-</li>
-<li>生成磁盘缓存条目所用的时间（通常非常迅速）</li>
-</ul>
-<h3 id="Stalled-Blocking"><a href="#Stalled-Blocking" class="headerlink" title="Stalled/Blocking"></a>Stalled/Blocking</h3><p>浏览器得到要发出这个请求的指令，到请求可以发出的<strong>等待时间</strong></p>
-<p>可以是等待 Queueing 中介绍的任何一个原因。 </p>
-<p>此外，此时间包含代理协商所用的时间。</p>
-<p>不包括DNS查询、建立TCP连接等时间。</p>
-<h3 id="Proxy-Negotiation"><a href="#Proxy-Negotiation" class="headerlink" title="Proxy Negotiation"></a>Proxy Negotiation</h3><p>与代理服务器连接协商所用的时间。</p>
-<h3 id="DNS-lookup"><a href="#DNS-lookup" class="headerlink" title="DNS lookup"></a>DNS lookup</h3><p>DNS解析所耗费的时间。</p>
-<h3 id="Initial-connection"><a href="#Initial-connection" class="headerlink" title="Initial connection"></a>Initial connection</h3><p>用户建立连接的时间，包括TCP握手以及多次尝试握手，以及处理SSL的时间。</p>
-<h3 id="SSL"><a href="#SSL" class="headerlink" title="SSL"></a>SSL</h3><p>完成SSL握手的时间。</p>
-<h3 id="Request-sent"><a href="#Request-sent" class="headerlink" title="Request_sent"></a>Request_sent</h3><p>请求第一个字节发出到最后一个字节发出的时间，请求发出时间(一般可以忽略，否则即为浏览器本身或者本地网络问题)。</p>
-<p>Waitting(TTFB)：请求发出后，到收到响应的第一个字节所花费的时间(Time To First Byte)，即请求从客户端发送给服务端时间+服务器处理请求的时间。</p>
-<h3 id="Content-Download"><a href="#Content-Download" class="headerlink" title="Content Download"></a>Content Download</h3><p>接收到响应的第一个字节，到接收完最后一个字节的时间，就是下载响应所耗费的时间。</p>
-<h2 id="诊断问题"><a href="#诊断问题" class="headerlink" title="诊断问题"></a>诊断问题</h2><h3 id="队列时间过长"><a href="#队列时间过长" class="headerlink" title="队列时间过长"></a>队列时间过长</h3><h4 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h4><p>从单个网域检索太多的资源，即<strong>单个网域的请求数量过多</strong></p>
-<p>在 HTTP 1.0/1.1 连接上，Chrome 会将每个主机强制设置为最多六个 TCP 连接。如果您一次请求十二个条目，前六个将开始，而后六个将被加入队列。</p>
-<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><h5 id="HTTP-1"><a href="#HTTP-1" class="headerlink" title="HTTP 1"></a>HTTP 1</h5><ul>
-<li>合并 图片、css、js等一些可以合并的文件，来减少http的请求数</li>
-<li>设置 <code>keep-alive</code> 可以在一定的时间内保证连接的可复用性，减少连接时间</li>
-<li>实现域分片。也就是在您的应用上设置多个子域，以便提供资源。然后，在子域之间平均分配正在提供的资源。<ul>
-<li>在浏览器最大并行下载数跟dns查找(也有耗时)之间做权衡。根据雅虎的研究，最好将主机名控制在2-4个内</li>
-</ul>
-</li>
-</ul>
-<h5 id="HTTP-2"><a href="#HTTP-2" class="headerlink" title="HTTP 2"></a>HTTP 2</h5><p>请不要对您的资源进行域分片</p>
-<p>在 HTTP 2 中，到服务器的单个 TCP 连接作为多路复用连接。这消除了 HTTP 1 中的六个连接限制，并且可以通过单个连接同时传输多个资源。</p>
-<h3 id="第一字节等待时间过长"><a href="#第一字节等待时间过长" class="headerlink" title="第一字节等待时间过长"></a>第一字节等待时间过长</h3><p>又称：大片绿色</p>
-<p>将此值控制在 200 毫秒以下</p>
-<h4 id="原因-1"><a href="#原因-1" class="headerlink" title="原因"></a>原因</h4><ol>
-<li>客户端与服务器之间的网络条件较差</li>
-<li><strong>服务器应用的响应慢</strong></li>
-</ol>
-<h4 id="解决方案-1"><a href="#解决方案-1" class="headerlink" title="解决方案"></a>解决方案</h4><p>将应用托管在本地，然后查看 TTFB 真实的响应速度。如果仍然很长，则需要优化应用的响应速度。可以是优化数据库查询、为特定部分的内容实现缓存，或者修改您的网络服务器配置。</p>
-<h3 id="内容下载时间过长"><a href="#内容下载时间过长" class="headerlink" title="内容下载时间过长"></a>内容下载时间过长</h3><p>又称：大片蓝色。决定服务器吞吐能力</p>
-<h4 id="原因-2"><a href="#原因-2" class="headerlink" title="原因"></a>原因</h4><p><strong>内容体积过大</strong></p>
-<h4 id="解决方案-2"><a href="#解决方案-2" class="headerlink" title="解决方案"></a>解决方案</h4><ul>
-<li>减少发送的字节数</li>
-<li>压缩文件</li>
-<li>启用本地缓存。把网站里面更新频率比较低的静态资源缓存在浏览器中</li>
-<li>启用CDN加速。本质也是缓存，把内容缓存在离用户近的主机</li>
-</ul>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://help.aliyun.com/knowledge_detail/36453.html" target="_blank" rel="noopener">使用chrome浏览器排查网页打开慢的方法</a></li>
-<li><a href="https://blog.csdn.net/shan1991fei/article/details/80690220" target="_blank" rel="noopener">Chrome Dev Tool 中时间线各阶段代表的意义</a></li>
-<li><a href="https://www.liulanqi.com/239.html" target="_blank" rel="noopener">了解资源耗时 | Chrome F12 network</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/16/编程思想/Android端架构_MVP-Clean架构/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/08/16/编程思想/Android端架构_MVP-Clean架构/" itemprop="url">Android端架构_MVP-Clean架构</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-16T11:46:01+08:00">
-                2019-08-16
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/编程思想/" itemprop="url" rel="index">
-                    <span itemprop="name">编程思想</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Activity跳转"><a href="#Activity跳转" class="headerlink" title="Activity跳转"></a>Activity跳转</h1><p>Activity跳转是如何实现的</p>
-<p><code>BaseActivity</code> 持有 <code>Navigator</code>，Activity A 调用 Navigator 相应的跳转方法。</p>
-<p>每个Activity 都需要提供启动自己的Intent，而不是由Navigator构造</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Navigator</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">navigateToUserList</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (context != <span class="keyword">null</span>) &#123;</span><br><span class="line">      Intent intentToLaunch = UserListActivity.getCallingIntent(context);</span><br><span class="line">      context.startActivity(intentToLaunch);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserListActivity</span> <span class="keyword">extends</span> <span class="title">BaseActivity</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Intent <span class="title">getCallingIntent</span><span class="params">(Context context)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Intent(context, UserListActivity.class);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">navigator.navigateToUserList(<span class="keyword">this</span>);<span class="comment">//跳转到UserListActivity</span></span><br></pre></td></tr></table></figure>
-<h1 id="完整的渲染数据过程"><a href="#完整的渲染数据过程" class="headerlink" title="完整的渲染数据过程"></a>完整的渲染数据过程</h1><p>以用户列表页为例</p>
-<h2 id="presentation-表现层"><a href="#presentation-表现层" class="headerlink" title="presentation 表现层"></a>presentation 表现层</h2><h3 id="model"><a href="#model" class="headerlink" title="model"></a>model</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserModel</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="view"><a href="#view" class="headerlink" title="view"></a>view</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">LoadDataView</span> </span>&#123;</span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">showLoading</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">hideLoading</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">showRetry</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">hideRetry</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">showError</span><span class="params">(String message)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function">Context <span class="title">context</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserListView</span> <span class="keyword">extends</span> <span class="title">LoadDataView</span> </span>&#123;</span><br><span class="line">  <span class="comment">// Render a user list in the UI.</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">renderUserList</span><span class="params">(Collection&lt;UserModel&gt; userModelCollection)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//View a UserModel profile/details.</span></span><br><span class="line">  <span class="comment">//Presenter call this when click a UserModel</span></span><br><span class="line">  <span class="function"><span class="keyword">void</span> <span class="title">viewUser</span><span class="params">(UserModel userModel)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserListFragment</span> <span class="keyword">extends</span> <span class="title">BaseFragment</span> <span class="keyword">implements</span> <span class="title">UserListView</span> </span>&#123;</span><br><span class="line">  UserListPresenter userListPresenter;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onViewCreated</span><span class="params">(View view, Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onViewCreated(view, savedInstanceState);</span><br><span class="line">    <span class="keyword">this</span>.userListPresenter.setView(<span class="keyword">this</span>);</span><br><span class="line">    <span class="keyword">if</span> (savedInstanceState == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">this</span>.loadUserList();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">renderUserList</span><span class="params">(Collection&lt;UserModel&gt; userModelCollection)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (userModelCollection != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">this</span>.usersAdapter.setUsersCollection(userModelCollection);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">viewUser</span><span class="params">(UserModel userModel)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (mActivity != <span class="keyword">null</span>) &#123;</span><br><span class="line">      mActivity.navigator.navigateToUserDetails(mActivity, userModel.getUserId());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">   <span class="comment">//Loads all users.</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">loadUserList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.userListPresenter.loadUserList();</span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="presenter"><a href="#presenter" class="headerlink" title="presenter"></a>presenter</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserListPresenter</span> <span class="keyword">implements</span> <span class="title">Presenter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> UserListView viewListView;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> GetUserList getUserListUseCase;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> UserModelDataMapper userModelDataMapper;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">UserListPresenter</span><span class="params">(GetUserList getUserListUserCase,</span></span></span><br><span class="line"><span class="function"><span class="params">      UserModelDataMapper userModelDataMapper)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.getUserListUseCase = getUserListUserCase;</span><br><span class="line">    <span class="keyword">this</span>.userModelDataMapper = userModelDataMapper;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setView</span><span class="params">(@NonNull UserListView view)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.viewListView = view;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">showUsersCollectionInView</span><span class="params">(Collection&lt;User&gt; usersCollection)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Collection&lt;UserModel&gt; userModelsCollection =</span><br><span class="line">        <span class="keyword">this</span>.userModelDataMapper.transform(usersCollection);</span><br><span class="line">    <span class="keyword">this</span>.viewListView.renderUserList(userModelsCollection);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">getUserList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.getUserListUseCase.execute(<span class="keyword">new</span> UserListObserver(), <span class="keyword">null</span>);</span><br><span class="line">  &#125; </span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">UserListObserver</span> <span class="keyword">extends</span> <span class="title">DefaultObserver</span>&lt;<span class="title">List</span>&lt;<span class="title">User</span>&gt;&gt; </span>&#123;<span class="comment">//DisposableObserver继承rxjava2的DisposableObserver</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onComplete</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      UserListPresenter.<span class="keyword">this</span>.hideViewLoading();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onError</span><span class="params">(Throwable e)</span> </span>&#123;</span><br><span class="line">      UserListPresenter.<span class="keyword">this</span>.hideViewLoading();</span><br><span class="line">      UserListPresenter.<span class="keyword">this</span>.showErrorMessage(<span class="keyword">new</span> DefaultErrorBundle((Exception) e));</span><br><span class="line">      UserListPresenter.<span class="keyword">this</span>.showViewRetry();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onNext</span><span class="params">(List&lt;User&gt; users)</span> </span>&#123;</span><br><span class="line">      UserListPresenter.<span class="keyword">this</span>.showUsersCollectionInView(users);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="domain-领域层"><a href="#domain-领域层" class="headerlink" title="domain 领域层"></a>domain 领域层</h2><h3 id="entity"><a href="#entity" class="headerlink" title="entity"></a>entity</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Class that represents a User in the domain layer.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="interactor-use-case"><a href="#interactor-use-case" class="headerlink" title="interactor(use case)"></a>interactor(use case)</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GetUserListUseCase</span> <span class="keyword">extends</span> <span class="title">UseCase</span>&lt;<span class="title">List</span>&lt;<span class="title">User</span>&gt;, <span class="title">Void</span>&gt; </span>&#123;</span><br><span class="line">	<span class="comment">//调用 data层的UserRepository</span></span><br><span class="line">	<span class="comment">//将可观察的用户列表，发射到上面presenter指定的观察者</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="data-数据层"><a href="#data-数据层" class="headerlink" title="data 数据层"></a>data 数据层</h2><h3 id="entity-1"><a href="#entity-1" class="headerlink" title="entity"></a>entity</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * User Entity used in the data layer.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserEntity</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="repository"><a href="#repository" class="headerlink" title="repository"></a>repository</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Interface that represents a Repository for getting &#123;<span class="doctag">@link</span> User&#125; related data.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserRepository</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="datasource"><a href="#datasource" class="headerlink" title="datasource"></a>datasource</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Interface that represents a data store from where data is retrieved.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserDataStore</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CloudUserDataStore</span> <span class="keyword">implements</span> <span class="title">UserDataStore</span> </span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DiskUserDataStore</span> <span class="keyword">implements</span> <span class="title">UserDataStore</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Factory that creates different implementations of &#123;<span class="doctag">@link</span> UserDataStore&#125;.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Singleton</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDataStoreFactory</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="cache"><a href="#cache" class="headerlink" title="cache"></a>cache</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * An interface representing a user Cache.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserCache</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="net"><a href="#net" class="headerlink" title="net"></a>net</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * RestApi for retrieving data from the network.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">RestApi</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="Dagger2"><a href="#Dagger2" class="headerlink" title="Dagger2"></a>Dagger2</h1><p>是否使用，这个具体问题具体分析。更多内容参考 Dagger2 文档</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://github.com/android10/Android-CleanArchitecture" target="_blank" rel="noopener">实例源码</a>by Fernando Cejas (Fernando 大神)</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2087,7 +2438,7 @@ sensorManager.registerListener(new SensorEventListener() {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">315</span>
+                  <span class="site-state-item-count">318</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2098,7 +2449,7 @@ sensorManager.registerListener(new SensorEventListener() {
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2109,7 +2460,7 @@ sensorManager.registerListener(new SensorEventListener() {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-count">73</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2209,9 +2560,6 @@ sensorManager.registerListener(new SensorEventListener() {
 
 
 
-  
-  
-
 
 
 
@@ -2246,16 +2594,6 @@ sensorManager.registerListener(new SensorEventListener() {
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/three.min.js"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
   
 
 

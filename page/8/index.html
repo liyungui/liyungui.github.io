@@ -262,6 +262,530 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/05/NDK/Native崩溃捕获/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/05/NDK/Native崩溃捕获/" itemprop="url">Native崩溃捕获</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-05T11:39:14+08:00">
+                2019-09-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="现有的方案"><a href="#现有的方案" class="headerlink" title="现有的方案"></a>现有的方案</h1><img src="/2019/09/05/NDK/Native崩溃捕获/现有方案.png">
+<p>其实3个方案在Android平台的实现原理都是基本一致的，综合考虑，可以基于coffeecatch改进。</p>
+<h1 id="信号机制"><a href="#信号机制" class="headerlink" title="信号机制"></a>信号机制</h1><p>在Unix-like系统中，异常发生时，CPU通过异常中断的方式，触发异常处理流程。不同的处理器，有不同的异常中断类型和中断处理方式。</p>
+<p>linux把这些中断处理，统一为信号量，可以注册信号量向量进行处理。</p>
+<p>信号机制是进程之间相互传递消息的一种方法，信号全称为软中断信号。</p>
+<p>信号机制是进程之间相互传递消息的一种方法，信号全称为软中断信号。</p>
+<img src="/2019/09/05/NDK/Native崩溃捕获/用户态内核态切换.png">
+<h2 id="接收信号"><a href="#接收信号" class="headerlink" title="接收信号"></a>接收信号</h2><p>接收信号的任务是由内核代理的，当内核接收到信号后，会将其放到对应进程的信号队列中，同时向进程发送一个中断，使其陷入内核态。</p>
+<p>注意，此时信号还只是在队列中，对进程来说暂时是不知道有信号到来的。</p>
+<h2 id="检测信号"><a href="#检测信号" class="headerlink" title="检测信号"></a>检测信号</h2><p>进程陷入内核态后，有两种场景会对信号进行检测：</p>
+<ul>
+<li><p>进程从内核态返回到用户态前进行信号检测</p>
+</li>
+<li><p>进程在内核态中，从睡眠状态被唤醒的时候进行信号检测</p>
+</li>
+</ul>
+<p>当发现有新信号时，便会进入下一步，处理信号。</p>
+<h2 id="处理信号"><a href="#处理信号" class="headerlink" title="处理信号"></a>处理信号</h2><p>信号处理函数是运行在用户态的</p>
+<p>调用处理函数前，内核会将当前内核栈的内容备份拷贝到用户栈上，并且修改指令寄存器（eip）将其指向信号处理函数。</p>
+<p>接下来进程返回到用户态中，执行相应的信号处理函数。</p>
+<p>信号处理函数执行完成后，还需要返回内核态，检查是否还有其它信号未处理。</p>
+<p>如果所有信号都处理完成，就会将内核栈恢复（从用户栈的备份拷贝回来），同时恢复指令寄存器（eip）将其指向中断前的运行位置，最后回到用户态继续执行进程。</p>
+<h1 id="信号量定义"><a href="#信号量定义" class="headerlink" title="信号量定义"></a>信号量定义</h1><p><code>kill -l</code> 可以查看所有的信号量</p>
+<p><code>signal.h</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">SIGHUP 1   挂起</span><br><span class="line">SIGINT 2   中断，比如命令行用户输入Ctrl+C时由终端驱动程序发送INT信号</span><br><span class="line">SIGQUIT 3  退出，默认处理是内存转储</span><br><span class="line">SIGILL 4   非法指令，损坏的可执行文件或代码区损坏</span><br><span class="line">SIGTRAP 5</span><br><span class="line">SIGABRT 6</span><br><span class="line">SIGIOT 6</span><br><span class="line">SIGBUS 7  总线错误，硬件或系统错误，如不存在的物理地址</span><br><span class="line">SIGFPE 8  浮点运算错误，如除0，余0，整形溢出</span><br><span class="line">SIGKILL 9 杀死进程</span><br><span class="line">SIGUSR1 10</span><br><span class="line">SIGSEGV 11 段错误，空指针，野指针，数组越界，栈溢出，访问不存在的地址，访问内核区，写只读空间</span><br><span class="line">SIGUSR2 12</span><br><span class="line">SIGPIPE 13 管道错误，如</span><br><span class="line">SIGALRM 14</span><br><span class="line">SIGTERM 15 终止，默认处理没有内存转储</span><br><span class="line">SIGSTKFLT 16</span><br><span class="line">SIGCHLD 17</span><br><span class="line">SIGCONT 18 继续执行，取消挂起</span><br><span class="line">SIGSTOP 19 挂起/暂停，直到收到CONT</span><br><span class="line">SIGTSTP 20 STOP信号的“软”版本，用户输入Ctrl+Z时由终端驱动程序发送的信号</span><br><span class="line">SIGTTIN 21</span><br></pre></td></tr></table></figure>
+<p>程序崩溃99%都是BUS与SEGV这两个错误导<br>致的。内核对二者的默认处理是内存转储(memory dump)。进程可以捕获和封锁这两类错误。</p>
+<h2 id="常见信号量"><a href="#常见信号量" class="headerlink" title="常见信号量"></a>常见信号量</h2><img src="/2019/09/05/NDK/Native崩溃捕获/常见信号量.png">
+<h1 id="捕捉"><a href="#捕捉" class="headerlink" title="捕捉"></a>捕捉</h1><h2 id="signal"><a href="#signal" class="headerlink" title="signal"></a>signal</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">legacy_signal_inlines.h</span><br><span class="line">sighandler_t signal(int s, sighandler_t f)</span><br><span class="line"></span><br><span class="line">系统也定义了一些宏 </span><br><span class="line">SIG_IGN 忽略信号</span><br><span class="line">SIG_DFL 使用默认的信号处理函数</span><br><span class="line"></span><br><span class="line">1. 进入信号处理函数之后 这个信号会被 阻塞（block）</span><br><span class="line">   直到信号处理函数 返回。</span><br><span class="line">2. 信号函数处理完之后，会将该信号处理函数恢复为默认处理函数，所以在下一次用到的时候要重新调用signal这个函数绑定</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;android/log.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, <span class="meta-string">"lyg"</span>, __VA_ARGS__)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">recvSignal</span><span class="params">(<span class="keyword">int</span> sig)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    LOGD(<span class="string">"received signal %d !!!\n"</span>,sig);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> JNIEXPORT jstring JNICALL</span><br><span class="line">Java_com_example_jni_MainActivity_stringFromJNI(</span><br><span class="line">        JNIEnv *env,</span><br><span class="line">        jobject <span class="comment">/* this */</span>) &#123;</span><br><span class="line">    signal(SIGTRAP,recvSignal);</span><br><span class="line">    <span class="keyword">char</span> *p = <span class="string">"123"</span>;</span><br><span class="line">    <span class="keyword">char</span> *p2;</span><br><span class="line">    <span class="built_in">strcpy</span>(p2,p);</span><br><span class="line">    <span class="keyword">return</span> env-&gt;NewStringUTF(p2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>日志</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br><span class="line">2019-12-26 16:56:18.392 29534-29534/? D/lyg: received signal 5 !!!</span><br></pre></td></tr></table></figure>
+<p>错误发生后 ，系统 发送 SIGSEGV ，然后 中断了程序 跳到 recvSignal 处理函数中去 ，处理完成后 ，再跳回来错误发生的地方 ，然后继续产生错误 ，继续发送 SIGSEGV  信号</p>
+<h2 id="sigaction"><a href="#sigaction" class="headerlink" title="sigaction"></a>sigaction</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">struct sigaction &#123;</span><br><span class="line">    void     (*sa_handler)(int);</span><br><span class="line">    void     (*sa_sigaction)(int, siginfo_t *, void *);</span><br><span class="line">    sigset_t   sa_mask;</span><br><span class="line">    int        sa_flags;</span><br><span class="line">    void     (*sa_restorer)(void);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">sa_handler 信号处理函数，该函数只有一个参数</span><br><span class="line">sa_sigaction 信号处理函数，sa_flags中存在SA_SIGINFO标志时使用这个函数处理信号量</span><br><span class="line">sa_mask： 信号处理函数执行的过程中应被阻塞的信号</span><br><span class="line">sa_flags：信号处理过程行为的标志，由0个或多个标志通过or运算组合而成，比如SA_RESETHAND，SA_ONSTACK | SA_SIGINFO</span><br><span class="line">sa_restorer： 已废弃</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">int sigaction(int signum,const struct sigaction *act,struct sigaction *oldact));</span><br><span class="line"></span><br><span class="line">signum：代表信号编码</span><br><span class="line">	除SIGKILL及SIGSTOP外的任何一个特定有效的信号</span><br><span class="line">	如果为这两个信号定义自己的处理函数，将导致信号安装错误。</span><br><span class="line"></span><br><span class="line">act：指向结构体sigaction的一个实例的指针</span><br><span class="line">	该实例指定了对特定信号的处理</span><br><span class="line">	如果设置为空，进程会执行默认处理。</span><br><span class="line"></span><br><span class="line">oldact：和参数act类似，只不过保存的是原来对相应信号的处理</span><br><span class="line">	也可设置为NULL。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;jni.h&gt;</span><br><span class="line">#include &lt;string&gt;</span><br><span class="line">#include &lt;signal.h&gt;</span><br><span class="line">#include &lt;android/log.h&gt;</span><br><span class="line"></span><br><span class="line">#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, &quot;lyg&quot;, __VA_ARGS__)</span><br><span class="line"></span><br><span class="line">static void SignalHandler(int signo, siginfo_t *info, void *context) &#123;</span><br><span class="line">    LOGD(&quot;received signal %d !!!\n&quot;, signo);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">extern &quot;C&quot; JNIEXPORT jstring JNICALL</span><br><span class="line">Java_com_example_jni_MainActivity_stringFromJNI(</span><br><span class="line">        JNIEnv *env,</span><br><span class="line">        jobject /* this */) &#123;</span><br><span class="line">    struct sigaction sa_old;</span><br><span class="line">    struct sigaction sa;</span><br><span class="line">    memset(&amp;sa, 0, sizeof(sa));</span><br><span class="line">    sigemptyset(&amp;sa.sa_mask);</span><br><span class="line">    sa.sa_sigaction = SignalHandler;</span><br><span class="line">    sa.sa_flags = SA_SIGINFO;</span><br><span class="line">    sigaction(SIGTRAP, &amp;sa, &amp;sa_old);</span><br><span class="line"></span><br><span class="line">    char *p = &quot;123&quot;;</span><br><span class="line">    char *p2;</span><br><span class="line">    strcpy(p2, p);</span><br><span class="line">    return env-&gt;NewStringUTF(p2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>问题：跟signal一样，会重复打印捕获到的信号量，然后ANR；</p>
+<p>自定义信号处理函数，处理完之后，调用原来注册的处理函数，处理完退出应用</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://mp.weixin.qq.com/s/g-WzYF3wWAljok1XjPoo7w?" target="_blank" rel="noopener">Android 平台 Native 代码的崩溃捕获机制及实现</a> 腾讯Bugly分享</li>
+<li><a href="https://blog.csdn.net/ysdaniel/article/details/6819142" target="_blank" rel="noopener">linux的常用信号量和进程的四种状态</a></li>
+<li><a href="https://blog.csdn.net/work_msh/article/details/8470277" target="_blank" rel="noopener">linux SIGSEGV 信号捕捉，保证发生段错误后程序不崩溃</a></li>
+<li><a href="https://jekton.github.io/2019/04/06/native-crash-catching/" target="_blank" rel="noopener">Android native 崩溃信息捕获实践</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/05/NDK/使用JNI_OnLoad动态注册Native函数/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/05/NDK/使用JNI_OnLoad动态注册Native函数/" itemprop="url">使用JNI_OnLoad动态注册Native函数</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-05T11:39:14+08:00">
+                2019-09-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="JNI-OnLoad"><a href="#JNI-OnLoad" class="headerlink" title="JNI_OnLoad"></a>JNI_OnLoad</h1><p>加载so,虚拟机先自动执行JNI_OnLoad；</p>
+<p>卸载so,虚拟机先自动执行JNI_UnLoad；</p>
+<h1 id="传统java-Jni方式"><a href="#传统java-Jni方式" class="headerlink" title="传统java Jni方式"></a>传统java Jni方式</h1><ol>
+<li>编写带有native方法的Java类</li>
+<li>使用javah命令生成.h头文件</li>
+<li>编写代码实现头文件中的方法</li>
+</ol>
+<h1 id="RegisterNatives"><a href="#RegisterNatives" class="headerlink" title="RegisterNatives"></a>RegisterNatives</h1><p>使用RegisterNatives方法把c/c++中的方法映射到Java中的native方法</p>
+<h1 id="使用RegisterNatives步骤"><a href="#使用RegisterNatives步骤" class="headerlink" title="使用RegisterNatives步骤"></a>使用RegisterNatives步骤</h1><ul>
+<li><p>在c/c++文件中定义并实现对应java中声明的本地方法，方法名称随意，但是参数类型和参数个数必须一样</p>
+</li>
+<li><p>创建声明JNINativeMethod类型的数组，值为需要动态加载映射的本地方法</p>
+</li>
+<li><p>实现JNI_OnLoad方法，主要分为下面两步：</p>
+<ul>
+<li>通过FindClass获取所需的映射的java类</li>
+<li>通过jint RegisterNatives(jclass clazz, const JNINativeMethod* methods, jint nMethods) 方法动态注册</li>
+</ul>
+</li>
+</ul>
+<h1 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JniOnloadTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">native</span> <span class="keyword">int</span>  <span class="title">javaAdd</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">native</span> String <span class="title">javaSayHi</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.loadLibrary(<span class="string">"test-lib"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>jniload.cpp</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;android/log.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  LOG_TAG    <span class="meta-string">"liuhang"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span>  LOGI(...)  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> jint JNICALL <span class="title">cAdd</span><span class="params">(JNIEnv *env, jobject jobj, jint x, jint y)</span></span>&#123;</span><br><span class="line">    LOGI(<span class="string">"cAdd x is :%d  y is :%d"</span>, x, y);</span><br><span class="line">    <span class="keyword">return</span> x + y;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> jstring JNICALL <span class="title">cSayHi</span><span class="params">(JNIEnv *env, jobject jobj, jint x, jint y)</span></span>&#123;</span><br><span class="line">    LOGI(<span class="string">"cSayHi runs... will return a string in c"</span>);</span><br><span class="line">    <span class="keyword">return</span> env-&gt;NewStringUTF(<span class="string">"hello from cSayHi"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">   第一个参数：javaAdd 是java中的方法名称</span></span><br><span class="line"><span class="comment">   第二个参数：(II)I  是java中方法的签名，可以通过javap -s -p 类名.class 查看</span></span><br><span class="line"><span class="comment">   第三个参数： (jstring *)cSayHi  （返回值类型）映射到native的方法名称</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> JNINativeMethod gMethods[] = &#123;</span><br><span class="line">        &#123;<span class="string">"javaAdd"</span>, <span class="string">"(II)I"</span>, (jint *)cAdd&#125;,</span><br><span class="line">        &#123;<span class="string">"javaSayHi"</span>,<span class="string">"()Ljava/lang/String;"</span>,(jstring *)cSayHi&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> jclass myClass;</span><br><span class="line"><span class="comment">// 这里是java调用C的存在Native方法的类路径</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">char</span>* <span class="keyword">const</span> className=<span class="string">"com/jni/test/JniOnloadTest"</span>;</span><br><span class="line"><span class="function">JNIEXPORT jint JNICALL <span class="title">JNI_OnLoad</span><span class="params">(JavaVM* vm, <span class="keyword">void</span>* reserved)</span></span>&#123;</span><br><span class="line">    LOGI(<span class="string">"jni onload called"</span>);</span><br><span class="line">    JNIEnv* env = <span class="literal">NULL</span>; <span class="comment">//注册时在JNIEnv中实现的，所以必须首先获取它</span></span><br><span class="line">    jint result = <span class="number">-1</span>;</span><br><span class="line">    <span class="keyword">if</span>(vm-&gt;GetEnv((<span class="keyword">void</span> **) &amp;env, JNI_VERSION_1_4) != JNI_OK) &#123; <span class="comment">//从JavaVM获取JNIEnv，一般使用1.4的版本</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 获取映射的java类</span></span><br><span class="line">    myClass = env-&gt;FindClass(className);</span><br><span class="line">    <span class="keyword">if</span>(myClass == <span class="literal">NULL</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">"cannot get class:%s\n"</span>, className);</span><br><span class="line">      <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 通过RegisterNatives方法动态注册</span></span><br><span class="line">    <span class="keyword">if</span>(env-&gt;RegisterNatives(myClass, gMethods, <span class="keyword">sizeof</span>(gMethods)/<span class="keyword">sizeof</span>(gMethods[<span class="number">0</span>])) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">"register native method failed!\n"</span>);</span><br><span class="line">      <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    LOGI(<span class="string">"jni onload called end..."</span>);</span><br><span class="line">    <span class="keyword">return</span> JNI_VERSION_1_4; <span class="comment">//这里很重要，必须返回版本，否则加载会失败。</span></span><br><span class="line">&#125;    </span><br><span class="line">```	</span><br><span class="line"></span><br><span class="line">java端调用</span><br><span class="line"></span><br><span class="line">```java</span><br><span class="line">JniOnloadTest jniOnloadTest = <span class="keyword">new</span> JniOnloadTest();</span><br><span class="line">Log.d(<span class="string">"liuhang"</span>, <span class="string">"jnionload add result is :"</span>+jniOnloadTest.javaAdd(<span class="number">1</span>, <span class="number">2</span>)+<span class="string">" sayhi is :"</span>+jniOnloadTest.javaSayHi());</span><br></pre></td></tr></table></figure>
+<img src="/2019/09/05/NDK/使用JNI_OnLoad动态注册Native函数/结果.png">
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.jianshu.com/p/f4b4b9006742" target="_blank" rel="noopener">使用JNI_OnLoad动态注册函数</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症八-播放杂音、噪音、回声/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/09/03/直播/直播疑难杂症/直播疑难杂症八-播放杂音、噪音、回声/" itemprop="url">直播疑难杂症八-播放杂音、噪音、回声</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T15:10:14+08:00">
+                2019-09-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>相比于视频而言，音频要敏感得多，视频画面有噪点、马赛克都还是可以勉强被接受，而声音一旦有任何瑕疵，人耳都会特别容易感觉到，而且难以忍受。</p>
+<h1 id="表现"><a href="#表现" class="headerlink" title="表现"></a>表现</h1><ul>
+<li><p>电流音，爆音，滋滋声或者嘟嘟声</p>
+</li>
+<li><p>声音断断续续，听不清楚</p>
+</li>
+<li><p>回声，同一个声音能听到两遍</p>
+</li>
+</ul>
+<h1 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h1><h2 id="参数配置问题"><a href="#参数配置问题" class="headerlink" title="参数配置问题"></a>参数配置问题</h2><p>音频是一个特别敏感的东西，涉及到许多参数配置，一旦配置不太匹配，就会导致声音听起来非常诡异（比如：采样率是 32000Hz 的音频，给播放器配置为 8000Hz 或者 44100Hz，就明显会出现音频慢放或者快放的效果）。</p>
+<p>我们只需要注意的是，无论是采集和播放，都要给系统的 API 以及第三方的库配置正确的参数，如：采样率、位宽、声道数等等。</p>
+<h2 id="代码层面"><a href="#代码层面" class="headerlink" title="代码层面"></a>代码层面</h2><h3 id="音频-buffer-大小不匹配"><a href="#音频-buffer-大小不匹配" class="headerlink" title="音频 buffer 大小不匹配"></a>音频 buffer 大小不匹配</h3><p>一段 1024 bytes 的音频，放到了 2048 bytes 的数组，导致尾部有随机数</p>
+<h3 id="重采样的算法问题"><a href="#重采样的算法问题" class="headerlink" title="重采样的算法问题"></a>重采样的算法问题</h3><p>音频 resample 重采样的算法问题，导致采样出来的数据出了问题</p>
+<h3 id="Android-的-ByteBuffer-取出数组"><a href="#Android-的-ByteBuffer-取出数组" class="headerlink" title="Android 的 ByteBuffer 取出数组"></a>Android 的 ByteBuffer 取出数组</h3><p>不能直接用 .array() 方法的，而需要用 .get() 方法</p>
+<h3 id="iOS-的-AudioSession采样率被更改"><a href="#iOS-的-AudioSession采样率被更改" class="headerlink" title="iOS 的 AudioSession采样率被更改"></a>iOS 的 AudioSession采样率被更改</h3><p>iOS 系统，其他 app 通过系统 API 更改了 AudioSession 采样率的配置</p>
+<h3 id="混音越界"><a href="#混音越界" class="headerlink" title="混音越界"></a>混音越界</h3><p>音频的 PCM 数据，通常用 short 数组来存放，当我们做一些多路音频的混音功能的时候，如果不注意处理 short 类型的大小越界，则往往带来爆音的问题。下面是一段参考 webrtc 的混音代码，专门针对混音越界做了简单处理，可以参考参考：</p>
+<img src="/2019/09/03/直播/直播疑难杂症/直播疑难杂症八-播放杂音、噪音、回声/webrtc混音防越界代码.png">
+<h2 id="网络宽带不足"><a href="#网络宽带不足" class="headerlink" title="网络宽带不足"></a>网络宽带不足</h2><p>视频是一帧一帧连续的图像构成的，在播放过程中，如果无法按时渲染，则会出现卡顿的效果；如果丢失几帧画面，则会出现快进效果。</p>
+<p>而音频是流式的，虽然也被切分为了一个个音频帧，但如果无法按时播放或者连续丢失较多的音频帧，则会明显听到断断续续的声音出现。特别是在弱网、丢包率高等不稳定网络环境下，很容易出现这种情况。</p>
+<p>表现为 帧缓冲区为空</p>
+<p>复现的网速阈值：差不多是最低网速需求的40%-50%；</p>
+<p>比如，当前直播的最低网速要求是112 kBps；将手机网络模拟为 500 kbps；</p>
+<h2 id="设备性能不足"><a href="#设备性能不足" class="headerlink" title="设备性能不足"></a>设备性能不足</h2><p>设备性能不足的情况下，容易出现虽然帧缓冲区数据充足，但是解码不及时，导致无法播放，也会听到断断续续的声音出现</p>
+<p>表现为 显示缓冲区为空</p>
+<p>复现的CPU阈值：CPU使用率80%</p>
+<h2 id="解码失败"><a href="#解码失败" class="headerlink" title="解码失败"></a>解码失败</h2><h2 id="音频丢帧"><a href="#音频丢帧" class="headerlink" title="音频丢帧"></a>音频丢帧</h2><h2 id="回声"><a href="#回声" class="headerlink" title="回声"></a>回声</h2><p>回声一般出现在同时有音频的采集和播放的场景，比如：连麦互动、混音返听等等，采集到的音频通过扬声器又播放出来了，同时又被采集了进去，从而产生了回声或者啸叫声。</p>
+<p>这样的场景下，一般需要通过系统的回声消除 API，或者第三方回声消除库（如：speexdsp，webrtc 等）进行处理。</p>
+<p>注意：很多 Android 机型硬件自带的回声消除效果并不是很好。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://blog.qiniu.com/archives/8524" target="_blank" rel="noopener">《直播疑难杂症排查》系列之八：播放杂音、噪音、回声</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/直播疑难杂症/直播疑难杂症二-卡顿/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1554,906 +2078,6 @@ private void stopPlayback() {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/PCM音频降噪/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/音频/PCM音频降噪/" itemprop="url">PCM音频降噪</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://www.jianshu.com/p/77a363960711" target="_blank" rel="noopener">PCM音频处理</a></p>
-<p>对于降噪前后的对比，从三个方面进行评价：<strong>时域，频域，个人听觉感受</strong>。</p>
-<p>音频处理软件：<strong>Audacity</strong>（简单分析降噪效果）</p>
-<h1 id="Speex音频降噪模块"><a href="#Speex音频降噪模块" class="headerlink" title="Speex音频降噪模块"></a>Speex音频降噪模块</h1><p>Speex是很强大的开源编解码库，也包含一些降噪，自动增益，回音消除等模块功能</p>
-<p>Opus是Speex的更优替代方案，但是Opus没有降噪去噪模块</p>
-<p>支持的采样率有3种：<strong>8K，16K，44K</strong></p>
-<p>采样送进去降噪的数据需要控制在<strong>20ms</strong>，也就是（20*采样率/1000）个采样点。</p>
-<p>Speex的降噪原理：设置音频数据的阀值，过滤掉低于阀值分贝的声音</p>
-<ul>
-<li>优点：简单，使用Speex编解码库时可以直接使用</li>
-<li>缺点：会把声音细节抹掉</li>
-<li>效果：<ul>
-<li>时域，效果不明显</li>
-<li>频域，效果不明显</li>
-<li>实际听的效果，降噪后，背景的沙沙声有所减弱，但是总体效果还是不佳</li>
-</ul>
-</li>
-</ul>
-<h1 id="WebRTC音频降噪模块"><a href="#WebRTC音频降噪模块" class="headerlink" title="WebRTC音频降噪模块"></a>WebRTC音频降噪模块</h1><p>谷歌出品，必属精品</p>
-<p>webrtc的音频处理模块分为降噪ns和nsx，回音消除aec，回声控制acem，音频增益agc，静音检测部分</p>
-<p>支持三种采样率，<strong>8K，16K和32K</strong>，如果超过32K，则需要重采样成符合要求的采样率</p>
-<p>采样送进去降噪的数据需要控制在<strong>10ms</strong>，也就是（10*采样率/1000）个采样点。</p>
-<pre><code>根据前辈的说法
-    32K数据需要使用滤波函数将音频数据分为高频和低频两个部分进行降噪，降噪后再合并为降噪后数据
-    8K和16K数据，不需要分为高频低频这个步骤，作为低频数据输入，输出也是通过低频数据返回
-</code></pre><ul>
-<li>效果：<ul>
-<li>时域，音量较低的数据基本被抹平，但是不影响波形清晰</li>
-<li>频域，频率峰值明显加强，1500Hz到3500Hz区域，能量普遍下降</li>
-<li>实际听的效果的，降噪后，背景的沙沙声基本没有，但是音量也有所下降，直观感觉上比Speex好一些</li>
-</ul>
-</li>
-</ul>
-<h1 id="根据PCM文件的音量进行阀值限制"><a href="#根据PCM文件的音量进行阀值限制" class="headerlink" title="根据PCM文件的音量进行阀值限制"></a>根据PCM文件的音量进行阀值限制</h1><p>以二进制方式打开，PCM数据其实就是音量数据</p>
-<p>如果把音量小的声音默认为噪声，则可以通过把音量小的数值替换为0，来实现降噪。但是这个方法的缺点也是明显的，会把很多的比较小的细节声音直接去掉了。</p>
-<p><strong>音量计算公式dB = 20×log(data)</strong></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/android录音和播放/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/音频/android录音和播放/" itemprop="url">android录音和播放</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="录音"><a href="#录音" class="headerlink" title="录音"></a>录音</h1><p> 必须在AndroidManifest中设置相应的权限：android:name=”android.permission.RECORD_AUDIO” </p>
-<p> Android提供了两个API用于实现录音功能</p>
-<h2 id="AudioRecord"><a href="#AudioRecord" class="headerlink" title="AudioRecord"></a>AudioRecord</h2><pre><code>主要是实现边录边播（AudioRecord+AudioTrack）以及对音频的实时处理（如会说话的汤姆猫、语音）
-优点：语音的实时处理，可以用代码实现各种音频的封装
-缺点：输出是PCM语音数据，如果保存成音频文件，是不能够被播放器播放的，所以必须先写代码实现数据编码以及压缩
-示例：使用AudioRecord类录音，并实现WAV格式封装。录音20s，输出的音频文件大概为3.5M左右（已写测试代码）
-    主要api：audioRecord.startRecording()，audioRecord.read，audioRecord.stop()，audioRecord.release()
-    开始录制
-    int sampleRateInHz= 44100;  //44.1KHz,普遍使用的频率   
-    int channelConfig = AudioFormat.CHANNEL_IN_STEREO;
-    int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
-     // 获得缓冲区字节大小  
-    int bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
-    int audioSource = MediaRecorder.AudioSource.MIC;
-    // 创建AudioRecord对象  
-    audioRecord = new AudioRecord(audioSource, sampleRateInHz, channelConfig, audioFormat, bufferSizeInBytes);
-    audioRecord.startRecording();
-    // 开启线程将音频流写入文件  
-    new Thread(new AudioRecordThread()).start();  
-
-    class AudioRecordThread implements Runnable {  
-        @Override 
-        public void run() {  
-            writeDateTOFile();//往文件中写入裸数据  
-            copyWaveFile(AudioName, NewAudioName);//给裸数据加上头文件  
-        }  
-    } 
-    private void writeDateTOFile() {  
-        // new一个byte数组用来存一些字节数据，大小为前面获得的缓冲区大小  
-        byte[] audiodata = new byte[bufferSizeInBytes];  
-        FileOutputStream fos = null;  
-        int readsize = 0;  
-        try {  
-            File file = new File(AudioName);  //AudioName为sd卡根目录下test.raw
-            if (file.exists()) {  
-                file.delete();  
-            }  
-            fos = new FileOutputStream(file);// 建立一个可存取字节的文件  
-        } catch (Exception e) {  
-            e.printStackTrace();  
-        }  
-        while (isRecord == true) {  
-            readsize = audioRecord.read(audiodata, 0, bufferSizeInBytes);  
-            if (AudioRecord.ERROR_INVALID_OPERATION != readsize &amp;&amp; fos != null) {  
-                try {  
-                    fos.write(audiodata);  
-                } catch (IOException e) {  
-                    e.printStackTrace();  
-                }  
-            }  
-        }  
-        try {
-            if(fos != null)
-                fos.close();// 关闭写入流  
-        } catch (IOException e) {  
-            e.printStackTrace();  
-        }  
-    } 
-    private void copyWaveFile(String inFilename, String outFilename) {  
-        FileInputStream in = null;  
-        FileOutputStream out = null;  
-        long totalAudioLen = 0;  
-        long totalDataLen = totalAudioLen + 36;  //wave头44字节，36实在不懂
-        long longSampleRate = sampleRateInHz;  //上面的44100
-        int channels = 2;  
-        long byteRate = 16 * sampleRateInHz * channels / 8;  
-        byte[] data = new byte[bufferSizeInBytes];  
-        try {  
-            in = new FileInputStream(inFilename);  
-            out = new FileOutputStream(outFilename);  
-            totalAudioLen = in.getChannel().size();  
-            totalDataLen = totalAudioLen + 36;  
-            WriteWaveFileHeader(out, totalAudioLen, totalDataLen,  
-                    longSampleRate, channels, byteRate);  
-            while (in.read(data) != -1) {  
-                out.write(data);  
-            }  
-            in.close();  
-            out.close();  
-        } catch (FileNotFoundException e) {  
-            e.printStackTrace();  
-        } catch (IOException e) {  
-            e.printStackTrace();  
-        }  
-    }  
-    private void WriteWaveFileHeader(FileOutputStream out, long totalAudioLen,  
-        long totalDataLen, long longSampleRate, int channels, long byteRate)  
-        throws IOException {  
-        byte[] header = new byte[44];  //wave文件头44字节
-        header[0] = &apos;R&apos;; // RIFF/WAVE header  
-        header[1] = &apos;I&apos;;  
-        header[2] = &apos;F&apos;;  
-        header[3] = &apos;F&apos;;  
-        header[4] = (byte) (totalDataLen &amp; 0xff);  
-        header[5] = (byte) ((totalDataLen &gt;&gt; 8) &amp; 0xff);  
-        header[6] = (byte) ((totalDataLen &gt;&gt; 16) &amp; 0xff);  
-        header[7] = (byte) ((totalDataLen &gt;&gt; 24) &amp; 0xff);  
-        header[8] = &apos;W&apos;;  
-        header[9] = &apos;A&apos;;  
-        header[10] = &apos;V&apos;;  
-        header[11] = &apos;E&apos;;  
-        header[12] = &apos;f&apos;; // &apos;fmt &apos; chunk  
-        header[13] = &apos;m&apos;;  
-        header[14] = &apos;t&apos;;  
-        header[15] = &apos; &apos;;  
-        header[16] = 16; // 4 bytes: size of &apos;fmt &apos; chunk  
-        header[17] = 0;  
-        header[18] = 0;  
-        header[19] = 0;  
-        header[20] = 1; // format = 1  
-        header[21] = 0;  
-        header[22] = (byte) channels;  
-        header[23] = 0;  
-        header[24] = (byte) (longSampleRate &amp; 0xff);  
-        header[25] = (byte) ((longSampleRate &gt;&gt; 8) &amp; 0xff);  
-        header[26] = (byte) ((longSampleRate &gt;&gt; 16) &amp; 0xff);  
-        header[27] = (byte) ((longSampleRate &gt;&gt; 24) &amp; 0xff);  
-        header[28] = (byte) (byteRate &amp; 0xff);  
-        header[29] = (byte) ((byteRate &gt;&gt; 8) &amp; 0xff);  
-        header[30] = (byte) ((byteRate &gt;&gt; 16) &amp; 0xff);  
-        header[31] = (byte) ((byteRate &gt;&gt; 24) &amp; 0xff);  
-        header[32] = (byte) (2 * 16 / 8); // block align  
-        header[33] = 0;  
-        header[34] = 16; // bits per sample  
-        header[35] = 0;  
-        header[36] = &apos;d&apos;;  
-        header[37] = &apos;a&apos;;  
-        header[38] = &apos;t&apos;;  
-        header[39] = &apos;a&apos;;  
-        header[40] = (byte) (totalAudioLen &amp; 0xff);  
-        header[41] = (byte) ((totalAudioLen &gt;&gt; 8) &amp; 0xff);  
-        header[42] = (byte) ((totalAudioLen &gt;&gt; 16) &amp; 0xff);  
-        header[43] = (byte) ((totalAudioLen &gt;&gt; 24) &amp; 0xff);  
-        out.write(header, 0, 44);  
-    } 
-    停止录制
-    audioRecord.stop();  
-    audioRecord.release();//释放资源  
-    audioRecord = null;  
-</code></pre><h2 id="MediaRecorder"><a href="#MediaRecorder" class="headerlink" title="MediaRecorder"></a>MediaRecorder</h2><pre><code>已经集成了录音、录像、编码、压缩等，支持少量的录音音频格式，大概有.aac（API = 16以上） .amr .3gp
-优点：大部分已经集成，直接调用相关接口即可，代码量小
-缺点：无法实时处理音频；输出的音频格式不是很多，例如没有输出mp3格式文件
-示例：使用MediaRecorder类录音，输出amr格式文件。录音20s，输出的音频文件大概为33K（已写测试代码）
-    开始录制
-    mRecorder = new MediaRecorder();
-    mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-    mRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);//Android默认就是amr
-    mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-    mRecorder.setOutputFile(outputFilePath);
-    try {
-        mRecorder.prepare();
-    } catch (Exception e) {
-        e.printStackTrace();
-    } 
-    mRecorder.start();
-    停止录制
-    mRecorder.stop();
-    mRecorder.release();
-    mRecorder = null;
-
-    开始播放
-    mPlayer = new MediaPlayer();
-    try {
-        mPlayer.setDataSource(fileName);
-        mPlayer.prepare();
-        mPlayer.start();
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-    停止播放
-    mPlayer.stop();
-    mPlayer.release();
-    mPlayer = null;
-</code></pre><h1 id="播放"><a href="#播放" class="headerlink" title="播放"></a>播放</h1><h2 id="MediaPlayer音频视频播放"><a href="#MediaPlayer音频视频播放" class="headerlink" title="MediaPlayer音频视频播放"></a>MediaPlayer音频视频播放</h2><p>MediaPlayer支持：AAC、AMR、FLAC、MP3、MIDI、OGG、PCM、WAV等格式 </p>
-<p>资源占用量较高、延迟时间较长、不支持多个音频同时播放等</p>
-<h3 id="简单示例"><a href="#简单示例" class="headerlink" title="简单示例"></a>简单示例</h3><pre><code>public void startPlay(String fileName) {
-    mPlayer = new MediaPlayer();
-    try {
-        mPlayer.setDataSource(fileName);
-        mPlayer.prepare();
-        mPlayer.start();
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-}
-
-public void stopPlay() {
-    mPlayer.stop();
-    mPlayer.release();
-    mPlayer = null;
-}
-</code></pre><h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><pre><code>MediaPlayer 的使用介绍（翻译官方文档，详细） http://blog.csdn.net/songshizhuyuan/article/details/32900965
-</code></pre><h4 id="MediaPlayer"><a href="#MediaPlayer" class="headerlink" title="MediaPlayer"></a>MediaPlayer</h4><pre><code>这个类包含用于播放声音和视频的主要API
-</code></pre><p>Raw下的元数据</p>
-<pre><code>//直接创建，不需要设置setDataSource
-mMediaPlayer=MediaPlayer.create(this, R.raw.audio);
-mMediaPlayer.start();
-</code></pre><h4 id="AudioManager"><a href="#AudioManager" class="headerlink" title="AudioManager"></a>AudioManager</h4><pre><code>这个类用于管理音源，并在设备上的音频输出。
-</code></pre><h4 id="处理音频焦点"><a href="#处理音频焦点" class="headerlink" title="处理音频焦点"></a>处理音频焦点</h4><p>音频焦点是合作性。也就是说，应用程序应该尽量配合，以符合音频焦点的指引，但规则不是由系统执行。如果应用程序失去音讯焦点后，大声播放音乐，系统也不会阻止。</p>
-<pre><code>http://blog.csdn.net/dadoneo/article/details/8252933
-</code></pre><p>AudioFocus的申请与释放</p>
-<p>安卓2.2(api8)开始 新增 <code>AudioManager.requestAudioFocus（）</code></p>
-<p>AudioFocus被抢占与重新获得</p>
-<pre><code>http://www.android100.org/html/201510/08/188724.html
-</code></pre><h4 id="外放、听筒、耳机-模式切换"><a href="#外放、听筒、耳机-模式切换" class="headerlink" title="外放、听筒、耳机 模式切换"></a>外放、听筒、耳机 模式切换</h4><pre><code>AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-audioManager.setMicrophoneMute(false);
-audioManager.setSpeakerphoneOn(true);//使用扬声器外放，即使已经插入耳机
-audioManager.setMode(AudioManager.STREAM_MUSIC);
-</code></pre><h2 id="SoundPool"><a href="#SoundPool" class="headerlink" title="SoundPool"></a>SoundPool</h2><p>支持多个音频文件同时播放(组合音频也是有上限的)，延时短，比较适合短促、密集的场景，是游戏开发中音效播放的福音。</p>
-<p><code>SoundPool(int maxStreams, int streamType, int srcQuality)</code></p>
-<p>区分2个概念</p>
-<ol>
-<li>soundID：加载音乐资源时的返回值，int load(String path, int priority),这个int返回值就是soundID </li>
-<li>streamID：播放时返回的值，即play()方法的返回值</li>
-</ol>
-<p>这两个值都很重要，需要缓存下来</p>
-<p>某些采样频率会导致播放错误(不能播放，只能播放部分)</p>
-<h2 id="AsyncPlayer"><a href="#AsyncPlayer" class="headerlink" title="AsyncPlayer"></a>AsyncPlayer</h2><p>AsyncPlayer就是对MediaPlayer的一次简单的封装，对MediaPlaer所有的操作都在新开线程中执行。不影响调用线程任何操作。</p>
-<p>AsyncPlayer只适合简单的异步播放，不能控制进度，只能开始或停止播放。如果再次调用play()方法，AsyncPlayer会停止当前播放，开始新的播放。</p>
-<h2 id="AudioTrack播放音频"><a href="#AudioTrack播放音频" class="headerlink" title="AudioTrack播放音频"></a>AudioTrack播放音频</h2><p>AudioTrack属于更偏底层的音频播放，MediaPlayerService的内部就是使用了AudioTrack。</p>
-<p>AudioTrack用于单个音频播放和管理，相比于MediaPlayer具有：精炼、高效的优点。</p>
-<p>更适合实时产生播放数据的情况，如加密的音频，<br>MediaPlayer是束手无策的，AudioTrack却可以。</p>
-<p>AudioTrack用于播放PCM(PCM无压缩的音频格式)音乐流的回放，<br>如果需要播放其它格式音频，需要响应的解码器，<br>这也是AudioTrack用的比较少的原因，需要自己解码音频。</p>
-<h3 id="AudioTreack的2种播放模式"><a href="#AudioTreack的2种播放模式" class="headerlink" title="AudioTreack的2种播放模式"></a>AudioTreack的2种播放模式</h3><h4 id="静态模式—static"><a href="#静态模式—static" class="headerlink" title="静态模式—static"></a>静态模式—static</h4><p>数据一次性交付给接收方。好处是简单高效，只需要进行一次操作就完成了数据的传递;缺点当然也很明显，对于数据量较大的音频回放，显然它是无法胜任的，因而通常只用于播放铃声、系统提醒等对内存小的操作</p>
-<h4 id="流模式streaming"><a href="#流模式streaming" class="headerlink" title="流模式streaming"></a>流模式streaming</h4><p>流模式和网络上播放视频是类似的，即数据是按照一定规律不断地传递给接收方的。理论上它可用于任何音频播放的场景，不过我们一般在以下情况下采用：</p>
-<ul>
-<li><p>音频文件过大</p>
-</li>
-<li><p>音频属性要求高，比如采样率高、深度大的数据</p>
-</li>
-<li><p>音频数据是实时产生的，这种情况就只能用流模式了</p>
-</li>
-</ul>
-<p>通过write(byte[], int, int), write(short[], int, int)<br>write(float[], int, int, int)等方法推送解码数据到AudioTrack</p>
-<h2 id="Ringtone和RingtoneManager"><a href="#Ringtone和RingtoneManager" class="headerlink" title="Ringtone和RingtoneManager"></a>Ringtone和RingtoneManager</h2><p>Ringtone为铃声、通知和其他类似声音提供快速播放的方法</p>
-<p>RingtoneManager提供系统铃声列表检索方法，Ringtone实例需要从RingtoneManager获取</p>
-<h3 id="RingtoneManager"><a href="#RingtoneManager" class="headerlink" title="RingtoneManager"></a>RingtoneManager</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>. <span class="comment">// 两个构造方法</span></span><br><span class="line">RingtoneManager(Activity activity)</span><br><span class="line">RingtoneManager(Context context)</span><br><span class="line"></span><br><span class="line"><span class="number">2</span>. <span class="comment">// 获取指定声音类型(铃声、通知、闹铃等)的默认声音的Uri</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> Uri <span class="title">getDefaultUri</span><span class="params">(<span class="keyword">int</span> type)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">3. <span class="comment">// 获取系统所有Ringtone的cursor</span></span></span><br><span class="line"><span class="function">Cursor <span class="title">getCursor</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">4. <span class="comment">// 获取cursor指定位置的Ringtone uri</span></span></span><br><span class="line"><span class="function">Uri <span class="title">getRingtoneUri</span><span class="params">(<span class="keyword">int</span> position)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">5. <span class="comment">// 判断指定Uri是否为默认铃声</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isDefault</span><span class="params">(Uri ringtoneUri)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">6. <span class="comment">//获取指定uri的所属类型</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">getDefaultType</span><span class="params">(Uri defaultRingtoneUri)</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">7. <span class="comment">//将指定Uri设置为指定声音类型的默认声音</span></span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">setActualDefaultRingtoneUri</span><span class="params">(Context context, <span class="keyword">int</span> type, Uri ringtoneUri)</span></span></span><br></pre></td></tr></table></figure>
-<h2 id="JetPlayer播放音频"><a href="#JetPlayer播放音频" class="headerlink" title="JetPlayer播放音频"></a>JetPlayer播放音频</h2><p>用于播放 ”.jet”文件</p>
-<p>JET常用于控制游戏的声音特效，采用MIDI（Musical Instrument Digital Interface）格式。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><pre><code>对于延迟度要求不高，并且希望能够更全面的控制音乐的播放，MediaPlayer比较适合
-
-声音短小，延迟度小，并且需要几种声音同时播放的场景，适合使用SoundPool
-
-对于简单的播放，不需要复杂控制的播放，可以给使用AsyncPlayer，所有操作均在子线程不阻塞UI
-
-播放大文件音乐，如WAV无损音频和PCM无压缩音频，可使用更底层的播放方式AudioTrack。它支持流式播放，可以读取(可来自本地和网络)音频流，却播放延迟较小。 
-ps：据我测试AudioTrack直接支持WAV和PCM，其他音频需要解码成PCM格式才能播放。(其他无损格式没有尝试，有兴趣可以使本文提供的例子测试一下)
-
-.jet的音频比较少见(有的游戏中在使用)，可使用专门的播放器JetPlayer播放
-
-对于系统类声音的播放和操作，Ringtone更适合(RingtoneManager)
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/09/03/直播/音频/pcm 转 amr/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/09/03/直播/音频/pcm 转 amr/" itemprop="url">pcm 转 amr</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-09-03T14:52:14+08:00">
-                2019-09-03
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="http://blog.csdn.net/honeybaby201314/article/details/50379040" target="_blank" rel="noopener">pcm 转 amr</a></p>
-<p><a href="https://www.zybuluo.com/DevWiki/note/115307" target="_blank" rel="noopener">Android中Pcm文件转Amr文件</a></p>
-<p>Android系统自带的AmrInputStream类可以转换pcm到amr</p>
-<h1 id="思路一、反射调用"><a href="#思路一、反射调用" class="headerlink" title="思路一、反射调用"></a>思路一、反射调用</h1><ul>
-<li>通过Android系统自带的AmrInputStream类转换，因为它被隐藏了，只有通过反射来操作。</li>
-<li>手动加上 <code>amr文件头</code>，<code>byte[] header = new byte[]{0x23, 0x21, 0x41, 0x4D, 0x52, 0x0A};</code></li>
-</ul>
-<h2 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h2><pre><code> /**
- * 通过反射调用android系统自身AmrInputStream类进行转换
- * @param inPath 源文件
- * @param outPath 目标文件
- */
-public void systemPcm2Amr(String inPath,String outPath){
-    try {
-        FileInputStream fileInputStream = new FileInputStream(inPath);
-        FileOutputStream fileoutputStream = new FileOutputStream(outPath);
-        // 获得Class
-        Class&lt;?&gt; cls = Class.forName(&quot;android.media.AmrInputStream&quot;);
-        // 通过Class获得所对应对象的方法
-        Method[] methods = cls.getMethods();
-        // 输出每个方法名
-        byte[] header = new byte[]{0x23, 0x21, 0x41, 0x4D, 0x52, 0x0A};
-        fileoutputStream.write(header);
-        Constructor&lt;?&gt; con = cls.getConstructor(InputStream.class);
-        Object obj = con.newInstance(fileInputStream);
-        for (Method method : methods) {
-            Class&lt;?&gt;[] parameterTypes = method.getParameterTypes();
-            if (&quot;read&quot;.equals(method.getName())
-                    &amp;&amp; parameterTypes.length == 3) {
-                byte[] buf = new byte[1024];
-                int len = 0;
-                while ((len = (int) method.invoke(obj, buf, 0, 1024)) &gt; 0) {
-                    fileoutputStream.write(buf, 0, len);
-                }
-                break;
-            }
-        }
-        for (Method method : methods) {
-            if (&quot;close&quot;.equals(method.getName())) {
-                method.invoke(obj);
-                break;
-            }
-        }
-        fileoutputStream.close();
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-</code></pre><h2 id="注意"><a href="#注意" class="headerlink" title="注意"></a>注意</h2><p>查看源码可知，AmrInputStream 转码默认 PCM 的采样率是 8000 Hz，所以要<strong>保证录制时采样率是8000Hz</strong>，否则amr音频会有快放和慢放的效果</p>
-<pre><code>public class AmrInputStream extends InputStream {      
-    ... 
-    // frame is 20 msec at 8.000 khz  
-    private final static int SAMPLES_PER_FRAME = 8000 * 20 / 1000;  
-</code></pre><p>在华为机型上，反射调用特别的慢，容易AR</p>
-<h1 id="思路二、复制类文件到工程"><a href="#思路二、复制类文件到工程" class="headerlink" title="思路二、复制类文件到工程"></a>思路二、复制类文件到工程</h1><p>不用反射，更加高效</p>
-<p>工程下新建包 <code>android.media</code>。因为调用Android自带的Pcm转amr的库:media_jni.so需要这个包名</p>
-<p>复制AmrInputStream类到该包下</p>
-<pre><code>public final class AmrInputStream extends InputStream {
-    static {
-        System.loadLibrary(&quot;media_jni&quot;);
-    }
-    private final static String TAG = &quot;AmrInputStream&quot;;
-    // frame is 20 msec at 8.000 khz
-    private final static int SAMPLES_PER_FRAME = 8000 * 20 / 1000;
-    // pcm input stream
-    private InputStream mInputStream;
-    // native handle
-    private int mGae;
-    // result amr stream
-    private byte[] mBuf = new byte[SAMPLES_PER_FRAME * 2];
-    private int mBufIn = 0;
-    private int mBufOut = 0;
-    // helper for bytewise read()
-    private byte[] mOneByte = new byte[1];
-    /**
-     * Create a new AmrInputStream, which converts 16 bit PCM to AMR
-     * @param inputStream InputStream containing 16 bit PCM.
-     */
-    public AmrInputStream(InputStream inputStream) {
-        mInputStream = inputStream;
-        mGae = GsmAmrEncoderNew();
-        GsmAmrEncoderInitialize(mGae);
-    }
-    @Override
-    public int read() throws IOException {
-        int rtn = read(mOneByte, 0, 1);
-        return rtn == 1 ? (0xff &amp; mOneByte[0]) : -1;
-    }
-    @Override
-    public int read(byte[] b) throws IOException {
-        return read(b, 0, b.length);
-    }
-    @Override
-    public int read(byte[] b, int offset, int length) throws IOException {
-        if (mGae == 0) throw new IllegalStateException(&quot;not open&quot;);
-        // local buffer of amr encoded audio empty
-        if (mBufOut &gt;= mBufIn) {
-            // reset the buffer
-            mBufOut = 0;
-            mBufIn = 0;
-            // fetch a 20 msec frame of pcm
-            for (int i = 0; i &lt; SAMPLES_PER_FRAME * 2; ) {
-                int n = mInputStream.read(mBuf, i, SAMPLES_PER_FRAME * 2 - i);
-                if (n == -1) return -1;
-                i += n;
-            }
-            // encode it
-            mBufIn = GsmAmrEncoderEncode(mGae, mBuf, 0, mBuf, 0);
-        }
-        // return encoded audio to user
-        if (length &gt; mBufIn - mBufOut) length = mBufIn - mBufOut;
-        System.arraycopy(mBuf, mBufOut, b, offset, length);
-        mBufOut += length;
-        return length;
-    }
-    @Override
-    public void close() throws IOException {
-        try {
-            if (mInputStream != null) mInputStream.close();
-        } finally {
-            mInputStream = null;
-            try {
-                if (mGae != 0) GsmAmrEncoderCleanup(mGae);
-            } finally {
-                try {
-                    if (mGae != 0) GsmAmrEncoderDelete(mGae);
-                } finally {
-                    mGae = 0;
-                }
-            }
-        }
-   }
-    @Override
-    protected void finalize() throws Throwable {
-        if (mGae != 0) {
-            close();
-            throw new IllegalStateException(&quot;someone forgot to close AmrInputStream&quot;);
-        }
-    }
-    //
-    // AudioRecord JNI interface
-    //
-    private static native int GsmAmrEncoderNew();
-    private static native void GsmAmrEncoderInitialize(int gae);
-    private static native int GsmAmrEncoderEncode(int gae,
-           byte[] pcm, int pcmOffset, byte[] amr, int amrOffset) throws IOException;
-    private static native void GsmAmrEncoderCleanup(int gae);
-    private static native void GsmAmrEncoderDelete(int gae);
-}
-</code></pre><p>复制AmrEncoder类</p>
-<pre><code>public class AmrEncoder {
-    public static void pcm2Amr(String pcmPath , String amrPath) {
-        FileInputStream fis;
-        try {
-            fis = new FileInputStream(pcmPath);
-            pcm2Amr(fis, amrPath);
-            fis.close();
-        } catch (FileNotFoundException e1) {
-            e1.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    public static void pcm2Amr(InputStream pcmStream, String amrPath) {
-        try {
-            AmrInputStream ais = new AmrInputStream(pcmStream);
-            OutputStream out = new FileOutputStream(amrPath);
-            byte[] buf = new byte[4096];
-            int len = -1;
-            /*
-             * 下面的AMR的文件头,缺少这几个字节是不行的
-             */
-            out.write(0x23);
-            out.write(0x21);
-            out.write(0x41);
-            out.write(0x4D);
-            out.write(0x52);
-            out.write(0x0A);   
-            while((len = ais.read(buf)) &gt;0){
-                out.write(buf,0,len);
-            }
-            out.close();
-            ais.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }       
-    }
-}
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2508,7 +2132,7 @@ public void systemPcm2Amr(String inPath,String outPath){
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">315</span>
+                  <span class="site-state-item-count">318</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2519,7 +2143,7 @@ public void systemPcm2Amr(String inPath,String outPath){
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2530,7 +2154,7 @@ public void systemPcm2Amr(String inPath,String outPath){
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-count">73</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2630,9 +2254,6 @@ public void systemPcm2Amr(String inPath,String outPath){
 
 
 
-  
-  
-
 
 
 
@@ -2667,16 +2288,6 @@ public void systemPcm2Amr(String inPath,String outPath){
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/three.min.js"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
   
 
 

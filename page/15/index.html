@@ -262,6 +262,674 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/ThreadLocal/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/ThreadLocal/" itemprop="url">ThreadLocal</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:49:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>ThreadLocal，线程本地变量，也叫做线程本地存储</p>
+<p>ThreadLocal为变量在每个线程中创建一个副本，每个线程可以访问自己内部的副本变量。</p>
+<p>ThreadLocal类提供的几个方法：</p>
+<pre><code>public T get() { } //获取ThreadLocal在当前线程中保存的变量副本
+public void set(T value) { } //设置当前线程中变量的副本
+public void remove() { } //移除当前线程中变量的副本
+protected T initialValue() { } //一个延迟加载方法
+</code></pre><h1 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h1><pre><code>ThreadLocal&lt;Object&gt; threadLocal = new ThreadLocal&lt;Object&gt;();
+threadLocal.set(&quot;123&quot;);
+threadLocal.get();
+</code></pre><h1 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h1><pre><code>public T get() {
+    Thread t = Thread.currentThread();
+    ThreadLocalMap map = getMap(t);
+    if (map != null) {
+        ThreadLocalMap.Entry e = map.getEntry(this);
+        if (e != null)
+            return (T)e.value;
+    }
+    return setInitialValue();
+}
+ThreadLocalMap getMap(Thread t) {
+    return t.threadLocals;
+}
+public class Thread implements Runnable {
+    ThreadLocal.ThreadLocalMap threadLocals = null;//存储线程变量副本
+}
+static class ThreadLocalMap {
+    static class Entry extends WeakReference&lt;ThreadLocal&gt; {
+        Object value; //The value associated with this ThreadLocal.
+        Entry(ThreadLocal k, Object v) {//使用ThreadLocal作为键值
+            super(k);
+            value = v;
+        }
+    }
+}
+每个线程Thread内部有一个ThreadLocal.ThreadLocalMap类型的成员变量threadLocals，用来存储变量副本的，键值为当前ThreadLocal变量，value为变量副本（即T类型的变量）。
+</code></pre><p><strong>线程本地变量存储：</strong></p>
+<p><code>Thread.ThreadLocalMap&lt;ThreadLocal, Object&gt;;</code></p>
+<pre><code>1、Thread: 当前线程，可以通过Thread.currentThread()获取。
+
+2、ThreadLocal：我们的static ThreadLocal变量。
+
+3、Object: 当前线程共享变量。
+</code></pre><p>调用ThreadLocal.get()，实际上是从当前线程中获取ThreadLocalMap&lt;ThreadLocal, Object&gt;，然后根据当前ThreadLocal获取当前线程本地变量Object。ThreadLocal.set，ThreadLocal.remove实际上是同样的道理。</p>
+<p><strong>这种存储结构的好处：</strong></p>
+<p>1、线程死去的时候，线程共享变量ThreadLocalMap则销毁。</p>
+<p>2、ThreadLocalMap&lt;ThreadLocal,Object&gt;键值对数量为ThreadLocal的数量，一般来说ThreadLocal数量很少，相比在ThreadLocal中用Map&lt;Thread, Object&gt;键值对存储线程共享变量（Thread数量一般来说比ThreadLocal数量多），性能提高很多。</p>
+<p><strong>关于ThreadLocalMap&lt;ThreadLocal, Object&gt;弱引用问题：</strong></p>
+<p>当线程没有结束，但是ThreadLocal已经被回收，则可能导致线程中存在ThreadLocalMap&lt;null, Object&gt;的键值对，造成内存泄露。（ThreadLocal被回收，ThreadLocal关联的线程共享变量还存在）。</p>
+<p>虽然ThreadLocal的get，set方法可以清除ThreadLocalMap中key为null的value，但是get，set方法在内存泄露后并不会必然调用，所以为了防止此类情况的出现，我们有两种手段。</p>
+<p>1、使用完线程共享变量后，显式调用ThreadLocalMap.remove方法清除线程共享变量；</p>
+<p>2、JDK建议ThreadLocal定义为private static，这样ThreadLocal的弱引用问题则不存在了。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/trycatch/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/trycatch/" itemprop="url">trycatch</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:49:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>public static void main(String[] args) {
+    try {
+        System.out.println(&quot;before try  catch exception&quot;);
+        int a = 0 / 0;
+        System.out.println(&quot;after tyr catch exception&quot;);//无法执行到
+    } catch (Exception e) {
+        System.out.println(e.getMessage());
+        System.out.println(&quot;catch&quot;);
+    } finally {
+        System.out.println(&quot;finally&quot;);
+    }
+    System.out.println(&quot;before un try catch exception&quot;);
+    int a = 0 / 0;
+    System.out.println(&quot;after un try catch exception&quot;);//无法执行到
+}
+</code></pre><p>结果</p>
+<pre><code>before try  catch exception
+/ by zero
+catch
+finally
+before un try catch exception
+Exception in thread &quot;main&quot; java.lang.ArithmeticException: / by zero
+    at MainTest.main(MainTest.java:20)
+</code></pre><p>结论</p>
+<pre><code>1. try语句块中，异常后面的代码无法执行
+2. try catch语句块外的代码，正常执行。try catch最大意义所在（最常用场景）--保证try catch语句块后面的代码正常执行
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/字符串/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/字符串/" itemprop="url">字符串</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:49:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="String"><a href="#String" class="headerlink" title="String"></a>String</h1><p><strong>String不变性</strong></p>
+<ul>
+<li>String是final类，不能被继承。</li>
+<li>其实是通过char数组来保存字符串的</li>
+<li><p>所有操作都不是在原有的字符串上进行的，而是重新生成了一个新的字符串对象。也就是说进行这些操作后，最原始的字符串并没有被改变。</p>
+<pre><code>public final class String implements java.io.Serializable, Comparable&lt;String&gt;, CharSequence {}
+</code></pre></li>
+</ul>
+<h2 id="String对象绑定引用"><a href="#String对象绑定引用" class="headerlink" title="String对象绑定引用"></a>String对象绑定引用</h2><p><strong>String str=”hello world”</strong></p>
+<ul>
+<li>将String对象跟引用绑定</li>
+<li>JVM执行引擎先在运行时常量池查找是否存在相同的字面常量<ul>
+<li>如果存在，则直接将引用指向已经存在的字面常量；</li>
+<li>否则在运行时常量池开辟一个空间来存储该字面常量，并将引用指向该字面常量。</li>
+</ul>
+</li>
+</ul>
+<p><strong>String str=new String(“hello world”)</strong></p>
+<ul>
+<li>new关键字生成对象是在堆区进行的,创建出的一定是不同的对象</li>
+</ul>
+<p>1</p>
+<pre><code>public class Main {
+    public static void main(String[] args) {
+        String str1 = &quot;hello world&quot;;
+        String str2 = new String(&quot;hello world&quot;);
+        String str3 = &quot;hello world&quot;;
+        String str4 = new String(&quot;hello world&quot;);
+
+        System.out.println(str1==str2);//false
+        System.out.println(str1==str3);//true
+        System.out.println(str2==str4);//false
+    }
+}
+</code></pre><p>2 String str = new String(“abc”)创建了多少个对象？</p>
+<p>很显然，new只调用了一次，也就是说只创建了一个对象。</p>
+<p>在运行期间确实只在堆上创建了一个对象。</p>
+<p>为什么大家都在说是2个对象呢？在类加载的过程中，确实在运行时常量池中创建了一个”abc”对象。</p>
+<p>因此，这个问题如果换成 String str = new String(“abc”)涉及到几个String对象？合理的解释是2个。</p>
+<h2 id="常量池、编译期常量优化"><a href="#常量池、编译期常量优化" class="headerlink" title="常量池、编译期常量优化"></a>常量池、编译期常量优化</h2><p><strong>class文件常量池</strong> </p>
+<ul>
+<li>存储编译期间生成的 字面常量以及符号引用，在运行期间对应着方法区的运行时常量池。</li>
+<li>编译期间常量优化。<ul>
+<li>字符串直接相加，优化。<ul>
+<li>把相加结果为一个常量字符串存入class文件常量池</li>
+</ul>
+</li>
+<li>字符串间接相加(即包含字符串引用)<ul>
+<li>引用非final，不优化。 <ul>
+<li>因为b+2这种方式生成的对象事实上是保存在堆上的</li>
+</ul>
+</li>
+<li>引用final<ul>
+<li>引用值是字面常量值，优化。 <ul>
+<li>因为final变量编译期间都会直接被替代为真实的字面常量值，并将该字面常量值存入class文件常量池</li>
+</ul>
+</li>
+<li>引用值非字面常量值(如方法返回值)，不优化。 <ul>
+<li>因为值只能在运行期间确定</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>1</p>
+<pre><code>String a = &quot;hello2&quot;;
+String b = &quot;hello&quot; + 2;//直接相加，优化
+System.out.println((a == b));//true
+</code></pre><p>2</p>
+<pre><code>String a = &quot;hello2&quot;;
+String b = &quot;hello&quot;;
+String c = b + 2;//间接相加,引用非final，不优化
+System.out.println((a == c));//false
+</code></pre><p>3</p>
+<pre><code>String a = &quot;hello2&quot;;   　 
+final String b = &quot;hello&quot;;       
+String c = b + 2;    //间接相加,引用final且引用值是常量值，优化   
+System.out.println((a == c));//true
+</code></pre><p>4</p>
+<pre><code>public class Main {
+    public static void main(String[] args) {
+        String a = &quot;hello2&quot;;
+        final String b = getHello();
+        String c = b + 2;//间接相加,引用final且引用值非常量值，不优化   
+        System.out.println((a == c));//false
+    }
+
+    public static String getHello() {
+        return &quot;hello&quot;;
+    }
+}
+</code></pre><h2 id="intern-方法"><a href="#intern-方法" class="headerlink" title="intern()方法"></a>intern()方法</h2><p>String类的intern方法是一个<strong>本地方法</strong>。<strong>只会直接访问运行时常量池</strong></p>
+<p>JDK1.6，intern方法会在运行时常量池中查找是否存在内容相同的字符串，如果存在则返回指向该字符串的引用，如果不存在，则会将该字符串入池，并返回一个指向该字符串的引用。</p>
+<pre><code>public class Main {
+    public static void main(String[] args) {
+        String a = &quot;hello&quot;;
+        String b =  new String(&quot;hello&quot;);
+        String c =  new String(&quot;hello&quot;);
+        String d = b.intern();
+
+        System.out.println(a==b);//false
+        System.out.println(b==c);//false
+        System.out.println(b==d);//false
+        System.out.println(a==d);//true
+    }
+}
+</code></pre><h1 id="StringBuilder"><a href="#StringBuilder" class="headerlink" title="StringBuilder"></a>StringBuilder</h1><pre><code>public class Main {
+    public static void main(String[] args) {
+        String string = &quot;&quot;;
+        for(int i=0;i&lt;10000;i++){
+            string += &quot;hello&quot;;
+        }
+    }
+}
+</code></pre><p>反编译字节码：</p>
+<pre><code>  public static void main(java.lang.String[]);
+    Code:
+       0: ldc           #2                  // String
+       2: astore_1
+       3: iconst_0
+       4: istore_2
+       5: iload_2
+       6: sipush        10000
+       9: if_icmpge     38
+      12: new           #3                  // class java/lang/StringBuilder
+      15: dup
+      16: invokespecial #4                  // Method java/lang/StringBuilder.&quot;&lt;init&gt;&quot;:()V
+      19: aload_1
+      20: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/Stri
+ngBuilder;
+      23: ldc           #6                  // String hello
+      25: invokevirtual #5                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/Stri
+ngBuilder;
+      28: invokevirtual #7                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+      31: astore_1
+      32: iinc          2, 1
+      35: goto          5
+      38: return
+</code></pre><p>string += “hello”;的过程相当于将原有的string变量指向的对象内容取出与”hello”作字符串相加操作再存进另一个新的String对象当中，再让string变量指向新生成的对象</p>
+<p>从第5行到第35行是整个循环的执行过程，每次循环会new出一个StringBuilder对象，然后进行append操作，最后通过toString方法返回String对象。循环new出了10000个对象。从上面还可以看出：string+=”hello”的操作事实上会自动被JVM优化成：</p>
+<pre><code>StringBuilder str = new StringBuilder(string);
+str.append(&quot;hello&quot;);
+str.toString();
+</code></pre><h1 id="StringBuffer"><a href="#StringBuffer" class="headerlink" title="StringBuffer"></a>StringBuffer</h1><p><strong>线程安全</strong></p>
+<p>StringBuffer类的成员方法前面多了一个关键字：synchronized</p>
+<h1 id="效率"><a href="#效率" class="headerlink" title="效率"></a>效率</h1><p>从高到低，依次为：</p>
+<p><strong>直接相加</strong></p>
+<ul>
+<li><p>效率最高，因为在编译期间优化了，便确定了它的值</p>
+<pre><code>String s = &quot;I&quot;+&quot;love&quot;+&quot;java&quot;;//在编译期间便被优化成了&quot;Ilovejava&quot;
+</code></pre></li>
+</ul>
+<p><strong>StringBuilder</strong></p>
+<p><strong>StringBuffer</strong></p>
+<p><strong>间接相加(即包含字符串引用)</strong></p>
+<ul>
+<li><p>效率特别低，因为在编译器不会对引用变量进行优化。形如s1+s2+s3; </p>
+<pre><code>String s1 =&quot;I&quot;;
+String s2 = &quot;love&quot;;
+String s3 = &quot;java&quot;;
+String s = s1+s2+s3;
+</code></pre></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/内存模型JMM和volatile/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1601,533 +2269,6 @@ z 时区
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/匿名内部类只能访问final修饰的外部变量/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/匿名内部类只能访问final修饰的外部变量/" itemprop="url">匿名内部类只能访问final修饰的外部变量</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>匿名内部类用法</p>
-<pre><code>public class TryUsingAnonymousClass {
-    public void useMyInterface() {
-        final Integer number = 123;
-        System.out.println(number);
-
-        MyInterface myInterface = new MyInterface() {
-            @Override
-            public void doSomething() {
-                System.out.println(number);
-            }
-        };
-        myInterface.doSomething();
-
-        System.out.println(number);
-    }
-}
-</code></pre><p>编译后的结果</p>
-<pre><code>class TryUsingAnonymousClass$1
-        implements MyInterface {
-    private final TryUsingAnonymousClass this$0;
-    private final Integer paramInteger;
-
-    TryUsingAnonymousClass$1(TryUsingAnonymousClass this$0, Integer paramInteger) {
-        this.this$0 = this$0;
-        this.paramInteger = paramInteger;
-    }
-
-    public void doSomething() {
-        System.out.println(this.paramInteger);
-    }
-}
-</code></pre><ul>
-<li>匿名内部类最终用会编译成一个单独的类</li>
-<li>被该类使用的变量会以构造函数参数的形式传递给该类</li>
-<li>如果变量 不定义成final的，在匿名内部类被可以被修改，进而造成和外部的不一致的问题，为了避免这种不一致的情况，Java 规定匿名内部类只能访问final修饰的外部变量。</li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/反射final成员变量/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/反射final成员变量/" itemprop="url">反射final成员变量</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>利用反射对修饰符为final的成员变量进行修改 http://my.oschina.net/dxqr/blog/215504
-</code></pre><h2 id="非final成员变量"><a href="#非final成员变量" class="headerlink" title="非final成员变量"></a>非final成员变量</h2><pre><code>class Entity {
-    public int i = 1;
-}    
-
-try {
-    Entity e = new Entity();
-    System.out.println(&quot;before: &quot; + e.i);
-
-    Field f = Entity.class.getDeclaredField(&quot;i&quot;);
-    f.setInt(e, 2);
-    // 或者 f.set(e, 2);// java会自动装箱拆箱
-    System.out.println(&quot;after: &quot; + e.i);
-} catch (Exception e) {
-    e.printStackTrace();
-}
-</code></pre><h2 id="final成员变量"><a href="#final成员变量" class="headerlink" title="final成员变量"></a>final成员变量</h2><pre><code>class Entity {
-    public final int i = 1;
-}
-</code></pre><p>反射会报异常:</p>
-<pre><code>java.lang.IllegalAccessException: Can not set final int field com.test.Entity.i to (int)2
-</code></pre><p>修改成员变量的final修饰符,使其变为public int i = 1;具体方法如下:</p>
-<pre><code>try {
-    Entity e = new Entity();
-    System.out.println(&quot;before: &quot; + e.i);
-
-    Field f = Entity.class.getDeclaredField(&quot;i&quot;);
-
-    Field modifiersField = Field.class.getDeclaredField(&quot;modifiers&quot;);
-    modifiersField.setAccessible(true);
-    System.out.println(f.getModifiers()); // 输出17:表示修饰符为:public final
-    modifiersField.setInt(f, f.getModifiers() &amp; ~Modifier.FINAL);
-    System.out.println(f.getModifiers());// 输出1:表示修饰符已经被修改为:public
-
-    f.setAccessible(true);
-    f.setInt(e, 2);
-    System.out.println(&quot;after: &quot; + e.i);//输出还是1.没修过成功
-} catch (Exception e) {
-    e.printStackTrace();
-}
-</code></pre><p>发现还是没有修改成功。会不会跟是基本数据类型有关？修改成员变量的数据类型为 Integer</p>
-<pre><code>class Entity {
-    public final Integer i = 1;
-}
-</code></pre><p>然后再执行,发现结果已经被修改了</p>
-<p><strong>final成员变量，对象数据类型可以修改,基本数据类型不能修改</strong></p>
-<p><strong>final成员变量，final String s = new String(“a”); 可以修改,final String s = “a” 不能修改</strong></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/数组转list陷阱/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/27/java基础/数组转list陷阱/" itemprop="url">数组list陷阱</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
-                2019-03-27
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <pre><code>String[] artistTypes = getResources().getStringArray(R.array.artist_type);
-List&lt;String&gt; list = Arrays.asList(artistTypes); 
-</code></pre><p>上面代码是毫无问题的。</p>
-<pre><code>String[] artistTypes = getResources().getStringArray(R.array.artist_type);
-ArrayList&lt;String&gt; list = (ArrayList&lt;String&gt;) Arrays.asList(artistTypes); 
-</code></pre><p>运行报错。java.util.Arrays$ArrayList cannot be cast to java.util.ArrayList</p>
-<p>这就说明，Arrays.asList转出来的是Arrays$ArrayList（内部类），只是和java.util.ArrayList名字相同。</p>
-<p>为什么转为List不报错呢？因为Arrays$ArrayList实现了List接口</p>
-<pre><code>public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements Cloneable, Serializable, RandomAccess {
-
-public class Arrays {
-    private static class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements
-            List&lt;E&gt;, Serializable, RandomAccess {
-</code></pre><p>研究过程发现</p>
-<pre><code>Arrays.asList转出来的是Arrays$ArrayList继承AbstractList。remove，add等method在AbstractList中是默认throw UnsupportedOperationException而且不作任何操作。
-java.util.Arrays$ArrayList继承了静态数组 大小 固定不变的特性。
-</code></pre><p>找了很久，找到下面的解决方法</p>
-<pre><code>List myList = new ArrayList(); 
-String[] myStringArray = new String[] {&quot;Java&quot;, &quot;is&quot;, &quot;Cool&quot;};
-Collections.addAll(myList, myStringArray);
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2182,7 +2323,7 @@ Collections.addAll(myList, myStringArray);
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">315</span>
+                  <span class="site-state-item-count">318</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2193,7 +2334,7 @@ Collections.addAll(myList, myStringArray);
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2204,7 +2345,7 @@ Collections.addAll(myList, myStringArray);
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-count">73</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2304,9 +2445,6 @@ Collections.addAll(myList, myStringArray);
 
 
 
-  
-  
-
 
 
 
@@ -2341,16 +2479,6 @@ Collections.addAll(myList, myStringArray);
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/three.min.js"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
   
 
 

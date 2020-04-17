@@ -262,6 +262,874 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/03/Android/gradle/gradle导入依赖/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/02/03/Android/gradle/gradle导入依赖/" itemprop="url">gradle导入依赖</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-02-03T14:13:53+08:00">
+                2020-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p><a href="https://segmentfault.com/a/1190000004237922" target="_blank" rel="noopener">Gradle for Android-第三篇、依赖管理</a></p>
+<p><a href="http://www.androidchina.net/2467.html" target="_blank" rel="noopener">Android Studio 打包及引用 aar</a> </p>
+<h1 id="依赖配置API"><a href="#依赖配置API" class="headerlink" title="依赖配置API"></a>依赖配置API</h1><h2 id="compile-–-api-implementation"><a href="#compile-–-api-implementation" class="headerlink" title="compile – api/implementation"></a>compile – api/implementation</h2><p>(Gradle plugin 3.0.0)</p>
+<pre><code>依赖参与编译并且打包到最终的apk文件中。
+    api
+        外部依赖，等同于compile
+    implementation
+        内部依赖：编译期依赖隔离。将该依赖隐藏在内部，而不对外部公开(外部无法访问)
+        提高编译速度：不会编译内部依赖
+</code></pre><p>实例：A依赖B，B依赖C</p>
+<p>依赖路径：</p>
+<ul>
+<li>compile/api：无法直观知道A所有的依赖，也无法直观知道传递依赖的具体版本</li>
+<li>implementation：规范直观。虽然需要多写依赖</li>
+</ul>
+<p>编译期：C修改重新编译</p>
+<ul>
+<li>compile/api：AB都需要重新编译(即使A没有用到C的接口)</li>
+<li>implementation：编译期隔离，只重新编译B</li>
+</ul>
+<p>打包运行：</p>
+<ul>
+<li>都会打包进apk。如果某依赖有多个版本，打包最高版本</li>
+</ul>
+<h3 id="编译期和运行期版本冲突"><a href="#编译期和运行期版本冲突" class="headerlink" title="编译期和运行期版本冲突"></a>编译期和运行期版本冲突</h3><pre><code>&apos;com.facebook.fresco:fresco&apos; has different version for the compile (1.3.0) and runtime (1.11.0) classpath. You should manually set the same version via DependencyResolution
+</code></pre><p>统一版本即可</p>
+<pre><code>configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details -&gt;
+        def requested = details.requested
+        if (requested.group == &apos;com.facebook.fresco&apos;){
+            details.useVersion &apos;1.3.0&apos;
+        }
+    }
+}
+</code></pre><h2 id="Provided-–-compileOnly"><a href="#Provided-–-compileOnly" class="headerlink" title="Provided – compileOnly"></a>Provided – compileOnly</h2><pre><code>依赖只在编译时使用，只参与编译，不打包到最终apk。类似eclipse中的external-libs,
+
+注：使用Provided必须删除compile fileTree(include: [&apos;*.jar&apos;], dir: &apos;libs&apos;) 
+不然lib下的jar均按照compile方式引入到Module
+</code></pre><h2 id="apk-–-runtimeOnly"><a href="#apk-–-runtimeOnly" class="headerlink" title="apk – runtimeOnly"></a>apk – runtimeOnly</h2><pre><code>依赖只会打包到apk文件中，而不参与编译，所以不能在代码中直接调用jar中的类或方法，否则在编译时会报错
+</code></pre><p>以上三个 对所有的build type以及favlors 有效</p>
+<h2 id="testCompile"><a href="#testCompile" class="headerlink" title="testCompile"></a>testCompile</h2><pre><code>仅单元测试apk时有效，而对正常的debug或者release apk包不起作用。
+</code></pre><h2 id="debug-compile"><a href="#debug-compile" class="headerlink" title="debug compile"></a>debug compile</h2><pre><code>仅debug模式的编译和最终的debug apk打包
+</code></pre><h2 id="release-compile"><a href="#release-compile" class="headerlink" title="release compile"></a>release compile</h2><pre><code>仅Release 模式的编译和最终的Release apk打包。
+</code></pre><h2 id="Gradle-plugin-3-0-0依赖使用api和implementation，废弃compile"><a href="#Gradle-plugin-3-0-0依赖使用api和implementation，废弃compile" class="headerlink" title="Gradle plugin 3.0.0依赖使用api和implementation，废弃compile"></a>Gradle plugin 3.0.0依赖使用api和implementation，废弃compile</h2><p>compile 兼容支持一段时间。即已废弃，还会保留一段时间，直到下个比较大的gradle tools版本发布</p>
+<pre><code>compile fileTree(dir: &apos;xxx&apos;, include: [&apos;*.jar&apos;, &quot;*.xxx&quot;])：将某个目录下所有符合扩展名的文件作为依赖；
+compile &apos;com.xx.xx:ProjectName:Version&apos;：配置Maven 库作为依赖；在 Maven 库中心 可以搜索自己想用的库进行依赖；
+compile project(&apos;:AnotherModule&apos;)：配置另一个 Module 作为本 Module 的依赖，被依赖的 Module 必须被导入到当前工程中；
+compile files(&apos;xxx.jar&apos;)：配置某个 jar 包作为依赖。
+compile(name: &apos;xxx&apos;, ext: &apos;aar&apos;) //配置某个 aar 包作为依赖。xxx.aar是文件名
+
+compile fileTree(include: [&apos;*.jar&apos;], dir: &apos;libs&apos;)
+testCompile &apos;junit:junit:4.12&apos;
+apt &apos;com.jakewharton:butterknife-compiler:8.0.1&apos;
+compile &apos;com.android.support:appcompat-v7:23.3.0&apos;
+compile &apos;com.squareup.retrofit2:retrofit:2.0.2&apos;
+compile(name: &apos;Yrecycleview&apos;, ext: &apos;aar&apos;)
+compile project(path: &apos;:easeui&apos;)
+compile files(&apos;libs/hyphenatechat_3.1.3.jar&apos;)
+</code></pre><h1 id="library-module"><a href="#library-module" class="headerlink" title="library module"></a>library module</h1><p>直接引入lib工程</p>
+<pre><code>dependencies {
+    compile project(&apos;:library名字&apos;)
+    compile project(&apos;:libraries:library名字&apos;)//多个library，libraries是文件夹名字
+}
+</code></pre><h1 id="jar包依赖"><a href="#jar包依赖" class="headerlink" title="jar包依赖"></a>jar包依赖</h1><p>module目录下新建libs文件夹，放置jar</p>
+<p>右键 Add As Library，选择相应module即可。</p>
+<p>上面第二部的操作其实是配置了相应module的 <code>build.gradle</code></p>
+<pre><code>dependencies {
+       compile fileTree(dir: &apos;libs&apos;, include: [&apos;*.jar&apos;])//即添加所有在libs文件夹中的jar
+       compile fileTree(&apos;libs/WuXiaolong.jar&apos;)
+}
+</code></pre><h2 id="添加jar包-Choose-the-appropriate-categories-from-the-list-错误"><a href="#添加jar包-Choose-the-appropriate-categories-from-the-list-错误" class="headerlink" title="添加jar包 Choose the appropriate categories from the list.错误"></a>添加jar包 Choose the appropriate categories from the list.错误</h2><pre><code>Android Studio cannot determine what kind of files the chosen items contain.
+Choose the appropriate categories from the list.
+- classes
+- external annotations
+- jar directory
+- JavaDocs
+- source archive directory
+- sources
+</code></pre><p>不用考虑，jar出错了！！！</p>
+<pre><code>http://ask.android-studio.org/?/question/188
+</code></pre><h1 id="so库依赖"><a href="#so库依赖" class="headerlink" title="so库依赖"></a>so库依赖</h1><p>app/src/main/目录下新建jniLibs目录，so库需要放入对应的cpu下（如armeabi）</p>
+<pre><code>sourceSets{
+    main.jniLibs.srcDir &apos;src/main/libs&apos; //默认so库目录
+}
+</code></pre><p>.so文件放在对应的文件夹中</p>
+<pre><code>app
+   ├── AndroidManifest.xml
+   └── jniLibs
+       ├── armeabi
+       │   └── libiconv.so
+       ├── armeabi-v7a
+       │   └── libiconv.so
+       ├── mips
+       │   └── libiconv.so
+       └── x86
+           └── libiconv.so    
+</code></pre><h2 id="暂时不提供64位的so文件"><a href="#暂时不提供64位的so文件" class="headerlink" title="暂时不提供64位的so文件"></a>暂时不提供64位的so文件</h2><p>解决方案：强制APP使用32位so</p>
+<ul>
+<li><p>指定只保留32位so库</p>
+<pre><code>android{
+    defaultConfig{
+        ndk{abiFilters &quot;armeabi&quot;}
+    }
+}
+
+如果配置后编译报错，在gradle.properties文件中加上 Android.useDeprecatedNdk=true； 
+</code></pre></li>
+<li><p>指定目录下必须有so文件(否则打包无该目录)</p>
+<pre><code>build.gradle中配置的so加载目录:jniLibs.srcDir:customerDir
+
+如果没有该项配置则so加载目录默认为：src/main/jniLibs
+
+将.so文件放置该目录的armeabi文件夹下
+    没有该目录则新建一个
+    APP中没有使用到.so文件则需要拷贝任意一个32位的so文件到该目录下
+        如果没有合适的so可以到官网http://x5.tencent.com/tbs/sdk.html下载官网“SDK接入示例“,拷贝对应目录下的liblbs.so文件
+</code></pre></li>
+</ul>
+<p><a href="https://zhuanlan.zhihu.com/p/21359984" target="_blank" rel="noopener">与 so 有关的一个长年大坑</a><br><a href="https://developer.android.com/ndk/guides/abis.html?hl=is#sa" target="_blank" rel="noopener">ABI 管理</a> </p>
+<h3 id="ABI"><a href="#ABI" class="headerlink" title="ABI"></a>ABI</h3><pre><code>mips / mips64: 极少用于手机可以忽略
+x86 / x86_64: x86 架构的手机都会包含由 Intel 提供的称为 Houdini 的指令集动态转码工具，实现 对 arm .so 的兼容，再考虑 x86 1% 以下的市场占有率，x86 相关的两个 .so 也是可以忽略的
+armeabi: 支持ARMV5TE和更高版本 相当老旧的版本 无硬浮点，在需要大量计算时有性能瓶颈
+armeabi-v7a: 支持armeabi等 目前主流版本（与 ARMv5、v6 设备不兼容）
+arm64-v8a: 支持AArch-64 64位支持
+</code></pre><p>现在armeabi v5基本都淘汰了，<strong>建议保留armeabi-v7a就可以兼容到市面上的绝大多数手机</strong></p>
+<p>选择保留armeabi(微信保留了) ，并保证armeabi 和 armeabi-v7a这两个文件夹中 so 数量一致</p>
+<p><strong>对只提供 armeabi 版本的第三方 so，原样复制一份到 armeabi-v7a 文件夹（armeabi-v7a: 支持armeabi）。</strong></p>
+<p><a href="http://www.jianshu.com/p/a8433f053248" target="_blank" rel="noopener">Android ABI想到的</a></p>
+<h3 id="ABI-1"><a href="#ABI-1" class="headerlink" title="ABI"></a>ABI</h3><p>应用程序二进制接口ABI（Application Binary Interface）</p>
+<h3 id="so文件"><a href="#so文件" class="headerlink" title=".so文件"></a>.so文件</h3><p>Native Libs Monitor 这个app可以帮助我们理解手机上安装的APK用到了哪些.so文件，以及.so文件来源于哪些函数库或者框架</p>
+<h3 id="ABI和CPU的关系"><a href="#ABI和CPU的关系" class="headerlink" title="ABI和CPU的关系"></a>ABI和CPU的关系</h3><p>很多设备都支持多于一种的ABI</p>
+<p>但最好是针对特 定平台提供相应平台的二进制包，这种情况下运行时就少了一个模拟层（例如x86设备上模拟arm的虚拟层），从而得到更好的性能</p>
+<p>可以通过 <code>Build.SUPPORTED_ABIS</code> 得到根据偏好排序的设备支持的ABI列表。但你不应该从你的应用程序中读取它，因为 Android包管理器安装APK时，会自动选择APK包中为对应系统ABI预编译好的.so文件，如果在对应的lib／ABI目录中存在.so文件的话。</p>
+<p>对应关系如下图：<br><img src="http://upload-images.jianshu.io/upload_images/2226246-efd370c8c43bd35f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
+<p><strong>不同CPU架构的Android手机加载时会在libs下找自己对应的目录，从对应的目录下寻找需要的.so文件；如果没有对应的目录，就会去armeabi下去寻找，如果已经有对应的目录，但是没有找到对应的.so文件，也不会去armeabi下去寻找了。</strong></p>
+<p><strong>微信就是只有armeabi一个目录</strong></p>
+<p>当引入一个新的预编译.so文件，而且项目中还存在其他的.so文件时，需要首先确认新引入的.so文件使用的C++运行时是否和已经存在的.so文件一致。</p>
+<h3 id="xx-so-is-32-bit-instead-of-64-bit"><a href="#xx-so-is-32-bit-instead-of-64-bit" class="headerlink" title="xx.so is 32-bit instead of 64-bit"></a>xx.so is 32-bit instead of 64-bit</h3><p>这是因为module下有64位的so库目录，而某个so库却没有提供64位的</p>
+<p><strong>解决方案：</strong></p>
+<ul>
+<li>只保留armeabi，删除其他以”armeabi“开头的文件夹</li>
+<li><p>module的build.gradle</p>
+<pre><code>android {
+    defaultConfig {
+        ndk {
+            abiFilters &quot;armeabi&quot;
+        }
+    }
+}
+</code></pre></li>
+<li><p>gradle.properties</p>
+<pre><code>Android.useDeprecatedNdk=true
+</code></pre></li>
+</ul>
+<h3 id="Android-6-0-so-动态库的适配"><a href="#Android-6-0-so-动态库的适配" class="headerlink" title="Android 6.0 + .so 动态库的适配"></a><a href="http://www.cnblogs.com/linguanh/p/6137641.html" target="_blank" rel="noopener">Android 6.0 + .so 动态库的适配</a></h3><h4 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h4><p>同一个 APP 在 api &lt;=22 的 sdk 情况下编译，可以运行正常，不存在闪退或者 .so 库加载失败的情况</p>
+<p>当你采用 api &gt;=23 的sdk 编译的时候，安装到 Android 6.0 及其以上的手机的时候，大范围出现崩溃 或者 .so 库加载失败，而在 6.0 以下的手机却正常；</p>
+<p>Catch的信息：<code>dlopen failed: cannot locate symbol &quot;XXXX&quot; xxxx.so</code></p>
+<h4 id="问题原因"><a href="#问题原因" class="headerlink" title="问题原因"></a>问题原因</h4><p>不同链接方式，决定dlopen是否会打开指定的系统中(手机中)提供的动态库，并使用 dlsym 获取符号地址</p>
+<p>在此时的手机中如果找不到，那么就会出问题，一般和 API 有关系。</p>
+<p><code>Application.mk</code>，里面有一行 <code>APP_STL := XXX</code> 指明<code>库的链接方式</code></p>
+<p><strong>STL的取值：</strong></p>
+<pre><code>1）system，默认的值，最危险方式，直接和手机系统版本挂钩，采用手机最小版本的.so库链接
+
+2）gabi++_static
+
+3）gabi++_shared
+
+4）stlport_static
+
+5）stlport_shared
+
+6）gnustl_static
+
+7）gnustl_shared
+
+主要是两种，静态链接，动态链接：
+
+动态链接，是指在生成可执行文件时不将所有程序用到的函数链接到一个文件，因为有许多函数在操作系统带的dll文件中，当程序运行时直接从操作系统中找。
+
+静态链接，是把所有用到的函数全部链接到 .so 文件中；
+</code></pre><h4 id="目前存在该问题的知名SDK"><a href="#目前存在该问题的知名SDK" class="headerlink" title="目前存在该问题的知名SDK"></a>目前存在该问题的知名SDK</h4><p>百度地图、环信、高德地图、语音库 speex</p>
+<p>不知道修复没有</p>
+<p>这些 SDK 一但在你的 APK 编译版中中设置 API &gt;=23 就会出现各种问题，闪退或者抛出异常。</p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><p>主要有两种：</p>
+<ol>
+<li><p>委曲求全，指标不治本，把你的 APK 编译时 API 降低到 23 以下，还出问题就继续降低</p>
+<p> 这意味着，你很多 Android Sdk 的新控件用不了；</p>
+</li>
+<li><p>在 Application.mk 中修改 APP_STL，重新编译 .so 。</p>
+</li>
+</ol>
+<p>如果没有源码，要么等他们解决，要么采用第一种，建议尝试 APP_STL := gnustl_shared 这种方式，对于所需要的外部动态链接函数、符号，在 NDK 13b 中都会独立生成一份，全部引用就解决此类问题，例如</p>
+<pre><code>private void load() {
+      try {
+          System.loadLibrary(&quot;gnustl_shared&quot;);
+          System.loadLibrary(&quot;speex&quot;);
+      } catch (Throwable e) {
+          Log.d(&quot;zzzzz&quot;,&quot;加载语音库异常 ：&quot;+e.toString());
+      }
+}
+</code></pre><h1 id="aar文件"><a href="#aar文件" class="headerlink" title="aar文件"></a>aar文件</h1><ul>
+<li>Android Library项目导出的<strong>jar文件不能包含资源文件</strong>，<ul>
+<li>比如一些drawable文件、xml资源文件之类的，</li>
+<li>在gradle之前我们要引用带资源文件的Android Library必须要把整个library导入进来进行引用</li>
+</ul>
+</li>
+<li>Android Library项目导出的<strong>aar（包含资源文件、第三方库文件、so、manifest ）</strong><ul>
+<li>gradle最普遍的方法是把aar上传到mavenCentral或者jcenter</li>
+</ul>
+</li>
+</ul>
+<h2 id="导出aar"><a href="#导出aar" class="headerlink" title="导出aar"></a>导出aar</h2><pre><code>apply plugin: &apos;com.android.library&apos; //输出 aar。 
+apply plugin: &apos;com.android.application&apos; //输出 apk
+
+gradle aR 生成 aar
+</code></pre><p>library库输出的.aar文件，目录为 [ModuleName]/build/outputs/aar</p>
+<h2 id="依赖aar-两种方式"><a href="#依赖aar-两种方式" class="headerlink" title="依赖aar 两种方式"></a>依赖aar 两种方式</h2><ol>
+<li><p>直接导入。不推荐</p>
+<pre><code>File -- Project Structure，添加一个新 Module，选择 Import *.JAR or *.AAR Package
+导入后，在你的工程下面，会生成一个文件夹，里面是 aar 文件以及 Android Studio 的配置文件。
+接着在 gradle 中配置依赖，依赖方式使用 compile project 的方式
+</code></pre><p> <code>缺点</code>：被依赖的 aar 无法 F3 跟进去，无法看到资源文件内容以及目录层级等</p>
+</li>
+<li><p>依赖配置。<strong>推荐使用</strong></p>
+<ul>
+<li><p>module目录下新建aars文件夹，放置aar</p>
+<pre><code>repositories {
+    flatDir {
+        dirs &apos;aars&apos; //添加该文件夹作为依赖库
+    }
+}
+
+dependencies {
+    compile(name:&apos;libraryname&apos;, ext:&apos;aar&apos;)
+}
+</code></pre></li>
+</ul>
+</li>
+</ol>
+<p>lib module 依赖了aar库，failed to resolve aar</p>
+<p>在app module 的build.gradle中加入下面代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">repositories &#123;  </span><br><span class="line">    flatDir &#123;  </span><br><span class="line">        dirs project(&apos;:taesdk&apos;).file(&apos;libs&apos;)  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="手动下载远程aar"><a href="#手动下载远程aar" class="headerlink" title="手动下载远程aar"></a>手动下载远程aar</h1><p>有时gradle构建下载依赖包出现错误(timeout)，可以手动去仓库下载，放到gradle的cache目录(<code>~/.gradle/caches/modules-2/files-2.1</code>)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt; Could not download codeview-android.aar (com.github.softwee:codeview-android:1.2.0)</span><br><span class="line">  &gt; Could not get resource &apos;https://jitpack.io/com/github/softwee/codeview-android/1.2.0/codeview-android-1.2.0.aar&apos;.</span><br><span class="line">     &gt; Read timed out</span><br></pre></td></tr></table></figure>
+<p>最终目录 <code>/Users/liyungui/.gradle/caches/modules-2/files-2.1/com.github.softwee/codeview-android/1.2.0/83787aabb0260a92ae7c9632e56995a38395560d/codeview-android-1.2.0.aar</code></p>
+<p>关于文件父目录，网上资料很少，其实是文件SHA1码</p>
+<p>mac的话可以用 <code>shasum</code> 命令查看，win的话是 <code>certutil -hashfile</code></p>
+<p>一般情况，jar、aar、pom、source、doc等文件，都是一个SHA1目录对应一个文件。</p>
+<p>有时jar和pom会下载到同一个目录下面，这其实还是用的是jar的SHA1</p>
+<h1 id="依赖module和主module-资源id-冲突"><a href="#依赖module和主module-资源id-冲突" class="headerlink" title="依赖module和主module 资源id 冲突"></a>依赖module和主module 资源id 冲突</h1><p>android studio 并不会对依赖module和主module 资源id 在编译时时报错（eclipse会）</p>
+<p>如 依赖和主module 都有 activity_main.xml 布局文件，在运行时，依赖module 中activity_main中的id就会找不到，因为首先是在主module中的activity_main文件中查找，就会报错 <code>ava.lang.NoSuchFieldError: No static field rl_dd of type I in class Lcom/xuehu365/videoviewmediacontroller/R$id;</code></p>
+<p>确保依赖工程和主module 资源文件名 不重复即可。</p>
+<p><strong>每个资源文件名中的控件id可以重复，不影响查找（只要控件id不在同一个资源文件中）</strong></p>
+<h1 id="远程依赖包重复问题"><a href="#远程依赖包重复问题" class="headerlink" title="远程依赖包重复问题"></a><a href="https://juejin.im/post/591a5084128fe1005cda382d" target="_blank" rel="noopener">远程依赖包重复问题</a></h1><p>错误 <code>com.android.dex.DexException: Multiple dex files define XXXX</code></p>
+<p>或 <code>java.util.zip.ZipException: duplicate entry: uk/co/senab/photoview/BuildConfig.class</code></p>
+<p>引用了重复的库或者jar包引起的</p>
+<p>两个库同时引用了同一个第三方库，最坑人的是都是直接引用，而不是使用 Provided 的方式</p>
+<p><strong>解决思路</strong>：找到重复删掉一个</p>
+<pre><code>gradlew -q app:dependencies 命令，输出树状依赖
+
+星号后缀标记 (*)，意思是忽略该依赖(不下载)
+</code></pre><ul>
+<li><p>删掉远程依赖库的依赖</p>
+<pre><code>compile(&apos;com.loonggg.saoyisao.lib:1.1.0&apos;)
+compile(&apos;com.timmy.qrcode.lib:1.4.1&apos;) {
+        exclude group: &apos;com.google.zxing&apos;
+}
+编译时将group为com.google.zxing的所有library都去除在外，com.timmy.qrcode.lib:1.4.1就会自动去引用com.loonggg.saoyisao.lib:1.1.0项目里的zxing依赖
+</code></pre></li>
+<li><p>删掉本地依赖库的依赖</p>
+<pre><code>下载修改后重修打jar包，蛋疼
+</code></pre></li>
+</ul>
+<p><code>java.util.zip.ZipException: duplicate entry: tv/danmaku/ijk/media/player/AbstractMediaPlayer.class</code></p>
+<p><strong>完美解决方式</strong> <code>resolutionStrategy.force</code></p>
+<pre><code>configurations.all {
+    resolutionStrategy {
+        force &apos;com.android.support:support-v4:27.0.1&apos;
+        force &apos;com.android.support:design:27.0.1&apos;
+        force &apos;com.android.support:appcompat-v7:27.0.1&apos;
+    }
+}
+</code></pre><h1 id="v4包重复"><a href="#v4包重复" class="headerlink" title="v4包重复"></a>v4包重复</h1><p>v7包已经包含了v4包。</p>
+<p>所以如果主module已有v7包依赖，lib module有v4包依赖，就会v4包重复。这时需要把v7包中的v4 exclude</p>
+<pre><code>compile(&apos;com.airbnb.android:lottie:2.5.4&apos;) { exclude group: &apos;com.android.support.v4&apos; }
+    lottie依赖v7包
+</code></pre><h1 id="v4-v7包在线依赖失败"><a href="#v4-v7包在线依赖失败" class="headerlink" title="v4 v7包在线依赖失败"></a>v4 v7包在线依赖失败</h1><pre><code>//将maven.googlecom
+//maven { url &apos;https://maven.google.com/&apos; }
+//替换为
+maven { url &apos;https://dl.google.com/dl/android/maven2/&apos; }
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/03/Android/gradle/gradle构建最佳实践/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/02/03/Android/gradle/gradle构建最佳实践/" itemprop="url">gradle构建最佳实践</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-02-03T14:13:53+08:00">
+                2020-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>gradle构建最佳实践 https://www.figotan.org/2016/04/01/gradle-on-android-best-practise/
+Gradle构建编译速度太慢的解决方法 http://www.52codes.net/article/658.html
+加速Android Studio/Gradle构建 http://blog.isming.me/2015/03/18/android-build-speed-up/
+</code></pre><h1 id="加速篇"><a href="#加速篇" class="headerlink" title="加速篇"></a>加速篇</h1><p>GRADLE的构建过程通常会比较漫长，一个中等项目，10M左右大小的app，一次完整构建大概在5分钟左右。</p>
+<p>调试阶段，采用Android Studuo 2.0，默认提供的Instant Run方式，每次修改都不会重新构建项目，从而加快了构建过程。</p>
+<p>GRADLE一次完整的构建过程通常分成三个部分，初始化，配置和执行任务，那么我们可以考虑从这三个部分分别尝试优化。</p>
+<h3 id="1-开启daemon"><a href="#1-开启daemon" class="headerlink" title="1. 开启daemon"></a>1. 开启daemon</h3><p>构建初始化的很多工作是关于java虚拟机的启动，加载虚拟机环境，加载class文件等，这些动作交给一个单独的后台进程去做</p>
+<pre><code>gradle.properties（全局起效是~/.gradle/gradle.properties，从工程目录拷贝过来）
+
+org.gradle.daemon=true
+</code></pre><h3 id="2-并行构建模块化项目"><a href="#2-并行构建模块化项目" class="headerlink" title="2. 并行构建模块化项目"></a>2. 并行构建模块化项目</h3><p>库工程(Library projects)，主工程(Application project)并行构建</p>
+<pre><code>org.gradle.parallel=true
+</code></pre><h3 id="3-按需配置"><a href="#3-按需配置" class="headerlink" title="3. 按需配置"></a>3. 按需配置</h3><pre><code>org.gradle.configureondemand=true
+</code></pre><h3 id="4-增大gradle运行的java虚拟机的大小"><a href="#4-增大gradle运行的java虚拟机的大小" class="headerlink" title="4. 增大gradle运行的java虚拟机的大小"></a>4. 增大gradle运行的java虚拟机的大小</h3><p>org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8</p>
+<h3 id="5-依赖库使用固定版本"><a href="#5-依赖库使用固定版本" class="headerlink" title="5. 依赖库使用固定版本"></a>5. 依赖库使用固定版本</h3><pre><code>compile &apos;com.google.code.gson:gson:2.2.1&apos;
+
+compile &apos;com.google.code.gson:gson:2.+&apos;这种避免使用，每次都去repo拉取最新版本
+</code></pre><h3 id="6-升级到最新的GRADLE、和android-gradle-plugin-和-JDK"><a href="#6-升级到最新的GRADLE、和android-gradle-plugin-和-JDK" class="headerlink" title="6. 升级到最新的GRADLE、和android gradle plugin 和 JDK"></a>6. 升级到最新的GRADLE、和android gradle plugin 和 JDK</h3><p>最新版的GRADLE和JDK往往是性能最好</p>
+<p>GRALDE采用了一种叫做wrapper的方式，可以做到每个项目独立使用其自己的GRADLE版本，这样做的好处是每个项目的构建环境独立，互不影响。GRADLE发展太快，新旧版本之间很难兼容。假设都用同一个全局的GRADLE，那么当这个GRADLE升级后，所有的项目可能都会编译失败，你得一个一个改配置</p>
+<h3 id="7-命令行构建"><a href="#7-命令行构建" class="headerlink" title="7. 命令行构建"></a>7. 命令行构建</h3><p>Android Studio中，点击运行是将当前的构建任务加入到队列中。如果你改过build.gradle的文件导致它在同步脚本时，就必须等到这个任务完成之后才会执行你刚才的构建任务</p>
+<h3 id="8-屏蔽不必要的productFlavor"><a href="#8-屏蔽不必要的productFlavor" class="headerlink" title="8. 屏蔽不必要的productFlavor"></a>8. 屏蔽不必要的productFlavor</h3><p>尽管只是要构建Develop版本，但还是会去解析每一个productFlavor的依赖，并且在依赖上卡很久。所以在构建时先注释掉其他pruductFlavor</p>
+<h3 id="9-使用离线模式"><a href="#9-使用离线模式" class="headerlink" title="9. 使用离线模式"></a>9. 使用离线模式</h3><p>编译过一次，依赖应该都在本地中有缓存了。这时命令行构建可以使用–offline参数</p>
+<h3 id="10-没必要-不要在构建时进行clean"><a href="#10-没必要-不要在构建时进行clean" class="headerlink" title="10. 没必要 不要在构建时进行clean"></a>10. 没必要 不要在构建时进行clean</h3><h3 id="11-引入依赖库尽量使用aar"><a href="#11-引入依赖库尽量使用aar" class="headerlink" title="11. 引入依赖库尽量使用aar"></a>11. 引入依赖库尽量使用aar</h3><pre><code>maven http://gradleplease.appspot.com/
+githu https://github.com/Goddchen/mvn-repo。
+</code></pre><p>自己的库模块也可以打包成aar</p>
+<p><strong>以上功能其实可以通过修改android studio配置实现，区别是配置只会在ide构建的时候生效，命令行构建不会生效</strong></p>
+<p>Gradle 和 Compiler 两个选项卡中配置</p>
+<h1 id="gradle-把依赖缓存在哪"><a href="#gradle-把依赖缓存在哪" class="headerlink" title="gradle 把依赖缓存在哪"></a>gradle 把依赖缓存在哪</h1><p>用户目录\ .gradle\caches\modules-2\files-2.1</p>
+<h1 id="使用Gradle-Wrapper必要性"><a href="#使用Gradle-Wrapper必要性" class="headerlink" title="使用Gradle Wrapper必要性"></a>使用Gradle Wrapper必要性</h1><p>便于统一项目所使用的gradle版本。</p>
+<p>GRALDE采用了一种叫做wrapper的方式，可以做到每个项目独立使用其自己的GRADLE版本，这样做的好处是每个项目的构建环境独立，互不影响。GRADLE发展太快，新旧版本之间很难兼容。假设都用同一个全局的GRADLE，那么当这个GRADLE升级后，所有的项目可能都会编译失败，你得一个一个改配置</p>
+<p>使用Gradle Wrapper，自动下载二进制包的时间需要以分钟计算（毕竟服务器在国外），不过还好，这个过程只会出现一次</p>
+<h1 id="常见错误"><a href="#常见错误" class="headerlink" title="常见错误"></a>常见错误</h1><h2 id="Error-Configuration-with-name-‘default’-not-found"><a href="#Error-Configuration-with-name-‘default’-not-found" class="headerlink" title="Error:Configuration with name ‘default’ not found."></a><a href="http://blog.csdn.net/luo451591667/article/details/50667549" target="_blank" rel="noopener">Error:Configuration with name ‘default’ not found.</a></h2><p>同事添加了某个module,自己同步代码后会出现Error:Configuration with name ‘default’ not found.的错误,</p>
+<p>这是因为同步时不会自动把<code>远程仓库</code>下载下来，需要你自己初始化下载,这时只要执行:</p>
+<pre><code>git submodule update --init --recursive 
+</code></pre><p><strong>实例</strong> </p>
+<p><a href="https://github.com/eolwral/OSMonitor/" target="_blank" rel="noopener">https://github.com/eolwral/OSMonitor/</a></p>
+<p>包含远程仓库</p>
+<pre><code>colorpicker @ ec1d13e
+volley @ d20f9d3
+</code></pre><p>下载回来发现 colorpicker 和volley文件夹为空</p>
+<pre><code>$ git submodule update --init --recursive
+Submodule &apos;colorpicker&apos; (https://github.com/eolwral/android-ColorPickerPreference.git) registered for path &apos;colorpicker&apos;
+Submodule &apos;volley&apos; (https://android.googlesource.com/platform/frameworks/volley/) registered for path &apos;volley&apos;
+Cloning into &apos;colorpicker&apos;...
+remote: Counting objects: 394, done.
+Receivin94 g objects:  77% (3(0d4/39e4lta 0), reused 0) ,(del 2ta 0), pa4ck4.00  394
+Receiving objects: 100% (394/394), 252.30 KiB | 83.00 KiB/s, done.
+Resolving deltas: 100% (164/164), done.
+Checking connectivity... done.
+Submodule path &apos;colorpicker&apos;: checked out &apos;ec1d13e450e65bbd086bd6094c5cd36a4da737fa&apos;
+Cloning into &apos;volley&apos;...
+fatal: unable to access &apos;https://android.googlesource.com/platform/frameworks/volley/&apos;: Failed to connect to android.googlesource.com port 443: Timed out
+fatal: clone of &apos;https://android.googlesource.com/platform/frameworks/volley/&apos; into submodule path &apos;volley&apos; failed
+</code></pre><p>volley下载失败，点击发现volley远程仓库地址失效（无法跳转），手动搜索下载volley</p>
+<h2 id="transformClassesWithDexForXuehuDebug-UnsupportedOperationException"><a href="#transformClassesWithDexForXuehuDebug-UnsupportedOperationException" class="headerlink" title="transformClassesWithDexForXuehuDebug UnsupportedOperationException"></a>transformClassesWithDexForXuehuDebug UnsupportedOperationException</h2><p>可能两种原因：</p>
+<ol>
+<li>JDK1.8与gradle不兼容</li>
+<li><p>内存不足</p>
+<p> 主module build.gradle</p>
+<pre><code>dexOptions {
+    javaMaxHeapSize &quot;4g&quot;
+    preDexLibraries = false
+}
+
+defaultConfig {
+    multiDexEnabledtrue
+}
+
+dependencies {
+    compile &apos;com.android.support:multidex:1.0.1&apos;
+}
+</code></pre></li>
+</ol>
+<h2 id="Unsupported-major-minor-version-52-0"><a href="#Unsupported-major-minor-version-52-0" class="headerlink" title="Unsupported major.minor version 52.0"></a>Unsupported major.minor version 52.0</h2><pre><code>java.lang.UnsupportedClassVersionError: com/android/build/gradle/LibraryPlugin : Unsupported major.minor version 52.0
+</code></pre><p>可能两种原因：</p>
+<ol>
+<li>JDK1.8与gradle不兼容</li>
+<li><p>compileSdkVersion 和 buildToolsVersion 版本不一致。一个23，一个24</p>
+<pre><code>android {
+    compileSdkVersion 23
+    buildToolsVersion &quot;24.0.3&quot;
+</code></pre></li>
+</ol>
+<h1 id="指定cpu类型，减少apk体积"><a href="#指定cpu类型，减少apk体积" class="headerlink" title="指定cpu类型，减少apk体积"></a>指定cpu类型，减少apk体积</h1><p>gradle.properties</p>
+<pre><code>android.useDeprecatedNdk=true
+</code></pre><p>主module 的 build.gradle</p>
+<pre><code>android {
+    defaultConfig {
+        ndk {
+            abiFilters &quot;armeabi&quot;, &quot;armeabi-v7a&quot;, &quot;armeabi-v8a&quot;, &quot;x86&quot;
+        }
+    }
+}
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/02/03/Android/gradle/gradle自动签名构建/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2020/02/03/Android/gradle/gradle自动签名构建/" itemprop="url">gradle自动签名构建</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-02-03T14:13:53+08:00">
+                2020-02-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Android/" itemprop="url" rel="index">
+                    <span itemprop="name">Android</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>gradle自动签名构建 http://www.tuicool.com/articles/MjqYbiu
+Android Studio用release模式进行调试  http://www.cnblogs.com/tianzhijiexian/p/4442804.html
+</code></pre><p>module的buil.gradle android标签下</p>
+<pre><code>signingConfigs {
+    myConfig {
+        storeFile file(&quot;xuehu.jks&quot;) // 放在module根目录（和buil.gradle同级），所以直接写了相对路径
+        storePassword &quot;xuehu2016&quot;
+        keyAlias &quot;xuehu&quot;
+        keyPassword &quot;xuehu2016&quot;
+    }
+}
+buildTypes {
+    release {
+        signingConfig signingConfigs.myConfig//不要忘了要在release的时候加入我么的签名配置信息
+        minifyEnabled false
+        proguardFiles getDefaultProguardFile(&apos;proguard-android.txt&apos;), &apos;proguard-rules.pro&apos;
+    }
+}
+</code></pre><p>如果调试时也希望使用签名</p>
+<pre><code>buildTypes {
+    debug {
+        signingConfig signingConfigs.myConfig
+    }
+    release {
+        signingConfig signingConfigs.myConfig//不要忘了要在release的时候加入我么的签名配置信息
+        minifyEnabled false
+        proguardFiles getDefaultProguardFile(&apos;proguard-android.txt&apos;), &apos;proguard-rules.pro&apos;
+    }
+}
+</code></pre><p><a href="http://blog.chinaunix.net/uid-20771867-id-5106723.html" target="_blank" rel="noopener">Android studio的gradle配置 </a></p>
+<ol>
+<li>自动按照版本号和版本名称及日期重命名apk。</li>
+<li>自动按照日期升级versionCode。</li>
+<li>自动将apk文件复制出来。</li>
+</ol>
+<h1 id="将apk名-替换为-xuehu-渠道名-v版本名-apk。"><a href="#将apk名-替换为-xuehu-渠道名-v版本名-apk。" class="headerlink" title="将apk名 替换为 xuehu-渠道名_v版本名.apk。"></a>将apk名 替换为 xuehu-渠道名_v版本名.apk。</h1><ul>
+<li>android标签下</li>
+<li>甚至可以在buildTypes –&gt; release { 标签下，仅release时才重命名apk</li>
+</ul>
+<p>代码如下</p>
+<pre><code>android.applicationVariants.all { variant -&gt;
+    variant.outputs.each { output -&gt;
+        def file = output.outputFile
+        output.outputFile = new File(file.parent, file.name.replace(file.name, &quot;xuehu-&quot;+variant.productFlavors[0].name+&quot;_v${variant.versionName}.apk&quot;))
+    }
+}
+</code></pre><h1 id="将打包后的文件复制到build目录下"><a href="#将打包后的文件复制到build目录下" class="headerlink" title="将打包后的文件复制到build目录下"></a>将打包后的文件复制到build目录下</h1><ul>
+<li>不用深入到apk目录</li>
+<li>同时还看不到unaligned的apk了</li>
+<li>android标签下</li>
+<li><p>代码如下</p>
+<p>  task copyTask(type: Copy) {</p>
+<pre><code>from &apos;build/outputs/apk/&apos;
+into &apos;build/&apos;
+exclude &apos;*-unaligned.apk&apos;
+</code></pre><p>  }</p>
+<p>  task bd(dependsOn: [‘assembleDebug’, ‘assembleRelease’, ‘copyTask’]){</p>
+<pre><code>copyTask.mustRunAfter assembleRelease
+</code></pre><p>  }</p>
+</li>
+</ul>
+<p><code>gradle bd</code> 即可编译并复制到build目录下</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/01/17/阿里云日志分析服务/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1492,534 +2360,6 @@ protected void onDestroy() {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/18/web/域名解析配置/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/12/18/web/域名解析配置/" itemprop="url">域名解析配置</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-18T15:54:14+08:00">
-                2019-12-18
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/web/" itemprop="url" rel="index">
-                    <span itemprop="name">web</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="记录类型"><a href="#记录类型" class="headerlink" title="记录类型"></a>记录类型</h1><table>
-<thead>
-<tr>
-<th>记录</th>
-<th>含义</th>
-<th>值</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>A</td>
-<td>Address</td>
-<td>IPv4地址</td>
-</tr>
-<tr>
-<td>AAAA</td>
-<td>Address</td>
-<td>IPv4地址</td>
-</tr>
-<tr>
-<td>CNAME</td>
-<td>别名</td>
-<td>域名</td>
-</tr>
-<tr>
-<td>TXT</td>
-<td>任意文本</td>
-<td>任意文本</td>
-<td>一般做SPF记录反垃圾邮件</td>
-</tr>
-<tr>
-<td>NS</td>
-<td>域名服务器</td>
-<td>域名</td>
-</tr>
-<tr>
-<td>MX</td>
-<td>邮箱</td>
-</tr>
-<tr>
-<td>SRV</td>
-<td>服务</td>
-<td>如<code>_xmpp-server._tcp</code></td>
-<td>哪台服务器提供什么服务</td>
-</tr>
-</tbody>
-</table>
-<h2 id="CNAME"><a href="#CNAME" class="headerlink" title="CNAME"></a>CNAME</h2><p>使用场景：域名跳转，动态ip地址</p>
-<p>放在七牛云上的静态资源是可能被存放在不同服务器上的，因此ip地址可能不同，如果我们直接解析到ip地址可能会有问题。但是不管是哪台服务器，其域名地址肯定是一样的，因此，我们cname解析到七牛的域名地址就可以实现通过我们的域名地址访问七牛图片的功能了。</p>
-<h1 id="域名前缀"><a href="#域名前缀" class="headerlink" title="域名前缀"></a>域名前缀</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">www：www前缀；www.baidu.com</span><br><span class="line">*：任何前缀，泛域名解析; m.baidu.com</span><br><span class="line">@：没有任何前缀; baidu.com</span><br></pre></td></tr></table></figure>
-<h1 id="TTL"><a href="#TTL" class="headerlink" title="TTL"></a>TTL</h1><p>DNS服务器缓存某条解析记录的时长</p>
-<p>缓存时间越长，修改解析生效等待时间越长，解析速度越快</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/17/NDK/NDK开发Crash错误精确定位/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/12/17/NDK/NDK开发Crash错误精确定位/" itemprop="url">NDK开发Crash错误精确定位</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-17T15:08:53+08:00">
-                2019-12-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>在Android开发中，程序Crash分三种情况：未捕获的异常、ANR（Application Not Responding）和闪退（NDK引发错误）。</p>
-<p>未捕获的异常会弹出一个退出应用的提示框，根据logcat打印的堆栈信息很容易定位错误。</p>
-<p>ANR错误也好查，ANR错误会弹出一个系统提示框，让用户选择继续等待或立即关闭程序。并会在 <code>/data/anr</code> 目录下生成一个 <code>traces.txt</code> 文件，记录系统产生anr异常的堆栈和线程信息。</p>
-<p>NDK错误应用直接崩溃（闪退），不会像在Java层产生的异常时弹出提示框。logcat打印出来的日志比较难定位错误的根源。</p>
-<h1 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h1><h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;jni.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">"C"</span> JNIEXPORT jstring JNICALL</span><br><span class="line">Java_com_example_jni_MainActivity_stringFromJNI(</span><br><span class="line">        JNIEnv *env,</span><br><span class="line">        jobject <span class="comment">/* this */</span>) &#123;</span><br><span class="line"><span class="comment">//    std::string hello = "Hello from C++";</span></span><br><span class="line">    <span class="keyword">char</span> *p = <span class="string">"123"</span>;</span><br><span class="line">    <span class="keyword">char</span> *p2;</span><br><span class="line">    <span class="built_in">strcpy</span>(p2,p);<span class="comment">//野指针</span></span><br><span class="line">    <span class="keyword">return</span> env-&gt;NewStringUTF(p2);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="崩溃日志"><a href="#崩溃日志" class="headerlink" title="崩溃日志"></a>崩溃日志</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">2019-12-17 15:06:14.213 23322-23322/? A/libc: Fatal signal 11 (SIGSEGV), code 1, fault addr 0x0 in tid 23322 (com.example.jni)</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG: *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG: Build fingerprint: &apos;HONOR/LLD-AL20/HWLLD-H2:8.0.0/HONORLLD-AL20/139(C00):user/release-keys&apos;</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG: Revision: &apos;0&apos;</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG: ABI: &apos;arm64&apos;</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG: pid: 23322, tid: 23322, name: com.example.jni  &gt;&gt;&gt; com.example.jni &lt;&lt;&lt;</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG: signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG: Cause: null pointer dereference</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG:     x0   0000000000000000  x1   000000706bdcd6e0  x2   0000000000000000  x3   3b031b0100333231</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG:     x4   0000007fc6268058  x5   0000008080000000  x6   00ffffffffffffff  x7   0000000000000020</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG:     x8   7f7f7f7f7f7f7f7f  x9   845c9f2e9b4ac914  x10  0000000000430000  x11  0101010101010101</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG:     x12  0000000000000018  x13  42ad620927458c63  x14  000000708d4c8000  x15  ffffffffffffffff</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG:     x16  000000706bdddfe8  x17  000000708bf03f24  x18  0000007fc6266a4c  x19  0000007088aa3a00</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG:     x20  00000000700b3000  x21  0000007088aa3a00  x22  0000007fc6267ddc  x23  000000706c092a1f</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG:     x24  0000000000000004  x25  0000007088aa3aa0  x26  000000706c092a1f  x27  0000000000000001</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG:     x28  0000007fc6268220  x29  0000007fc6267b30  x30  000000706bdcd678</span><br><span class="line">2019-12-17 15:06:14.277 23465-23465/? A/DEBUG:     sp   0000007fc6267b10  pc   000000708bf03f7c  pstate 0000000000000000</span><br><span class="line">2019-12-17 15:06:14.279 23465-23465/? A/DEBUG: backtrace:</span><br><span class="line">2019-12-17 15:06:14.279 23465-23465/? A/DEBUG:     #00 pc 000000000001cf7c  /system/lib64/libc.so (strcpy+88)</span><br><span class="line">2019-12-17 15:06:14.279 23465-23465/? A/DEBUG:     #01 pc 0000000000000674  /data/app/com.example.jni-QYw6ZMLyA62sF49s4crsYA==/lib/arm64/libnative-lib.so (Java_com_example_jni_MainActivity_stringFromJNI+40)</span><br><span class="line">2019-12-17 15:06:14.279 23465-23465/? A/DEBUG:     #02 pc 000000000006a27c  /data/app/com.example.jni-QYw6ZMLyA62sF49s4crsYA==/oat/arm64/base.odex (offset 0x20000)</span><br></pre></td></tr></table></figure>
-<p><code>signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0</code><br>signal 11 (SIGSEGV)提示这是一个 <code>无效的内存引用</code> 错误，这个信号是由linux内核发出来的。SEGV是SegmentationViolation（段违例）的缩写。SEGV_MAPERR表示堆栈映射错误，原因后面说明了，使用了错误的地址0</p>
-<p>下面重点看第backtrace的日志，backtrace日志可以看作是JNI调用的堆栈信息，以“#两位数字 pc”开头的都是backtrace日志。分析是我们自己编译的so文件 <code>Java_com_example_jni_MainActivity_stringFromJNI</code><br>函数引发了异常，导致程序崩溃。但具体崩在函数的哪个位置，我们是不确定的。这时候就需要靠NDK为我们提供的工具来精确定位了</p>
-<p>我们先记录下让程序崩溃的汇编指令地址 0000000000000674</p>
-<h1 id="调试工具"><a href="#调试工具" class="headerlink" title="调试工具"></a>调试工具</h1><p>NDK提供了三个调试工具：<code>addr2line、objdump和ndk-stack</code>，能够精确定位到产生错误的根源</p>
-<p><code>ndk-stack</code>位置：<code>android-ndk-r16b</code>根目录下</p>
-<p><code></code>addr2line、objdump<code>位置：</code>android-ndk-r16b/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64/bin<code>目录下。NDK针对不同的CPU架构实现了多套相同的工具。所以在选择</code>addr2line和objdump` 的时候，要根据目标机器的CPU架构来选择。</p>
-<p>如果不知道目标机器的CPU架构，可以用 <code>cat /proc/cpuinfo</code> 查看手机的CPU信息中的 <code>cpu architecture</code>。推荐看崩溃logcat确定使用的是哪个架构的so库，更加精确。</p>
-<p><strong>注意：调试必须使用带符号表和调试信息的so</strong></p>
-<p><code>/项目/module/build/intermediates/ndkBuild/release/obj/local/armeabi-v7a</code></p>
-<p>或 <code>/项目/module/build/intermediates/cmake/release/obj/arm64-v7a</code> </p>
-<h2 id="ndk-stack"><a href="#ndk-stack" class="headerlink" title="ndk-stack"></a><code>ndk-stack</code></h2><p>特点：步聚简便，直接定位到代码出错的位置。</p>
-<h3 id="实时分析日志"><a href="#实时分析日志" class="headerlink" title="实时分析日志"></a>实时分析日志</h3><p>将最近发生的错误的汇编地址解析成源码地址</p>
-<p><code>adb logcat | /Users/liyungui/Downloads/android-ndk-r16b/ndk-stack -sym /Users/liyungui/StudioProjects/jni/app/build/intermediates/cmake/debug/obj/arm64-v8a</code></p>
-<p>需要注意：-sym 指定是so库路径只是到so文件父目录</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">********** Crash dump: **********</span><br><span class="line">Build fingerprint: &apos;HONOR/LLD-AL20/HWLLD-H2:8.0.0/HONORLLD-AL20/139(C00):user/release-keys&apos;</span><br><span class="line">pid: 23322, tid: 23322, name: com.example.jni  &gt;&gt;&gt; com.example.jni &lt;&lt;&lt;</span><br><span class="line">signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0</span><br><span class="line">Stack frame #00 pc 000000000001cf7c  /system/lib64/libc.so (strcpy+88)</span><br><span class="line">Stack frame #01 pc 0000000000000674  /data/app/com.example.jni-QYw6ZMLyA62sF49s4crsYA==/lib/arm64/libnative-lib.so (Java_com_example_jni_MainActivity_stringFromJNI+40): Routine Java_com_example_jni_MainActivity_stringFromJNI at /Users/liyungui/StudioProjects/jni/app/src/main/cpp/native-lib.cpp:11</span><br><span class="line">Stack frame #02 pc 000000000006a27c  /data/app/com.example.jni-QYw6ZMLyA62sF49s4crsYA==/oat/arm64/base.odex (offset 0x20000)</span><br><span class="line">Crash dump is completed</span><br></pre></td></tr></table></figure>
-<p>第11行，跟源码完全对应</p>
-<h3 id="指定崩溃日志"><a href="#指定崩溃日志" class="headerlink" title="指定崩溃日志"></a>指定崩溃日志</h3><p><code>/Users/liyungui/Downloads/android-ndk-r16b/ndk-stack -sym /Users/liyungui/StudioProjects/jni/app/build/intermediates/cmake/debug/obj/arm64-v8a -dump crash.log</code></p>
-<p>得到的结果跟上面实时分析一模一样</p>
-<h2 id="addr2line"><a href="#addr2line" class="headerlink" title="addr2line"></a>addr2line</h2><p><code>./aarch64-linux-android-addr2line -e /Users/liyungui/StudioProjects/jni/app/build/intermediates/cmake/debug/obj/arm64-v8a/libnative-lib.so 0000000000000674</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">-e：指定so文件路径</span><br><span class="line"></span><br><span class="line">0000000000000674：出错的汇编指令地址；如果有多个地址需要解析，地址间以空格分隔</span><br></pre></td></tr></table></figure>
-<p>结果如下</p>
-<p><code>/Users/liyungui/StudioProjects/jni/app/src/main/cpp/native-lib.cpp:11</code></p>
-<p>第11行，跟源码完全对应</p>
-<h2 id="objdump"><a href="#objdump" class="headerlink" title="objdump"></a>objdump</h2><p>上面两种方法都是将错误的汇编地址解析成了源码地址，但是不知道函数的上下文信息，不是那么完美</p>
-<p>直接导出so的函数表信息和汇编码</p>
-<p><code>./aarch64-linux-android-objdump -S -D /Users/liyungui/StudioProjects/jni/app/build/intermediates/cmake/debug/obj/arm64-v8a/libnative-lib.so &gt; ~/Desktop/dump.log</code></p>
-<p>打开 <code>dump.log</code>，搜索错误地址 674</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">extern &quot;C&quot; JNIEXPORT jstring JNICALL</span><br><span class="line">Java_com_example_jni_MainActivity_stringFromJNI(</span><br><span class="line">        JNIEnv *env,</span><br><span class="line">        jobject /* this */) &#123;</span><br><span class="line"> 64c:	d100c3ff 	sub	sp, sp, #0x30</span><br><span class="line"> 650:	a9027bfd 	stp	x29, x30, [sp,#32]</span><br><span class="line"> 654:	910083fd 	add	x29, sp, #0x20</span><br><span class="line"> 658:	90000008 	adrp	x8, 0 &lt;__cxa_finalize@plt-0x5d0&gt;</span><br><span class="line"> 65c:	911b6108 	add	x8, x8, #0x6d8</span><br><span class="line"> 660:	f81f83a0 	stur	x0, [x29,#-8]</span><br><span class="line"> 664:	f9000be1 	str	x1, [sp,#16]</span><br><span class="line">//    std::string hello = &quot;Hello from C++&quot;;</span><br><span class="line">    char *p = &quot;123&quot;;</span><br><span class="line"> 668:	f90007e8 	str	x8, [sp,#8]</span><br><span class="line">    char *p2;</span><br><span class="line">    strcpy(p2,p);</span><br><span class="line"> 66c:	f94003e0 	ldr	x0, [sp]</span><br><span class="line"> 670:	f94007e1 	ldr	x1, [sp,#8]</span><br><span class="line"> 674:	97ffffdf 	bl	5f0 &lt;strcpy@plt&gt;</span><br><span class="line">    return env-&gt;NewStringUTF(p2);</span><br><span class="line"> 678:	f85f83a8 	ldur	x8, [x29,#-8]</span><br><span class="line"> 67c:	f94003e1 	ldr	x1, [sp]</span><br><span class="line"> 680:	aa0803e0 	mov	x0, x8</span><br><span class="line"> 684:	97ffffd7 	bl	5e0 &lt;_ZN7_JNIEnv12NewStringUTFEPKc@plt&gt;</span><br><span class="line"> 688:	a9427bfd 	ldp	x29, x30, [sp,#32]</span><br><span class="line"> 68c:	9100c3ff 	add	sp, sp, #0x30</span><br><span class="line"> 690:	d65f03c0 	ret</span><br></pre></td></tr></table></figure>
-<p>这个跟ida逆向出来的一模一样</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">.text:000000000000064C ; =============== S U B R O U T I N E =======================================</span><br><span class="line">.text:000000000000064C</span><br><span class="line">.text:000000000000064C ; Attributes: bp-based frame</span><br><span class="line">.text:000000000000064C</span><br><span class="line">.text:000000000000064C ; jstring Java_com_example_jni_MainActivity_stringFromJNI(JNIEnv *env, jobject)</span><br><span class="line">.text:000000000000064C                 EXPORT Java_com_example_jni_MainActivity_stringFromJNI</span><br><span class="line">.text:000000000000064C Java_com_example_jni_MainActivity_stringFromJNI</span><br><span class="line">.text:000000000000064C                                         ; DATA XREF: LOAD:0000000000000308↑o</span><br><span class="line">.text:000000000000064C</span><br><span class="line">.text:000000000000064C var_20          = -0x20</span><br><span class="line">.text:000000000000064C var_18          = -0x18</span><br><span class="line">.text:000000000000064C var_10          = -0x10</span><br><span class="line">.text:000000000000064C env             = -8</span><br><span class="line">.text:000000000000064C var_s0          =  0</span><br><span class="line">.text:000000000000064C</span><br><span class="line">.text:000000000000064C ; __unwind &#123;</span><br><span class="line">.text:000000000000064C                 SUB             SP, SP, #0x30</span><br><span class="line">.text:0000000000000650                 STP             X29, X30, [SP,#0x20+var_s0]</span><br><span class="line">.text:0000000000000654                 ADD             X29, SP, #0x20</span><br><span class="line">.text:0000000000000658                 ADRP            X8, #unk_6D8@PAGE</span><br><span class="line">.text:000000000000065C                 ADD             X8, X8, #unk_6D8@PAGEOFF</span><br><span class="line">.text:0000000000000660                 STUR            X0, [X29,#env]</span><br><span class="line">.text:0000000000000664                 STR             X1, [SP,#0x20+var_10]</span><br><span class="line">.text:0000000000000668                 STR             X8, [SP,#0x20+var_18]</span><br><span class="line">.text:000000000000066C                 LDR             X0, [SP,#0x20+var_20]</span><br><span class="line">.text:0000000000000670                 LDR             X1, [SP,#0x20+var_18]</span><br><span class="line">.text:0000000000000674                 BL              .strcpy</span><br><span class="line">.text:0000000000000678                 LDUR            X8, [X29,#env]</span><br><span class="line">.text:000000000000067C                 LDR             X1, [SP,#0x20+var_20] ; char *</span><br><span class="line">.text:0000000000000680                 MOV             X0, X8  ; this</span><br><span class="line">.text:0000000000000684                 BL              ._ZN7_JNIEnv12NewStringUTFEPKc ; _JNIEnv::NewStringUTF(char const*)</span><br><span class="line">.text:0000000000000688                 LDP             X29, X30, [SP,#0x20+var_s0]</span><br><span class="line">.text:000000000000068C                 ADD             SP, SP, #0x30</span><br><span class="line">.text:0000000000000690                 RET</span><br><span class="line">.text:0000000000000690 ; &#125; // starts at 64C</span><br><span class="line">.text:0000000000000690 ; End of function Java_com_example_jni_MainActivity_stringFromJNI</span><br></pre></td></tr></table></figure>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://segmentfault.com/a/1190000013532735" target="_blank" rel="noopener">Android NDK开发Crash错误定位</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/12/17/Android/设置音量/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/12/17/Android/设置音量/" itemprop="url">设置音量</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-17T11:19:53+08:00">
-                2019-12-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="权限"><a href="#权限" class="headerlink" title="权限"></a>权限</h1><p><code>&lt;uses-permission android:name=&quot;android.permission.MODIFY_AUDIO_SETTINGS&quot; /&gt;</code></p>
-<h1 id="API"><a href="#API" class="headerlink" title="API"></a>API</h1><h2 id="setStreamVolume"><a href="#setStreamVolume" class="headerlink" title="setStreamVolume"></a>setStreamVolume</h2><p>直接设置音量大小</p>
-<p><code>audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVolume+1, 1);</code></p>
-<p>有个副作用：当音量设置为0时，会将以下设备音量均设置为0。</p>
-<ul>
-<li>device: 2 表示 <code>DEVICE_OUT_SPEAKER</code> 扬声器</li>
-<li>device: 4 表示 <code>DEVICE_OUT_WIRED_HEADSET</code> 线控耳机</li>
-<li>device: 8 表示 <code>DEVICE_OUT_WIRED_HEADPHONE</code> 普通耳机</li>
-<li>device: 128 表示 <code>DEVICE_OUT_BLUETOOTH_A2DP</code> 蓝牙A2DP输出</li>
-</ul>
-<p>如果想把音量设置为0，先用setStreamVolume设置1，再用adjustStreamVolume设置0。</p>
-<h2 id="adjustStreamVolume"><a href="#adjustStreamVolume" class="headerlink" title="adjustStreamVolume"></a>adjustStreamVolume</h2><p>设置direction，以步长调节音量大小</p>
-<h1 id="音量按键"><a href="#音量按键" class="headerlink" title="音量按键"></a>音量按键</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onKeyDown</span><span class="params">(<span class="keyword">int</span> keyCode, KeyEvent event)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">switch</span> (keyCode) &#123;</span><br><span class="line">		<span class="keyword">case</span> KeyEvent.KEYCODE_VOLUME_UP:<span class="comment">// 音量增大</span></span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">case</span> KeyEvent.KEYCODE_VOLUME_DOWN:<span class="comment">// 音量减小</span></span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2074,7 +2414,7 @@ protected void onDestroy() {
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">315</span>
+                  <span class="site-state-item-count">318</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2085,7 +2425,7 @@ protected void onDestroy() {
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2096,7 +2436,7 @@ protected void onDestroy() {
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-count">73</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2196,9 +2536,6 @@ protected void onDestroy() {
 
 
 
-  
-  
-
 
 
 
@@ -2233,16 +2570,6 @@ protected void onDestroy() {
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/three.min.js"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
   
 
 

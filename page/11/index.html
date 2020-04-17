@@ -262,6 +262,547 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/08/直播/ijkplayer/ijkplayer系列五-视频解码与播放/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/08/直播/ijkplayer/ijkplayer系列五-视频解码与播放/" itemprop="url">ijkplayer系列五-视频解码与播放</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-08T10:22:14+08:00">
+                2019-08-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="解码线程"><a href="#解码线程" class="headerlink" title="解码线程"></a>解码线程</h1><p>从数据读取线程分析那篇文章我们可以看到，ijkplayer的视频解码线程的入口函数是<code>video_thread()/ff_ffplayer.c</code></p>
+<h2 id="video-thread"><a href="#video-thread" class="headerlink" title="video_thread"></a><code>video_thread</code></h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">video_thread</span><span class="params">(<span class="keyword">void</span> *arg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    FFPlayer *ffp = (FFPlayer *)arg;</span><br><span class="line">    <span class="keyword">int</span>       ret = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (ffp-&gt;node_vdec) &#123;</span><br><span class="line">        ret = ffpipenode_run_sync(ffp-&gt;node_vdec);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>ffpipenode_run_sync()/ff_ffpipenode.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">ffpipenode_run_sync</span><span class="params">(IJKFF_Pipenode *node)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> node-&gt;func_run_sync(node);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最终调用的实际是 <code>ffp-&gt;node_vdec-&gt;func_run_sync(node);</code></p>
+<p>又是直接运行的ffplayer结构体里面的函数，肯定和音频播放一样，在之前初始化的时候给这个函数指针赋值过，那么我们回过头看看到底在哪里为它赋值的:</p>
+<p>我们还是看到之前初始化的<code>ijkmp_android_create()</code>调用<code>ffpipeline_create_from_android()</code>，然后里面有一句:</p>
+<p><code>pipeline-&gt;func_open_video_decoder = func_open_video_decoder;</code></p>
+<p>然后我们再返回看到在<code>stream_component_open()/ff_ffplayer.c</code>里面有一句:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">decoder_init(&amp;is-&gt;viddec, avctx, &amp;is-&gt;videoq, is-&gt;continue_read_thread);</span><br><span class="line">ffp-&gt;node_vdec = ffpipeline_open_video_decoder(ffp-&gt;pipeline, ffp);</span><br></pre></td></tr></table></figure>
+<p>点进去<code>ffpipeline_open_video_decoder(ffp-&gt;pipeline, ffp);</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">IJKFF_Pipenode* <span class="title">ffpipeline_open_video_decoder</span><span class="params">(IJKFF_Pipeline *pipeline, FFPlayer *ffp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> pipeline-&gt;func_open_video_decoder(pipeline, ffp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结合上面的分析，在<code>stream_component_open()/ff_ffplayer.c</code>里面其实运行了<code>func_open_video_decoder()/ffpipeline_android.c</code>，然后把返回值赋值给<code>ffp-&gt;node_vdec</code>;继续跟着流程到<code>func_open_video_decoder()</code>。由于这里跳转比较麻烦，我就直接上：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">func_open_video_decoder()</span><br><span class="line">&#123;</span><br><span class="line">        |(调用)</span><br><span class="line">    <span class="comment">//(这里其实有个判断，是用硬解码还是软解，我们只分析硬解码)</span></span><br><span class="line">    node = ffpipenode_create_video_decoder_from_android_mediacodec(ffp, pipeline, opaque-&gt;weak_vout);</span><br><span class="line">    <span class="keyword">return</span> node;</span><br><span class="line">        |(执行)</span><br><span class="line">    <span class="comment">//alloc一个IJKFF_Pipenode </span></span><br><span class="line">    IJKFF_Pipenode *node =  ffpipenode_alloc(<span class="keyword">sizeof</span>(IJKFF_Pipenode_Opaque));</span><br><span class="line">    node-&gt;func_destroy  = func_destroy;</span><br><span class="line">    node-&gt;func_run_sync = func_run_sync;</span><br><span class="line">    node-&gt;func_flush    = func_flush;</span><br><span class="line">    reutnr node;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最终 <code>ffp-&gt;node_vdec =node</code></p>
+<p>现在终于找到赋值的地方了，前面调用的<code>ffp-&gt;node_vdec-&gt;func_run_sync(node);</code>现在看来就是调用的<code>func_run_sync()</code>函数</p>
+<h3 id="func-run-sync"><a href="#func-run-sync" class="headerlink" title="func_run_sync"></a><code>func_run_sync</code></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">func_run_sync</span><span class="params">(IJKFF_Pipenode *node)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    IJKFF_Pipenode_Opaque *opaque   = node-&gt;opaque;</span><br><span class="line">    FFPlayer              *ffp      = opaque-&gt;ffp;</span><br><span class="line">    VideoState            *is       = ffp-&gt;is;</span><br><span class="line">    Decoder               *d        = &amp;is-&gt;viddec;</span><br><span class="line">    PacketQueue           *q        = d-&gt;<span class="built_in">queue</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">    opaque-&gt;enqueue_thread = SDL_CreateThreadEx(&amp;opaque-&gt;_enqueue_thread, enqueue_thread_func, node, <span class="string">"amediacodec_input_thread"</span>);</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">    <span class="keyword">while</span> (!q-&gt;abort_request) &#123;</span><br><span class="line">      	<span class="comment">//...</span></span><br><span class="line">        ret = drain_output_buffer(env, node, timeUs, &amp;dequeue_count, frame, &amp;got_frame);</span><br><span class="line">  		<span class="comment">//...</span></span><br><span class="line">		ret = ffp_queue_picture(ffp, frame, pts, duration, av_frame_get_pkt_pos(frame), is-&gt;viddec.pkt_serial);</span><br><span class="line">     <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">	fail:</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="线程enqueue-thread-func"><a href="#线程enqueue-thread-func" class="headerlink" title="线程enqueue_thread_func"></a>线程<code>enqueue_thread_func</code></h4><p>在视频解码流程里面又创建了一个线程:</p>
+<p><code>opaque-&gt;enqueue_thread = SDL_CreateThreadEx(&amp;opaque-&gt;_enqueue_thread, enqueue_thread_func, node, &quot;amediacodec_input_thread&quot;);</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">从命名来看，是一个input_thread，我们先来看看这个线程:</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">enqueue_thread_func</span><span class="params">(<span class="keyword">void</span> *arg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    IJKFF_Pipenode        *node     = arg;</span><br><span class="line">    IJKFF_Pipenode_Opaque *opaque   = node-&gt;opaque;</span><br><span class="line">    FFPlayer              *ffp      = opaque-&gt;ffp;</span><br><span class="line">    VideoState            *is       = ffp-&gt;is;</span><br><span class="line">    Decoder               *d        = &amp;is-&gt;viddec;</span><br><span class="line">    PacketQueue           *q        = d-&gt;<span class="built_in">queue</span>;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">    <span class="keyword">while</span> (!q-&gt;abort_request) &#123;</span><br><span class="line">        ret = feed_input_buffer(env, node, AMC_INPUT_TIMEOUT_US, &amp;dequeue_count);</span><br><span class="line">        <span class="keyword">if</span> (ret != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">goto</span> fail;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>点进去<code>feed_input_buffer()/ffpipenode_android_mediacodec_vdec.c</code>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">staticint <span class="title">feed_input_buffer</span><span class="params">(JNIEnv *env, IJKFF_Pipenode *node, <span class="keyword">int64_t</span> timeUs, <span class="keyword">int</span>*enqueue_count)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span>(ffp_packet_queue_get_or_buffering(ffp, d-&gt;<span class="built_in">queue</span>, &amp;pkt,&amp;d-&gt;pkt_serial, &amp;d-&gt;finished) &lt; <span class="number">0</span>) &#123; <span class="comment">//取得数据包</span></span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">        input_buffer_ptr= SDL_AMediaCodec_getInputBuffer(opaque-&gt;acodec, input_buffer_index,&amp;input_buffer_size); <span class="comment">//得到硬解码应该输入的buffer的地址</span></span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">        <span class="built_in">memcpy</span>(input_buffer_ptr,d-&gt;pkt_temp.data, copy_size);</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">        amc_ret= SDL_AMediaCodec_queueInputBuffer(opaque-&gt;acodec, input_buffer_index, <span class="number">0</span>,copy_size, time_stamp, <span class="number">0</span>); </span><br><span class="line"><span class="comment">//送到AMediaCodec解码器</span></span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>OK，这一步原来就是用硬解码器解码。这个<code>input_thread</code>也就只是把每一帧数据送到解码器去解码而已。</p>
+<h4 id="drain-output-buffer-l"><a href="#drain-output-buffer-l" class="headerlink" title="drain_output_buffer_l"></a><code>drain_output_buffer_l</code></h4><p>从硬解码器中获得解码后的数据</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">drain_output_buffer_l</span><span class="params">(JNIEnv *env, IJKFF_Pipenode *node, <span class="keyword">int64_t</span> timeUs,<span class="keyword">int</span> *dequeue_count)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">	<span class="comment">//从硬解码器中获得解码后的数据</span></span><br><span class="line">	output_buffer_index= SDL_AMediaCodec_dequeueOutputBuffer(opaque-&gt;acodec, &amp;bufferInfo,timeUs); </span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="ffp-queue-picture"><a href="#ffp-queue-picture" class="headerlink" title="ffp_queue_picture"></a><code>ffp_queue_picture</code></h4><p>把数据插入到显示队列 <code>ijkplayer-&gt;ffplayer-&gt;is-&gt;pictq</code> 中</p>
+<h1 id="显示线程"><a href="#显示线程" class="headerlink" title="显示线程"></a>显示线程</h1><p>显示线程从 <code>is-&gt;pictq</code> 读取数据，然后直接推送给硬件设备，完成渲染。</p>
+<p>前面关于启动流程的分析我们知道，IjkMediaPlayer.prepareAsync <code>stream_open</code>中创建了视频显示进程</p>
+<p><code>is-&gt;video_refresh_tid = SDL_CreateThreadEx(&amp;is-&gt;_video_refresh_tid, video_refresh_thread, ffp, &quot;ff_vout&quot;);</code></p>
+<h2 id="video-refresh-thread-ff-ffplayer-c"><a href="#video-refresh-thread-ff-ffplayer-c" class="headerlink" title="video_refresh_thread()/ff_ffplayer.c"></a><code>video_refresh_thread()/ff_ffplayer.c</code></h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">video_refresh_thread(<span class="keyword">void</span> *arg)</span><br><span class="line">              |(调用)</span><br><span class="line">video_refresh(ffp, &amp;remaining_time);</span><br><span class="line">              |(调用)</span><br><span class="line"> video_display2(ffp);</span><br><span class="line">              |(调用)</span><br><span class="line">video_image_display2(ffp);</span><br></pre></td></tr></table></figure>
+<h3 id="video-image-display2"><a href="#video-image-display2" class="headerlink" title="video_image_display2"></a><code>video_image_display2</code></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">video_image_display2</span><span class="params">(FFPlayer *ffp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    VideoState *is = ffp-&gt;is;</span><br><span class="line">    Frame *vp;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//从队列中取出数据</span></span><br><span class="line">	<span class="comment">//然后调用SDL_VoutDisplayYUVOverlay()完成渲染。</span></span><br><span class="line">    vp = frame_queue_peek(&amp;is-&gt;pictq);</span><br><span class="line">    <span class="keyword">if</span> (vp-&gt;bmp) &#123;</span><br><span class="line">        SDL_VoutDisplayYUVOverlay(ffp-&gt;vout, vp-&gt;bmp);</span><br><span class="line">        ffp-&gt;stat.vfps = SDL_SpeedSamplerAdd(&amp;ffp-&gt;vfps_sampler, FFP_SHOW_VFPS_FFPLAY, <span class="string">"vfps[ffplay]"</span>);</span><br><span class="line">        <span class="keyword">if</span> (!ffp-&gt;first_video_frame_rendered) &#123;</span><br><span class="line">            ffp-&gt;first_video_frame_rendered = <span class="number">1</span>;</span><br><span class="line">            ffp_notify_msg1(ffp, FFP_MSG_VIDEO_RENDERING_START);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="SDL-VoutDisplayYUVOverlay"><a href="#SDL-VoutDisplayYUVOverlay" class="headerlink" title="SDL_VoutDisplayYUVOverlay"></a><code>SDL_VoutDisplayYUVOverlay</code></h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">SDL_VoutDisplayYUVOverlay</span><span class="params">(SDL_Vout *vout, SDL_VoutOverlay *overlay)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (vout &amp;&amp; overlay &amp;&amp; vout-&gt;display_overlay)</span><br><span class="line">        <span class="keyword">return</span> vout-&gt;display_overlay(vout, overlay);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在初始化的时候，在 <code>ijkmp_android_create()</code>里面调用的<code>SDL_VoutAndroid_CreateForAndroidSurface();</code> 赋值的：</p>
+<p><code>vout-&gt;display_overlay = func_display_overlay;</code></p>
+<p>所以其实调用了 <code>func_display_overlay()</code> 完成渲染。从pictq列表中获取视频frame数据，然后再写入nativewindows的视频缓冲中进行渲染。</p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/bilibili/ijkplayer" target="_blank" rel="noopener">github</a></li>
+<li><a href="https://www.jianshu.com/p/5345ab4cf979" target="_blank" rel="noopener">ijkplayer 源码分析（上）</a> 王英豪，基于k0.8.8版本</li>
+<li><a href="https://cloud.tencent.com/developer/article/1032547" target="_blank" rel="noopener">ijkplayer框架深入剖析</a> 金山云团队，基于k0.7.6版本</li>
+<li><a href="https://www.jianshu.com/p/7d9b86919682" target="_blank" rel="noopener">ijkplayer视频播放器源码分析(android)</a> 尸情化异，基于k0.5.1版本，系列专栏5篇：使用，初始化，数据读取，音频解码播放，视频解码播放</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/07/编程思想/DIP IOC DI/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/07/编程思想/DIP IOC DI/" itemprop="url">DIP IOC DI</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-07T10:58:53+08:00">
+                2019-08-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/编程思想/" itemprop="url" rel="index">
+                    <span itemprop="name">编程思想</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="DIP-依赖倒置原则"><a href="#DIP-依赖倒置原则" class="headerlink" title="DIP 依赖倒置原则"></a>DIP 依赖倒置原则</h1><p>Dependence Inversion Principle</p>
+<p>实际开发，经常出现高层模块(复杂业务模块；调用者)依赖底层模块(基本原子操作；被调用者)，高层模块往往复杂而多变，改动带来新风险。</p>
+<p>这类问题的解决方案就是 <strong>依赖倒置原则</strong></p>
+<ul>
+<li>高层模块不应该直接依赖底层模块,两者都应该依赖抽象.</li>
+<li>抽象不应依赖细节.</li>
+<li>细节应该依赖抽象.</li>
+</ul>
+<p><strong>本质</strong> 就是在高层模块(调用者)定义一个 <strong>中间件(抽象层)</strong>，底层模块(被调用者) 实现中间件(实现了依赖倒置)；也就是我们常说的 <strong>面向抽象(接口)编程</strong> </p>
+<h1 id="IOC和DI-控制反转和依赖注入"><a href="#IOC和DI-控制反转和依赖注入" class="headerlink" title="IOC和DI 控制反转和依赖注入"></a>IOC和DI 控制反转和依赖注入</h1><p>Inversion of Control</p>
+<p>Dependency Injection</p>
+<p>示例：用户注册模块</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserDao</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">insert</span><span class="params">(User user)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDaoImpl</span> <span class="keyword">implements</span> <span class="title">UserDao</span></span>&#123;</span><br><span class="line">    <span class="meta">@override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">insert</span><span class="params">(User user)</span></span>&#123;</span><br><span class="line">        <span class="comment">//存储的具体实现</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserService</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">storeUser</span><span class="params">(User user)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserServiceImpl</span> <span class="title">implments</span> <span class="title">UserService</span></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> UserDao userDao;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UserService</span><span class="params">()</span></span>&#123;</span><br><span class="line">        userDao=<span class="keyword">new</span> UserDaoImpl();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">storeUser</span><span class="params">(User user)</span></span>&#123;</span><br><span class="line">        <span class="comment">//用户信息校验通过</span></span><br><span class="line">        userDao.insert(user);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上面的代码已经尽可能的遵循DIP原则</p>
+<p>在UserServiceImpl中,通过new来创建UserDao对象(即 UserDao对象的控制权实际在UserServiceImpl中，两者耦合)</p>
+<p>解决方案：增加一个中间件(容器)，负责创建和存储所有注册对象(控制权转移，解耦)，运行时按需从容器中取对象</p>
+<p><strong>控制反转是DIP原则的升级</strong>,旨在解决对象依赖问题</p>
+<p>控制反转是一种思维方式的变化,<strong>依赖注入</strong>则是该思想的<strong>具体实践</strong>.</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>控制反转和依赖倒置皆提现了<strong>常规线性思维的转变</strong></p>
+<p>倒置”一词其实反映的是逆常规思维(从抽象到具体)。常规思维是线性的,人认识事物的本质是从具体到抽象。即:将类与类直接打交道改编为抽象与抽象打交道,也就是所谓的面向抽象(抽象类或接口)编程.</p>
+<p><strong>控制反转是DIP原则的升级</strong>,旨在解决对象依赖这问题</p>
+<p>控制反转是一种思维方式的变化,<strong>依赖注入</strong>则是该思想的<strong>具体实践</strong>.</p>
+<p>实现控制反转通常有<strong>两种方式</strong>:依赖查找和依赖注入.</p>
+<ul>
+<li><strong>依赖查找</strong>:容器提供回调接口和上下文给组件,需要组件自己实现查找合适的对象的过程,此类以<strong>EJB</strong>为代表.</li>
+<li><strong>依赖注入</strong>:组件不做任何定位查询,只需向容器提供普通的java方法,然后容器根据这些方法自行决定依赖关系.此类以<strong>Spring</strong>为代表.<ul>
+<li>自动注入,更为自动和简单</li>
+<li>基本能够实现对原有代码的无侵入</li>
+</ul>
+</li>
+</ul>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://www.jianshu.com/p/c899300f98fa" target="_blank" rel="noopener">白话设计——浅谈DIP和IOC</a></li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/07/直播/ijkplayer/ijkplayer系列四-音频解码与播放/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/08/07/直播/ijkplayer/ijkplayer系列四-音频解码与播放/" itemprop="url">ijkplayer系列四-音频解码与播放</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-07T10:22:14+08:00">
+                2019-08-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/直播/" itemprop="url" rel="index">
+                    <span itemprop="name">直播</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <img src="/2019/08/07/直播/ijkplayer/ijkplayer系列四-音频解码与播放/播放器基本框图.png">
+<p>播放器必然是通过<strong>多线程</strong>同时进行解封装、解码、视频渲染等工作的</p>
+<h1 id="解码线程"><a href="#解码线程" class="headerlink" title="解码线程"></a>解码线程</h1><p>从数据读取线程分析那篇文章我们可以看到，ijkplayer的音频解码线程的入口函数是<code>audio_thread()/ff_ffplayer.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">audio_thread</span><span class="params">(<span class="keyword">void</span> *arg)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">    <span class="keyword">do</span> &#123;</span><br><span class="line">        ffp_audio_statistic_l(ffp);</span><br><span class="line">        <span class="comment">//解码帧存放到frame中</span></span><br><span class="line">        <span class="comment">//里面是调用传进去的codec的codec-&gt;decode()方法解码</span></span><br><span class="line">        <span class="keyword">if</span> ((got_frame = decoder_decode_frame(ffp, &amp;is-&gt;auddec, frame, <span class="literal">NULL</span>)) &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">goto</span> the_end;</span><br><span class="line">            <span class="comment">//...</span></span><br><span class="line">            <span class="keyword">while</span> ((ret = av_buffersink_get_frame_flags(is-&gt;out_audio_filter, frame, <span class="number">0</span>)) &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">				<span class="comment">//...</span></span><br><span class="line">				<span class="comment">//能否把解码的frame写入音频解码帧列表is-&gt;sampq中(播放线程从这里面读取数据播放)</span></span><br><span class="line">				<span class="comment">//里面会判断sampq队列是否满了</span></span><br><span class="line">				如果没位置放我们的frame的话，会调用pthread_cond_wait()方法阻塞队列</span><br><span class="line">				<span class="comment">//如果有位置放frame的话，就会返回frame应该放置的位置的地址的指针</span></span><br><span class="line">                <span class="keyword">if</span> (!(af = frame_queue_peek_writable(&amp;is-&gt;sampq)))</span><br><span class="line">                    <span class="keyword">goto</span> the_end;</span><br><span class="line"></span><br><span class="line">        		<span class="comment">//...</span></span><br><span class="line">        		<span class="comment">//把frame放入到sampq相应位置</span></span><br><span class="line">        		av_frame_move_ref(af-&gt;frame, frame);</span><br><span class="line">        		<span class="comment">//唤醒线程(音频播放线程因为sampq队列为空而阻塞，这里可以唤醒它)</span></span><br><span class="line">        		rame_queue_push(&amp;is-&gt;sampq);</span><br><span class="line">				<span class="comment">//...</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">while</span> (ret &gt;= <span class="number">0</span> || ret == AVERROR(EAGAIN) || ret == AVERROR_EOF);</span><br><span class="line"> the_end:</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">    av_frame_free(&amp;frame);</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="播放流程"><a href="#播放流程" class="headerlink" title="播放流程"></a>播放流程</h1><p>在初始化的时候，有个方法没有跟进去分析，那就是在 <code>native_setup</code>–&gt; <code>ijkmp_android_create()/ijkplayer_android.c</code> –&gt; <code>ffpipeline_create_from_android()/ijkplayer_android.c</code>：</p>
+<p>该方法里面一句</p>
+<pre><code>pipeline-&gt;func_open_audio_output  = func_open_audio_output;
+</code></pre><p><code>func_open_audio_output()/ffpipeline_android.c:</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> SDL_Aout *<span class="title">func_open_audio_output</span><span class="params">(IJKFF_Pipeline *pipeline, FFPlayer *ffp)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    SDL_Aout *aout = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="keyword">if</span> (ffp-&gt;opensles) &#123;</span><br><span class="line">        aout = SDL_AoutAndroid_CreateForOpenSLES();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        aout = SDL_AoutAndroid_CreateForAudioTrack();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (aout)</span><br><span class="line">        SDL_AoutSetStereoVolume(aout, pipeline-&gt;opaque-&gt;left_volume, pipeline-&gt;opaque-&gt;right_volume);</span><br><span class="line">    <span class="keyword">return</span> aout;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从上面可以看出，音频播放也分为:<code>opensles,audiotrack</code>,然后我们就来看看<code>audiotrack</code>吧：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">SDL_Aout *<span class="title">SDL_AoutAndroid_CreateForAudioTrack</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    SDL_Aout *aout = SDL_Aout_CreateInternal(<span class="keyword">sizeof</span>(SDL_Aout_Opaque));</span><br><span class="line">    <span class="keyword">if</span> (!aout)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    SDL_Aout_Opaque *opaque = aout-&gt;opaque;</span><br><span class="line">    opaque-&gt;wakeup_cond  = SDL_CreateCond();</span><br><span class="line">    opaque-&gt;wakeup_mutex = SDL_CreateMutex();</span><br><span class="line">    opaque-&gt;speed        = <span class="number">1.0f</span>;</span><br><span class="line"></span><br><span class="line">    aout-&gt;opaque_class = &amp;g_audiotrack_class;</span><br><span class="line">    aout-&gt;free_l       = aout_free_l;</span><br><span class="line">    aout-&gt;open_audio   = aout_open_audio;</span><br><span class="line">    aout-&gt;pause_audio  = aout_pause_audio;</span><br><span class="line">    aout-&gt;flush_audio  = aout_flush_audio;</span><br><span class="line">    aout-&gt;set_volume   = aout_set_volume;</span><br><span class="line">    aout-&gt;close_audio  = aout_close_audio;</span><br><span class="line">    aout-&gt;func_get_audio_session_id = aout_get_audio_session_id;</span><br><span class="line">    aout-&gt;func_set_playback_rate    = func_set_playback_rate;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> aout;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上一篇数据读取线程我们分析到了在<code>stream_component_open()</code>里面会调用<code>aout-&gt;open_audio(aout, pause_on);</code></p>
+<p>再看现在初始化:</p>
+<pre><code>aout-&gt;open_audio   = aout_open_audio;    
+</code></pre><p>所以 <code>stream_component_open()</code>里面相当于直接调用了<code>aout_open_audio()/ijksdl_aout_android_audiotrack.c</code></p>
+<p><code>aout_open_audio()</code> –&gt; <code>aout_open_audio_n()</code> –&gt; 创建音频播放线程</p>
+<pre><code>SDL_CreateThreadEx(&amp;opaque-&gt;_audio_tid, aout_thread, aout, &quot;ff_aout_android&quot;);
+</code></pre><h2 id="aout-thread"><a href="#aout-thread" class="headerlink" title="aout_thread"></a>aout_thread</h2><p>在这个函数内部会调用 <code>aout_thread_n()/ijksdl_aout_android_audiotrack.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">aout_thread_n</span><span class="params">(JNIEnv *env, SDL_Aout *aout)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  SDL_Aout_Opaque *opaque = aout-&gt;opaque;</span><br><span class="line">    SDL_Android_AudioTrack *atrack = opaque-&gt;atrack;</span><br><span class="line">    SDL_AudioCallback audio_cblk = opaque-&gt;spec.callback;</span><br><span class="line">    <span class="keyword">void</span> *userdata = opaque-&gt;spec.userdata;</span><br><span class="line">    <span class="keyword">uint8_t</span> *buffer = opaque-&gt;buffer;</span><br><span class="line">  	<span class="comment">//...</span></span><br><span class="line">    <span class="keyword">if</span> (!opaque-&gt;abort_request &amp;&amp; !opaque-&gt;pause_on)</span><br><span class="line">        <span class="comment">//...</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (!opaque-&gt;abort_request) &#123;</span><br><span class="line">        <span class="comment">//...省略了一堆设置播放器相关的配置(播放速度，音量）</span></span><br><span class="line">        <span class="comment">//...SDL_Android_AudioTrack_set_xxx()</span></span><br><span class="line">        audio_cblk(userdata, buffer, copy_size);</span><br><span class="line">        <span class="keyword">if</span> (opaque-&gt;need_flush) &#123;</span><br><span class="line">            SDL_Android_AudioTrack_flush(env, atrack);</span><br><span class="line">            opaque-&gt;need_flush = <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (opaque-&gt;need_flush) &#123;</span><br><span class="line">            opaque-&gt;need_flush = <span class="number">0</span>;</span><br><span class="line">            SDL_Android_AudioTrack_flush(env, atrack);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">int</span> written = SDL_Android_AudioTrack_write(env, atrack, buffer, copy_size);</span><br><span class="line">            <span class="keyword">if</span> (written != copy_size) &#123;</span><br><span class="line">                ALOGW(<span class="string">"AudioTrack: not all data copied %d/%d"</span>, (<span class="keyword">int</span>)written, (<span class="keyword">int</span>)copy_size);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// <span class="doctag">TODO:</span> 1 if callback return -1 or 0</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="audio-cblk"><a href="#audio-cblk" class="headerlink" title="audio_cblk()"></a><code>audio_cblk()</code></h3><p><code>audio_cblk()</code> 实际上就是调用的 <code>opaque-&gt;spec.callback</code>(上面初始化赋值的)</p>
+<p>上一篇 <code>stream_component_open()</code> 里面调用的 <code>audio_open()</code>，有这么一句代码:</p>
+<p><code>wanted_spec.callback = sdl_audio_callback;</code></p>
+<p>其实就是调用到sdl_audio_callback()这个函数来了。</p>
+<h3 id="sdl-audio-callback"><a href="#sdl-audio-callback" class="headerlink" title="sdl_audio_callback"></a><code>sdl_audio_callback</code></h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">sdl_audio_callback</span><span class="params">(<span class="keyword">void</span> *opaque, Uint8 *stream, <span class="keyword">int</span> len)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="comment">//...</span></span><br><span class="line">    <span class="keyword">while</span> (len &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (is-&gt;audio_buf_index &gt;= is-&gt;audio_buf_size) &#123;</span><br><span class="line">        	<span class="comment">//解码音频帧</span></span><br><span class="line">           audio_size = audio_decode_frame(is);</span><br><span class="line">           <span class="keyword">if</span> (audio_size &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">/* 发生错误，就输出silence */</span></span><br><span class="line">           <span class="comment">//...</span></span><br><span class="line">           &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">               <span class="keyword">if</span> (is-&gt;show_mode != SHOW_MODE_VIDEO)</span><br><span class="line">                   update_sample_display(is, (<span class="keyword">int16_t</span> *)is-&gt;audio_buf, audio_size);</span><br><span class="line">               is-&gt;audio_buf_size = audio_size;</span><br><span class="line">           &#125;</span><br><span class="line">           is-&gt;audio_buf_index = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        len1 = is-&gt;audio_buf_size - is-&gt;audio_buf_index;</span><br><span class="line">        <span class="keyword">if</span> (len1 &gt; len)</span><br><span class="line">            len1 = len;</span><br><span class="line">        <span class="keyword">if</span> (!is-&gt;muted &amp;&amp; is-&gt;audio_buf &amp;&amp; is-&gt;audio_volume == SDL_MIX_MAXVOLUME)</span><br><span class="line">        	<span class="comment">//拷贝解码的音频帧</span></span><br><span class="line">            <span class="built_in">memcpy</span>(stream, (<span class="keyword">uint8_t</span> *)is-&gt;audio_buf + is-&gt;audio_buf_index, len1);</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">           <span class="comment">//...</span></span><br><span class="line">        &#125;</span><br><span class="line">        len -= len1;</span><br><span class="line">        stream += len1;</span><br><span class="line">        is-&gt;audio_buf_index += len1;</span><br><span class="line">    &#125;</span><br><span class="line">    is-&gt;audio_write_buf_size = is-&gt;audio_buf_size - is-&gt;audio_buf_index;</span><br><span class="line">    <span class="comment">/* Let's assume the audio driver that is used by SDL has two periods. */</span></span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="audio-decode-frame"><a href="#audio-decode-frame" class="headerlink" title="audio_decode_frame"></a><code>audio_decode_frame</code></h4><p>解码音频帧</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Decode one audio frame and return its uncompressed size.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * The processed audio frame is decoded, converted if required, and</span></span><br><span class="line"><span class="comment"> * stored in is-&gt;audio_buf, with size in bytes given by the return</span></span><br><span class="line"><span class="comment"> * value.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">static int audio_decode_frame(FFPlayer *ffp)｛</span><br><span class="line">    af = frame_queue_peek_readable(&amp;is-&gt;sampq)</span><br><span class="line">    is-&gt;audio_buf = af-&gt;frame-&gt;data[<span class="number">0</span>];</span><br><span class="line">｝</span><br></pre></td></tr></table></figure>
+<p>判断解码后的is-&gt;sampq是否为空，如果为空，就阻塞(上面解码的时候，每向is-&gt;sampq放入一frame，就唤醒线程)；否则把队列的第一个frame赋值给ffp-&gt;is-&gt;audio_buf</p>
+<h4 id="拷贝解码的音频帧"><a href="#拷贝解码的音频帧" class="headerlink" title="拷贝解码的音频帧"></a>拷贝解码的音频帧</h4><p><code>memcpy(stream, (uint8_t *)is-&gt;audio_buf + is-&gt;audio_buf_index, len1);</code></p>
+<p>copy到stream中，stream从命名来看是一个流，流的另外一头在哪里呢？</p>
+<p>再返回到 <code>aout_thread_n()</code> 中：</p>
+<p><code>SDL_Android_AudioTrack_write(env, atrack, buffer, copy_size);</code></p>
+<p>buffer就是刚刚的stream,该函数继续调用:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"> (*env)-&gt;SetByteArrayRegion(env, atrack-&gt;byte_buffer, <span class="number">0</span>, (<span class="keyword">int</span>)size_in_byte, (jbyte*) data);</span><br><span class="line">J4AC_AudioTrack__write(env, atrack-&gt;thiz, atrack-&gt;byte_buffer, <span class="number">0</span>, (<span class="keyword">int</span>)size_in_byte);</span><br></pre></td></tr></table></figure>
+<p>把data拷贝到数组中，进行转换。为了下一笔把这个数组，也就是音频帧传递给java</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">jint <span class="title">J4AC_android_media_AudioTrack__write</span><span class="params">(JNIEnv *env, jobject thiz, jbyteArray audioData, jint offsetInBytes, jint sizeInBytes)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (*env)-&gt;CallIntMethod(env, thiz, class_J4AC_android_media_AudioTrack.method_write, audioData, offsetInBytes, sizeInBytes);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>调用了java层的 <code>AudioTrack.java</code>中的 <code>write()</code> 函数</p>
+<p>这里又用到了bilibili另外一个开源项目:<a href="https://link.jianshu.com/?t=https://github.com/Bilibili/jni4android" target="_blank" rel="noopener">jni4android</a>。这个项目可以直接在c里面生成一个java的装饰类。这里用到的java就是<code>AudioTrack.java</code>，生成的文件就是<code>AudioTrack.h</code>和<code>AudioTrack.c</code></p>
+<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
+<li><a href="https://github.com/bilibili/ijkplayer" target="_blank" rel="noopener">github</a></li>
+<li><a href="https://www.jianshu.com/p/5345ab4cf979" target="_blank" rel="noopener">ijkplayer 源码分析（上）</a> 王英豪，基于k0.8.8版本</li>
+<li><a href="https://cloud.tencent.com/developer/article/1032547" target="_blank" rel="noopener">ijkplayer框架深入剖析</a> 金山云团队，基于k0.7.6版本</li>
+<li><a href="https://www.jianshu.com/p/7d9b86919682" target="_blank" rel="noopener">ijkplayer视频播放器源码分析(android)</a> 尸情化异，基于k0.5.1版本，系列专栏5篇：使用，初始化，数据读取，音频解码播放，视频解码播放</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/06/直播/ijkplayer/ijkplayer系列三-数据读取线程/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1053,6 +1594,8 @@
 <p>比如 模块目录 <code>android/ijkplayer/ijkplayer-armv5/src/main/libs/armeabi-v7a</code></p>
 <h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
 <li><a href="https://github.com/bilibili/ijkplayer" target="_blank" rel="noopener">ijkplayer</a></li>
+<li><a href="https://blog.csdn.net/Android_Programmer/article/details/81774732" target="_blank" rel="noopener">ijkplayer 编译详解</a></li>
+<li><a href="https://www.pianshen.com/article/390141993/" target="_blank" rel="noopener">Android Mac下编译bilibili IjkPlayer以实现支持播放rtsp协议流资源</a></li>
 </ul>
 
           
@@ -1717,725 +2260,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/02/直播/直播技术/直播技术四-编码和封装/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/08/02/直播/直播技术/直播技术四-编码和封装/" itemprop="url">直播技术四-编码和封装</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-02T10:26:14+08:00">
-                2019-08-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><strong>编码性能、编码速度和编码压缩比</strong>会直接影响整个流媒体传输的用户体验和传输成本。</p>
-<p>编码完成后需要把内容按照一定标准封装到一个多媒体容器</p>
-<h1 id="视频编码的意义"><a href="#视频编码的意义" class="headerlink" title="视频编码的意义"></a>视频编码的意义</h1><p>原始视频数据存储空间大，一个 1080P 50帧/秒 位宽(每个像素点位数)8bit 视频的码率为需要 937.5 Mbps，需要千兆上行宽带才能满足实时传输需求。而经过 H.264 编码压缩之后，视频码率只有 809 Kbps ,1 Mbps 的上行带宽就可以满足实时传输需求。所以从视频采集传感器采集来的原始视频势必要经过视频编码。</p>
-<h1 id="视频编码原理"><a href="#视频编码原理" class="headerlink" title="视频编码原理"></a>视频编码原理</h1><h2 id="编码原理"><a href="#编码原理" class="headerlink" title="编码原理"></a>编码原理</h2><p>核心思想就是<strong>去除冗余信息</strong></p>
-<p><strong>空间冗余</strong>：图像相邻像素之间有较强的相关性</p>
-<p><strong>时间冗余</strong>：视频序列的相邻图像之间内容相似</p>
-<p><strong>编码冗余</strong>：不同像素值出现的概率不同</p>
-<p><strong>视觉冗余</strong>：人的视觉系统对某些细节不敏感</p>
-<p><strong>知识冗余</strong>：规律性的结构可由先验知识和背景知识得到</p>
-<h2 id="帧内编码"><a href="#帧内编码" class="headerlink" title="帧内编码"></a>帧内编码</h2><p><strong>帧内编码</strong>：对每一帧图片进行压缩编码</p>
-<img src="/2019/08/02/直播/直播技术/直播技术四-编码和封装/帧内编码.png">
-<p> <strong>MJPEG</strong> 编码就是这种编码方式，这种编码方式只有帧内编码，利用<strong>空间上的取样预测</strong>来编码。去除 <strong>空间冗余</strong></p>
-<p>如图，绿色的部分就是当前待编码的区域，灰色就是尚未编码的区域，绿色区域可以根据已经编码的部分进行预测</p>
-<h2 id="帧间编码"><a href="#帧间编码" class="headerlink" title="帧间编码"></a>帧间编码</h2><p><strong>帧间编码</strong>：帧和帧之间有时间的相关性，通过搜索算法选定了帧上的某些区域，然后通过计算当前帧和前后参考帧的向量差进行编码</p>
-<img src="/2019/08/02/直播/直播技术/直播技术四-编码和封装/帧间编码.png">
-<p>通过上面两个图 连续帧我们可以看到，滑雪的同学是向前位移的，但实际上是<strong>雪景在向后位移</strong>，P 帧通过参考帧（I 或其他 P 帧）就可以进行编码了，编码之后的大小非常小，压缩比非常高</p>
-<p>上面两张图片的生成方式：</p>
-<ul>
-<li>生成带有移动矢量的视频</li>
-<li>把每一帧都输出成图片</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg  -flags2 +export_mvs -i tutu.mp4 -vf codecview=mv=pf+bf+bb tutudebug2.mp4</span><br><span class="line"></span><br><span class="line">ffmpeg -i tutudebug2.mp4 &apos;tutunormal-%03d.bmp&apos;</span><br></pre></td></tr></table></figure>
-<h2 id="编码流程"><a href="#编码流程" class="headerlink" title="编码流程"></a>编码流程</h2><img src="/2019/08/02/直播/直播技术/直播技术四-编码和封装/编码流程.png">
-<p>编码流程是把帧内编码和帧间编码结合在一起</p>
-<p>我们通常说的 I 帧和 P 帧就是分别采用了帧内编码和帧间编码</p>
-<h1 id="编码器的选择"><a href="#编码器的选择" class="headerlink" title="编码器的选择"></a>编码器的选择</h1><h2 id="H-264-AVC"><a href="#H-264-AVC" class="headerlink" title="H.264/AVC"></a>H.264/AVC</h2><h3 id="特性"><a href="#特性" class="headerlink" title="特性"></a>特性</h3><p>AVC（Advanced Video Coding）高级视频编码</p>
-<p>H.264/AVC <strong>低成本实现</strong>在<strong>更低带宽</strong>下提供优质视频（只有 MPEG-2，H.263 或 MPEG-4 第 2 部分的一半带宽或更少）</p>
-<ul>
-<li>不增加太多设计复杂度使得无法实现或实现成本过高</li>
-<li>提供足够的灵活性，以在各种应用、网络及系统中使用</li>
-</ul>
-<p>这样的技术基础让 H.264 成为包括 YouTube 在内的在线视频公司采用它作为主要的编解码器。</p>
-<h3 id="专利许可"><a href="#专利许可" class="headerlink" title="专利许可"></a>专利许可</h3><p>理论上讲使用 H.264 需要交纳不菲的专利费用。</p>
-<h3 id="开源实现"><a href="#开源实现" class="headerlink" title="开源实现"></a>开源实现</h3><p>OpenH264、x264</p>
-<h4 id="OpenH264"><a href="#OpenH264" class="headerlink" title="OpenH264"></a>OpenH264</h4><p>思科实现的开源 H.264 编码，思科把 OpenH264 实现的年度专利费交满后，OpenH264 事实上就可以免费自由的使用了。</p>
-<h4 id="x264"><a href="#x264" class="headerlink" title="x264"></a>x264</h4><p>采用 GPL 授权的视频编码自由软件。x264 的主要功能在于进行 H.264/MPEG-4 AVC 的视频编码，而不是作为解码器（decoder）之用。</p>
-<h4 id="比较"><a href="#比较" class="headerlink" title="比较"></a>比较</h4><p>OpenH264 CPU 的占用相对 x264低很多</p>
-<p>OpenH264 只支持 baseline profile，x264 支持更多 profile</p>
-<h2 id="HEVC-H-265"><a href="#HEVC-H-265" class="headerlink" title="HEVC/H.265"></a>HEVC/H.265</h2><h3 id="特性-1"><a href="#特性-1" class="headerlink" title="特性"></a>特性</h3><p>高效率视频编码（High Efficiency Video Coding，简称 HEVC）是 ITU-T H.264/MPEG-4 AVC 标准的<strong>继任者</strong>。</p>
-<ul>
-<li>提升视频质量</li>
-<li>同时能达到 H.264/MPEG-4 AVC <strong>两倍压缩率</strong>（等同于同样画面质量下比特率减少了 50%）</li>
-<li>可支持 <strong>4K</strong> 分辨率，最高分辨率可达到 8192×4320（8K 分辨率）。</li>
-</ul>
-<h3 id="专利许可-1"><a href="#专利许可-1" class="headerlink" title="专利许可"></a>专利许可</h3><p>要求所有使用 H.265 技术的支付专利使用费。包括</p>
-<ul>
-<li>内容制造商。<ul>
-<li>上缴内容收入的 0.5%作为技术使用费</li>
-<li>包括苹果、YouTube、Netflix、Facebook、亚马逊等</li>
-<li>整个流媒体市场每年达到约 1000 亿美元的规模，且不断增长中，</li>
-</ul>
-</li>
-<li>设备制造商。<ul>
-<li>按每台设备收费</li>
-<li>电视厂商、移动设备厂商、蓝光设备播放器、游戏机、录像机</li>
-<li>之前已经发售的产品依然要追缴费用</li>
-</ul>
-</li>
-</ul>
-<h3 id="开源实现-1"><a href="#开源实现-1" class="headerlink" title="开源实现"></a>开源实现</h3><p>libde265、x265</p>
-<h4 id="libde265-HEVC"><a href="#libde265-HEVC" class="headerlink" title="libde265 HEVC"></a>libde265 HEVC</h4><p>struktur 公司以开源许可证 GNU LesserGeneral Public License (LGPL) 提供，观众可以较慢的网速下欣赏到最高品质的影像。可以减少 50%流媒体播放所需要的带宽。高清或者 4K/8K 超高清流媒体播放，低延迟/低带宽视频会议，以及完整的移动设备覆盖。具有「拥塞感知」视频编码的稳定性，十分适合应用在 3/4G 和 LTE 网络。</p>
-<h4 id="x265"><a href="#x265" class="headerlink" title="x265"></a>x265</h4><p>MulticoreWare 开发，并开源。采用 GPL 协议，但是资助这个项目的几个公司组成了联盟可以在非 GPL 协议下使用这个软件。</p>
-<h2 id="VP8"><a href="#VP8" class="headerlink" title="VP8"></a>VP8</h2><h3 id="特性-2"><a href="#特性-2" class="headerlink" title="特性"></a>特性</h3><p>VP8 是一个开放的视频压缩格式，最早由 On2 Technologies 开发，随后由 Google 发布。</p>
-<p>目前支持 VP8 的网页浏览器有 Opera、Firefox 和 Chrome。</p>
-<h3 id="专利许可-2"><a href="#专利许可-2" class="headerlink" title="专利许可"></a>专利许可</h3><p>Google 获取 VP8 以及其之前的 VPx 等编码所可能侵犯的专利授权，然后无偿再次授权相关专利给 VP8 的用户。</p>
-<h3 id="开源实现-2"><a href="#开源实现-2" class="headerlink" title="开源实现"></a>开源实现</h3><h4 id="libvpx"><a href="#libvpx" class="headerlink" title="libvpx"></a>libvpx</h4><p>libvpx 是 VP8 的唯一开源实现，由 On2 Technologies 开发，Google 收购后将其开放源码，License 非常宽松可以自由使用。</p>
-<h2 id="VP9"><a href="#VP9" class="headerlink" title="VP9"></a>VP9</h2><h3 id="特性-3"><a href="#特性-3" class="headerlink" title="特性"></a>特性</h3><p>同画质下，比 VP8 编码减少 50% 的文件大小，在编码效率上超越 HEVC 编码。</p>
-<p>目前支持 VP8 的网页浏览器有 Chromium、Chrome、Firefox </p>
-<h3 id="专利许可-3"><a href="#专利许可-3" class="headerlink" title="专利许可"></a>专利许可</h3><p>VP9 是一个开放格式、无权利金的视频编码格式。</p>
-<h3 id="开源实现-3"><a href="#开源实现-3" class="headerlink" title="开源实现"></a>开源实现</h3><h4 id="libvpx-1"><a href="#libvpx-1" class="headerlink" title="libvpx"></a>libvpx</h4><p>libvpx是 VP9 的唯一开源实现，由 Google 开发维护，里面有部分代码是 VP8 和 VP9 公用的，其余分别是 VP8 和 VP9 的编解码实现。</p>
-<h1 id="FFmpeg"><a href="#FFmpeg" class="headerlink" title="FFmpeg"></a>FFmpeg</h1><p><a href="https://ffmpeg.org/download.html" target="_blank" rel="noopener">FFmpeg</a> 是一个自由软件，可以运行音频和视频多种格式的录影、转换、流功能.包含了 libavcodec -这是一个用于多个项目中音频和视频的解码器库，以及 libavformat -一个音频与视频格式转换库。</p>
-<p>FF 指的是 Fast Forward</p>
-<p>FFmpeg 是个优秀的工具，可以通过它完成很多日常的工作和实验，但是距离提供真正可用的流媒体服务、直播服务还有非常多的工作要做</p>
-<h1 id="封装"><a href="#封装" class="headerlink" title="封装"></a>封装</h1><p>封装就是把<strong>编码内容</strong>（视频，音频，字幕，章节信息等）按照一定<strong>标准</strong>封装一个容器。</p>
-<ul>
-<li>播放简单</li>
-<li>为媒体内容提供索引。可拖动</li>
-</ul>
-<h2 id="封装格式"><a href="#封装格式" class="headerlink" title="封装格式"></a>封装格式</h2><p>常见封装格式和音视频编码的组合方式</p>
-<table>
-<thead>
-<tr>
-<th>封装容器</th>
-<th>视频流编码格式</th>
-<th>音频流编码格式</th>
-<th>说明</th>
-<th>优点</th>
-<th>缺点</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>AVI (.avi)</td>
-<td>Xvid 或 Divx</td>
-<td>MP3</td>
-<td>Audio Video Interleaved 音频视频交错格式</td>
-<td>图像质量好，可以保持alpha通道</td>
-<td>体积过大，压缩标准不统一</td>
-</tr>
-<tr>
-<td>DV-AVI (.avi)</td>
-<td>Xvid 或 Divx</td>
-<td>MP3</td>
-<td>DV 是 Digital Video Format，数码摄像机使用这种格式</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Matroska (.mkv)</td>
-<td>Xvid</td>
-<td>MP3</td>
-<td>可把多种不同编码的视频及 16 条或以上不同格式的音频和语言不同的字幕封装到一个 Matroska Media 档内</td>
-<td>提供非常好的交互功能</td>
-<td></td>
-</tr>
-<tr>
-<td>Matroska (.mkv)</td>
-<td>Xvid</td>
-<td>AAC</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>Matroska (.mkv)</td>
-<td>H264</td>
-<td>AAC</td>
-<td>mkv最常用组合，体积最小，清晰度最高</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>MP4</td>
-<td>Xvid</td>
-<td>MP3</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>MP4</td>
-<td>H.264</td>
-<td>AAC</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>3GP</td>
-<td>H.263</td>
-<td>AAC</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>QuickTime File Format (.mov)</td>
-<td></td>
-<td></td>
-<td>苹果开发，默认的播放器是苹果的 QuickTime</td>
-<td>较高压缩比 较完美清晰度 可以保存 alpha 通道</td>
-<td></td>
-</tr>
-<tr>
-<td>MPEG (.mpg .mpeg .mpe .dat .vob .asf .3gp .mp4等)</td>
-<td></td>
-<td></td>
-<td>Moving Picture Experts Group 运动图像专家组格式</td>
-<td>MPEG－4 小体积 高质量</td>
-<td></td>
-</tr>
-<tr>
-<td>WMV 格式 (.wmv .asf)</td>
-<td></td>
-<td></td>
-<td>Windows Media Video 微软推出</td>
-<td>本地或网络播放,丰富的流间关系以及扩展性</td>
-<td>网站播放需要安装 Windows Media Player</td>
-</tr>
-<tr>
-<td>Real Video (.rm .rmvb)</td>
-<td></td>
-<td></td>
-<td>用户可以使用 RealPlayer 根据不同的网络传输速率制定出不同的压缩比率。rmvb是升级版</td>
-<td>低速网络实时播放</td>
-<td></td>
-</tr>
-<tr>
-<td>Flash Video (.flv)</td>
-<td></td>
-<td></td>
-<td>Adobe Flash 延伸出来的的一种流行网络视频封装格式</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>MPEG2-TS (.ts)</td>
-<td></td>
-<td></td>
-<td>Transport Stream「传输流」；又称 MTS、TS。用于数字电视广播系统</td>
-<td>传输和存储包含音效、视频与通信协议各种数据。Media Player Classic、VLC 等软件可以直接播放</td>
-<td></td>
-</tr>
-</tbody>
-</table>
-<p>目前，在流媒体传输，尤其是直播中主要采用的就是 FLV 和 MPEG2-TS 格式，分别用于 RTMP/HTTP-FLV 和 HLS 协议</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.qiniu.com/archives/6816" target="_blank" rel="noopener">《视频直播技术详解》之（四）：编码和封装</a></li>
-<li><a href="https://blog.csdn.net/wishfly/article/details/50921712" target="_blank" rel="noopener">常见视频文件的编码方式和封装格式</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/01/直播/直播技术/直播技术三-处理/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/08/01/直播/直播技术/直播技术三-处理/" itemprop="url">直播技术三-处理</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-01T18:02:14+08:00">
-                2019-08-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="开放式设计"><a href="#开放式设计" class="headerlink" title="开放式设计"></a>开放式设计</h1><img src="/2019/08/01/直播/直播技术/直播技术三-处理/处理.png">
-<p>如上图所示，处理环节中分为<strong>音频和视频处理</strong></p>
-<p>音频处理中具体包含混音(声音混淆)、降噪和声音特效等处理。在主播和观众<strong>连麦</strong>场景中，主播需要和某个或者多个观众进行对话，并将对话结果实时分享给其他所有观众，连麦的处理也有部分工作在推流端完成</p>
-<p>视频处理中包含美颜、水印、以及各种自定义滤镜等处理。</p>
-<p>除了要提供这些「标准」处理功能之外，我们还需要将该模块设计成可自由接入自定义处理功能的方式</p>
-<h1 id="常见视频处理功能"><a href="#常见视频处理功能" class="headerlink" title="常见视频处理功能"></a>常见视频处理功能</h1><h2 id="美颜"><a href="#美颜" class="headerlink" title="美颜"></a>美颜</h2><p>美颜的主要原理是通过「磨皮+美白」来达到整体美颜的效果。</p>
-<p>磨皮的技术术语是「去噪」，也即对图像中的噪点进行去除或者模糊化处理，常见的去噪算法有均值模糊、高斯模糊和中值滤波等。对整张图像进行「去噪」处理的时候不需要将眼睛也去掉，因此这个环节中也涉及到人脸和皮肤检测技术。</p>
-<h2 id="视频水印"><a href="#视频水印" class="headerlink" title="视频水印"></a>视频水印</h2><p>用于简单是版权保护，或者进行广告设置。出于监管需求，相关部门也规定视频直播过程中必须打上水印，同时直播的视频必须录制存储下来保存一定的时间，并在录制的视频上打上水印。</p>
-<p>视频水印包括<strong>播放器水印和视频内嵌水印</strong>两种方式可供选择。综合考虑云端录制对于水印的需求，一般会选择「视频内嵌水印」的方式打水印。</p>
-<h2 id="滤镜"><a href="#滤镜" class="headerlink" title="滤镜"></a>滤镜</h2><p>iOS 端可以考虑使用 <a href="https://github.com/BradLarson/GPUImage" target="_blank" rel="noopener">GPUImage</a>，这是一个开源的基于GPU的图片或视频的处理框架，内置了多达120多种常见的滤镜效果。添加实时的滤镜只需要简单地添加几行代码，还可以基于这个库自己写算法实现更丰富端效果。</p>
-<p>Android 有 GPUImage 这个库的<a href="https://github.com/CyberAgent/android-gpuimage" target="_blank" rel="noopener">移植</a>。Google 官方也开源了一个伟大的库 <a href="https://github.com/google/grafika" target="_blank" rel="noopener">grafika</a>，覆盖了 Android 上面很多多媒体和图形图像相关的处理</p>
-<h2 id="连麦"><a href="#连麦" class="headerlink" title="连麦"></a>连麦</h2><img src="/2019/08/01/直播/直播技术/直播技术三-处理/连麦.png">
-<p>连麦是互动直播中常见的需求，其流程如上图所示。主播和部分观众之间可以进行实时互动，然后将互动结果实时播放给其他观众观看。</p>
-<p>基于以上业务需求，我们很容易想到基于单向直播原理，在主播端和连麦观众端进行<strong>双向推流和双向播流</strong>的方式互动，然后在<strong>服务端</strong>将两路推流<strong>合成</strong>一路推送给其他观众。但 RTMP 带来的延迟决定了这种方式无法做到用户可接受的互动直播。</p>
-<h3 id="互动直播的主要技术难点"><a href="#互动直播的主要技术难点" class="headerlink" title="互动直播的主要技术难点"></a>互动直播的主要技术难点</h3><h4 id="低延迟互动"><a href="#低延迟互动" class="headerlink" title="低延迟互动"></a>低延迟互动</h4><p>保证主播和互动观众之间能够实时互动，两者之间就像电话沟通，因此必须保证两者能在<strong>秒级</strong>以内听到对方的声音，看到对方的视频；</p>
-<h4 id="音画同步"><a href="#音画同步" class="headerlink" title="音画同步"></a>音画同步</h4><p>互动直播中对音画同步的需求比单向直播中更高，必须保证在音视频秒级传输情况下的<strong>秒级</strong>同步。</p>
-<h4 id="音视频实时合成"><a href="#音视频实时合成" class="headerlink" title="音视频实时合成"></a>音视频实时合成</h4><p>其他观众需要实时观看到对话结果，因此需要在客户端或者服务端将画面和声音实时合成，然后以低成本高品质的方式传输观众端。</p>
-<h3 id="互动直播的解决方案"><a href="#互动直播的解决方案" class="headerlink" title="互动直播的解决方案"></a>互动直播的解决方案</h3><h4 id="思科或者-WebEx"><a href="#思科或者-WebEx" class="headerlink" title="思科或者 WebEx"></a>思科或者 WebEx</h4><p>在视频和电话会议领域，目前比较成熟的方案是使用<strong>思科或者 WebEx</strong> 的方案，但这些商用的方案<strong>一不开源，二比较封闭，三成本比较高</strong>。</p>
-<h4 id="WebRTC"><a href="#WebRTC" class="headerlink" title="WebRTC"></a>WebRTC</h4><p>对于互动人数比较少的互动直播，目前市场上比较成熟的方案是使用基于 <strong>WebRTC</strong> 的实时通讯方案。</p>
-<p>基于该方案可以轻松实现多人（<strong>14 人以下</strong>）的多方实时通信</p>
-<img src="/2019/08/01/直播/直播技术/直播技术三-处理/webrtc.png">
-<p>上图是一个基于 WebRTC 协议实现多方实时通讯的示意图，本地用户（主播）和远程用户（连麦观众）之间的连接通过 RTCPeerConnection API 管理，这个 API 包装了底层流管理和信令控制相关的细节。</p>
-<p>基于该方案的多方实时通信，如下图所示：</p>
-<img src="/2019/08/01/直播/直播技术/直播技术三-处理/webrtc-network.png">
-<p>在通信人数少的情况下，其复杂度相对简单。如 2 人情况下，直接连接。人数增多至 4 人之后，其可选的网络结构就增多了，如上图所示，可以每个点之间形成<strong>自组织网络</strong>的方式通信，也可以以 1 人为中心形成<strong>星型</strong>通信网络，还可以让大家都通过一个<strong>集中式的服务端</strong>进行通信。</p>
-<p>为了提供 <strong>高性能、可伸缩</strong>的直播基础服务，七牛直播云经过评估选择了<strong>以主播为中心形成星形通信网络</strong>。同时，为了降低传输延迟，这里采用经过<strong>改造的 UDP 协议传输</strong>传输合成后的音视频实时传输到其他观众端</p>
-<img src="/2019/08/01/直播/直播技术/直播技术三-处理/互动直播连麦.png">
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.qiniu.com/archives/6795" target="_blank" rel="noopener">《视频直播技术详解》系列之三：处理</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/08/01/直播/直播技术/直播技术二-采集/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/08/01/直播/直播技术/直播技术二-采集/" itemprop="url">直播技术二-采集</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-08-01T16:52:14+08:00">
-                2019-08-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/直播/" itemprop="url" rel="index">
-                    <span itemprop="name">直播</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="采集内容"><a href="#采集内容" class="headerlink" title="采集内容"></a>采集内容</h1><p>视频的采集涉及两方面数据的采集：<strong>音频采集和图像采集</strong>，它们分别对应两种完全不同的输入源和数据格式。</p>
-<h2 id="音频采集"><a href="#音频采集" class="headerlink" title="音频采集"></a>音频采集</h2><p>音频数据既能与图像结合组合成视频数据，也能以纯音频的方式采集播放</p>
-<p>音频的采集过程主要通过设备将环境中的模拟信号采集成 <strong>PCM</strong> (脉冲编码调制 - Pulse Code Modulation)编码的原始数据，然后编码压缩成 MP3 等格式的数据分发出去。</p>
-<h3 id="常见的音频压缩格式"><a href="#常见的音频压缩格式" class="headerlink" title="常见的音频压缩格式"></a>常见的音频压缩格式</h3><p>有：MP3，AAC，HE-AAC，Opus，FLAC，Vorbis (Ogg)，Speex 和 AMR等。</p>
-<h3 id="挑战"><a href="#挑战" class="headerlink" title="挑战"></a>挑战</h3><p>音频采集和编码主要面临的挑战在于：延时敏感、卡顿敏感、噪声消除（Denoise）、回声消除（AEC）、静音检测（VAD）和各种混音算法等。</p>
-<h3 id="主要技术参数"><a href="#主要技术参数" class="headerlink" title="主要技术参数"></a>主要技术参数</h3><p>在音频采集阶段，参考的主要技术参数有 ：</p>
-<h4 id="采样率-采样频率（samplerate）"><a href="#采样率-采样频率（samplerate）" class="headerlink" title="采样率/采样频率（samplerate）"></a>采样率/采样频率（samplerate）</h4><p>采样就是把模拟信号数字化的过程</p>
-<p>采样频率越高，记录这一段音频信号所用的数据量就越大，同时音频质量也就越高。</p>
-<ul>
-<li>每秒的采样次数<ul>
-<li>单位 Hz。Hz 是频率的单位。即每秒的周期次数(周期/秒)。电，磁，声波和机械振动周期循环时频率的单位。</li>
-<li>声卡一般提供11.025kHz、22.05kHz和44.1kHz等不同的采样频率。</li>
-</ul>
-</li>
-</ul>
-<h4 id="位宽-采样位数"><a href="#位宽-采样位数" class="headerlink" title="位宽/采样位数"></a>位宽/采样位数</h4><ul>
-<li>每次采样值数值大小的位数。<ul>
-<li>单位 bit</li>
-<li>常用的有8bits或16bits两种</li>
-<li>采样位数越大，所能记录声音的变化度就越细腻，相应的数据量就越大。</li>
-</ul>
-</li>
-</ul>
-<h4 id="声道数（channels）"><a href="#声道数（channels）" class="headerlink" title="声道数（channels）"></a>声道数（channels）</h4><p>由于音频的采集和播放是可以叠加的，因此，可以同时从多个音频源采集声音，并分别输出到不同的扬声器，故声道数一般表示声音录制时的音源数量或回放时相应的扬声器数量。声道数为 1 和 2 分别称为单声道和双声道(立体声)，是比较常见的声道参数。</p>
-<h4 id="音频帧（frame）"><a href="#音频帧（frame）" class="headerlink" title="音频帧（frame）"></a>音频帧（frame）</h4><p>音频跟视频很不一样，视频每一帧就是一张图像，而音频数据是流式的，本身没有明确的一帧帧的概念，在实际的应用中，为了音频算法处理/传输的方便，一般约定俗成取 2.5ms~60ms 为单位的数据量为一帧音频。这个时间被称之为“采样时间”，其长度没有特别的标准，它是根据编解码器和具体应用的需求来决定的。</p>
-<h3 id="音频存储空间计算"><a href="#音频存储空间计算" class="headerlink" title="音频存储空间计算"></a>音频存储空间计算</h3><p><code>音频大小(bit/秒) = 采样频率(Hz,次数/秒) × 采样位数(bit) × 声道数</code></p>
-<p><code>音频帧大小(bit) = 每秒音频大小(bit/秒) x 音频帧采样时长(秒)</code></p>
-<p>假设某音频信号是采样率为 8kHz、双通道、位宽为 16bit，20ms 一帧</p>
-<p>每秒音频size = 8000 x 2 x 16bit = 256000 bit = 32000 byte = 31.25 Kb</p>
-<p>音频帧size = 32000 byte/s x 0.02s = 640 byte</p>
-<h2 id="图像采集"><a href="#图像采集" class="headerlink" title="图像采集"></a>图像采集</h2><p>图像采集的图片组合成一组连续播放的动画，即构成视频中可肉眼观看的内容。</p>
-<p>图像的采集过程主要由摄像头等设备拍摄成 <strong>YUV</strong> 编码的原始数据，然后经过编码压缩成 H.264 等格式的数据分发出去。</p>
-<p>YUV是一种<strong>颜色编码</strong>方法。常用在<strong>图片或视频</strong>编码时</p>
-<h3 id="常见的视频封装格式"><a href="#常见的视频封装格式" class="headerlink" title="常见的视频封装格式"></a>常见的视频封装格式</h3><p>有：MP4、3GP、AVI、MKV、WMV、MPG、VOB、FLV、SWF、MOV、RMVB 和 WebM 等。</p>
-<h3 id="挑战-1"><a href="#挑战-1" class="headerlink" title="挑战"></a>挑战</h3><p>图像由于其直观感受最强并且体积也比较大，构成了一个视频内容的主要部分。图像采集和编码面临的主要挑战在于：设备兼容性差、延时敏感、卡顿敏感以及各种对图像的处理操作如美颜和水印等。</p>
-<h3 id="主要技术参数-1"><a href="#主要技术参数-1" class="headerlink" title="主要技术参数"></a>主要技术参数</h3><p>在图像采集阶段，参考的主要技术参数有：</p>
-<h4 id="图像传输格式"><a href="#图像传输格式" class="headerlink" title="图像传输格式"></a>图像传输格式</h4><p>通用影像传输格式（Common Intermediate Format）是视讯会议（video conference）中常使用的影像传输格式。</p>
-<h4 id="图像格式"><a href="#图像格式" class="headerlink" title="图像格式"></a>图像格式</h4><p>通常采用 YUV 格式存储原始数据信息，其中包含用 8 位表示的黑白图像灰度值，以及可由 RGB 三种色彩组合成的彩色图像。</p>
-<h4 id="传输通道"><a href="#传输通道" class="headerlink" title="传输通道"></a>传输通道</h4><p>正常情况下视频的拍摄只需 1 路通道，随着 VR 和 AR 技术的日渐成熟，为了拍摄一个完整的 360° 视频，可能需要通过不同角度拍摄，然后经过多通道传输后合成。</p>
-<h4 id="分辨率"><a href="#分辨率" class="headerlink" title="分辨率"></a>分辨率</h4><p>随着设备屏幕尺寸的日益增多，视频采集过程中原始视频分辨率起着越来越重要的作用，后续处理环节中使用的所有视频分辨率的定义都以原始视频分辨率为基础。视频采集卡能支持的最大点阵反映了其分辨率的性能。</p>
-<h4 id="采样频率"><a href="#采样频率" class="headerlink" title="采样频率"></a>采样频率</h4><p>采样频率反映了采集卡处理图像的速度和能力。在进行高度图像采集时，需要注意采集卡的采样频率是否满足要求。采样率越高，图像质量越高，同时保存这些图像信息的数据量也越大。</p>
-<h3 id="视频存储空间计算"><a href="#视频存储空间计算" class="headerlink" title="视频存储空间计算"></a>视频存储空间计算</h3><h4 id="1080P、720P-像素"><a href="#1080P、720P-像素" class="headerlink" title="1080P、720P 像素"></a>1080P、720P 像素</h4><p>1080P的实际像素是 1920*1280, 相乘结果是 2073600，即有2073600个像素点， 也就是常说的 <strong>1080P为200万像素</strong></p>
-<p>720P实际像素是1280×720， 相乘结果921600，即有921600个像素点，也就是常说的 <strong>720P为100万像素</strong></p>
-<h4 id="视频存储空间"><a href="#视频存储空间" class="headerlink" title="视频存储空间"></a>视频存储空间</h4><p>1080P 50帧/秒 位宽(每个像素点位数)8bit。</p>
-<p><code>每秒视频size = 1920*1280*8*50/1024/1024 = 937.5 Mb</code></p>
-<h1 id="采集源"><a href="#采集源" class="headerlink" title="采集源"></a>采集源</h1><h2 id="摄像头采集"><a href="#摄像头采集" class="headerlink" title="摄像头采集"></a>摄像头采集</h2><p>对于视频内容的采集，目前摄像头采集是社交直播中最常见的采集方式，比如主播使用手机的前置和后置摄像头拍摄。在现场直播场景中，也有专业的摄影、摄像设备用来采集。安防监控场景中也有专业的摄像头进行监控采集。</p>
-<h2 id="屏幕录制"><a href="#屏幕录制" class="headerlink" title="屏幕录制"></a>屏幕录制</h2><p>手机屏幕录制采集的方式在手机游戏直播场景中非常常见，Android实现屏幕录制的功能比较简单。而 iOS 则由于系统本身没有开放屏幕录制的权限而没法直接操作，但对于 iOS 9 以上的版本，是有个取巧的办法，可以通过模拟一个 AirPlay 镜像连接到（当前 App）自身，这样就可以在软件上捕获到屏幕上的任何操作，达到录制屏幕的效果。</p>
-<p>在教育直播或者会场演讲场合，经常需要录制电脑桌面上 PPT，针对这种场景，目前市面上比较方便的方案是使用开源的桌面推流工具 <a href="https://obsproject.com/" target="_blank" rel="noopener">OBS：Open Broadcaster Software</a> 来进行屏幕录制和推流</p>
-<h2 id="从视频文件推流"><a href="#从视频文件推流" class="headerlink" title="从视频文件推流"></a>从视频文件推流</h2><p>除了从硬件设备采集视频进行推流之外，我们也可能需要将一个视频或者音频文件以直播流的形式实时传输给观众，比如在线电台或者电视节目，它们的输入可能直接来自于一些已经录制剪辑好的视频内容。</p>
-<h1 id="开放式设计"><a href="#开放式设计" class="headerlink" title="开放式设计"></a>开放式设计</h1><p>为了支持市场上所有采集源的接入，SDK 应该采用开放式的设计，只要采集源实现方遵循相应的接口，即可支持任意的采集源。</p>
-<img src="/2019/08/01/直播/直播技术/直播技术二-采集/source.jpeg">
-<p>图中我们把采集的内容分为图像和音频，其中图像的采集源包含摄像头、屏幕录制或者本地的视频文件，甚至是其它需要重新定义和实现的采集源。而音频的采集源包含麦克风、系统声音或者本地音频文件，当然也可以为它定义别的输入源。</p>
-<p>这样设计最大的好处在于，可以以轻量的设计方式支持丰富的采集源，而采集源的具体实现也可以交给使用者。</p>
-<h1 id="参考-amp-扩展"><a href="#参考-amp-扩展" class="headerlink" title="参考&amp;扩展"></a>参考&amp;扩展</h1><ul>
-<li><a href="https://blog.qiniu.com/archives/6713" target="_blank" rel="noopener">《视频直播技术详解》系列之二：采集</a></li>
-</ul>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2490,7 +2314,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">315</span>
+                  <span class="site-state-item-count">318</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2501,7 +2325,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2512,7 +2336,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-count">73</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2612,9 +2436,6 @@
 
 
 
-  
-  
-
 
 
 
@@ -2649,16 +2470,6 @@
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/three.min.js"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
   
 
 

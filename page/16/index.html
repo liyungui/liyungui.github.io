@@ -262,6 +262,533 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/匿名内部类只能访问final修饰的外部变量/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/匿名内部类只能访问final修饰的外部变量/" itemprop="url">匿名内部类只能访问final修饰的外部变量</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>匿名内部类用法</p>
+<pre><code>public class TryUsingAnonymousClass {
+    public void useMyInterface() {
+        final Integer number = 123;
+        System.out.println(number);
+
+        MyInterface myInterface = new MyInterface() {
+            @Override
+            public void doSomething() {
+                System.out.println(number);
+            }
+        };
+        myInterface.doSomething();
+
+        System.out.println(number);
+    }
+}
+</code></pre><p>编译后的结果</p>
+<pre><code>class TryUsingAnonymousClass$1
+        implements MyInterface {
+    private final TryUsingAnonymousClass this$0;
+    private final Integer paramInteger;
+
+    TryUsingAnonymousClass$1(TryUsingAnonymousClass this$0, Integer paramInteger) {
+        this.this$0 = this$0;
+        this.paramInteger = paramInteger;
+    }
+
+    public void doSomething() {
+        System.out.println(this.paramInteger);
+    }
+}
+</code></pre><ul>
+<li>匿名内部类最终用会编译成一个单独的类</li>
+<li>被该类使用的变量会以构造函数参数的形式传递给该类</li>
+<li>如果变量 不定义成final的，在匿名内部类被可以被修改，进而造成和外部的不一致的问题，为了避免这种不一致的情况，Java 规定匿名内部类只能访问final修饰的外部变量。</li>
+</ul>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/反射final成员变量/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/反射final成员变量/" itemprop="url">反射final成员变量</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>利用反射对修饰符为final的成员变量进行修改 http://my.oschina.net/dxqr/blog/215504
+</code></pre><h2 id="非final成员变量"><a href="#非final成员变量" class="headerlink" title="非final成员变量"></a>非final成员变量</h2><pre><code>class Entity {
+    public int i = 1;
+}    
+
+try {
+    Entity e = new Entity();
+    System.out.println(&quot;before: &quot; + e.i);
+
+    Field f = Entity.class.getDeclaredField(&quot;i&quot;);
+    f.setInt(e, 2);
+    // 或者 f.set(e, 2);// java会自动装箱拆箱
+    System.out.println(&quot;after: &quot; + e.i);
+} catch (Exception e) {
+    e.printStackTrace();
+}
+</code></pre><h2 id="final成员变量"><a href="#final成员变量" class="headerlink" title="final成员变量"></a>final成员变量</h2><pre><code>class Entity {
+    public final int i = 1;
+}
+</code></pre><p>反射会报异常:</p>
+<pre><code>java.lang.IllegalAccessException: Can not set final int field com.test.Entity.i to (int)2
+</code></pre><p>修改成员变量的final修饰符,使其变为public int i = 1;具体方法如下:</p>
+<pre><code>try {
+    Entity e = new Entity();
+    System.out.println(&quot;before: &quot; + e.i);
+
+    Field f = Entity.class.getDeclaredField(&quot;i&quot;);
+
+    Field modifiersField = Field.class.getDeclaredField(&quot;modifiers&quot;);
+    modifiersField.setAccessible(true);
+    System.out.println(f.getModifiers()); // 输出17:表示修饰符为:public final
+    modifiersField.setInt(f, f.getModifiers() &amp; ~Modifier.FINAL);
+    System.out.println(f.getModifiers());// 输出1:表示修饰符已经被修改为:public
+
+    f.setAccessible(true);
+    f.setInt(e, 2);
+    System.out.println(&quot;after: &quot; + e.i);//输出还是1.没修过成功
+} catch (Exception e) {
+    e.printStackTrace();
+}
+</code></pre><p>发现还是没有修改成功。会不会跟是基本数据类型有关？修改成员变量的数据类型为 Integer</p>
+<pre><code>class Entity {
+    public final Integer i = 1;
+}
+</code></pre><p>然后再执行,发现结果已经被修改了</p>
+<p><strong>final成员变量，对象数据类型可以修改,基本数据类型不能修改</strong></p>
+<p><strong>final成员变量，final String s = new String(“a”); 可以修改,final String s = “a” 不能修改</strong></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/数组转list陷阱/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="风">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="风">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/03/27/java基础/数组转list陷阱/" itemprop="url">数组list陷阱</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-27T15:41:53+08:00">
+                2019-03-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <pre><code>String[] artistTypes = getResources().getStringArray(R.array.artist_type);
+List&lt;String&gt; list = Arrays.asList(artistTypes); 
+</code></pre><p>上面代码是毫无问题的。</p>
+<pre><code>String[] artistTypes = getResources().getStringArray(R.array.artist_type);
+ArrayList&lt;String&gt; list = (ArrayList&lt;String&gt;) Arrays.asList(artistTypes); 
+</code></pre><p>运行报错。java.util.Arrays$ArrayList cannot be cast to java.util.ArrayList</p>
+<p>这就说明，Arrays.asList转出来的是Arrays$ArrayList（内部类），只是和java.util.ArrayList名字相同。</p>
+<p>为什么转为List不报错呢？因为Arrays$ArrayList实现了List接口</p>
+<pre><code>public class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements Cloneable, Serializable, RandomAccess {
+
+public class Arrays {
+    private static class ArrayList&lt;E&gt; extends AbstractList&lt;E&gt; implements
+            List&lt;E&gt;, Serializable, RandomAccess {
+</code></pre><p>研究过程发现</p>
+<pre><code>Arrays.asList转出来的是Arrays$ArrayList继承AbstractList。remove，add等method在AbstractList中是默认throw UnsupportedOperationException而且不作任何操作。
+java.util.Arrays$ArrayList继承了静态数组 大小 固定不变的特性。
+</code></pre><p>找了很久，找到下面的解决方法</p>
+<pre><code>List myList = new ArrayList(); 
+String[] myStringArray = new String[] {&quot;Java&quot;, &quot;is&quot;, &quot;Cool&quot;};
+Collections.addAll(myList, myStringArray);
+</code></pre>
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/27/java基础/泛型/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2177,488 +2704,6 @@ drop：我要丢弃该commit（缩写:d）
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/05/数据库/sql/Android调试数据库/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/05/数据库/sql/Android调试数据库/" itemprop="url">Android调试数据库</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-05T11:54:53+08:00">
-                2019-03-05
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="https://github.com/amitshekhariitbhu/Android-Debug-Database" target="_blank" rel="noopener">Android-Debug-Database</a></p>
-<p>查看，编辑数据库</p>
-<p><code>debugImplementation &#39;com.amitshekhar.android:debug-db:1.0.5&#39;</code></p>
-<p>手机和电脑同一局域网，浏览器打开 手机ip:8080</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/性能优化/获取内存和CPU使用情况/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/01/Android/性能优化/获取内存和CPU使用情况/" itemprop="url">获取内存和CPU使用情况</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:16:53+08:00">
-                2019-03-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="CPU使用"><a href="#CPU使用" class="headerlink" title="CPU使用"></a>CPU使用</h1><h2 id="设备CPU使用情况"><a href="#设备CPU使用情况" class="headerlink" title="设备CPU使用情况"></a>设备CPU使用情况</h2><p><code>/proc/stat</code> </p>
-<p><code>CPU 152342 1421 28562 1600830 12389 553 273 0 0</code></p>
-<p>totalCpuTime: CPU后面7个属性(2-8)的和</p>
-<p>通过 </p>
-<h2 id="指定pid应用CPU使用情况"><a href="#指定pid应用CPU使用情况" class="headerlink" title="指定pid应用CPU使用情况"></a>指定pid应用CPU使用情况</h2><p><code>/proc/pid/stat</code>  <code>Process.myPid()获取pid</code></p>
-<p><code>2341 (com.xxxx.xxxx) S 1131 1131 0 0 -1 3912246 12450 0 2 0 3321 612 0 0 20 0</code></p>
-<p>processCpuTime：3321 612两个属性(13-14)的和</p>
-<h2 id="解析代码"><a href="#解析代码" class="headerlink" title="解析代码"></a>解析代码</h2><p>读取第一行，空格分割</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">String procStatString = procStatFile.readLine();</span><br><span class="line">String procStats[] = procStatString.split(<span class="string">" "</span>);</span><br><span class="line">totalCpuTime = Long.parseLong(procStats[<span class="number">2</span>]) + Long.parseLong(procStats[<span class="number">3</span>])</span><br><span class="line">        + Long.parseLong(procStats[<span class="number">4</span>]) + Long.parseLong(procStats[<span class="number">5</span>])</span><br><span class="line">        + Long.parseLong(procStats[<span class="number">6</span>]) + Long.parseLong(procStats[<span class="number">7</span>])</span><br><span class="line">        + Long.parseLong(procStats[<span class="number">8</span>]);</span><br><span class="line"></span><br><span class="line">String appStatString = appStatFile.readLine();</span><br><span class="line">String appStats[] = appStatString.split(<span class="string">" "</span>);</span><br><span class="line">processCpuTime = Long.parseLong(appStats[<span class="number">13</span>]) + Long.parseLong(appStats[<span class="number">14</span>]);</span><br></pre></td></tr></table></figure>
-<h1 id="内存使用"><a href="#内存使用" class="headerlink" title="内存使用"></a>内存使用</h1><h2 id="设备内存使用情况"><a href="#设备内存使用情况" class="headerlink" title="设备内存使用情况"></a>设备内存使用情况</h2><p>通过 <code>dumpsys meminfo</code> 获取的free mem大约为1.4G。使用android手机自带的内存管理器查看也是1.4G</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Total RAM: 3,498,412K (status normal)</span><br><span class="line"> Free RAM: 1,420,845K (  554,397K cached pss +   729,900K cached kernel +   136,548K free)</span><br><span class="line"> Used RAM: 2,125,902K (1,741,086K used pss +   384,816K kernel)</span><br><span class="line"> Lost RAM:   268,850K</span><br><span class="line">   Tuning: 256 (large 512), oom   325,000K, restore limit   108,333K (high-end-gfx)</span><br></pre></td></tr></table></figure>
-<p><code>/proc/meminfo</code> </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">MemTotal:        3498412 kB</span><br><span class="line">MemFree:          136596 kB</span><br><span class="line">MemAvailable:    1500252 kB</span><br><span class="line">Buffers:          150052 kB</span><br><span class="line">Cached:          1313300 kB</span><br><span class="line">SwapCached:        89844 kB</span><br><span class="line">Active:          1218484 kB</span><br><span class="line">Inactive:        1171716 kB</span><br><span class="line">Active(anon):     472168 kB</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
-<p>free mem大约为0.13G</p>
-<p>linux思想，内存不用白不用，因此它尽可能的cache和buffer一些数据，以方便下次使用。但实际上这些内存也是可以立刻拿来使用的。所以空闲内存=free+buffers+cached</p>
-<p>dumpsys meminfo获得的free mem = cached pss + cached kernel + ion cached + gpu cached + + free</p>
-<h2 id="指定pid应用内存使用情况"><a href="#指定pid应用内存使用情况" class="headerlink" title="指定pid应用内存使用情况"></a>指定pid应用内存使用情况</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);</span><br><span class="line">Debug.MemoryInfo[] memInfo = activityManager.getProcessMemoryInfo(<span class="keyword">new</span> <span class="keyword">int</span>[]&#123;Process.myPid()&#125;);</span><br><span class="line"><span class="keyword">int</span> totalPss = memInfo[<span class="number">0</span>].getTotalPss();<span class="comment">//in KB</span></span><br></pre></td></tr></table></figure>
-<h3 id="当前应用JavaHeap内存使用情况"><a href="#当前应用JavaHeap内存使用情况" class="headerlink" title="当前应用JavaHeap内存使用情况"></a>当前应用JavaHeap内存使用情况</h3><pre><code class="java">Runtime runtime = Runtime.getRuntime();
-<span class="keyword">int</span> M = <span class="number">1024</span> * <span class="number">1024</span>;
-Log.d(<span class="string">"jvm"</span>, <span class="string">"最大可用内存: "</span> + runtime.maxMemory() / M);
-Log.d(<span class="string">"jvm"</span>, <span class="string">"当前可用内存: "</span> + runtime.totalMemory() / M);
-Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内存:"</span> + runtime.freeMemory() / M);
-</code></pre>
-<h4 id="maxMemory"><a href="#maxMemory" class="headerlink" title="maxMemory"></a>maxMemory</h4><p>Dalvik虚拟机，每个App默认的最大可用内存由系统指定（在<code>/system/build.prop</code>文件中定义）</p>
-<p>在Manifest application 里面添加<code>android:allowBackup=&quot;true&quot;</code> 可以增加最大可用内存至512M</p>
-<p>为什么有些APP（比如大型游戏）可以超过这个值？那是因为Java内存又分为Java Heap和Native Heap，Native Heap是不受该值约束的。</p>
-<h4 id="totalMemory"><a href="#totalMemory" class="headerlink" title="totalMemory"></a>totalMemory</h4><p>一般为16M</p>
-<p>如果设置为“-Xms1024m -Xmx1024m”，那么totalMemory=maxMamory</p>
-<img src="/2019/03/01/Android/性能优化/获取内存和CPU使用情况/内存.png">
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/03/01/Android/性能优化/InputMethodManager leaking the last focused view/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="风">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="风">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2019/03/01/Android/性能优化/InputMethodManager leaking the last focused view/" itemprop="url">InputMethodManager 导致的内存泄露及解决方案</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-03-01T14:15:53+08:00">
-                2019-03-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-            <span class="post-category" >
-            
-              <span class="post-meta-divider">|</span>
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">分类于</span>
-              
-              
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Android/" itemprop="url" rel="index">
-                    <span itemprop="name">Android</span>
-                  </a>
-                </span>
-
-                
-                
-              
-            </span>
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p><a href="https://code.google.com/p/android/issues/detail?id=171190" target="_blank" rel="noopener">Issue 171190:    InputMethodManager leaks the last focused view</a> <code>Repro steps</code> are very easy:</p>
-<h1 id="泄露实例"><a href="#泄露实例" class="headerlink" title="泄露实例"></a>泄露实例</h1><p><a href="http://www.jianshu.com/p/aa2555628b17" target="_blank" rel="noopener">Android InputMethodManager 导致的内存泄露及解决方案</a></p>
-<p><img src="https://pic4.zhimg.com/c55242f458e266f3e2cfb7d112411167_b.png" alt=""></p>
-<p>并且还给出了参考链接，这是Android输入法的一个bug，在15&lt;=API&lt;=23中都存在。</p>
-<p><code>InputMethodManager.sInstance</code> –&gt; <code>InputMethodManager.mNextServedView</code></p>
-<p>LeakCanary之所以能够显示参考链接是因为它有一个针对SDK已知内存泄露的列表，放在AndroidExcludedRefs.java中，比如输入法的这个。</p>
-<p><img src="https://pic4.zhimg.com/2b97881206ab6a8556946b9a016e078f_b.png" alt=""></p>
-<h1 id="泄露原因"><a href="#泄露原因" class="headerlink" title="泄露原因"></a>泄露原因</h1><p>分析原因比较透彻的是这篇文章：<a href="http://blog.csdn.net/sodino/article/details/32188809" target="_blank" rel="noopener">InputMethodManager内存泄露现象及解决</a></p>
-<h1 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h1><h2 id="方案一"><a href="#方案一" class="headerlink" title="方案一"></a>方案一</h2><p>改善方案可以参考Leaknary给出的方案：<a href="https://gist.github.com/pyricau/4df64341cc978a7de414" target="_blank" rel="noopener">InputMethodManager内存泄露修正方案</a></p>
-<p>在退出使用InputMethodManager的Activity时，调用fixFocusedViewLeak方法即可解决。</p>
-<h2 id="方案二、简单方案"><a href="#方案二、简单方案" class="headerlink" title="方案二、简单方案"></a>方案二、简单方案</h2><p><a href="https://medium.com/@amitshekhar/android-memory-leaks-inputmethodmanager-solved-a6f2fe1d1348#.j686ef3a0" target="_blank" rel="noopener">Android Memory Leaks InputMethodManager Solved</a> <code>Simple solution</code> to solve this. </p>
-<p>After some observations we realize that if any other activity is being called after that the finish of main activity the things is going perfect , no more Memory Leaks by InputMethodManager.</p>
-<pre><code>public class DummyActivity extends FragmentActivity {
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                finish();
-            }
-        }, 100);
-    }
-}
-
-可以把Activity设为透明，这样退出时不会出现短暂白屏
-</code></pre>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -2713,7 +2758,7 @@ Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内�
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">315</span>
+                  <span class="site-state-item-count">318</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -2724,7 +2769,7 @@ Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内�
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">20</span>
+                  <span class="site-state-item-count">21</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -2735,7 +2780,7 @@ Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内�
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">72</span>
+                  <span class="site-state-item-count">73</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -2835,9 +2880,6 @@ Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内�
 
 
 
-  
-  
-
 
 
 
@@ -2872,16 +2914,6 @@ Log.d(<span class="string">"jvm"</span>, <span class="string">"当前空闲内�
   
   
     <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/three.min.js"></script>
-  
-
-  
-  
-    <script type="text/javascript" src="/lib/three/canvas_lines.min.js"></script>
   
 
 
