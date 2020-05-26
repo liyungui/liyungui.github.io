@@ -206,7 +206,11 @@ git revert与reset的区别是git revert会生成一个新的提交来撤销某�
 
 6. `git clone`从远程仓库克隆到本地仓库（会在本地仓库根目录下生成新文件夹）（克隆是默认主机名为origin，可用 -o指定主机名;默认克隆master分支，可用 -b 指定分支名）
 
+	```
+	git clone https://github.com/jquery/jquery.git
 	git clone -o jQuery https://github.com/jquery/jquery.git
+	git clone https://github.com/jquery/jquery.git -b dev
+	```	
 
 7. `git fetch <远程主机名> <分支名>` 取回远程主机特定分支的更新（**并不和本地代码合并，通常用来查看他人进度**）（省略分知名就是取回所有分支更新）
 

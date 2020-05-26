@@ -12,6 +12,7 @@ keymap 是 Mac OS X 10.5+
 ```
 搜索任意内容(all,class,symbol,action)：双击sft
 搜索类：cmd + o
+搜索文件：cmd + sft + o
 搜索symbol(类/方法/参数)：cmd + opt + o
 搜索action：cmd + sft + a
 

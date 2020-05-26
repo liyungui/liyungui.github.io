@@ -43,6 +43,9 @@ VS Code 的全称是 Visual Studio Code，是一款开源的、免费的、跨�
 打开命令行面板：cmd + sft + p
 当前文件中搜索：cmd + f
 项目全局搜索：cmd + shift + f
+
+新建文件 cmd + n
+新建窗口 cmd + sft + n
 ```
 
 ## 移动光标
@@ -139,6 +142,10 @@ VS Code 的全称是 Visual Studio Code，是一款开源的、免费的、跨�
 - open user settings 等同于Json方式打开
 - open settings(UI) UI配置
 - open default settings(Json)
+
+## 设置编码
+
+点击右下角编码 -- Reopen with Encoding -- 选择utf-8
 
 # 预览模式与编辑模式 #
 

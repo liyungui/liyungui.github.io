@@ -5,6 +5,8 @@ tags:
 	- RN
 ---
 
+# 前言
+
 研究RN框架异常的动机在于，我们需要建立起一套针对性的容错机制，毕竟它还是一个不够成熟的框架。期望能够做到的效果就是，对于每一个RN页面的启动，我们能够在**进入页面至退出页面**期间侦测所有发生的**RN相关**的崩溃，然后根据崩溃来考虑该页面是否该有降级策略、判断框架是否真的能够支持稳定迭代。
 
 并且，集中地处理崩溃，也有利于我们后续对框架稳定性进行针对性的统计与优化。即使最后还是最简单粗暴的try-catch，这个catch的位置也是一门艺术。
@@ -69,12 +71,18 @@ ReactActivity.onCreate 调用 ReactActivityDelegate.loadApp 开始核心启动�
 
 在框架启动的核心阶段，RN有捕获异常，但是仅仅只用 `DevSupportManager` 去处理，当不使用 `develop support` 时，会直接抛出异常。
 
-这里我们可以做**第一个修改**，不使用dev support时
+## 总结
 
-- 传入一个Handler去专门处理启动期的崩溃
-- 用`ReactInstanceManagerBuilder.setNativeModuleCallExceptionHandler()` 传入的ExceptionHandler 统一去处理崩溃
+这里我们可以做**第一个修改**，即参考RN源码对运行期异常的处理方式：优先使用ReactInstanceManager构造函数设置的，没有则使用mDevSupportManager
 
-## 运行期异常
+```java
+NativeModuleCallExceptionHandler exceptionHandler =
+    mNativeModuleCallExceptionHandler != null
+        ? mNativeModuleCallExceptionHandler
+        : mDevSupportManager;
+```
+            
+# 运行期异常
 
 1. JS调用Native产生异常
 	- Native模块不存在
@@ -87,7 +95,7 @@ ReactActivity.onCreate 调用 ReactActivityDelegate.loadApp 开始核心启动�
 3. JS本身代码执行的异常
 4. UI操作的异常
 
-### 运行线程
+## 运行线程
 
 RN维护了三个线程的MessageQueue，所有的操作都会被push到上面运行
 
@@ -95,9 +103,35 @@ RN维护了三个线程的MessageQueue，所有的操作都会被push到上面�
 - **JSQueue** 运行JS的线程，后台线程。
 - **UIQueue** 专门做UI操作，使用Android里面的**主线程**；
 
-在CatalystInstance初始化的时候会初始化三个Queue，启动后台线程，并将他们的句柄传给C++层的Bridge。Queue里面调度使用的Handler，重写了dispatchMessage，并在外面包装了层try-catch，统统都会交到 `CatalystInstance.onNativeException` 中。而这其中使用的就是我们传入给ReactInstanceManager的ExceptionHandler。
+在CatalystInstance初始化的时候会初始化三个Queue，启动后台线程，并将他们的句柄传给C++层的Bridge。Queue里面调度使用的Handler，重写了dispatchMessage，并在外面包装了层try-catch，统统都会交到 `CatalystInstance.onNativeException` 中。而这最终使用的就是我们传入给ReactInstanceManager的ExceptionHandler。
 
 ```java
+  //class ReactInstanceManager。
+  //设置reactContext和CatalystInstance的异常处理：
+  //优先使用ReactInstanceManager构造函数设置的，没有则使用mDevSupportManager
+  private ReactApplicationContext createReactContext(
+      JavaScriptExecutor jsExecutor, JSBundleLoader jsBundleLoader) {
+    Log.d(ReactConstants.TAG, "ReactInstanceManager.createReactContext()");
+    ReactMarker.logMarker(CREATE_REACT_CONTEXT_START, jsExecutor.getName());
+    final ReactApplicationContext reactContext = new ReactApplicationContext(mApplicationContext);
+
+    NativeModuleCallExceptionHandler exceptionHandler =
+        mNativeModuleCallExceptionHandler != null
+            ? mNativeModuleCallExceptionHandler
+            : mDevSupportManager;
+    reactContext.setNativeModuleCallExceptionHandler(exceptionHandler);
+    CatalystInstanceImpl.Builder catalystInstanceBuilder =
+        new CatalystInstanceImpl.Builder()
+            .setReactQueueConfigurationSpec(ReactQueueConfigurationSpec.createDefault())
+            .setJSExecutor(jsExecutor)
+            .setRegistry(nativeModuleRegistry)
+            .setJSBundleLoader(jsBundleLoader)
+            .setNativeModuleCallExceptionHandler(exceptionHandler);
+```
+    
+```java
+  //class CatalystInstanceImpl。
+  //构造函数传入异常处理；创建三大线程
   private CatalystInstanceImpl(
      final ReactQueueConfigurationSpec reactQueueConfigurationSpec,
      final JavaScriptExecutor jsExecutor,
@@ -107,7 +141,7 @@ RN维护了三个线程的MessageQueue，所有的操作都会被push到上面�
    Log.d(ReactConstants.TAG, "Initializing React Xplat Bridge.");
    mHybridData = initHybrid();
 
-//创建三大线程：UI线程、Native线程与JS线程
+   //创建三大线程：UI线程、Native线程与JS线程。替换了自定义的handler
    mReactQueueConfiguration = ReactQueueConfigurationImpl.create(
        reactQueueConfigurationSpec,
        new NativeExceptionHandler());
@@ -134,9 +168,9 @@ RN维护了三个线程的MessageQueue，所有的操作都会被push到上面�
     }
   }
 ```
-初始化 `ReactInstanceManager` 时传的Handler 可以处理上面的前7种异常，我们需要单独处理UI操作异常
+初始化 `ReactInstanceManager` 时传的Handler 可以处理上面的前7种异常，我们需要单独处理UI操作异常。**【更新】在新版本已经可以可以处理UI操作的异常**
 
-### UI操作的异常
+## UI操作的异常
 
 UI操作，其实是调用的UIManagerModule这个Java模块进行的操作，但是实际上它不是马上被同步执行的，而是仅仅只有一个入队列的操作。所有的UI操作都通过Choreographer来驱动执行，那这个时候虽然是在主线程运行，但是不在上面任何一个MessageQueue里面了，于是上面的方式捕获不到。
 
@@ -161,7 +195,7 @@ public abstract class GuardedFrameCallback extends ChoreographerCompat.FrameCall
   }
 }
 ```
-UI操作的异常默认由 `ReactContext.handleException` 处理，追踪发现是 RN React上下文创建时设给它一个Handler，只在develop support时才起作用
+UI操作的异常默认由 `ReactContext.handleException` 处理，追踪发现是 RN React上下文创建时设给它一个Handler，只在develop support时才起作用。**【更新】在新版本已经可以可以生效了**
 
 ```java
 private ReactApplicationContext createReactContext(
@@ -190,10 +224,10 @@ private ReactApplicationContext createReactContext(
       .setNativeModuleCallExceptionHandler(exceptionHan}ler);
 }
 ```
-这里我们可以做**第二个修改**，初始化ReactContext时，可以像设给CatalystInstance的一样
 
-- 在使用develop support时设给它DevSupportManagerImpl
-- 否则使用传入的NativeModuleExceptionHandler
+## 总结
+
+在新版本已经可以可以处理运行期所有的异常
 
 # 参考&扩展
 

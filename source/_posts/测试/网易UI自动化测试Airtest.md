@@ -227,10 +227,10 @@ GitHub上开发成员对这个[issues](https://github.com/AirtestProject/Airtest
 
 # Airtest断言
 
-- assert_exists 断言图片存在
-- assert_not_exists 断言图片不存在
-- assert_equal 断言值相等
-- assert_not_equal 断言值不相等
+- `assert_exists` 断言图片存在
+- `assert_not_exists` 断言图片不存在
+- `assert_equal` 断言值相等
+- `assert_not_equal` 断言值不相等
 
 只有Poco才能获取属性值
 
@@ -263,6 +263,15 @@ editalbe :  False
 selected :  False 
 scrollable :  False 
 ```
+
+## name
+
+- 有id：包名:id/id值
+- 无id：同view的type
+
+## touchable
+
+是否可以触摸。可以用来判断view是否可点击
 
 # Poco选择UI
 
@@ -329,6 +338,11 @@ poco('com.zy.course.dev:id/item_about').child('com.zy.course.dev:id/tv_title')
 - 从上到下，从左往右，索引从0开始
 - 一旦选择，UI位置发生变化，索引值不变，消失(移除或者隐藏)的UI不能再访问
 
+## 坐标系
+
+- 从左往右。x轴，0到1
+- 从上到下。y轴，0到1
+
 ### 实例
 
 ```python
@@ -383,9 +397,122 @@ drag_to 拖拽UI到UI
 - get方法。`get_text()`
 - set方法。`set_text('hello')`
 
+# Poco如何支持WebView检视
+
+Poco对WebView的检视的支持程度，主要取决于WebView本身的兼容性情况，目前兼容性最好的WebView方案是Android系统自带内核 `Google-WebView`
+
+Android设备设置可以设置浏览器使用系统内核自带的WebView
+
+微信/QQ上的 `X5 WebView` 内核也支持使用系统内核。打开调试页面，将最下方的的 `强制使用系统内核` 打开，并且 `清除TBS内核` ，做完之后重启微信/QQ。 再进入这个页面，点击 `查看版本信息` 。如果版本信息为 `0(null)` 则设置成功。
+
+# 命令行运行脚本--部署本地Python环境
+
+使用AirtestIDE命令行来运行脚本，虽然很方便，但是不适合更复杂的操作（例如想同时用多个命令行运行多台手机、多个脚本等情况），以及对于一些Python开发者来说，可能需要在脚本中使用其他功能强大的Python第三方库。
+
+因此我们更加推荐在本地python环境中安装airtest和pocoui，然后用命令行运行脚本。
+
+## Python版本选择
+
+支持Python(**2.7或<=3.6**)，我们更推荐使用 Python3 ，如果你愿意的话我们也同样建议使用 virtualenv 等虚拟环境新建一个干净的python环境
+
+如果使用了python3.7，找图框架依赖的opencv模块需要 [安装 Visual C++ redistributable 2015](https://pypi.org/project/opencv-contrib-python/)
+
+## Airtest和Poco安装
+
+`pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple airtest` python3 要用 pip3 来安装
+
+
+`pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pocoui`
+
+注意：`-i https://pypi.tuna.tsinghua.edu.cn/simple` 是清华镜像站，解决被墙问题，5分钟同步一次
+
+## 赋予adb可执行权限
+
+在Mac/Linux系统下，需要手动赋予adb可执行权限，否则可能在执行脚本时遇到 Permission denied 的报错:
+
+```
+# mac系统
+> cd /usr/local/lib/python3.7/site-packages/airtest/core/android/static/adb/mac
+# linux系统
+> cd {your_python_path}/site-packages/airtest/core/android/static/adb/linux
+> chmod +x adb
+```
+
+## Airtest脚手架
+
+`airtest/cli/__main__.py`
+
+支持 Airtest 所有命令，包括 `run，report，info`等
+
+## 运行脚本
+
+下面两个命令效果相同
+
+```
+>airtest run untitled.air --device Android:///手机设备号 --log log目录
+>python -m airtest run untitled.air --device Android:///手机设备号 --log log目录
+```
+
+`airtest.cli.runner`负责运行脚本
+
+```
+--log参数 没有指定，将不保存log内容和截图
+--log log, log内容放到当前命令行的执行目录/log
+```
+
+# 测试报告
+
+`airtest.report.report.py`负责生成测试报告
+
+## 使用命令行来生成报告
+
+脚本运行过程，与报告生成过程是独立的两个步骤
+
+
+```shell
+airtest run untitled.air --log log
+airtest report untitled.air --lang zh --export log_out --plugin poco.utils.airtest.report
+```
+
+```
+--log_root LOG_ROOT   log & screen data root dir, 默认值是 测试用例脚本目录(untitled.air)/log
+```
+
+## 使用PYTHON代码生成报告
+
+### 调用`simple_report`生成报告
+
+```python
+from airtest.report.report import simple_report
+
+# 自动配置运行环境;
+# logdir=True会在脚本目录下生成log文件夹(log.txt和步骤截屏)
+auto_setup(__file__, logdir=True)  
+
+try:
+    main()
+finally:
+    # generate html report
+    # 在脚本目录下生成log.html
+    simple_report(__file__, logpath=True) 
+```
+
+缺陷：无法指定一系列参数(如增加poco语法支持插件)
+
+### 调用airtest运行脚本和生成报告
+
+```python
+import os
+
+os.system("airtest run multitest.air --device Android://127.0.0.1:5037/37KRX18A25012338 --log log")
+os.system("airtest report multitest.air --lang zh --export log_out --plugin poco.utils.airtest.report")
+```
+
 # 参考&扩展
 
 - [官网](http://airtest.netease.com/)
 - [文档](https://airtest.doc.io.netease.com/)
 - [源码](https://github.com/AirtestProject/Airtest)
+- [Poco如何支持WebView检视](http://airtest.netease.com/docs/cn/6_poco_framework/poco_webview.html)
+- [如何生成报告](https://airtest.doc.io.netease.com/IDEdocs/about_report/Report_guidelines/#_11)
 
