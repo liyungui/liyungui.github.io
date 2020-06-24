@@ -129,9 +129,24 @@ poco("com.zy.course.dev:id/tv_user_name").click()
 
 实际上`.air脚本`文件是一个普通的`文件夹`，里面附带了一个同名的`.py`文件，AirtestIDE在执行脚本时，实际上执行的是里面的`.py`文件
 
+## 如何引用 `.air`脚本中的方法
+
+因为命名中含有点，会导致python常用的脚本中的导包`import`找不到module
+
+Airtest 提供了 `using`这个api
+
+```python
+# 本python文件在live目录下，使用相对路径定位air
+using('../live/choice.air')
+# air文件夹下的choice.py。
+# pycharm中会报找不到choice模块，但其实是可以的
+from choice import main as choice_main
+choice_main()
+```
+
 # 图片类Template
 
-`classTemplate(filename, threshold=None, target_pos=5, record_pos=None, resolution=(), rgb=False)`
+`class Template(filename, threshold=None, target_pos=5, record_pos=None, resolution=(), rgb=False)`
 
 - **filename**。图片名。IDE截图默认3参数之一
 - **record_pos**。截图位置。IDE截图默认3参数之一
@@ -220,7 +235,7 @@ GitHub上开发成员对这个[issues](https://github.com/AirtestProject/Airtest
 - touch 触摸。可设置 位置、次数、时长等参数
 - swipe 滑动
 - text  输入内容
-- keyevent 按键(回车、删除)
+- keyevent 按键(回车、删除)。keyevent("BACK")
 - snapshot 截图
 - wait 等待图片元素出现
 - sleep 睡眠一段时间
@@ -239,29 +254,31 @@ GitHub上开发成员对这个[issues](https://github.com/AirtestProject/Airtest
 UI对象常见的属性值
 
 ```
-type :  android.widget.TextView 
-name :  com.zy.course.dev:id/tv_title 
-text :  关于我们 
-enabled :  True 
-visible :  True 
-resourceId :  b'com.zy.course.dev:id/tv_title' 
-zOrders :  {'global': 0, 'local': 2} 
-package :  b'com.zy.course.dev' 
-anchorPoint :  [0.5, 0.5] 
-dismissable :  False 
-checkable :  False 
-scale :  [1, 1] 
-boundsInParent :  [0.17777777777777778, 0.02850877192982456] 
-focusable :  False 
-touchable :  False 
-longClickable :  False 
-size :  [0.17777777777777778, 0.02850877192982456] 
-pos :  [0.2388888888888889, 0.48333333333333334] 
-focused :  False 
-checked :  False 
-editalbe :  False 
-selected :  False 
-scrollable :  False 
+Path from root node: [0, 0, 0, 0, 0, 0, 5, 2, 3, 1, 1]
+Payload details:
+	type :  android.widget.TextView 
+	name :  com.zy.course.dev:id/tv_title 
+	text :  关于我们 
+	enabled :  True 
+	visible :  True 
+	resourceId :  b'com.zy.course.dev:id/tv_title' 
+	zOrders :  {'global': 0, 'local': 2} 
+	package :  b'com.zy.course.dev' 
+	anchorPoint :  [0.5, 0.5] 
+	dismissable :  False 
+	checkable :  False 
+	scale :  [1, 1] 
+	boundsInParent :  [0.17777777777777778, 0.02850877192982456] 
+	focusable :  False 
+	touchable :  False 
+	longClickable :  False 
+	size :  [0.17777777777777778, 0.02850877192982456] 
+	pos :  [0.2388888888888889, 0.48333333333333334] 
+	focused :  False 
+	checked :  False 
+	editalbe :  False 
+	selected :  False 
+	scrollable :  False 
 ```
 
 ## name
@@ -507,6 +524,32 @@ import os
 os.system("airtest run multitest.air --device Android://127.0.0.1:5037/37KRX18A25012338 --log log")
 os.system("airtest report multitest.air --lang zh --export log_out --plugin poco.utils.airtest.report")
 ```
+
+## 自定义报告步骤
+
+### 自定义断言信息
+
+Airtest版本 ≥ 1.2.2
+
+### 增加步骤日志
+
+```python
+def log(arg, trace=""):
+    """
+    Insert user log, will be displayed in Html report.
+
+    :param data: log message or Exception
+    :param trace: log traceback if exists, use traceback.format_exc to get best format
+    :return: None
+    """
+```
+
+实例
+
+```python
+log("点击进入直播间")
+log("出错啦", traceback.format_exc())
+```    
 
 # 参考&扩展
 

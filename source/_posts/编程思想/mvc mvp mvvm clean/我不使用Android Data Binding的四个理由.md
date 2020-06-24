@@ -43,3 +43,18 @@ ButterKnife的作者Jake在下面这个github issue中直指要点。
 Data Binding的一个特性对于我来说是一个bug：如果layout发生了异步更新，那就意味着在我设置了绑定之后单元测试中我无法确定view上的数据是否正确。
 
 ## 4、它比ButterKnife提供的功能少很多 ##
+
+# 总结一下放弃的理由
+
+最后总结一下经过这些使用后让我放弃Data Binding的理由。
+
+一、xml代码耦合度增加，业务逻辑内聚性降低。 不利于项目质量的持续发展。
+
+二、经常需要手动点击编译，影响开发体验。 在布局里新增的Data Binding变量，在Java/Kotlin中要使用的时候需要先点击编译等待完成，否则可能引用不到对应的BR类或该类里的变量。另外，已经删除的变量，如果不执行清理，在BR类里也依然存在，无法如R类一样更新及时。
+
+三、失去了Kotlin语法糖的优势。 Kotlin扩展函数的特点可以使得代码尽可能的简洁直观易于阅读，而在xml中目前只支持Java语法而不支持Kotlin，所以也失去了使用Kotlin作为开发语言所带来的优势。
+
+
+# 参考&扩展
+
+- [我为什么放弃在项目中使用Data Binding](https://blog.csdn.net/maosidiaoxian/article/details/85560206)
