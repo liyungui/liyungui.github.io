@@ -16,6 +16,13 @@ tags: Mac
 
 - 双系统。 需重启切换
 
+# CrossOver使用
+
+- 安装运行
+- 创建容器
+- 选择创建的容器
+- 选择exe文件
+
 # Wineskin使用
 
 [下载安装](http://wineskin.urgesoftware.com)
