@@ -1,0 +1,27 @@
+External Tools Configurations 在run图标后面
+一、jni开发
+整理自 http://www.360doc.com/content/14/0614/20/16844267_386615776.shtml
+	1.生成.h头文件
+		main选项卡
+			program--名字自定义（javah）
+			--location选jdk的bin目录下javah.exe
+			--working directory选变量${project_loc}，然后改为${project_loc}\src
+			--arguments写
+				-classpath ${project_loc}\bin\classes -d ${project_loc}\jni -jni ${java_type_name}
+		refresh选项卡
+			勾选上 第一个 refresh resources upon completion
+		common选项卡
+			勾选上 个人喜好菜单显示External Tool
+		apply
+		选中/打开 测试类，点击刚才的工具javah
+			public class Test {
+				public native String test(String key);
+			}
+		工程会生成jni文件夹
+			JNIEXPORT jstring JNICALL Java_com_example_testndk_Test_test(JNIEnv *, jobject, jstring);
+二、打开文件所在文件夹
+	参数如下：
+		Name: Open In Explorer（名字可随便写）		 
+		Location: c:\windows\explorer.exe		 
+		Arguments: ${container_loc}  （当前所选择的资源的parent的绝对路径）		 		 
+		点击Apply保存

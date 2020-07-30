@@ -1,0 +1,54 @@
+jar包目录及附加源码
+	1.jar包的目录
+		(1)sdk目录--Android 5.0（我的是5.0，每个人sdk版本不同）
+			即android.jar，根据你编译sdk版本自动添加添加到 Android 5.0
+				如我的在 D:\Android_SDK\sdk\platforms\android-21
+			不会打包到apk中。运行时用手机自带的jar包
+			手机设备上自带一个framework.jar的文件，它包含了隐藏API。
+		(2)libs目录下--Android Private Libraries：
+			adt会自动添加到Android Private Libraries
+			有的adt会自动打包到apk中。一般用这个
+			非系统jar包最好放在此目录，可以让adt自动打包到apk。否则提示找不到jar包
+			唯一不能修改（附加源码，javadoc）
+		(3)其他目录（lib目录）--Referenced Libraries
+			需要手动 add to build path。
+			只要是手动 add to build path 都是在 Referenced Libraries目录中。包括libs目录下的jar包你也可以手动add，然后也会出现在Referenced Libraries目录出现（两个还不冲突）
+			不会打包到apk中。用的较少，记得只有v4，v7包可以放这里
+			所以非系统jar包会提示找不到jar包
+			能修改（附加源码，javadoc）
+			
+		(4)lib工程--Android dependencies
+			lib工程生成的jar在该目录
+			
+		现在高版本adt（22以上）都是可以对以上目录进行设置是否导出到apk中
+			工程属性--Java build path -- order and export
+	2.libs目录下jar无法附加源码 解决的办法：
+		(1)在libs目录下，创建一个新文件，文件的名字为 要查看的jar包名字＋.properties 
+		 比如：我要调试smack.jar 那么创建的新文件名字为  smack.jar.properties
+		(2)新文件里面包含两行
+			第一行是源代码的关联
+			第二行是文档的关联
+			src=/Users/david/dev/smack-sources.jar
+			doc=/Users/david/dev/smack-javadoc.jar
+		(3)补充：
+			1、源代码和javadoc支持 文件和文件夹目录。
+				文件支持 jar 和 zip 文件格式。
+			2、支持使用相对路径指向原文件。
+				例如： dev 和 libs 是同级文件夹，libs里面是jar，dev里面是对应jar的源代码。
+					src=../dev/smack-sources.jar
+					doc=../dev/smack-javadoc.jar
+					
+	3.sdk源码和doc目录位置
+		F:/ide/Android_SDK/sdk/sources/android-21
+		file:/D:/ide/Android_SDK/sdk/docs/reference
+		
+		v4和v7包位置比较特殊，源码和jar包都在extras目录，
+		D:\ide\Android_SDK\sdk\extras\android\support\v4\src\java 源码目录
+		
+	4.v4和v7包附加源码--手动 add to build path
+		利用2中的.properties 文件是无法成功的（其他jar包有效）
+		所以想了另外一个方法，手动 add to build path，从而在Referenced Libraries也出现一份v4包，可以附加源码而且不冲突
+		这个方法同样适用于其他jar包。通用
+		
+	综上，我们可能会避免用系统默认的libs目录，而是用lib目录。这会出现某些bug。
+	稳妥的做法是用libs目录，对需要附加源码的手动 add to build path

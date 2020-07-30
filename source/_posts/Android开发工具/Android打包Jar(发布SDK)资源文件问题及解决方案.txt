@@ -1,0 +1,56 @@
+Android打包Jar(发布SDK)资源文件问题及解决方案
+	常常有如下的几个问题：
+		1) Error…..Found duplicate file for APK:res/drawable-xxx/xxx.xx
+			资源文件被打包进jar，在新project中，也有相同id的资源文件，
+			而资源最后是编译合并在一起的，这样就引起了冲突（别打包资源文件，没用的）
+		2) res.Resources$NotFoundException:XXX ID#0x7f090015
+		3) java.lang.NullPointerException
+		4) java.lang.NoClassDefFoundError: com.xxx.xxx.R$layout
+		5) Conversion to Dalvik format failed with error 1
+			R文件是自动动态生成的。新project中id会发生变化。
+			
+	常见的方法就是不打jar包，而是作为lib工程引用。
+		在主工程manifest中加入lib工程组件（如activity）的声明
+			<activity android:name="net.devdiv.mylib.MyLibActivity" />
+		重命名lib工程中一些资源，保证不重名（如xml文件名，string名）
+		在主工程中引用lib import net.devdiv.mylib.*;
+	
+	解决方案就是
+		jar不打包资源（只导出src文件夹为jar）
+		用反射重新获取资源文件的id
+		详见 http://www.360doc.com/content/14/1114/12/9200790_425037686.shtml 
+		public static int getResourseIdByName(String packageName, String className, String name){
+			Class r = null;
+			int id = 0;
+			
+			try
+			{
+				r = Class.forName(packageName + ".R");
+
+				Class[] classes = r.getClasses();
+				Class desireClass = null;
+
+				for (int i = 0; i < classes.length; i++)
+				{
+					if (classes[i].getName().split("\\$")[1].equals(className))
+					{
+						desireClass = classes[i];
+						break;
+					}
+				}
+
+				if (desireClass != null)
+					id = desireClass.getField(name).getInt(desireClass);
+			} catch (Exception e)
+			{
+				e.printStackTrace();
+			} 
+
+			return id;
+
+		}
+		需要导入主工程的有，jar包，res资源，manifest（activity声明）
+		
+	或者，还可以用下面方法（个人喜好，本人不喜欢用）
+	生成jar包，再创建library project引用资源文件。
+	然后将此library project发布出去.这个方法可以省了让开发者copy 资源文件这一个过程。也不用公布源码

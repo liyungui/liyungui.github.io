@@ -1,0 +1,40 @@
+Eclipse Class Decompiler整合了目前最好的2个Java反编译工具Jad和JD-Core，并且和Eclipse Class Viewer无缝集成，
+能够很方便的使用本插件查看类库源码，以及采用本插件进行Debug调试，导出反编译源代码
+
+插件主页：http://feeling.sourceforge.net/
+Eclipse Update Site: http://feeling.sourceforge.net/update
+离线安装包下载地址一：http://feeling.sourceforge.net/downloads/org.sf.feeling.decompiler_1.0.2.zip
+离线安装包下载地址二：http://www.blogjava.net/Files/cnfree/org.sf.feeling.decompiler_1.0.2.zip
+	Eclipse3.4以上版本支持使用dropins的插件安装方式
+		最简单的，直接将所有jar包和目录放到dropins目录下。不分plugins和features
+		如果安装插件但没有效果，可以删除eclipse主目录下的\configuration\org.eclipse.update后，
+		再在命令行方式下，进入在Eclipse根目录(eclipse.exe所在目录)通过“eclipse –clean”的命令来启动Eclipse，
+		clean命令会告诉Eclipse重新搜索并加载所有的插件信息。
+		
+本插件仅支持Windows，Linux，Macosx操作系统。
+直接使用Eclipse进行更新，支持Eclipse 3.x, 4.x，不依赖任何其他插件，直接勾选更新插件即可。
+
+Eclipse4.x以上的版本用原来的jadclipse加jad.exe反编译后调试方式已经不能用（无法输出行号，从而无法断点）
+该版本在Eclipse4.4下亲测可用
+
+安装后在preference--java 下可以看到 反编译器菜单，说明安装成功。
+
+配置
+	缺省的反编译工具为JD-Core。
+		JD-Core更为先进一些，支持泛型、Enum、注解等JDK1.5以后才有的新语法。
+	以注释方式输出原始行号信息：
+		如果Class文件包含原始行号信息，则会将行号信息以注释的方式打印到反编译结果中。
+	根据行号对齐源代码以便于调试：
+		若选中该项，插件会采用AST工具分析反编译结果，并根据行号信息调整代码顺序，
+		以便于Debug过程中的单步跟踪调试。
+		
+右键菜单包含一个“导出反编译源代码”菜单项
+	如果是平铺模式布局，则导出的源代码不包含子包，
+	如果是层级模式布局，则导出选中的包及其所有的子包
+
+Eclipse Class Decompiler 的 JD-Core不支持64位操作系统的解决办法  	
+	在Win7 x64上安装之后，用Jad没问题，但是JD-Core会报错，
+	说是x64操作系统不能加载32位的DLL，C:\DevTools\eclipse\configuration\org.eclipse.osgi\bundles\974\1\.cp\win32\x86\jd-eclipse.dll。
+	解决方法，JD-Core的官网上有JD-Eclipse插件，
+		下载后解压用 x64版本把这个jd-eclipse.dll替换
+			eclipse\configuration\org.eclipse.osgi\bundles\974\1\.cp\win32\x86\jd-eclipse.dll
