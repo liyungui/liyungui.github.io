@@ -193,13 +193,73 @@ Android各进程内存地址相互独立，都有一个MainThread，MainLooper�
 
 ## IPC方式
 
-- **文件共享**，多进程读写一个相同的文件，获取文件内容进行交互；
-- **Socket**
-- **AIDL**，Android标准跨进程通讯API，非常灵活且强大。支持并发，传递数据，方法调用
-- **Messenger**，基于AIDL实现的轻量级跨进程通讯方案，只能传递Message对象
-- **Bundle**，只能在四大组件间传递Bundle对象;
-- **ContentProvider**，常用于多进程共享数据，比如系统的相册，音乐等
-- **广播**
+|缺点|优点|缺点|适用场景|
+|---|---|---|---|
+| 文件共享 |简单易用，多进程读写一个相同的文件|不适合高并发场景,并且无法做到进程间的即时通信|无并发访问情形,交换简单的数据，实时性不高的场景|
+| Socket |功能强大,可以通过网络传输字节流,支持一对多并发实时通信|实现细节稍微有点烦琐,不支持直接的RPC|网络数据交换|
+| AIDL |Android基于Binder标准跨进程通讯API，功能灵活强大,支持一对多并发通信,支持实时通信|使用稍复杂,需要处理好线程同步|一对多通信且有RPC需求|
+| Messenger |基于AIDL实现的轻量级跨进程通讯方案，功能一般,支持一对多串行通信,支持实时通信|不能很好处理高并发情形,不支持RPC,数据通过 Message进行传输,因此只能传输 Bundle支持的数据类型|低并发的一对多即时通信,无RPC需求,或者无须要返回结果的RPC需求|
+| Bundle |简单易用|只能传输 Bundle支持的数据类型|四大组件间的进程间通信|
+| ContentProvider |在数据源访问方面功能强大,支持一对多并发数据共享,可通过Call方法扩展其他操作|可以理解为受约束的AIDL,主要提供数据源的CRUD操作|一对多的进程间的数据共享|
+| 广播 ||||
+
+Android OS中的**Zygote进程**的IPC采用的是**Socket**（套接字）机制
+
+Android中的**Kill Process**采用的**signal**（信号）机制等等。
+
+而**Binder**更多则用在`system_server进程`与上层App层的IPC交互。
+
+# Binder
+
+Binder在Android系统中地位非常之高。Zygote孵化出`system_server`进程后，在`system_server`进程中出初始化支持整个Android framework的各种各样的Service，而这些Service从大的方向来划分，分为Java层Framework和Native Framework层(C++)的Service，几乎都是基于BInder IPC机制。
+
+- Java Framework
+	- Server端继承(或间接继承)Binder类
+		- ActivityManagerService
+	- Client端继承(或间接继承)BinderProxy类
+		- ActivityManager
+- Native Framework
+	- Server端继承(或间接继承)BBinder类
+		- MediaPlayService
+	- Client端继承(或间接继承)BpBinder类
+		- MediaPlay
+
+## 为什么用Binder作为IPC机制
+
+- **性能**：
+	- 共享内存不需要一次内存拷贝
+	- Binder数据拷贝只需要一次
+	- 管道、消息队列和socket都需要2次。
+	- 从性能角度来看，binder性能仅次于共享内存。
+- **稳定性**：
+	- Binder基于C/S 架构 ，server端与client端相对独立
+	- 共享内存需要考虑访问临界资源的并发同步问题
+	- binder结构的稳定性较好
+- **安全性**：
+	- Android系统中对外只暴露Client端
+	- Client端将任务发送给Server端
+	- Server端会根据权限(进程的UID)控制策略
+
+## Binder通信框架
+
+{% asset_img binder.png %}
+
+四个角色：Server，Client，ServiceManager，以及binder驱动，驱动运行在内核空间，其他三者运行在用户空间。
+
+- **binder驱动**
+	- 工作在内核态
+	- 提供open(),mmap(),ioctl等标准文件操作
+	- 用户可以通过`/dev/binder`来访问它
+	- 负责进程之间binder通信的建立，传递，计数管理以及数据的传递交互等底层支持。
+- **ServiceManager**
+	- 为Server提供注册服务
+	- 为Client提供获取服务
+- **Server**
+	- 创建Binder，命名Binder
+	- 注册到ServiceManager
+- **Client**
+	- 根据名字，从ServiceManager获取服务(其实是Binder)
+	- `context.getSystemService(Context.AUDIO_SERVICE)`
 
 # AIDL
 
@@ -577,6 +637,7 @@ public void UpdateUI(View view){
 - [github 源码](https://github.com/V1sk/AIDL)
 - [in、out、inout意义](http://stackoverflow.com/questions/4700225/in-out-inout-in-a-aidl-interface-parameter-value) stackoverflow
 - [Android通过RemoteViews实现跨进程更新UI](https://blog.csdn.net/chenzheng8975/article/details/54969791)
+- [Android IPC机制（Android开发艺术探索）](https://www.jianshu.com/p/6b1994a1f6fe)
 
 
 

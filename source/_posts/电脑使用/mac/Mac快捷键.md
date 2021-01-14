@@ -22,6 +22,9 @@ tags:
 打开表情键盘： ctrl + Command + 空格
 打开聚焦搜索： Command + 空格
 
+不同程序之间切换：Command + tab
+同一程序切换窗口：Command + ~
+
 隐藏最前面的应用窗口：Command + h
 最小化最前面的应用至程序坞：Command + m
 最小化最前面的应用的所有窗口至程序坞：Command + Option + m

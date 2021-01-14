@@ -37,7 +37,7 @@ Dispatcher类 中有两个集合分别为：runningAsyncCalls、readyAsyncCalls
 
 该类中有一个ThreadPoolExecutor线程池(核心线程0，最大线程Integer.MAX_VALUE，队列Integer.MAX_VALUE，保活60秒)执行器，利用该执行器来执行**异步请求**的execute方法。异步请求发送在非当前工作线程，即创建异步请求的线程，而是从线程池中获取一条线程执行网络请求。同步请求则直接是在当前工作线程中执行。
 
-该类对**异步请求**的管理是通过maxRequests、maxRequestsPerHost进行控制的，前者控制线程池中同时运行的最大请求数，防止同时运行线程过多，造成OOM。后者限制了同一hostname下的请求数，防止一个应用占用的网络资源过多，优化用户体验。
+该类对**异步请求**的管理是通过maxRequests(默认64)、maxRequestsPerHost(默认5)进行控制的，前者控制线程池中同时运行的最大请求数，防止同时运行线程过多，造成OOM。后者限制了同一hostname下的请求数，防止一个应用占用的网络资源过多，优化用户体验。
 
 ## 设置最大并发数
 
@@ -158,7 +158,24 @@ if (sslSocketFactory != null) {
     httpClientBuilder.sslSocketFactory(sslSocketFactory);
 }
 ```
-  
+
+## 真实超时时间大于设置
+
+查看请求的埋点数据，发现有几十个用户请求上花费的时间超过30s,有些甚至达到了90s,这样的体验就非常差了。  
+
+原因可能是下面两者之一：
+
+- 请求数在短时间内超过maxRequests
+- 同URL的请求书短时间内超过maxRequestsPerHost
+
+然后刚好网络足够差，每个连接都是等到发生超时异常后被迫关闭。之后的请求要等待前面的连接超时，开始执行，自身超时，那么用户的等待时间就接近 n * 设置的timeout。n = 前面积压的待执行任务
+
+解方案：
+
+- 提高maxRequests(默认64)。副作用是线程OOM
+- maxRequestsPerHost(默认5)。副作用是单URL占用过多网络资源
+- 设置短的timeout(默认10秒)
+
 # 二、概念描述 #
 
 ## 请求URL  ##
@@ -529,5 +546,7 @@ NetService.getInstance().getBusinessService()
 [文档地址](http://square.github.io/retrofit/) 
 
 [用法详解系列](https://futurestud.io/blog/retrofit-2-upgrade-guide-from-1-9) 
+
+[你以为的timeout,不一定是用户的timeout](https://zhuanlan.zhihu.com/p/31640388)
 
 

@@ -146,7 +146,7 @@ app/src/main/目录下新建jniLibs目录，so库需要放入对应的cpu下（�
 
 
 	sourceSets{
-        main.jniLibs.srcDir 'src/main/libs' //默认so库目录
+        main.jniLibs.srcDir 'src/main/libs' //设置自定义so库目录
     }
     
 .so文件放在对应的文件夹中

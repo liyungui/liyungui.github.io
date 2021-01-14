@@ -16,6 +16,24 @@ Linux/Unix 支持四种远程连接协议
 - ftp。文件传输
 - sftp。安全文件传输。支持的shell命令有限。rm只能删除文件
 
+# MAC中生成SSH key
+
+检查是否已经存在SSH keys
+
+`ls -al ~/.ssh`
+
+如果已存在，则结果会列出目录文件列表。
+
+默认的文件名为`id_rsa`和`id_rsa.pub`
+
+如果不存在，则创建
+
+`ssh-keygen -t rsa -b 4096 -C "tom@gmail.com"`
+
+回车，输入密码(8位以上)，确认密码，即可创建成功
+
+把`id_rsa.pub`放到远程服务器，即可使用私钥登录
+
 # 登录
 
 `ssh root@192.168.25.137`
@@ -35,7 +53,6 @@ scp是远程安全拷贝，cp为本地拷贝
 	把本机/var/www/目录下的test.php文件上传到192.168.0.101这台服务器上的/var/www/目录中  
 	scp /var/www/test.php root@192.168.0.101:/var/www/
 	
-
              
 # sftp
 
@@ -67,7 +84,9 @@ scp是远程安全拷贝，cp为本地拷贝
 
 ## exit和quit
 
+# 参考&扩展
 
+- [MAC中生成SSH key](https://blog.csdn.net/chduan_10/article/details/94558773)
 
 
 

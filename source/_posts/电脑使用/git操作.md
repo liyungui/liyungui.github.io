@@ -186,7 +186,7 @@ git revert与reset的区别是git revert会生成一个新的提交来撤销某�
 	
 1. 创建SSH Key
 
-	用户目录/.ssh目录下（我的C:\Users\Administrator\ .ssh）是否有id_rsa和id_rsa.pub这两个文件。没有则在git bash中创建
+	用户目录/.ssh目录下（我的C:\Users\Administrator\ .ssh）是否有`id_rsa`和`id_rsa.pub`这两个文件。没有则在git bash中创建
 		
 2. 把公钥放到服务器
 
@@ -204,7 +204,7 @@ git revert与reset的区别是git revert会生成一个新的提交来撤销某�
 5. `git push`推送本地仓库到远程仓库
 
 
-6. `git clone`从远程仓库克隆到本地仓库（会在本地仓库根目录下生成新文件夹）（克隆是默认主机名为origin，可用 -o指定主机名;默认克隆master分支，可用 -b 指定分支名）
+6. `git clone`从远程仓库克隆到本地仓库（会在本地仓库根目录下生成新文件夹）（克隆是默认主机名为origin，可用 -o指定主机名;默认克隆master分支，可用 -b 指定分支名;--depth=1 指定只克隆最近一次commit，即最新版本）
 
 	```
 	git clone https://github.com/jquery/jquery.git
