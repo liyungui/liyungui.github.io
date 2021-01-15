@@ -1,4 +1,5 @@
 	将Eclipse代码导入到AndroidStudio的两种方式 http://www.open-open.com/lib/view/open1419597450031.html
+	
 ## 兼容模式，保持目录结构 -- eclipse生成Gradle工程 ##
 
 保持了Eclipse时代的代码目录结构，当你使用AndroidStudio时，你或者其他人也可以方便的使用Eclipse，互不干扰。
