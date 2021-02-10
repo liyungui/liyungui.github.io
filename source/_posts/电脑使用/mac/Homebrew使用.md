@@ -20,13 +20,29 @@ The missing package manager for macOS (or Linux)
 ## 安装
 
 	brew install wget
+
+## 查看已安装的列表
+
+`brew list`
 	
-### 安装路径
+## 查看安装路径
 
  默认安装路径 `/usr/local/Cellar`
  
  `brew list 软件名` 获取安装路径
  
+## 卸载
+
+`brew uninstall xxx` 
+
+## 搜索软件
+
+`brew search xxx`
+
+## 更新软件
+
+`brew upgrade xxx`
+
 # 常见问题
 
 ## 长时间停在Updating Homebrew
