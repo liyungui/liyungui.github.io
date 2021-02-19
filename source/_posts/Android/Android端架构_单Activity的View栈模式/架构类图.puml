@@ -7,6 +7,237 @@ skinparam stereotypeCBackgroundColor Gray
 'hide members
 hide circle
 
+interface IObserver{
+    handleMessage(int messageId, IContainer params,
+        \t IContainer result) : boolean;
+}
 
+interface ICommandReceiver {
+    receiveCommand(int commandId, IContainer params,
+        \t IContainer result) : boolean;
+}
+
+interface IUserEventManager {
+    + dispatchKeyEvent(KeyEvent event) : boolean;
+
+    + dispatchKeyEventPreIme(KeyEvent event) : boolean;
+
+    + dispatchTouchEvent(MotionEvent ev) : boolean;
+}
+
+interface IUserEventProcessor{
+    + dispatchKeyEvent(ICommandReceiver commandReceiver,
+        \t StateManager stateManager, KeyEvent event) : boolean;
+
+    + dispatchKeyEventPreIme(ICommandReceiver commandReceiver,
+            StateManager stateManager, KeyEvent event) : boolean;
+
+    + dispatchTouchEvent(ICommandReceiver commandReceiver,
+        \t StateManager stateManager, MotionEvent ev) : boolean;
+}
+
+abstract class State #LightGray{
+        # ICommandReceiver mCommandReceiver;
+        # BaseStateManager mStateManager;
+        # BaseState mLastState;
+        # CompositeSubscription mCompositeSubscription;
+
+        + handleMessage(ICommandReceiver commandReceiver, StateManager stateManager,
+                                    \t int messageId, IContainer params, IContainer result) : boolean;
+        + {abstract} pop(ICommandReceiver commandReceiver, State nextState,
+            \t IContainer params, IContainer result);
+        + {abstract} exit(ICommandReceiver commandReceiver, State nextState,
+            \t IContainer params, IContainer result);
+        + {abstract} forwardEnter(ICommandReceiver commandReceiver, State lastState,
+                IContainer params, IContainer result);
+        + {abstract} backEnter(ICommandReceiver commandReceiver, State lastState,
+                IContainer params, IContainer result);
+        + showScreen(Class baseScreen, IContainer params);
+        + hideScreen(ICommandReceiver commandReceiver);
+        + showDialog(Class baseDialog, IContainer params);
+        + hideDialog(Class baseDialog);
+}
+
+abstract class BaseActivity {
+    # BaseController mController;
+    # {abstract} createController() : BaseController;
+}
+
+abstract class BaseController #LightGray {
+    # Activity mActivity;
+    # BaseUiManager mUiManager;
+    # StateManager mStateManager;
+    + BaseController(Activity activity);
+    # {abstract} createUiManager() : BaseUiManager;
+    # {abstract} createStateManager() : BaseStateManager;
+}
+
+abstract class BaseUiManager {
+    # Activity mActivity;
+    # BaseController mController;
+    # BaseRootView mRootView;
+    # BaseFrameView mFrameView;
+
+    + BaseUiManager(Activity activity, BaseController controller);
+    + initUiFrame();
+    # {abstract} createRootView() : BaseRootView;
+    # {abstract} createFrameView() : BaseFrameView;
+}
+
+abstract class BaseStateManager {
+    - Stack<State> mStackState;
+    - BaseController mController;
+
+    + BaseStateManager(BaseController controller)
+    + getCurrentState() : State;
+    + setCurrentState(State state);
+    + goForward(State nextState, IContainer params, IContainer result);
+    + goForward(State nextState, IContainer params, IContainer result,
+                boolean popCurrentState);
+    + goBack(IContainer params, IContainer result);
+    + goBack(State backState, IContainer params, IContainer result);
+    + inTurnBackAllAndSetTopState(State topState, IContainer params,
+                                   IContainer result);
+}
+
+class BaseViewFactory {
+    # Context mContext;
+    # BaseUiManager mUiManager;
+
+    + BaseViewFactory(Context context, BaseUiManager uiManager)
+}
+
+class FrameView {
+    - Stack<Screen> mScreenStack;
+
+    + pushScreen(Screen screen);
+    + popScreen(Screen screen);
+    + getTopScreen() : Screen;
+}
+
+interface BottomBarListener {
+    + onBottomActionButtonClick(int actionButtonId);
+}
+
+interface MainActionBarListener {
+    + onMainActionBackButtonClick();
+}
+
+interface ActionButtonListener {
+    + onMainActionButtonClick(int actionButtonId, View actionView);
+}
+
+abstract class Screen #LightGray{
+    # IObserver mObserver;
+    # Activity mAttachedActivity;
+    # View mFullStateBarView; //状态栏视图
+    # MainActionBar mMainActionBar;
+    - ViewGroup mLayoutContent;
+    # BottomBar mBottomBar;
+
+    # FrameLayout mRootLayout; //new
+    - LinearLayout mFullScreenLayout; //new
+    - FrameLayout mGuideLayout;
+
+    + Screen(Context context, IObserver observer)
+    # {abstract} createMainActionBar() : MainActionBar;
+    # {abstract} createBottomBar() : BottomBar;
+    # {abstract} createContent() : ViewGroup;
+
+}
+
+class MainActionBar{
+    - NavigationBar mNavigationBar;
+    - ActionBar mActionBar;
+    - MainActionBarListener mMainActionBarListener;
+
+    + setActionButtons(List<ActionButton> actionButtons);
+    + setActionButton(ActionButton actionButton);
+    + setTitle(String title);
+
+}
+
+class ViewGroup{
+
+}
+
+class BottomBar{
+    - List<ActionButton> mActionButtons;
+    - BottomBarListener mBottomBarListener;
+}
+
+class NavigationBar{
+    + setNavigation(String navigation)
+}
+
+class ActionBar{
+    - List<ActionButton> mActionButtons;
+    - ActionBarListener mActionBarListener;
+}
+
+class ActionButton {
+
+}
+
+interface ActionBarListener {
+    + onActionButtonClick(int actionButtonId, View actionView);
+}
+
+interface NavigationBarListener {
+    + onBackButonClick();
+}
+
+Activity <|-r- BaseActivity
+
+BaseActivity *-r- BaseController
+
+IObserver <|.d. BaseController
+ICommandReceiver <|.d. BaseController
+IUserEventManager <|.d. BaseController
+
+IObserver <|.d. BaseUiManager
+ICommandReceiver <|.d. BaseUiManager
+
+IUserEventProcessor <|.r. State
+
+BaseController *- BaseUiManager
+BaseController *-d-- BaseStateManager
+BaseController *-d- UserManager
+BaseController *-d- PersonManager
+
+UserManager *-d- NetService
+UserManager *-d- StorageService
+UserManager *-d- StatisticsService
+
+PersonManager *-d- NetService
+PersonManager *-d- StorageService
+PersonManager *-d- StatisticsService
+
+BaseUiManager *-r- BaseViewFactory
+BaseUiManager *-d- FrameView
+
+BaseStateManager o-d- State
+
+BaseViewFactory o-r- Screen
+
+IObserver <|.d. Screen
+ICommandReceiver <|.d. Screen
+BottomBarListener <|.d. Screen
+MainActionBarListener <|.d. Screen
+
+MainActionBarListener <|.r. ActionButtonListener
+
+Screen o-d- MainActionBar
+Screen o-d- ViewGroup
+Screen o-d- BottomBar
+
+ActionBarListener <|.. MainActionBar
+NavigationBarListener <|.. MainActionBar
+
+MainActionBar o-d- ActionBar
+MainActionBar o-d- NavigationBar
+
+ActionBar o-d- ActionButton
+BottomBar o-d- ActionButton
 
 @enduml
