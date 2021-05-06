@@ -19,3 +19,5 @@ tags:
 - 重启
 - 某个 `包/类` 上右击，选择 `Add to simpleUML Diagram`
 
+simpleUMLCE 版本较新，下载量更高；但不一定支持所有的AS版本
+

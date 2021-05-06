@@ -53,6 +53,20 @@ PlantUML 是基于 Java 语言的开源 UML 图形绘制工具，是创建UML图
 
 使用`..` 来代替 `--` 可以得到点 线
 
+```
+Class01 <|-- Class02 扩展 泛化 extends 实线三角形
+Class11 <|.. Class12 实现 implements 虚线三角形
+
+Class13 --> Class14 关联 成员变量 实线箭头
+Class15 ..> Class16 依赖 虚线箭头
+
+Class03 *-- Class04 组合 contains-a 整体与部分不可分 实线实心菱形
+Class05 o-- Class06 聚合 has-a 整体与部分可分离 实线空心菱形
+
+Class07 .. Class08 虚线
+Class09 -- Class10 实线
+```
+
 ## 关系上的标识
 
 使用 :后接 标签文字，来说明 关系之间的标签
@@ -277,4 +291,5 @@ box关键字后面，可以接一个方框的标题，和指定方框的背景�
 # 参考&扩展
 
 - [官网](http://plantuml.com/zh/)
+- [官网类图](https://plantuml.com/zh/class-diagram)
 - [捣鼓PlantUML（三、时序图）](https://blog.csdn.net/zh_weir/article/details/72675013)

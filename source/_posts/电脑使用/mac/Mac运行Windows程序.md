@@ -47,6 +47,10 @@ View wrapper in Finder，看APP 包的位置(/Users/‘用户名目录’/Applic
 	Test Run -- 试运行 能够看到效果
 	
 如果出现乱码，说明没有下载中文字库。在配置中选择Tools 工具。Winetricks 配置基础环境。在字库中增加中文字库，选择fonts中的cjkfonts。选中后Run 即可
+
+# 虚拟机 Parallels Desktop
+
+可以在Mac OS X 下非常方便运行 Windows、Linux 等操作系统及应用。用户不必繁琐重复地重启电脑即可在 Win 与 Mac 之间切换甚至同时使用它们
 	
 
 
