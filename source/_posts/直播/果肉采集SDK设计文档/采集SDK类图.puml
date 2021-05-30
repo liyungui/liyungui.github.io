@@ -1,0 +1,122 @@
+@startuml
+'skinparam monochrome true
+skinparam classBackgroundColor White
+skinparam classArrowColor Black
+skinparam classBorderColor Black
+skinparam stereotypeCBackgroundColor Gray
+'hide members
+hide circle
+
+class GRTCapturer{
+   # GRTCaptureListener mGRTCaptureListener
+   # GRTCaptureConfig mGRTCaptureConfig
+   + void setConfig()
+   + void startCameraPreview()
+   + void startCapture()
+   + void stopCapture()
+   + boolean isStreaming()
+   + void switchCamera()
+}
+
+class GRTCaptureListener{
+   + void onStatus()
+   + void onEvent()
+}
+
+class GRTCaptureConfig{
+   # bool mEnableAudio
+   # bool enableVideo
+   # AudioProfile mAudioProfile
+   # VideoProfile mVideoProfile
+}
+
+class RtspServer{
+    # WeakHashMap<Session, Object> mSessions
+    + void start()
+    + void stop()
+    + boolean isStreaming()
+
+}
+
+class RtspServer{
+    # WeakHashMap<Session, Object> mSessions
+    + void start()
+    + void stop()
+    + boolean isStreaming()
+
+}
+
+class Session {
+	- AudioStream mAudioStream
+	- VideoStream mVideoStream
+}
+
+interface Stream{
+    + void start()
+    + void stop()
+}
+
+abstract class MediaStream{
+}
+
+abstract class VideoStream{
+}
+
+abstract class AudioStream{
+}
+
+'class H263Stream{
+'}
+
+class H264Stream{
+}
+
+class AACStream{
+}
+
+'class AMRNBStream{
+'}
+
+abstract class AbstractPacketizer {
+}
+
+'class H263Packetizer{
+'}
+
+class H264Packetizer{
+}
+
+class AACADTSPacketizer{
+}
+
+'class AACLATMPacketizer{
+'}
+
+'class AMRNBPacketizer{
+'}
+
+
+Stream <|-- MediaStream
+MediaStream <|-- VideoStream
+MediaStream <|-- AudioStream
+'VideoStream <|-- H263Stream
+VideoStream <|-- H264Stream
+AudioStream <|-- AACStream
+'AudioStream <|-- AMRNBStream
+
+'AbstractPacketizer <|-- H263Packetizer
+AbstractPacketizer <|-- H264Packetizer
+AbstractPacketizer <|-- AACADTSPacketizer
+'AbstractPacketizer <|-- AACLATMPacketizer
+'AbstractPacketizer <|-- AMRNBPacketizer
+
+GRTCapturer --> GRTCaptureConfig
+GRTCapturer --> GRTCaptureListener
+GRTCapturer --> SocketServer
+GRTCapturer --> RtspServer
+RtspServer --> Session
+Session --> VideoStream
+Session --> AudioStream
+H264Stream --> H264Packetizer
+AACStream --> AACADTSPacketizer
+@enduml

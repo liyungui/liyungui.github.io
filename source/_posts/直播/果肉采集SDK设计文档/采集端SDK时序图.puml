@@ -1,0 +1,38 @@
+@startuml
+
+== 启动 ==
+RtspServer -> RtspServer: start()
+RtspServer -> RequestListener: new()
+RequestListener -> ServerSocket: new()
+RequestListener -> RequestListener: start()
+RequestListener -> RequestListener: run()等待客户端连接
+RequestListener-> WorkerThread: new(Socket client)
+RequestListener-> WorkerThread: start()
+WorkerThread-> WorkerThread: run()\n解析Socket输入流\n为Request
+WorkerThread-> WorkerThread: processRequest() \n创建保存客户端Session\n发送Response
+
+== DESCRIBE ==
+WorkerThread -> Session: 创建保存客户端Session
+WorkerThread -> Session: syncConfigure()
+Session -> H264Stream: configure()
+H264Stream -> VideoStream: configure()
+VideoStream -> MediaStream: configure()
+H264Stream -> H264Stream: testH264()\nMediaCodec失败\n降级MediaRecorder
+== SETUP ==
+WorkerThread -> Session: syncStart()
+Session -> H264Stream: start()
+H264Stream -> H264Stream: configure()
+H264Stream -> VideoStream: start()
+VideoStream -> MediaStream: start()
+MediaStream -> VideoStream: encodeWithMediaCodec()
+VideoStream -> VideoStream: encodeWithMediaCodecMethod2()\nsurface方式\n调用系统API
+VideoStream -> H264Packetizer: 传递MediaCodec输出缓冲区
+
+== 停止 ==
+RtspServer -> RtspServer: stop()
+RtspServer -> RequestListener: kill()
+RequestListener -> ServerSocket: close()
+RtspServer -> RtspServer: 遍历mSessions
+RtspServer -> Session: stop()
+
+@enduml

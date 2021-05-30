@@ -26,13 +26,13 @@ Android使用的话，建议直接使用 Endoscope
 	- 缺陷：
 		- 音画同步不精确
 		- MediaRecorder internal buffers 导致卡顿
-- **MediaCodec** API and the buffer-to-buffer method
+- **MediaCodec** API and the `buffer-to-buffer` method
 	- requires Android 4.1.
 	- 关键：
 		- `dequeueInputBuffer` and `queueInputBuffer`
 	- 缺陷：
 		- color formats 各不相同，需要做兼容
-- **MediaCodec** API and the surface-to-buffer method 
+- **MediaCodec** API and the `surface-to-buffer` method 
 	- requires Android 4.3.
 	- 关键：
 		- `createInputSurface`
@@ -44,6 +44,36 @@ libstreaming 的方法3，有缺陷：结束采集时会产生 Native崩溃
 {% asset_img 类图.png %}
 
 {% asset_img 时序图.png %}
+
+# 自定义 SurfaceView
+
+用于相机预览，增强功能：
+
+- 支持 `surface-to-buffer` 渲染方式。
+	- 原本SurfaceView只能支持 `buffer-to-buffer`
+		- 即 `setPreviewDisplay(SurfaceView的SurfaceHolder)`
+	- 增加支持`setPreviewTexture(SurfaceTexture)`
+		- 即 封装了 SurfaceTexture
+- 支持 `setAspectRatioMode` 设置纵横比
+	- 默认，父View纵横比
+	- 预览View纵横比
+
+```
+// The surface in which the preview is rendered
+private SurfaceManager mViewSurfaceManager = null;
+	
+// The input surface of the MediaCodec
+private SurfaceManager mCodecSurfaceManager = null;
+	
+// Handles the rendering of the SurfaceTexture we got 
+// from the camera, onto a Surface
+private TextureManager mTextureManager = null;
+```	
+
+# TextureManager
+
+Code for rendering a texture onto a surface using OpenGL ES 2.0.
+
 
 # 参考&扩展
 
