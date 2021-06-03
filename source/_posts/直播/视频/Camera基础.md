@@ -72,7 +72,7 @@ getSupportedPictureFormats
 视频size	
 getSupportedVideoSizes
 
-方向	
+拍照图像方向	
 setRotation
 	0, 90, 180 or 270	
 ```
@@ -120,6 +120,57 @@ setPreviewCallbackWithBuffer(PreviewCallback)
 停止预览 stopPreview
 释放 release
 
+# 相机方向
+
+## 屏幕自然方向
+
+每个设备都有一个自然方向
+
+默认情况下，手机的自然方向是竖屏方向，平板的自然方向是横屏。
+
+Android系统可以通过给View设置`OrientationEventListener`监听设备方向
+
+`onOrientationChanged(int orientation)` 返回0到359的角度，其中0表示自然方向。
+
+实现原理是封装了 `SensorManager`
+
+## 屏幕坐标方向
+
+Android系统中，以屏幕自然方向的左上角为坐标系统的原点(0,0)坐标，该坐标系是固定不变的，不会因为设备方向的变化而改变。
+
+## 摄像头传感器方向
+
+摄像头传感器在被固定到手机上后有一个默认的取景方向，方向一般是和手机横屏方向一致
+
+## 相机预览方向
+
+默认情况下，和摄像头传感器方向一致，可以通过Camera API进行改变。
+
+Camaer 1 是 `setDisplayOrientation(int orientation)`
+
+`orientation` 就是摄像头传感器方向顺时针旋转到屏幕自然方向的角度。
+
+不同的摄像头位置，orientation是不一样的
+
+- 后置摄像头
+	- 横屏：0 屏幕的自然方向和相机的摄像头传感器方向一致的
+	- 竖屏：90 预览图像逆时针旋转了90度，因此预览方向需顺时针旋转90度
+- 前置摄像头
+
+## 相机拍照方向
+
+设置预览方向并不会改变拍出照片的方向。
+
+对于后置相机，相机采集到的图像和相机预览的图像是一样的，只需要旋转后置相机orientation度。
+
+对于前置相机来说，相机预览的图像和相机采集到的图像是镜像关系。
+
+采集的图像：顺时针旋转270度后，与屏幕自然方向一致。
+
+预览的图像：顺时针旋转90度后，与屏幕自然方向一致。
+
+
 # 参考&扩展
 
 - [摄像头Camera视频源数据采集解析](http://www.cxyzjd.com/article/chupu2979/100616420)
+- [Android Camera-相机尺寸、方向和图像数据](https://juejin.cn/post/6844904064568803341)
