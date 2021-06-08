@@ -15,25 +15,7 @@ Open Graphics Library
 
 跨语言、跨平台的 渲染2D、3D矢量图形的 应用程序编程接口（API）
 
-# OpenGL ES API 命名习惯
-
-Android OpenGL ES 实现上是使用Java 语言对底层的C接口进行了封装，因此类和方法带有很强的C语言色彩
-
-```
-常量都以 GL_ 为前缀。比如 GLES20.GL_COLOR_BUFFER_BIT
-指令都以 gl 开头 ，比如 GLES20.glClearColor()
-
-某些指令以 数字fixv 结尾
-	数字 代表参数的个数
-	fivx 代表参数类型
-		f 代表参数类型为 浮点数, 如 GLES20.glUniform3f
-		i,x 代表参数类型为 int, 如 GLES20.glUniform2i
-		v 代表参数类型为 向量(Vector), 如 GLES20.glUniformMatrix4fv
-
-所有8-bit整数对应到byte 类型，16-bit 对应到short类型,32-bit整数(包括GLFixed)对应到int类型，而所有32-bit 浮点数对应到float 类型。
-GL_TRUE,GL_FALSE 对应到boolean类型
-C字符串((char*)) 对应到Java 的 UTF-8 字符串。
-```
+**OpenGL ES**：OpenGL for Embedded Systems
 
 # OpenGL ES 版本
 
@@ -126,16 +108,19 @@ public class CameraView extends GLSurfaceView {
 ```
 public class CameraRender implements GLSurfaceView.Renderer {
 
-public void onSurfaceCreated(GL10 unused, EGLConfig config) {
+	// GLSurfaceView创建时被回调
+	public void onSurfaceCreated(GL10 unused, EGLConfig config) {
 		// 设置背景颜色为红色(rgba)
 		GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	}
 	
+	// GLSurfaceView视图改变时回调，第一次创建时也会被回调
 	public void onSurfaceChanged(GL10 unused, int width, int height) {
 		// 设置渲染的位置和大小
 		GLES20.glViewport(0, 0, width, height);
 	}
-		
+	
+	// 每一帧绘制时被回调	
 	public void onDrawFrame(GL10 unused) {
 		// 绘制前，清空 Color 和 Depth Buffer
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
@@ -160,6 +145,26 @@ public class MainActivity extends AppCompatActivity {
         setContentView(cameralView);
     }
 }
+```
+
+# OpenGL ES API 命名习惯
+
+Android OpenGL ES 实现上是使用Java 语言对底层的C接口进行了封装，因此类和方法带有很强的C语言色彩
+
+```
+常量都以 GL_ 为前缀。比如 GLES20.GL_COLOR_BUFFER_BIT
+指令都以 gl 开头 ，比如 GLES20.glClearColor()
+
+某些指令以 数字fixv 结尾
+	数字 代表参数的个数
+	fivx 代表参数类型
+		f 代表参数类型为 浮点数, 如 GLES20.glUniform3f
+		i,x 代表参数类型为 int, 如 GLES20.glUniform2i
+		v 代表参数类型为 向量(Vector), 如 GLES20.glUniformMatrix4fv
+
+所有8-bit整数对应到byte 类型，16-bit 对应到short类型,32-bit整数(包括GLFixed)对应到int类型，而所有32-bit 浮点数对应到float 类型。
+GL_TRUE,GL_FALSE 对应到boolean类型
+C字符串((char*)) 对应到Java 的 UTF-8 字符串。
 ```
 
 # 管线(渲染流程)
@@ -197,9 +202,9 @@ OpenGL采用**cs模型**：c是cpu，s是GPU。c给s的输入是vertex信息和T
 用于：
 - 加载 着色器
 - 编译 着色器
-- 添加 着色器 到OpenGL ES程序中
-- 链接 着色器
-- 使用该程序绘制形状
+- 附加 着色器 到 Program
+- 链接 Program
+- 使用 Program 绘制形状
 
 # 坐标
 
@@ -207,8 +212,16 @@ OpenGL采用**cs模型**：c是cpu，s是GPU。c给s的输入是vertex信息和T
 
 规范化：值为[-1,1]
 
-- **世界坐标**：左手坐标系，以矩形**中心**为原点
-- **纹理坐标**：左手坐标系，以矩形**左下角**为原点
+- **世界坐标(xy)**：左手坐标系，以矩形**中心**为原点
+- **纹理坐标(st,或uv)**：左手坐标系，以矩形**左下角**为原点
+
+## 纹理坐标和OpenGL世界坐标
+
+由于对一个OpenGL纹理来说，它没有内在的方向性，因此我们可以使用不同的坐标把它定向到任何我们喜欢的方向上，然而大多数计算机图像都有一个默认的方向，它们通常被规定为**y轴向下**，y的值随着向图像的底部移动而增加。
+
+这就跟OpenGL世界坐标的y方向相反，想用正确的方向观看图像，那纹理坐标的u也必须要向下(即跟上面独立的纹理坐标u反向，左上角变为原点)
+
+{% asset_img 纹理坐标和世界坐标.png %}
 
 # 数据类型
 
@@ -376,6 +389,7 @@ glDrawElements(int mode, int count, int type, Buffer indices) ，可以重新定
 
 ```
 public class Triangle {
+    private String TAG = "Triangle";
 
     // 顶点着色器 代码
     private final String vertexShaderCode =
@@ -393,12 +407,17 @@ public class Triangle {
 
     // 数组 存储 三个顶点
     private float triangleCoords[] = {  // 按逆时针顺序
-            0.0f, 0.66f, 0.0f, // 上
-            -0.5f, -0.66f, 0.0f, // 左下
-            0.5f, -0.66f, 0.0f  // 右下
+            0.0f, 0.622008459f, 0.0f, // 上
+            -0.5f, -0.311004243f, 0.0f, // 左下
+            0.5f, -0.311004243f, 0.0f  // 右下
     };
     // FloatBuffer 存储 三个顶点，更加高效
-    private FloatBuffer vertexBuffer;
+    // 内存拷贝。Java层 到 Native层。可抽取为模板代码
+    private FloatBuffer vertexBuffer = ByteBuffer
+            .allocateDirect(triangleCoords.length * 4)// 分配一块 Native 内存，不会被 Java 的垃圾回收器管理
+            .order(ByteOrder.nativeOrder())// 缓冲区读取顺序使用设备硬件的本地字节读取顺序
+            .asFloatBuffer()// 从ByteBuffer创建一个浮点缓冲区，避免直接操作字节
+            .put(triangleCoords);// 将坐标点加到FloatBuffer中。从 Java 层内存复制到 Native 层
 
     // 数组 存储颜色(rgba)，红色
     private float color[] = {1.0f, 0.0f, 0.0f, 1.0f};
@@ -408,40 +427,16 @@ public class Triangle {
     private int mColorHandle;
 
     public Triangle() {
-        int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode);
-        int fragmentShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
-
-        // 创建一个空的OpenGL ES 程序
-        mProgram = GLES20.glCreateProgram();
-
-        // 将顶点着色器添加到程序中
-        GLES20.glAttachShader(mProgram, vertexShader);
-        // 将片段着色器添加到程序中
-        GLES20.glAttachShader(mProgram, fragmentShader);
-
-        // 编译链接OpenGL ES程序
-        GLES20.glLinkProgram(mProgram);
-
-        // 为形状坐标数组初始化顶点的字节缓冲区，每个float 4字节
-        ByteBuffer bb = ByteBuffer.allocateDirect(triangleCoords.length * 4);
-        // 缓冲区读取顺序使用设备硬件的本地字节读取顺序
-        bb.order(ByteOrder.nativeOrder());
-        // 从ByteBuffer创建一个浮点缓冲区
-        vertexBuffer = bb.asFloatBuffer();
-        // 将坐标点加到FloatBuffer中
-        vertexBuffer.put(triangleCoords);
-        // 设置缓冲区开始读取位置，这边设置为从头开始读取
-        vertexBuffer.position(0);
-    }
-
-    public void draw() {
-        // 将程序添加到OpenGL ES环境
+        mProgram = loadProgram(vertexShaderCode, fragmentShaderCode);
+        // 使用着色器程序
         GLES20.glUseProgram(mProgram);
 
         // 获取顶点着色器vPosition属性的句柄
         mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
         // 启用三角形顶点的句柄
         GLES20.glEnableVertexAttribArray(mPositionHandle);
+        // 设置缓冲区开始读取位置，这边设置为从头开始读取
+        vertexBuffer.position(0);
         // 准备三角坐标数据
         // size: 每个顶点坐标维数，可以为2，3，4。
         // type: 顶点的数据类型，可以为GL_BYTE, GL_SHORT, GL_FIXED,或 GL_FLOAT，缺省为浮点类型GL_FLOAT。
@@ -453,42 +448,368 @@ public class Triangle {
         mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
         //设置绘制三角形的颜色
         GLES20.glUniform4fv(mColorHandle, 1, color, 0);
+    }
 
+    public void draw() {
         // 绘制三角形
         // count 3个顶点
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
-
-        // 禁用顶点数组
-        GLES20.glDisableVertexAttribArray(mPositionHandle);
     }
 
-    public int loadShader(int type, String shaderCode) {
+    /**
+     * 加载编译着色器
+     *
+     * @param type
+     * @param shaderCode
+     * @return
+     */
+    public int loadAndCompileShader(int type, String shaderCode) {
         // 创建着色器
         // 顶点着色器类型（GLES20.GL_VERTEX_SHADER）
         // 片段着色器类型（GLES20.GL_FRAGMENT_SHADER）
         int shader = GLES20.glCreateShader(type);
-
-        // 将源代码添加到着色器并进行编译
+        if (shader == 0) {
+            Log.e(TAG, "创建着色器失败 " + type);
+            return shader;
+        }
+        // 将源代码添加到着色器
         GLES20.glShaderSource(shader, shaderCode);
+        // 编译着色器
         GLES20.glCompileShader(shader);
-
+        // 验证编译结果
+        final int[] compileStatus = new int[1];
+        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus, 0);
+        if (compileStatus[0] == 0) {
+            Log.d(TAG, "Compile Shader Failed\n" + GLES20.glGetShaderInfoLog(shader));
+            // 失败则删除
+            GLES20.glDeleteShader(shader);
+            return 0;
+        }
         return shader;
     }
 
+    /**
+     * 加载着色器程序
+     *
+     * @param vertexShaderCode
+     * @param fragmentShaderCode
+     * @return
+     */
+    public int loadProgram(final String vertexShaderCode, final String fragmentShaderCode) {
+        int vertexShader;
+        int fragmentShader;
+        int program;
+
+        vertexShader = loadAndCompileShader(GLES20.GL_VERTEX_SHADER, vertexShaderCode); // 顶点着色器
+        if (vertexShader == 0) {
+            Log.d(TAG, "Load Program: Vertex Shader Failed");
+            return 0;
+        }
+        fragmentShader = loadAndCompileShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode); // 片元着色器
+        if (fragmentShader == 0) {
+            Log.d(TAG, "Load Program: Fragment Shader Failed");
+            return 0;
+        }
+
+        // 创建着色器程序
+        program = GLES20.glCreateProgram();
+
+        // 附加 顶点着色器 和 片元着色器
+        GLES20.glAttachShader(program, vertexShader);
+        GLES20.glAttachShader(program, fragmentShader);
+
+        // 链接着色器程序
+        GLES20.glLinkProgram(program);
+
+        // 验证program的链接结果
+        int[] linkStatus = new int[1];
+        GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
+        if (linkStatus[0] <= 0) {
+            Log.d(TAG, "Load Program: Link Failed");
+            // 失败则删除 OpenGL 程序
+            GLES20.glDeleteProgram(program);
+            return 0;
+        }
+
+        // 删除着色器
+        GLES20.glDeleteShader(vertexShader);
+        GLES20.glDeleteShader(vertexShader);
+
+        //验证着色器程序
+        GLES20.glValidateProgram(program);
+        final int[] validateStatus = new int[1];
+        GLES20.glGetProgramiv(program, GLES20.GL_VALIDATE_STATUS, validateStatus, 0);
+        if (validateStatus[0] <= 0) {
+            Log.d(TAG, "Load Program: Validate Failed");
+            // 失败则删除 OpenGL 程序
+            GLES20.glDeleteProgram(program);
+            return 0;
+        }
+
+        return program;
+    }
 }
 ```
 
 在Render的`onDrawFrame(GL10 gl)` 创建`Triangle`实例，调用`Triangle.draw()`即可
 
-# Matrix
+# 投影和相机矩阵变换
 
+上面已经初步将三角形显示在屏幕上了，但明显可以看到存在问题。
+
+首先按照前面三角形的坐标，应该是一个等边三角形。
+
+其次，这个三角形竖屏和横屏拉伸方向都存在 **变形拉伸**
+
+这是因为 OpenGL采用 **方形均匀的坐标系统**
+
+要解决此问题，可以应用OpenGL**投影模式和摄像机视图来转换坐标**，以便图形对象在任何显示上都具有正确的比例。
+
+这边就涉及到一个**视见体(frustum 椎体)**的概念，其实OpenGL图形所处与于一个三维的世界，可以想象一下在屏幕上显示的其实是一个图像的投影，而屏幕可以理解为一块投影幕布，这样就可以通过改变相机的坐标和旋转移动投影来达到显示在投影上的物体的形状的拉伸与缩放。
+
+投影矩阵重新计算图形的坐标，以便它们正确映射到Android设备屏幕。摄像机视图矩阵创建一个变换，从特定的眼睛位置渲染对象。
+
+## 投影矩阵
+
+此矩阵根据绘制对象的显示位置的宽度和高度调整绘制对象的坐标。
+
+如果没有这个变换，OpenGL ES绘制的对象会因视图窗口的不等比例而拉伸。
+
+通常只需要在onSurfaceChanged()渲染器的方法中建立或更改OpenGL视图的宽高比例，计算投影矩阵。
+
+```
+private final float[] mProjectionMatrix = new float[16];// 投影矩阵
+private final float[] mViewMatrix = new float[16];// 视图矩阵
+private final float[] mMVPMatrix = new float[16];// 模型视图投影矩阵(Model View Projection Matrix)
+@Override
+public void onSurfaceChanged(GL10 gl, int width, int height) {
+	// Sets the current view port to the new size.
+	gl.glViewport(0, 0, width, height);
+        
+	// 计算宽高比
+	float ratio = (float) width / height;
+	    
+	// 使用其宽高来计算投影矩阵。frustum 椎体
+	// mProjectionMatrix 输出的投影矩阵
+	// offset 从输出的数组的什么位置开始写入
+	// left, right, bottom, top
+	// 投影矩阵对应于OpenGL ES世界坐标的对应上限的映射关系
+	// 即 宽*ratio; left=1*ratio, right=1*ratio
+	// near,fart 有点抽象，用于显示图像的前面和背面
+	// 需要结合假想摄相机即观察者眼睛的位置来设置
+	// near必须大于setLookAtM()中设置eyeZ，才可以看得到绘制的图像。否则图像就会处于观察者眼睛的后面，绘制的图像就会消失在镜头前
+	// far参数影响的是立体图形的背面，一般会设置得比较大(一定比near大)。如果设置的比较小，投影矩阵就没法容纳图形全部的背面，这样3D图形的背面会有部分无法显示。
+	Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+```
+
+## 摄像机视图矩阵
+
+此变换根据假想摄像机位置调整绘制对象的坐标。
+
+注意OpenGL ES不定义实际的相机对象，而是提供通过转换绘制对象的显示来模拟相机的效果。
+
+建立摄像机转换时，可能只计算一次 GLSurfaceView，或者也可能会根据用户操作或应用程序的功能动态更改。
+
+```
+@Override
+public void onDrawFrame(GL10 gl) {
+	// 设置相机的位置 (View matrix)
+	// mViewMatrix 输出的视图矩阵
+	// offset 从输出的数组的什么位置开始写入
+	// eyeX、eyeY、eyeZ 摄相机即观察者眼睛的位置
+	// centerX、centerY、centerZ 目标视图中心位置
+	// upX、upY、upZ相机角度
+	Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+	
+	// 计算投影和视图转换（Model View Projection Matrix）
+	// 矩阵相乘的顺序会影响结果。即 AB 和 BA 得到的是不同的矩阵
+	// mMVPMatrix 输出的模型视图投影矩阵
+	// offset 从输出的数组的什么位置开始写入
+	Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+	
+	mTriangle.draw(mMVPMatrix);
+}
+```
+
+## 使用模型视图投影矩阵
+
+```
+// 顶点着色器 代码
+private final String vertexShaderCode =
+        "attribute vec4 vPosition;" +
+                "uniform mat4 uMVPMatrix;" + // 提供了一个矩阵来变换顶点着色器对象的坐标
+                "void main() {" +
+                "  gl_Position = uMVPMatrix * vPosition;" + // uMVPMatrix因子必须在*前面才能使矩阵乘法乘积正确。
+                "}";
+                
+public void draw(float[] mvpMatrix) {
+    // 获取形状变换矩阵的具柄
+    mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+    // 将模型视图投影矩阵传递给着色器
+    GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
+
+    // 绘制三角形
+    // count 3个顶点
+    GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
+}    
+```
+
+# 添加动画
+
+动画和上面所述的图像修正的核心原理是一样的，都是通过对图像进行矩阵变换来实现。
+
+实例：旋转绘图对象
+
+创建另一个变换矩阵（旋转矩阵），然后将其与投影和摄像机视图变换矩阵组合
+
+```
+public void onDrawFrame(GL10 gl) 中
+// 创建旋转矩阵。
+// angel 角度，跟随系统时间递增
+float[] rotationMatrix = new float[16];
+Matrix.setRotateM(rotationMatrix, 0, 0.090f * ((int) SystemClock.uptimeMillis() % 4000L), 0, 0, -1.0f);
+
+//计算旋转，mMVPMatrix因子必须在*前面才能使矩阵乘法乘积正确。
+float[] scratch = new float[16];
+Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, rotationMatrix, 0);
+
+mTriangle.draw(scratch);
+```
+
+如果设置过 `setRenderMode(RENDERMODE_CONTINUOUSLY);`先注释，然后就能看到不断旋转的三角形了
+
+# 渲染一张图片
+
+```
+public class Image2D {
+    // 顶点着色器 代码
+    public static final String vertexShaderCode = "" +
+            "attribute vec4 position;\n" + // 顶点着色器的顶点坐标,由外部程序传入
+            "attribute vec4 inputTextureCoordinate;\n" + // 传入的纹理坐标
+            " \n" +
+            "varying vec2 textureCoordinate;\n" +
+            " \n" +
+            "void main()\n" +
+            "{\n" +
+            "    gl_Position = position;\n" +
+            "    textureCoordinate = inputTextureCoordinate.xy;\n" + // 最终顶点位置
+            "}";
+    // 片段着色器 代码
+    public static final String fragmentShaderCode = "" +
+            "varying highp vec2 textureCoordinate;\n" + // 最终顶点位置，上面顶点着色器的varying变量会传递到这里
+            " \n" +
+            "uniform sampler2D inputImageTexture;\n" + // 外部传入的图片纹理 即代表整张图片的数据
+            " \n" +
+            "void main()\n" +
+            "{\n" +
+            "     gl_FragColor = texture2D(inputImageTexture, textureCoordinate);\n" +  // 调用函数 进行纹理贴图
+            "}";
+
+    // 原始的矩形区域的顶点坐标
+    static final float CUBE[] = {
+            -1.0f, -1.0f, // v1 左下
+            1.0f, -1.0f,  // v2 右下
+            -1.0f, 1.0f,  // v3 左上
+            1.0f, 1.0f,   // v4 右上
+    };
+    // 纹理坐标系，称UV坐标，或者ST坐标。UV坐标定义为左上角（0，0），右下角（1，1）
+    // 每个坐标的纹理采样对应上面顶点坐标。
+    public static final float TEXTURE_NO_ROTATION[] = {
+            0.0f, 1.0f, // v1 左下
+            1.0f, 1.0f, // v2 右下
+            0.0f, 0.0f, // v3 左上
+            1.0f, 0.0f, // v4 右上
+    };
+    private FloatBuffer mGLCubeBuffer = ByteBuffer
+            .allocateDirect(CUBE.length * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer();
+
+    private FloatBuffer mGLTextureBuffer = ByteBuffer
+            .allocateDirect(TEXTURE_NO_ROTATION.length * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(TEXTURE_NO_ROTATION);
+
+    protected int mGLProgId;
+    protected int mGLAttribPosition;
+    protected int mGLAttribTextureCoordinate;
+    protected int mGLUniformTexture;
+
+    private int mImageWidth, mImageHeight; // bitmap图片实际大小
+    private int mGLTextureId = OpenGLUtil.NO_TEXTURE; // 纹理id
+
+    public Image2D(Context context) {
+        // 需要显示的图片
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.bg_clazz_preview_result);
+        mImageWidth = bitmap.getWidth();
+        mImageHeight = bitmap.getHeight();
+        // 把图片数据加载进GPU，生成对应的纹理id
+        mGLTextureId = OpenGLUtil.loadTexture(bitmap, mGLTextureId, true); // 加载纹理
+
+        mGLProgId = OpenGLUtil.loadProgram(vertexShaderCode, fragmentShaderCode); // 编译链接着色器，创建着色器程序
+        GLES20.glUseProgram(mGLProgId);
+
+        mGLAttribPosition = GLES20.glGetAttribLocation(mGLProgId, "position"); // 顶点着色器的顶点坐标
+        mGLAttribTextureCoordinate = GLES20.glGetAttribLocation(mGLProgId, "inputTextureCoordinate"); // 顶点着色器的纹理坐标
+        mGLUniformTexture = GLES20.glGetUniformLocation(mGLProgId, "inputImageTexture"); // 传入的图片纹理
+        // 顶点着色器的纹理坐标
+        mGLTextureBuffer.position(0);
+        GLES20.glVertexAttribPointer(mGLAttribTextureCoordinate, 2, GLES20.GL_FLOAT, false, 0, mGLTextureBuffer);
+        GLES20.glEnableVertexAttribArray(mGLAttribTextureCoordinate);
+        // 传入的图片纹理
+        if (mGLTextureId != OpenGLUtil.NO_TEXTURE) {
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mGLTextureId);
+            GLES20.glUniform1i(mGLUniformTexture, 0);
+        }
+    }
+
+    public void draw() {
+        // 绘制顶点
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+    }
+
+    // 调整图片显示大小为居中显示
+    public void adjustImageScaling(float outputWidth, float outputHeight) {
+        float ratio1 = outputWidth / mImageWidth;
+        float ratio2 = outputHeight / mImageHeight;
+        float ratioMax = Math.min(ratio1, ratio2);
+        // 居中后图片显示的大小
+        int imageWidthNew = Math.round(mImageWidth * ratioMax);
+        int imageHeightNew = Math.round(mImageHeight * ratioMax);
+
+        // 图片被拉伸的比例
+        float ratioWidth = outputWidth / imageWidthNew;
+        float ratioHeight = outputHeight / imageHeightNew;
+        // 根据拉伸比例还原顶点
+        float[] cube = new float[]{
+                CUBE[0] / ratioWidth, CUBE[1] / ratioHeight,
+                CUBE[2] / ratioWidth, CUBE[3] / ratioHeight,
+                CUBE[4] / ratioWidth, CUBE[5] / ratioHeight,
+                CUBE[6] / ratioWidth, CUBE[7] / ratioHeight,
+        };
+
+        mGLCubeBuffer.clear();
+        mGLCubeBuffer.put(cube).position(0);
+
+        // 顶点着色器的顶点坐标
+        GLES20.glVertexAttribPointer(mGLAttribPosition, 2, GLES20.GL_FLOAT, false, 0, mGLCubeBuffer);
+        GLES20.glEnableVertexAttribArray(mGLAttribPosition);
+    }
+}
+```
+在Render的`onSurfaceChanged(GL10 gl, int width, int height)` 创建`Image2D `实例，调用`Image2D.adjustImageScaling()`调整图片居中显示，然后在Render的`onDrawFrame(GL10 gl)` 调用`Image2D.draw()`即可
 
 # 参考&扩展
 
-- [Android OpenGL ES 开发教程(5)：关于EGL](http://www.guidebee.info/wordpress/?p=1873)
+- [Android OpenGL ES 开发教程(5)：关于EGL](http://www.guidebee.info/wordpress/?p=1873) EGL绘图步骤
+- [OpenGL 学习系列--基础的绘制流程](https://juejin.cn/post/6844903603115671566) 结构清晰易懂
 - [OpenGL渲染流程](https://www.pianshen.com/article/5565670467/)
 - [OpenGL ES着色器语言之变量和数据类型（一）（官方文档第四章）](https://blog.csdn.net/wangyuchun_799/article/details/7744620)
+- [Android OpenGL ES 开发教程(8)：基本几何图形定义](http://www.guidebee.info/wordpress/?p=1938)
 - [OpenGL ES 2.0 显示图形（上）](https://www.jianshu.com/p/b2a9c83c2256) 显示三角形和正方形
-- - [Android OpenGL ES 开发教程(8)：基本几何图形定义](http://www.guidebee.info/wordpress/?p=1938)
+- [OpenGL ES 2.0 显示图形（下）](https://www.jianshu.com/p/2c94427418ba) 解决变形拉升问题
+- [从显示一张图片开始学习OpenGL ES](https://juejin.cn/post/6844903682413182984) 
 - [OpenGL ES 3.0（四）矩阵变换](https://www.jianshu.com/p/3bae907f353a)
 - [android平台下OpenGL ES 3.0从零开始](https://blog.csdn.net/byhook/article/details/83715360)
