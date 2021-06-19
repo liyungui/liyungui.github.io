@@ -25,38 +25,6 @@ OpenGL ES 1.x的版本和2.0基本是两套框架，许多东西不兼容而且�
 
 所以一般以2.0版本作为切入点
 
-# 关于EGL
-
-OpenGL ES定义了平台无关的GL绘图指令
-
-EGL则定义了统一的平台接口：
-
-- **Display(EGLDisplay)** 实际显示设备的抽象
-- **Surface(EGLSurface)** 存储图像的内存区域 FrameBuffer 的抽象
-	- 包括：
-		- Color Buffer
-		- Stencil Buffer
-		- Depth Buffer 
-- **Context(EGLContext)** 存储OpenGL ES绘图的一些状态信息
-
-## 使用EGL的绘图的一般步骤
-
-- 获取EGLDisplay对象
-- 初始化与EGLDisplay 之间的连接。
-- 获取EGLConfig对象
-- 创建EGLContext 实例
-- 创建EGLSurface实例
-- 连接EGLContext和EGLSurface.
-- 使用GL指令绘制图形
-- 断开并释放与EGLSurface关联的EGLContext对象
-- 删除EGLSurface对象
-- 删除EGLContext对象
-- 终止与EGLDisplay之间的连接。
-
-一般来说，Android平台大部分OpenGL ES开发，无需直接按照上述步骤来使用OpenGL ES绘制图形。
-
-Android平台中 类 **GLSurfaceView**，提供了对Display,Surface,Context 的管理，大大简化了OpenGL ES的程序框架
-
 # 第一个Android实例
 
 实例：显示红色背景
@@ -175,6 +143,8 @@ OpenGL采用**cs模型**：c是cpu，s是GPU。c给s的输入是vertex信息和T
 
 {% asset_img OpenGL绘制流程.png %}
 
+{% asset_img OpenGL管线.png %}
+
 # 可编程管线
 
 固定管线是没有shader参与的绘制管线，OpenGL3.0已经废除了这个功能
@@ -219,7 +189,7 @@ OpenGL采用**cs模型**：c是cpu，s是GPU。c给s的输入是vertex信息和T
 
 由于对一个OpenGL纹理来说，它没有内在的方向性，因此我们可以使用不同的坐标把它定向到任何我们喜欢的方向上，然而大多数计算机图像都有一个默认的方向，它们通常被规定为**y轴向下**，y的值随着向图像的底部移动而增加。
 
-这就跟OpenGL世界坐标的y方向相反，想用正确的方向观看图像，那纹理坐标的u也必须要向下(即跟上面独立的纹理坐标u反向，左上角变为原点)
+这就跟OpenGL世界坐标的y方向相反，想用正确的方向观看图像，那纹理坐标的u也必须要向下(即跟上面独立的纹理坐标u反向，左上角变为原点)。Android系统坐标系的原点是在左上方的
 
 {% asset_img 纹理坐标和世界坐标.png %}
 
@@ -317,7 +287,8 @@ void main() {
 // 摄像头数据 扩展纹理
 #extension GL_OES_EGL_image_external : require
 
-precision mediump float; // 数据精度
+// 配置float精度，使用了float数据一定要配置：lowp(低)/mediump(中)/highp(高)
+precision mediump float;
 
 varying vec2 vTextureCoord; // 一个纹理坐标，片段着色器传过来
 uniform samplerExternalOES vTexture;
@@ -731,53 +702,36 @@ public class Image2D {
             .asFloatBuffer()
             .put(TEXTURE_NO_ROTATION);
 
-    protected int mGLProgId;
-    protected int mGLAttribPosition;
-    protected int mGLAttribTextureCoordinate;
-    protected int mGLUniformTexture;
-
-    private int mImageWidth, mImageHeight; // bitmap图片实际大小
     private int mGLTextureId = OpenGLUtil.NO_TEXTURE; // 纹理id
 
-    public Image2D(Context context) {
+    public Image2D(Context context, int outputWidth, int outputHeight) {
         // 需要显示的图片
         Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.bg_clazz_preview_result);
-        mImageWidth = bitmap.getWidth();
-        mImageHeight = bitmap.getHeight();
+        int imageWidth = bitmap.getWidth();
+        int imageHeight = bitmap.getHeight();
         // 把图片数据加载进GPU，生成对应的纹理id
         mGLTextureId = OpenGLUtil.loadTexture(bitmap, mGLTextureId, true); // 加载纹理
 
-        mGLProgId = OpenGLUtil.loadProgram(vertexShaderCode, fragmentShaderCode); // 编译链接着色器，创建着色器程序
-        GLES20.glUseProgram(mGLProgId);
+        int program = OpenGLUtil.loadProgram(vertexShaderCode, fragmentShaderCode0); // 编译链接着色器，创建着色器程序
 
-        mGLAttribPosition = GLES20.glGetAttribLocation(mGLProgId, "position"); // 顶点着色器的顶点坐标
-        mGLAttribTextureCoordinate = GLES20.glGetAttribLocation(mGLProgId, "inputTextureCoordinate"); // 顶点着色器的纹理坐标
-        mGLUniformTexture = GLES20.glGetUniformLocation(mGLProgId, "inputImageTexture"); // 传入的图片纹理
-        // 顶点着色器的纹理坐标
-        mGLTextureBuffer.position(0);
-        GLES20.glVertexAttribPointer(mGLAttribTextureCoordinate, 2, GLES20.GL_FLOAT, false, 0, mGLTextureBuffer);
-        GLES20.glEnableVertexAttribArray(mGLAttribTextureCoordinate);
-        // 传入的图片纹理
-        if (mGLTextureId != OpenGLUtil.NO_TEXTURE) {
-            GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mGLTextureId);
-            GLES20.glUniform1i(mGLUniformTexture, 0);
-        }
+        adjustImageScaling(outputWidth, outputHeight, imageWidth, imageHeight);
+        OpenGLUtil.bindProgram(program, mGLCubeBuffer, mGLTextureBuffer, mGLTextureId);
     }
 
     public void draw() {
         // 绘制顶点
+        // GLES20.GL_TRIANGLE_STRIP即每相邻三个顶点组成一个三角形，为一系列相接三角形构成
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
     }
 
     // 调整图片显示大小为居中显示
-    public void adjustImageScaling(float outputWidth, float outputHeight) {
-        float ratio1 = outputWidth / mImageWidth;
-        float ratio2 = outputHeight / mImageHeight;
+    public void adjustImageScaling(float outputWidth, float outputHeight, int imageWidth, int imageHeight) {
+        float ratio1 = outputWidth / imageWidth;
+        float ratio2 = outputHeight / imageHeight;
         float ratioMax = Math.min(ratio1, ratio2);
         // 居中后图片显示的大小
-        int imageWidthNew = Math.round(mImageWidth * ratioMax);
-        int imageHeightNew = Math.round(mImageHeight * ratioMax);
+        int imageWidthNew = Math.round(imageWidth * ratioMax);
+        int imageHeightNew = Math.round(imageHeight * ratioMax);
 
         // 图片被拉伸的比例
         float ratioWidth = outputWidth / imageWidthNew;
@@ -790,21 +744,332 @@ public class Image2D {
                 CUBE[6] / ratioWidth, CUBE[7] / ratioHeight,
         };
 
+        // 顶点着色器的顶点坐标
         mGLCubeBuffer.clear();
         mGLCubeBuffer.put(cube).position(0);
+    }
+}    
+```
+
+```
+public class OpenGLUtil {
+    public static void bindProgram(final int program, final FloatBuffer vertexBuffer, final FloatBuffer textureCoordinateBuffer, final int texture) {
+        GLES20.glUseProgram(program);
 
         // 顶点着色器的顶点坐标
-        GLES20.glVertexAttribPointer(mGLAttribPosition, 2, GLES20.GL_FLOAT, false, 0, mGLCubeBuffer);
-        GLES20.glEnableVertexAttribArray(mGLAttribPosition);
+        int attributePosition = GLES20.glGetAttribLocation(program, "position"); // 顶点着色器的顶点坐标
+        vertexBuffer.position(0);
+        GLES20.glVertexAttribPointer(attributePosition, 2, GLES20.GL_FLOAT, false, 0, vertexBuffer);
+        GLES20.glEnableVertexAttribArray(attributePosition);
+
+        // 顶点着色器的纹理坐标
+        int attributeTextureCoordinate = GLES20.glGetAttribLocation(program, "inputTextureCoordinate"); // 顶点着色器的纹理坐标
+        textureCoordinateBuffer.position(0);
+        GLES20.glVertexAttribPointer(attributeTextureCoordinate, 2, GLES20.GL_FLOAT, false, 0, textureCoordinateBuffer);
+        GLES20.glEnableVertexAttribArray(attributeTextureCoordinate);
+
+        // 传入的图片纹理
+        int uniformTexture = GLES20.glGetUniformLocation(program, "inputImageTexture"); // 传入的图片纹理
+        // 激活纹理单元0
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        // 绑定纹理ID到纹理单元
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture);
+        // 将激活的纹理单元0传递到着色器里面。第二个参数索引需要和纹理单元索引保持一致
+        GLES20.glUniform1i(uniformTexture, 0);
+    }
+    
+    public static final int NO_TEXTURE = -1;
+    
+    public static int loadTexture(final Bitmap img, final int textureId, final boolean recycle) {
+        int textures[] = new int[]{-1};
+        if (textureId == NO_TEXTURE) {
+            GLES20.glGenTextures(1, textures, 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+            //纹理坐标系，称UV坐标，或者ST坐标
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT); // S轴的拉伸方式为重复，决定采样值的坐标超出图片范围时的采样方式
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT); // T轴的拉伸方式为重复
+
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, img, 0);
+        } else {
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
+            GLUtils.texSubImage2D(GLES20.GL_TEXTURE_2D, 0, 0, 0, img);
+            textures[0] = textureId;
+        }
+        if (recycle) {
+            img.recycle();
+        }
+        return textures[0];
+    }
+
+    public static int loadTexture(final Buffer data, final int width, final int height, final int textureId) {
+        int textures[] = new int[1];
+        if (textureId == NO_TEXTURE) {
+            GLES20.glGenTextures(1, textures, 0);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+            GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
+                    width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, data);
+        } else {
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId);
+            GLES20.glTexSubImage2D(GLES20.GL_TEXTURE_2D, 0, 0, 0,
+                    width, height, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, data);
+            textures[0] = textureId;
+        }
+        return textures[0];
     }
 }
 ```
-在Render的`onSurfaceChanged(GL10 gl, int width, int height)` 创建`Image2D `实例，调用`Image2D.adjustImageScaling()`调整图片居中显示，然后在Render的`onDrawFrame(GL10 gl)` 调用`Image2D.draw()`即可
+
+在Render的`onSurfaceChanged(GL10 gl, int width, int height)` 创建`Image2D`实例，然后在Render的`onDrawFrame(GL10 gl)` 调用`Image2D.draw()`即可
+
+# 帧缓存 FrameBuffer
+
+通过OpenGL管线可知，最终的处理结果都需要存储到 FrameBuffer，然后显示到屏幕
+
+## FBO结构
+
+包含：
+
+- 多个 颜色关联点 `GL_COLOR_ATTACHMENT`
+	- 可以绑定 纹理图像（**Texture** Images）
+- 一个 深度关联点 `GL_DEPTH_ATTACHMENT`
+	- 可以绑定 渲染缓存图像（**RenderBuffer** Images）
+	- 存储深度信息的，在3D渲染时才会用到
+- 一个 模板关联点 `GL_STENCIL_ATTACHMENT`
+	- 在模板测试时会用到
+	- 
+FrameBuffer 本身其实并不会存储数据，都是通过 attachment 去绑定别的东西来存储相应的数据
+。即 FrameBuffer 具有什么样的功能，就与 FrameBuffer 绑定的 **attachment** 有关
+
+{% asset_img FBO结构.png %}
+
+## 系统帧缓存 和 应用帧缓存
+
+一般情况下，帧缓存完全由window系统生成和管理，由OpenGL使用。
+
+这个默认的帧缓存被称作“window系统生成”（`window-system-provided`）的帧缓存。
+
+在OpenGL扩展中，`GL_EXT_framebuffer_object`接口可以 创建额外的不能显示的帧缓存对象的。它完全受OpenGL控制
+
+为了和默认的“window系统生成”的帧缓存区别，这种帧缓冲成为应用程序生成（`application-created`）的帧缓存。
+
+通过使用**帧缓存对象（FBO）**，OpenGL可以将显示输出到引用程序帧缓存对象，而不是传统的“window系统生成”帧缓存。
+
+## 使用中间FBO
+
+**实例：**先把图片的蓝色通道全都设置为0.5，然后做一个水平方向的模糊。
+
+这时渲染过程就由2步组成，第一步的操作不应该显示到屏幕上，应该有个地方存着它的结果，作为第二步的输入，然后第二步的渲染结果才直接显示到屏幕上。实际上这两步可以合成一步，分成两步主要是为了展示如果使用frame buffer。
+
+GLSurfaceView的onDrawFrame回调中，默认是绑定了window系统生成的FBO的，这个FBO对应屏幕显示，即0号FBO。只要我们中间不切换FBO，所有的glDrawArray或glDrawElements指令调用都是将目标渲染到这个0号FBO的。
+
+而对摄像头数据进行处理后再显示到屏幕的需求来说，我们不能将两个着色器程序都直接渲染到屏幕，第一个着色器程序渲染的结果需要输出到一个中间FBO上，然后再切回屏幕对应的0号FBO渲染第二个着色器程序。
+
+```
+public class Image2D {
+    // 顶点着色器 代码
+    public static final String vertexShaderCode =
+            "precision mediump float;\n" +
+                    "attribute vec4 position;\n" + // 顶点着色器的顶点坐标,由外部程序传入
+                    "attribute vec2 inputTextureCoordinate;\n" + // 传入的纹理坐标
+                    " \n" +
+                    "varying vec2 textureCoordinate;\n" +
+                    " \n" +
+                    "void main()\n" +
+                    "{\n" +
+                    "    gl_Position = position;\n" +
+                    "    textureCoordinate = inputTextureCoordinate;\n" + // 最终顶点位置
+                    "}";
+    // 片段着色器 代码0
+    public static final String fragmentShaderCode0 =
+            "precision mediump float;\n" +
+                    "varying vec2 textureCoordinate;\n" + // 最终顶点位置，上面顶点着色器的varying变量会传递到这里
+                    " \n" +
+                    "uniform sampler2D inputImageTexture;\n" + // 外部传入的图片纹理 即代表整张图片的数据
+                    " \n" +
+                    "void main()\n" +
+                    "{\n" +
+                    "     vec4 color = texture2D(inputImageTexture, textureCoordinate);\n" +  // 调用函数 进行纹理贴图
+                    "     color.b = 0.5;\n" + //蓝色通道设置为0.5
+                    "     gl_FragColor = color;\n" +
+                    "}";
+    // 片段着色器 代码1
+    public static final String fragmentShaderCode1 = "" +
+            "varying highp vec2 textureCoordinate;\n" + // 最终顶点位置，上面顶点着色器的varying变量会传递到这里
+            " \n" +
+            "uniform sampler2D inputImageTexture;\n" + // 外部传入的图片纹理 即代表整张图片的数据
+            " \n" +
+            "void main()\n" +
+            "{\n" +
+            "     vec4 color = texture2D(inputImageTexture, textureCoordinate);\n" +  // 调用函数 进行纹理贴图
+            "     color.g = 0.5;\n" + //绿色通道设置为0.5
+            "     gl_FragColor = color;\n" +
+            "}";
+
+    // 原始的矩形区域的顶点坐标
+    static final float CUBE[] = {
+            -1.0f, -1.0f, // v1 左下
+            1.0f, -1.0f,  // v2 右下
+            -1.0f, 1.0f,  // v3 左上
+            1.0f, 1.0f,   // v4 右上
+    };
+    // 纹理坐标系，称UV坐标，或者ST坐标。UV坐标定义为左上角（0，0），右下角（1，1）
+    // 每个坐标的纹理采样对应上面顶点坐标。
+    public static final float TEXTURE_NO_ROTATION[] = {
+            0.0f, 1.0f, // v1 左下
+            1.0f, 1.0f, // v2 右下
+            0.0f, 0.0f, // v3 左上
+            1.0f, 0.0f, // v4 右上
+    };
+    public static final float TEXTURE_ROTATION[] = {
+            0.0f, 0.0f, // v1 左下
+            1.0f, 0.0f, // v2 右下
+            0.0f, 1.0f, // v3 左上
+            1.0f, 1.0f, // v4 右上
+    };
+    private FloatBuffer mVertexBuffer = ByteBuffer
+            .allocateDirect(CUBE.length * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(CUBE);
+    private FloatBuffer mVertexBufferFull = ByteBuffer
+            .allocateDirect(CUBE.length * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(CUBE);
+
+    private FloatBuffer mTextureBufferNoRotation = ByteBuffer
+            .allocateDirect(TEXTURE_NO_ROTATION.length * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(TEXTURE_NO_ROTATION);
+    private FloatBuffer mTextureBufferRotation = ByteBuffer
+            .allocateDirect(TEXTURE_ROTATION.length * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(TEXTURE_ROTATION);
+
+
+    private int mImageTexture = OpenGLUtil.NO_TEXTURE; // 纹理id
+    private int mFrameBufferTexture;
+    private int mFrameBuffer;
+    private final int mProgram0;
+    private final int mProgram1;
+
+    public Image2D(Context context, int outputWidth, int outputHeight) {
+        // 需要显示的图片
+        Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.bg_clazz_preview_result);
+        int imageWidth = bitmap.getWidth();
+        int imageHeight = bitmap.getHeight();
+        // 把图片数据加载进GPU，生成对应的纹理id
+        mImageTexture = OpenGLUtil.loadTexture(bitmap, mImageTexture, true); // 加载纹理
+
+        // 编译链接着色器，创建着色器程序
+        mProgram0 = OpenGLUtil.loadProgram(vertexShaderCode, fragmentShaderCode0);
+        // 编译链接着色器，创建着色器程序
+        mProgram1 = OpenGLUtil.loadProgram(vertexShaderCode, fragmentShaderCode1);
+
+        adjustImageScaling(outputWidth, outputHeight, imageWidth, imageHeight);
+
+        mVertexBuffer.position(0);
+        mVertexBufferFull.position(0);
+        mTextureBufferNoRotation.position(0);
+        mTextureBufferRotation.position(0);
+
+        initFrameBuffer(outputWidth, outputHeight);
+    }
+
+    public void draw() {
+        // 绑定第0个GL Program。顶点坐标需要未缩放的，纹理坐标需要y轴向下的
+        OpenGLUtil.bindProgram(mProgram0, mVertexBufferFull, mTextureBufferNoRotation, mImageTexture);
+
+        // 绑定中间framebuffer
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer);
+
+        // 执行渲染，渲染效果为将图片的蓝色通道全部设为0.5
+        render();
+
+        // 绑定第1个GL Program。顶点坐标需要做过等比缩放的，纹理坐标不需要旋转（前面渲染到中间FB时已经旋转过）
+        OpenGLUtil.bindProgram(mProgram1, mVertexBuffer, mTextureBufferRotation, mFrameBufferTexture);
+
+        // 绑定0号framebuffer，即渲染到屏幕
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
+
+        // 执行渲染，渲染效果为将图片的绿色通道全部设为0.5
+        render();
+    }
+
+    public void render() {
+        // 绘制顶点
+        // GLES20.GL_TRIANGLE_STRIP即每相邻三个顶点组成一个三角形，为一系列相接三角形构成
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+    }
+
+    // 调整图片显示大小为居中显示
+    public void adjustImageScaling(float outputWidth, float outputHeight, int imageWidth, int imageHeight) {
+        float ratio1 = outputWidth / imageWidth;
+        float ratio2 = outputHeight / imageHeight;
+        float ratioMax = Math.min(ratio1, ratio2);
+        // 居中后图片显示的大小
+        int imageWidthNew = Math.round(imageWidth * ratioMax);
+        int imageHeightNew = Math.round(imageHeight * ratioMax);
+        // 图片被拉伸的比例
+        float ratioWidth = outputWidth / imageWidthNew;
+        float ratioHeight = outputHeight / imageHeightNew;
+        // 根据拉伸比例还原顶点
+        float[] cube = new float[]{
+                CUBE[0] / ratioWidth, CUBE[1] / ratioHeight,
+                CUBE[2] / ratioWidth, CUBE[3] / ratioHeight,
+                CUBE[4] / ratioWidth, CUBE[5] / ratioHeight,
+                CUBE[6] / ratioWidth, CUBE[7] / ratioHeight,
+        };
+
+        // 顶点着色器的顶点坐标
+        mVertexBuffer.clear();
+        mVertexBuffer.put(cube).position(0);
+    }
+
+    private void initFrameBuffer(int width, int height) {
+
+        // 创建framebuffer绑定的纹理
+        int textures[] = new int[1];
+        GLES20.glGenTextures(1, textures, 0);
+        mFrameBufferTexture = textures[0];
+
+        // 创建framebuffer
+        int frameBuffers[] = new int[1];
+        GLES20.glGenFramebuffers(1, frameBuffers, 0);
+        mFrameBuffer = frameBuffers[0];
+
+        // 将texture绑定到framebuffer
+        // 绑定纹理
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mFrameBufferTexture);
+        // 配置纹理参数
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        // 纹理图片为空
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+        // 绑定 Framebuffer
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFrameBuffer);
+        // 将纹理绑定到Framebuffer的 GL_COLOR_ATTACHMENT0
+        // OpenGL ES 2.0中，只能将texture绑定到0号attachment上
+        GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mFrameBufferTexture, 0);
+    }
+}
+```
+
+在Render的`onSurfaceChanged(GL10 gl, int width, int height)` 创建`Image2D`实例，然后在Render的`onDrawFrame(GL10 gl)` 调用`Image2D.draw()`即可
 
 # 参考&扩展
 
-- [Android OpenGL ES 开发教程(5)：关于EGL](http://www.guidebee.info/wordpress/?p=1873) EGL绘图步骤
-- [OpenGL 学习系列--基础的绘制流程](https://juejin.cn/post/6844903603115671566) 结构清晰易懂
+- [OpenGL 学习系列--基础的绘制流程](https://juejin.cn/post/6844903603115671566) 结构清晰易懂，绘制一个点
 - [OpenGL渲染流程](https://www.pianshen.com/article/5565670467/)
 - [OpenGL ES着色器语言之变量和数据类型（一）（官方文档第四章）](https://blog.csdn.net/wangyuchun_799/article/details/7744620)
 - [Android OpenGL ES 开发教程(8)：基本几何图形定义](http://www.guidebee.info/wordpress/?p=1938)
@@ -813,3 +1078,5 @@ public class Image2D {
 - [从显示一张图片开始学习OpenGL ES](https://juejin.cn/post/6844903682413182984) 
 - [OpenGL ES 3.0（四）矩阵变换](https://www.jianshu.com/p/3bae907f353a)
 - [android平台下OpenGL ES 3.0从零开始](https://blog.csdn.net/byhook/article/details/83715360)
+- [Android OpenGL开发实践 - GLSurfaceView对摄像头数据的再处理](https://mp.weixin.qq.com/s/R1QcicC14TYNnxJ4s-8SEw) 腾讯光影研究室：相机预览、黑白滤镜、双着色器程序、帧缓存。关键代码截图，不太具体
+- [Android OpenGL ES 2.0 手把手教学（7）- 帧缓存FrameBuffer](https://juejin.cn/post/6844903842006433805) 帧缓存保存中间渲染结果。有源码
