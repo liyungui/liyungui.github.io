@@ -754,6 +754,26 @@ allprojects {
 }
 ```
 
+# 依赖本地模块
 
+`settings.gradle`中引入
+
+```
+// 本工程目录下的子模块
+include  ':pay', ':base'
+
+// 非工程目录下的子模块
+include ':video'
+project(':video').projectDir = new File('/Users/liyungui/StudioProjects/grmeeting_android/lib_video')
+```
+
+主模块下`build.gradle`中使用
+
+```
+dependencies {
+	api project(':pay')
+	api project(':common')
+	api project(':video')    
+```
 
  	
