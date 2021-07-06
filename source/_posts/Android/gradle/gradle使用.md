@@ -515,6 +515,23 @@ ApplicationVariant，通过查看源代码看到它有一个outputs List集合 �
         }
     }
 
+## 修改apk文件名
+
+```
+//自定义获取时间戳函数
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+def getDateTime() {
+    DateFormat df = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
+    return df.format(new Date());
+}
+// APK 文件名带上版本号和时间戳
+android.applicationVariants.all { variant ->
+    variant.outputs.all { output ->
+        outputFileName = output.outputFile.name.replace(".apk", "-${variant.versionName}-" + getDateTime() + ".apk")
+    }
+}
+```
 # library 构建 #
 
 **library module 默认是输出 release 包的**。所以默认情况下载library module 设置debug字段(如高德debug key)是浪费表情

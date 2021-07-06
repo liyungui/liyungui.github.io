@@ -79,4 +79,6 @@ Code for rendering a texture onto a surface using OpenGL ES 2.0.
 
 - [libstreaming github](https://github.com/fyhertz/libstreaming)
 - [Endoscope github](https://github.com/hypeapps/Endoscope) 使用libstreaming实现Android推流直播
-- [libstreaming局域网构建Android相机实时流媒体流程分析](https://blog.csdn.net/asahinokawa/article/details/80500098?utm_medium=distribute.pc_relevant.none-task-blog-baidujs_title-2&spm=1001.2101.3001.4242) 源码分析
+- [libstreaming局域网构建Android相机实时流媒体流程分析](https://blog.csdn.net/asahinokawa/article/details/80500098) 源码分析
+- [libstreaming实现rtsp推流的缺陷修复](https://blog.csdn.net/abc_1234d/article/details/80229526) 大尺寸推流报错问题、画面旋转90度问题、客户端起播慢问题
+- [libstreaming在android手机上推流及多端播放问题解决](https://blog.csdn.net/suyoung21/article/details/109765079) 多端同时拉流问题
