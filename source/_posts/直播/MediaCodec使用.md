@@ -107,7 +107,7 @@ Surface直接使用本地视频数据缓存（native video buffers），而没�
 - 根据上面得到的Surface**创建EGLSuface**
 - camera预览时的绑定的纹理id，进行**纹理绘制**
 - 交换数据，让数据输入新Surface
-- AudioReocod声音采集
+- AudioRecord声音采集
 - Mediacodec编码为h264、AAC
 - MediaMuxer封装为mp4
 
